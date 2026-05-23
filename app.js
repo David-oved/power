@@ -307,6 +307,25 @@ loginBtn.addEventListener('click', async () => {
   }
 });
 
+// Guest Bypass Logic - Allows sandbox/In-App WebView/Incognito users to bypass OAuth limits
+const guestLoginBtn = document.getElementById('guest-login-btn');
+if (guestLoginBtn) {
+  guestLoginBtn.addEventListener('click', () => {
+    console.log("Guest login bypassed. Rendering offline training cockpit...");
+    setElText('user-display-name', 'אורח');
+    setElText('drawer-user-full-name', 'משתמש אורח (אופליין)');
+    setElText('drawer-user-email', 'guest@auraapp.local');
+    setElText('drawer-user-uid', 'GUEST-' + Math.random().toString(36).substring(2, 9).toUpperCase());
+    setElText('drawer-user-provider', 'guest.session');
+    
+    const photoURL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+    if (floatingUserPhoto) floatingUserPhoto.src = photoURL;
+    if (drawerUserPhoto) drawerUserPhoto.src = photoURL;
+    
+    switchScreen(true);
+  });
+}
+
 // Helper function to handle and translate authentication errors beautifully for the user
 function handleAuthError(error, btn, originalText) {
   btn.disabled = false;

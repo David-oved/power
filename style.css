@@ -2763,7 +2763,9 @@ body:has(#app-screen.active) .ambient-glow {
   position: fixed;
   bottom: calc(1rem + env(safe-area-inset-bottom));
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) translateY(120%) !important; /* starts fully hidden off-screen below */
+  opacity: 0 !important;
+  pointer-events: none !important;
   width: calc(100% - 2.5rem);
   max-width: 440px;
   border-radius: 20px;
@@ -2778,6 +2780,16 @@ body:has(#app-screen.active) .ambient-glow {
   border: 1px solid rgba(0, 0, 0, 0.08) !important;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04), 0 0 1px rgba(0, 0, 0, 0.08) !important;
   direction: ltr !important; /* Perfect standard English tabs alignment */
+  
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease !important;
+}
+
+/* Beautiful slide up entry when signed in and dashboard screen is active */
+body:has(#app-screen.active) .bottom-nav-bar,
+.app-viewport:has(#app-screen.active) ~ .bottom-nav-bar {
+  transform: translateX(-50%) translateY(0) !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
 }
 
 .nav-tab {
@@ -3164,6 +3176,71 @@ body:has(#app-screen.active) .ambient-glow {
   gap: 0.5rem !important;
   flex-direction: row-reverse !important;
   flex-grow: 1 !important;
+}
+
+/* ==========================================================================
+   Sleek Guest Bypass Button Styles (Login Screen)
+   ========================================================================== */
+.guest-btn {
+  background: transparent !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: var(--radius-btn) !important;
+  display: flex !important;
+  align-items: center !important;
+  padding: 8px 16px !important;
+  cursor: pointer !important;
+  width: 100% !important;
+  max-width: 280px !important;
+  margin: 1.2rem auto 0 !important;
+  position: relative !important;
+  overflow: hidden !important;
+  transition: var(--transition-smooth) !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3) !important;
+  direction: rtl !important;
+}
+
+.guest-btn:hover {
+  transform: scale(1.05) translateY(-2px) !important;
+  border-color: var(--electric-blue) !important;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), 0 0 15px var(--electric-blue-glow) !important;
+}
+
+.guest-btn:active {
+  transform: scale(0.98) translateY(1px) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+}
+
+.guest-btn-icon {
+  width: 30px;
+  height: 30px;
+  background-color: rgba(255, 255, 255, 0.08);
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1rem;
+  margin-left: 10px;
+  transition: var(--transition-smooth);
+}
+
+.guest-btn:hover .guest-btn-icon {
+  background-color: var(--electric-blue-glow-subtle);
+  transform: scale(1.06);
+}
+
+.guest-btn-text {
+  flex-grow: 1;
+  color: #e2e8f0;
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: center;
+  padding-left: 30px; /* perfectly offset the icon for absolute center text! */
+  transition: var(--transition-smooth);
+}
+
+.guest-btn:hover .guest-btn-text {
+  color: #ffffff;
 }
 
 
