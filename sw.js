@@ -1,4 +1,4 @@
-const CACHE_NAME = 'aura-app-v1.7';
+const CACHE_NAME = 'aura-app-v1.9'; // Incremented cache version
 const ASSETS = [
   './',
   './index.html',
@@ -14,17 +14,27 @@ const ASSETS = [
   'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js'
 ];
 
-// Service Worker Install State - cache all core files
+// Service Worker Install State - cache all core files bypass HTTP cache
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('Service Worker: Caching critical assets');
-      return cache.addAll(ASSETS).catch(err => {
-        console.warn('Failed to cache some files (they will load dynamically):', err);
+      console.log('Service Worker: Caching critical assets with reload bypass');
+      // Use cache: 'reload' on Requests to force network fetch, bypassing stale browser HTTP cache
+      const cachePromises = ASSETS.map((url) => {
+        const request = new Request(url, { cache: 'reload' });
+        return fetch(request).then((response) => {
+          if (response.ok || response.status === 0) { // status 0 allows caching cross-origin opaque CDN assets
+            return cache.put(url, response);
+          }
+          throw new Error(`Failed to fetch ${url} (status: ${response.status})`);
+        });
+      });
+      return Promise.all(cachePromises).catch(err => {
+        console.warn('Failed to cache some assets during install:', err);
       });
     })
   );
-  self.skipWaiting();
+  // DELETED self.skipWaiting() from here so that PWA update toast works perfectly!
 });
 
 // Activate state - clean up old caches
@@ -44,19 +54,30 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Intercept network requests - Cache First policy
+// Intercept network requests - Stale-While-Revalidate with robust Firebase exclusion
 self.addEventListener('fetch', (event) => {
-  // Filter out browser extensions and non-HTTP requests
   if (!event.request.url.startsWith('http')) return;
-
-  // Only cache GET requests
   if (event.request.method !== 'GET') return;
 
-  const isAuthOrFirebase = event.request.url.includes('/__/auth/') || 
-                           event.request.url.includes('googleapis.com');
+  let url;
+  try {
+    url = new URL(event.request.url);
+  } catch (e) {
+    return;
+  }
+
+  // Dynamic Auth, Realtime Database, Firestore, and Google Account services robust exclusions
+  const isAuthOrFirebase = 
+    url.hostname.endsWith('firebaseapp.com') ||
+    url.hostname.endsWith('firebaseio.com') ||
+    url.hostname.endsWith('googleapis.com') ||
+    url.hostname.endsWith('google.com') ||
+    event.request.url.includes('/__/auth/') ||
+    event.request.url.includes('identitytoolkit') ||
+    event.request.url.includes('securetoken');
   
   if (isAuthOrFirebase) {
-    return; // Force network check for dynamic auth/token requests
+    return; // Force direct network pass-through
   }
 
   event.respondWith(
@@ -64,7 +85,7 @@ self.addEventListener('fetch', (event) => {
       if (cachedResponse) {
         // Fetch new version in background to update cache (Stale-While-Revalidate)
         fetch(event.request).then((networkResponse) => {
-          if (networkResponse.status === 200) {
+          if (networkResponse.status === 200 || networkResponse.status === 0) {
             caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse.clone()));
           }
         }).catch(() => {/* Ignore offline fetch errors */});
@@ -76,7 +97,7 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Support programmatic skipWaiting message triggers
+// Support programmatic skipWaiting message triggers from PWA Update Toast
 self.addEventListener('message', (event) => {
   if (event.data && event.data.action === 'skipWaiting') {
     self.skipWaiting();

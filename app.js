@@ -2,22 +2,64 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-// 1. Initialize Firebase App using credentials from firebase-config.js robustly
+// ==========================================================================
+// 1. SafeStorage Adapter to handle Private Browsing & Quota Limits safely
+// ==========================================================================
+const SafeStorage = {
+  _fallbackMem: {},
+  isSupported() {
+    try {
+      const test = '__storage_test__';
+      localStorage.setItem(test, test);
+      localStorage.removeItem(test);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  },
+  getItem(key) {
+    if (this.isSupported()) {
+      return localStorage.getItem(key);
+    }
+    return this._fallbackMem[key] || null;
+  },
+  setItem(key, value) {
+    if (this.isSupported()) {
+      try {
+        localStorage.setItem(key, value);
+        return;
+      } catch (e) {
+        console.warn("Storage write failed (quota exceeded?):", e);
+      }
+    }
+    this._fallbackMem[key] = String(value);
+  },
+  removeItem(key) {
+    if (this.isSupported()) {
+      localStorage.removeItem(key);
+      return;
+    }
+    delete this._fallbackMem[key];
+  }
+};
+
+// State Variables
 let app;
 let auth;
 let googleProvider;
 let firebaseEnabled = false;
 
+let currentUser = null;
+let sessionType = null; // 'firebase', 'guest', or null
+let isSensitiveDataVisible = false;
+
+// Initialize Firebase App robustly using credentials from firebase-config.js
 if (window.firebaseConfig && window.firebaseConfig.apiKey && window.firebaseConfig.apiKey !== "YOUR_API_KEY") {
   try {
     app = initializeApp(window.firebaseConfig);
     auth = getAuth(app);
     googleProvider = new GoogleAuthProvider();
-    
-    // Custom parameters to ensure the account selector shows up nicely
-    googleProvider.setCustomParameters({
-      prompt: 'select_account'
-    });
+    googleProvider.setCustomParameters({ prompt: 'select_account' });
     firebaseEnabled = true;
     console.log("Firebase initialized successfully.");
   } catch (error) {
@@ -33,7 +75,6 @@ const appScreen = document.getElementById('app-screen');
 const loginBtn = document.getElementById('google-login-btn');
 const logoutBtn = document.getElementById('drawer-logout-btn');
 
-// User details DOM outlets (Floating avatar & Sliding Settings Drawer widgets)
 const userDisplayName = document.getElementById('user-display-name');
 const floatingUserPhoto = document.getElementById('floating-user-photo');
 
@@ -47,11 +88,15 @@ const drawerUserCreated = document.getElementById('drawer-user-created');
 const drawerUserLastLogin = document.getElementById('drawer-user-last-login');
 const drawerUserJsonCode = document.getElementById('drawer-user-json-code');
 
-// Drawer structural elements
 const settingsDrawer = document.getElementById('settings-drawer');
 const drawerOverlay = document.getElementById('drawer-overlay');
 const floatingAvatarBtn = document.getElementById('floating-avatar-btn');
 const drawerCloseBtn = document.getElementById('drawer-close-btn');
+const toggleSensitiveBtn = document.getElementById('drawer-toggle-sensitive-btn');
+
+// Standalone mode detection (PWA Installed)
+const isStandalone = window.navigator.standalone === true || 
+                     window.matchMedia('(display-mode: standalone)').matches;
 
 // Safe Date Parsing Helper Functions
 function safeFormatDate(value) {
@@ -64,6 +109,7 @@ function safeFormatDate(value) {
   return isNaN(d.getTime()) ? 'N/A' : d.toLocaleDateString();
 }
 
+// Safe Date Time Helper
 function safeFormatDateTime(value) {
   if (!value) return 'N/A';
   const num = Number(value);
@@ -85,42 +131,20 @@ function closeDrawer() {
   if (drawerOverlay) drawerOverlay.classList.remove('open');
 }
 
-// Resolve the incoming redirect sign-in result on page load gracefully
-if (firebaseEnabled) {
-  getRedirectResult(auth)
-    .then((result) => {
-      if (result) {
-        console.log("Redirect sign-in resolved successfully for:", result.user.displayName);
-      }
-    })
-    .catch((error) => {
-      console.error("Error resolving redirect result:", error.code, error.message);
-      // Handle known redirect errors gracefully
-      if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
-        console.log("Sign-in process was cancelled by the user.");
-      } else if (error.code === 'auth/web-storage-unsupported') {
-        alert("שים לב: הדפדפן הנוכחי שלך חוסם עוגיות או פועל במצב גלישה בסתר. אנא פתח את האפליקציה בדפדפן הרגיל (Chrome באנדרואיד או Safari באייפון) כדי שתוכל להתחבר בהצלחה.");
-      } else {
-        alert(`שגיאת התחברות: ${error.message || 'נא לפתוח בדפדפן Chrome/Safari הרגיל'}`);
-      }
-    });
-}
-
 // Helper to hide splash screen overlay
 function hideSplashScreen() {
   const splash = document.getElementById('splash-screen');
   if (splash) {
     if (!splash.classList.contains('fade-out')) {
       splash.classList.add('fade-out');
-      // Set display to none after transition completes
       setTimeout(() => {
         splash.style.display = 'none';
-      }, 600); // matching smooth transition in style.css
+      }, 600);
     }
   }
 }
 
-// 2. Manage App Screen Transitions adapted for Premium Splash Screen Overlay
+// Manage App Screen Transitions adapted for Premium Splash Screen Overlay
 function switchScreen(signedIn) {
   const splash = document.getElementById('splash-screen');
   const isSplashActive = splash && !splash.classList.contains('fade-out') && (splash.style.display !== 'none');
@@ -130,9 +154,7 @@ function switchScreen(signedIn) {
     setTimeout(() => {
       authScreen.style.display = 'none';
       appScreen.style.display = 'flex';
-      
       if (isSplashActive) {
-        // Wait until splash screen fades out to animate app screen active
         setTimeout(() => {
           appScreen.classList.add('active');
         }, 500);
@@ -145,9 +167,7 @@ function switchScreen(signedIn) {
     setTimeout(() => {
       appScreen.style.display = 'none';
       authScreen.style.display = 'flex';
-      
       if (isSplashActive) {
-        // Wait until splash screen fades out to animate auth screen active
         setTimeout(() => {
           authScreen.classList.add('active');
         }, 500);
@@ -164,94 +184,228 @@ const setElText = (id, text) => {
   if (el) el.textContent = text;
 };
 
-// 3. Monitor Firebase Authentication State Transitions
+// ==========================================================================
+// 2. Security Presenter: Mask credentials to prevent shoulder-surfing
+// ==========================================================================
+function maskString(str, visibleCount = 4) {
+  if (!str) return '--';
+  if (str.length <= visibleCount * 2) return '***';
+  return str.substring(0, visibleCount) + '...' + str.substring(str.length - visibleCount);
+}
+
+function maskEmail(email) {
+  if (!email) return '--';
+  const parts = email.split('@');
+  if (parts.length !== 2) return '***';
+  const name = parts[0];
+  const domain = parts[1];
+  if (name.length <= 2) return '*@' + domain;
+  return name.substring(0, 2) + '***' + '@' + domain;
+}
+
+function updateAuthUI() {
+  if (!currentUser) return;
+
+  const name = currentUser.displayName || 'Unknown User';
+  const email = currentUser.email || '--';
+  const uid = currentUser.uid;
+  const provider = currentUser.providerData?.[0]?.providerId || 'google.com';
+
+  const createdTime = currentUser.metadata?.createdAt || currentUser.metadata?.creationTime;
+  const loginTime = currentUser.metadata?.lastLoginAt || currentUser.metadata?.lastSignInTime;
+
+  // Header Display Name
+  setElText('user-display-name', name ? name.split(' ')[0] : 'User');
+
+  // Photo Binding
+  const photoURL = currentUser.photoURL || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+  if (floatingUserPhoto) {
+    floatingUserPhoto.src = photoURL;
+    floatingUserPhoto.onerror = () => { floatingUserPhoto.src = photoURL; };
+  }
+  if (drawerUserPhoto) {
+    drawerUserPhoto.src = photoURL;
+    drawerUserPhoto.onerror = () => { drawerUserPhoto.src = photoURL; };
+  }
+
+  // Drawer Fields
+  setElText('drawer-user-full-name', name);
+
+  if (isSensitiveDataVisible) {
+    setElText('drawer-user-email', email);
+    setElText('drawer-user-uid', uid);
+  } else {
+    setElText('drawer-user-email', maskEmail(email));
+    setElText('drawer-user-uid', maskString(uid, 5));
+  }
+
+  setElText('drawer-user-provider', provider);
+  setElText('drawer-user-created', safeFormatDate(createdTime));
+  setElText('drawer-user-last-login', safeFormatDateTime(loginTime));
+
+  const badgeVerified = document.getElementById('drawer-user-verified-badge');
+  if (badgeVerified) {
+    if (sessionType === 'guest') {
+      badgeVerified.textContent = 'Offline';
+      badgeVerified.className = 'badge-mini badge-unverified';
+    } else if (currentUser.emailVerified) {
+      badgeVerified.textContent = 'Verified';
+      badgeVerified.className = 'badge-mini badge-verified';
+    } else {
+      badgeVerified.textContent = 'Unverified';
+      badgeVerified.className = 'badge-mini badge-unverified';
+    }
+  }
+
+  // Raw Profile JSON compilation
+  const cleanUser = {
+    uid: isSensitiveDataVisible ? uid : maskString(uid, 5),
+    displayName: name,
+    email: isSensitiveDataVisible ? email : maskEmail(email),
+    emailVerified: currentUser.emailVerified || false,
+    photoURL: currentUser.photoURL ? (isSensitiveDataVisible ? currentUser.photoURL : maskString(currentUser.photoURL, 15)) : null,
+    metadata: {
+      createdAt: createdTime,
+      lastLoginAt: loginTime
+    },
+    providerData: currentUser.providerData ? currentUser.providerData.map(p => ({
+      providerId: p.providerId,
+      uid: isSensitiveDataVisible ? p.uid : maskString(p.uid, 5),
+      displayName: p.displayName,
+      email: isSensitiveDataVisible ? p.email : maskEmail(p.email),
+      photoURL: p.photoURL ? (isSensitiveDataVisible ? p.photoURL : maskString(p.photoURL, 15)) : null
+    })) : []
+  };
+
+  if (drawerUserJsonCode) {
+    drawerUserJsonCode.textContent = JSON.stringify(cleanUser, null, 2);
+  }
+}
+
+// Reset DOM fields safely on Logout to avoid credential leakage
+function clearUserSession() {
+  currentUser = null;
+  sessionType = null;
+  SafeStorage.removeItem('aura-active-session-type');
+
+  closeDrawer();
+
+  setElText('user-display-name', 'User');
+  setElText('drawer-user-full-name', 'User Name');
+  setElText('drawer-user-email', 'user@gmail.com');
+  setElText('drawer-user-uid', '--');
+  setElText('drawer-user-provider', '--');
+  setElText('drawer-user-created', '--');
+  setElText('drawer-user-last-login', '--');
+
+  const badgeVerified = document.getElementById('drawer-user-verified-badge');
+  if (badgeVerified) {
+    badgeVerified.textContent = '--';
+    badgeVerified.className = 'badge-mini';
+  }
+
+  if (drawerUserJsonCode) {
+    drawerUserJsonCode.textContent = 'No user session active.';
+  }
+
+  const fallbackPhoto = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+  if (floatingUserPhoto) floatingUserPhoto.src = fallbackPhoto;
+  if (drawerUserPhoto) drawerUserPhoto.src = fallbackPhoto;
+
+  isSensitiveDataVisible = false;
+  if (toggleSensitiveBtn) {
+    toggleSensitiveBtn.innerHTML = '👁️ הצג פרטים מזהים';
+  }
+}
+
+// Guest Mode Login
+function loginAsGuest() {
+  console.log("Initializing guest session...");
+  let guestUid = SafeStorage.getItem('aura-guest-uid');
+  if (!guestUid) {
+    guestUid = 'GUEST-' + Math.random().toString(36).substring(2, 9).toUpperCase();
+    SafeStorage.setItem('aura-guest-uid', guestUid);
+  }
+
+  currentUser = {
+    uid: guestUid,
+    displayName: 'אורח',
+    email: 'guest@auraapp.local',
+    emailVerified: false,
+    providerData: [{ providerId: 'guest.session' }],
+    metadata: {
+      createdAt: Date.now(),
+      lastLoginAt: Date.now()
+    }
+  };
+  sessionType = 'guest';
+  SafeStorage.setItem('aura-active-session-type', 'guest');
+
+  updateAuthUI();
+  switchScreen(true);
+}
+
+// Monitor Firebase Authentication Transitions safely
 if (firebaseEnabled) {
   onAuthStateChanged(auth, (user) => {
     if (user) {
       console.log("User signed in successfully:", user.displayName);
-      
-      // Bind credentials securely to dashboard greeting and Settings Drawer widgets
-      setElText('user-display-name', user.displayName ? user.displayName.split(' ')[0] : 'User');
-      setElText('drawer-user-full-name', user.displayName || 'Unknown User');
-      setElText('drawer-user-email', user.email || '--');
-      
-      // Fallback if user lacks profile photo (Map to floating avatar and drawer large avatar)
-      const photoURL = user.photoURL || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
-      if (floatingUserPhoto) {
-        floatingUserPhoto.src = photoURL;
-        floatingUserPhoto.onerror = () => {
-          floatingUserPhoto.onerror = null;
-          floatingUserPhoto.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
-        };
-      }
-      if (drawerUserPhoto) {
-        drawerUserPhoto.src = photoURL;
-        drawerUserPhoto.onerror = () => {
-          drawerUserPhoto.onerror = null;
-          drawerUserPhoto.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
-        };
-      }
+      currentUser = user;
+      sessionType = 'firebase';
+      SafeStorage.setItem('aura-active-session-type', 'firebase');
 
-      // Populate dynamic security and metadata stats safely inside the Settings Drawer
-      setElText('drawer-user-uid', user.uid);
-      setElText('drawer-user-provider', user.providerData?.[0]?.providerId || 'google.com');
-      
-      const createdTime = user.metadata.createdAt || user.metadata.creationTime;
-      setElText('drawer-user-created', safeFormatDate(createdTime));
-      
-      const loginTime = user.metadata.lastLoginAt || user.metadata.lastSignInTime;
-      setElText('drawer-user-last-login', safeFormatDateTime(loginTime));
-      
-      // Email verified badge inside Drawer
-      const badgeVerified = document.getElementById('drawer-user-verified-badge');
-      if (badgeVerified) {
-        if (user.emailVerified) {
-          badgeVerified.textContent = 'Verified';
-          badgeVerified.className = 'badge-mini badge-verified';
-        } else {
-          badgeVerified.textContent = 'Unverified';
-          badgeVerified.className = 'badge-mini badge-unverified';
-        }
-      }
-      
-      // Format and dump raw JSON representation of Google credentials into Drawer code terminal
-      const cleanUser = {
-        uid: user.uid,
-        displayName: user.displayName,
-        email: user.email,
-        emailVerified: user.emailVerified,
-        photoURL: user.photoURL,
-        metadata: {
-          createdAt: user.metadata.createdAt || user.metadata.creationTime,
-          lastLoginAt: user.metadata.lastLoginAt || user.metadata.lastSignInTime
-        },
-        providerData: user.providerData
-      };
-      
-      if (drawerUserJsonCode) {
-        drawerUserJsonCode.textContent = JSON.stringify(cleanUser, null, 2);
-      }
-
+      updateAuthUI();
       switchScreen(true);
     } else {
-      console.log("No authenticated user active.");
-      closeDrawer();
-      switchScreen(false);
+      // ONLY clear and kick out if we are not actively in a guest session!
+      if (sessionType !== 'guest') {
+        console.log("No authenticated user active.");
+        clearUserSession();
+        switchScreen(false);
+      }
     }
-    
-    // Hide splash screen overlay once initial auth state is determined
     hideSplashScreen();
   });
+
+  // Resolve redirect logins
+  getRedirectResult(auth)
+    .then((result) => {
+      if (result) {
+        console.log("Redirect sign-in resolved successfully for:", result.user.displayName);
+      }
+    })
+    .catch((error) => {
+      console.error("Error resolving redirect result:", error.code, error.message);
+      if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+        console.log("Sign-in process was cancelled by the user.");
+      } else if (error.code === 'auth/web-storage-unsupported') {
+        alert("שים לב: הדפדפן הנוכחי שלך חוסם עוגיות או פועל במצב גלישה בסתר. אנא פתח את האפליקציה בדפדפן הרגיל כדי להתחבר בהצלחה.");
+      } else {
+        alert(`שגיאת התחברות: ${error.message || 'נא לפתוח בדפדפן Chrome/Safari הרגיל'}`);
+      }
+    });
 } else {
-  // Graceful fallback when Firebase is missing/unconfigured
-  console.log("Firebase is disabled. Running in offline/demo mode.");
-  switchScreen(false);
-  setTimeout(() => {
-    hideSplashScreen();
-  }, 1000);
+  // Graceful fallback for missing config on startup
+  console.log("Firebase is disabled. Checking for guest autologin...");
+  const savedType = SafeStorage.getItem('aura-active-session-type');
+  if (savedType === 'guest') {
+    loginAsGuest();
+  } else {
+    switchScreen(false);
+  }
+  setTimeout(hideSplashScreen, 1000);
 }
 
-// 4. Trigger Google Sign-In Flow (Hybrid Strategy: Direct Redirect on Mobile, Popup with Redirect fallback on Desktop)
+// Auto-Login Guest Session on startup if previously active
+window.addEventListener('DOMContentLoaded', () => {
+  const savedType = SafeStorage.getItem('aura-active-session-type');
+  if (savedType === 'guest') {
+    loginAsGuest();
+  }
+  detectEnvironmentAndWarn();
+});
+
+// Dynamic Mobile/Desktop & Standalone Authenticator Gateway
 loginBtn.addEventListener('click', async () => {
   if (!firebaseEnabled) {
     alert("Authentication features are currently unavailable because Firebase is not configured properly. Please check your config.");
@@ -262,12 +416,12 @@ loginBtn.addEventListener('click', async () => {
   const originalText = loginBtn.querySelector('.google-btn-text').textContent;
   loginBtn.querySelector('.google-btn-text').textContent = 'Connecting...';
 
-  // Detect mobile devices (Android / iOS)
   const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-  if (isMobileDevice) {
-    // Mobile always uses Redirect to bypass popup blocks & sandboxed webview constraints
-    console.log("Mobile device detected. Triggering signInWithRedirect...");
+  // If mobile but NOT installed standalone PWA, we use redirect.
+  // If installed standalone PWA, we MUST use popup to avoid being broken inside iOS sandbox.
+  if (isMobileDevice && !isStandalone) {
+    console.log("Mobile browser detected. Triggering signInWithRedirect...");
     loginBtn.querySelector('.google-btn-text').textContent = 'Redirecting...';
     try {
       await signInWithRedirect(auth, googleProvider);
@@ -276,17 +430,15 @@ loginBtn.addEventListener('click', async () => {
       handleAuthError(redirectError, loginBtn, originalText);
     }
   } else {
-    // Desktop tries Popup first for optimal instant-login experience
-    console.log("Desktop device detected. Attempting signInWithPopup...");
+    console.log(isStandalone ? "Installed PWA detected. Forcing popup sign-in..." : "Desktop device detected. Attempting signInWithPopup...");
     try {
       await signInWithPopup(auth, googleProvider);
-      console.log("Logged in successfully via Popup!");
+      console.log("Logged in successfully!");
       loginBtn.disabled = false;
       loginBtn.querySelector('.google-btn-text').textContent = originalText;
     } catch (popupError) {
       console.warn("Popup sign-in failed. Error code:", popupError.code);
       
-      // If popup was cancelled by user, don't force redirect, just reset the button
       if (popupError.code === 'auth/popup-closed-by-user' || popupError.code === 'auth/cancelled-popup-request') {
         console.log("Sign-in process was cancelled by the user.");
         loginBtn.disabled = false;
@@ -294,62 +446,97 @@ loginBtn.addEventListener('click', async () => {
         return;
       }
       
-      // For any other error (popup blocked, storage unsupported, etc.), fall back to Redirect!
-      console.log("Falling back to signInWithRedirect due to popup failure...");
-      loginBtn.querySelector('.google-btn-text').textContent = 'Redirecting...';
-      try {
-        await signInWithRedirect(auth, googleProvider);
-      } catch (redirectError) {
-        console.error("Desktop redirect fallback auth error:", redirectError);
-        handleAuthError(redirectError, loginBtn, originalText);
+      if (!isStandalone) {
+        console.log("Falling back to signInWithRedirect...");
+        loginBtn.querySelector('.google-btn-text').textContent = 'Redirecting...';
+        try {
+          await signInWithRedirect(auth, googleProvider);
+        } catch (redirectError) {
+          console.error("Desktop redirect fallback auth error:", redirectError);
+          handleAuthError(redirectError, loginBtn, originalText);
+        }
+      } else {
+        handleAuthError(popupError, loginBtn, originalText);
       }
     }
   }
 });
 
-// Guest Bypass Logic - Allows sandbox/In-App WebView/Incognito users to bypass OAuth limits
+// Guest Bypass Button
 const guestLoginBtn = document.getElementById('guest-login-btn');
 if (guestLoginBtn) {
   guestLoginBtn.addEventListener('click', () => {
-    console.log("Guest login bypassed. Rendering offline training cockpit...");
-    setElText('user-display-name', 'אורח');
-    setElText('drawer-user-full-name', 'משתמש אורח (אופליין)');
-    setElText('drawer-user-email', 'guest@auraapp.local');
-    setElText('drawer-user-uid', 'GUEST-' + Math.random().toString(36).substring(2, 9).toUpperCase());
-    setElText('drawer-user-provider', 'guest.session');
-    
-    const photoURL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
-    if (floatingUserPhoto) floatingUserPhoto.src = photoURL;
-    if (drawerUserPhoto) drawerUserPhoto.src = photoURL;
-    
-    switchScreen(true);
+    loginAsGuest();
   });
 }
 
-// Helper function to handle and translate authentication errors beautifully for the user
+// Proactive Environment Warnings (WhatsApp/Telegram/Private Tabs)
+function detectEnvironmentAndWarn() {
+  const storageOk = SafeStorage.isSupported();
+  const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+  const isInApp = /FBAN|FBAV|Instagram|Twitter|FBIOS|Messenger|WhatsApp|Telegram|Line|WeChat/i.test(userAgent);
+
+  const authCard = document.querySelector('.auth-card');
+  if (authCard) {
+    let warningHtml = '';
+    if (isInApp) {
+      warningHtml = `
+        <div style="background: rgba(239, 68, 68, 0.1); border: 1px dashed rgba(239, 68, 68, 0.3); border-radius: 12px; padding: 12px; margin-bottom: 20px; direction: rtl; text-align: right; font-size: 0.85rem; color: #ef4444; display: flex; gap: 8px; align-items: start;">
+          <span style="font-size: 1.1rem;">⚠️</span>
+          <div>
+            <strong>שים לב: דפדפן פנימי (WhatsApp/Telegram)!</strong><br>
+            התחברות עם Google עלולה להיכשל במצב זה. אנא לחץ על שלוש הנקודות בפינה העליונה ובחר <strong>"פתח בדפדפן הרגיל"</strong> (Chrome או Safari), או התחבר באמצעות <strong>מצב אורח</strong>.
+          </div>
+        </div>
+      `;
+    } else if (!storageOk) {
+      warningHtml = `
+        <div style="background: rgba(245, 158, 11, 0.1); border: 1px dashed rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 12px; margin-bottom: 20px; direction: rtl; text-align: right; font-size: 0.85rem; color: #d97706; display: flex; gap: 8px; align-items: start;">
+          <span style="font-size: 1.1rem;">🔒</span>
+          <div>
+            <strong>אחסון חסום / מצב גלישה בסתר פעיל!</strong><br>
+            הדפדפן שלך חוסם עוגיות או גישה לאחסון מקומי. התחברות Google לא תישמר. מומלץ להשתמש ב<strong>מצב אורח</strong> שעובד בצורה מושלמת גם ללא עוגיות.
+          </div>
+        </div>
+      `;
+    }
+
+    if (warningHtml) {
+      const warningWrapper = document.createElement('div');
+      warningWrapper.innerHTML = warningHtml;
+      authCard.insertBefore(warningWrapper.firstChild, authCard.firstChild);
+    }
+  }
+}
+
+// Error Translator
 function handleAuthError(error, btn, originalText) {
   btn.disabled = false;
   btn.querySelector('.google-btn-text').textContent = originalText;
-
   console.error("Auth Error details:", error.code, error.message);
 
   let userFriendlyMessage = "שגיאת התחברות. נא לנסות שוב.";
-  
   if (error.code === 'auth/web-storage-unsupported') {
     userFriendlyMessage = "הדפדפן שלך חוסם עוגיות צד שלישי (זה קורה לרוב בגלישה בסתר או בתוך אפליקציות כמו WhatsApp/Telegram). אנא העתק את הקישור ופתח אותו בדפדפן הרגיל של המכשיר (Chrome באנדרואיד או Safari באייפון) כדי שתוכל להתחבר.";
   } else if (error.code === 'auth/popup-blocked') {
-    userFriendlyMessage = "חלונות קופצים חסומים בדפדפן שלך. אנא פתח את האפליקציה בדפדפן Chrome/Safari הרגיל.";
+    userFriendlyMessage = "חלונות קופצים חסומים בדפדפן שלך. אנא פתח את האפליקציה בדפדפן Chrome/Safari הרגיל או השתמש במצב אורח.";
   } else if (error.code === 'auth/network-request-failed') {
     userFriendlyMessage = "בעיית רשת. נא לוודא שיש חיבור אינטרנט תקין ולנסות שוב.";
   } else {
     userFriendlyMessage = `שגיאת התחברות (${error.code || 'unknown'}): אנא ודא שהקישור פתוח בדפדפן Chrome/Safari הרגיל, ולא דרך חלון פנימי של WhatsApp/Telegram.`;
   }
-
   alert(userFriendlyMessage);
 }
 
-// 5. Trigger Log Out Flow
+// Trigger Log Out Flow cleanly supporting Guest and Firebase
 logoutBtn.addEventListener('click', async () => {
+  if (sessionType === 'guest') {
+    console.log("Signing out Guest session.");
+    clearUserSession();
+    switchScreen(false);
+    return;
+  }
+
   if (!firebaseEnabled) {
     alert("Sign out is unavailable in offline/demo mode.");
     return;
@@ -363,14 +550,13 @@ logoutBtn.addEventListener('click', async () => {
   }
 });
 
-// 6. Register PWA Service Worker (Only in production/deployed environment)
+// Register PWA Service Worker
 const isLocalhost = window.location.hostname === 'localhost' || 
                     window.location.hostname === '127.0.0.1' || 
                     window.location.protocol === 'file:';
 
 if ('serviceWorker' in navigator) {
   if (isLocalhost) {
-    // Unregister any active service workers on localhost to avoid developer cache lockouts!
     navigator.serviceWorker.getRegistrations().then((registrations) => {
       for (let registration of registrations) {
         registration.unregister();
@@ -378,32 +564,26 @@ if ('serviceWorker' in navigator) {
       }
     });
   } else {
-    // Register normally in production (e.g. GitHub Pages)
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./sw.js')
         .then((registration) => {
           console.log('PWA Service Worker registered successfully! Scope:', registration.scope);
           
-          // 1. Force check for updates on launch immediately
           registration.update();
           
-          // 2. Schedule automatic background update checks every 5 minutes
           setInterval(() => {
             registration.update();
           }, 5 * 60 * 1000);
 
-          // 3. Check if there is already a waiting service worker (installed but waiting to activate)
           if (registration.waiting) {
             showUpdateToast(registration.waiting);
           }
 
-          // 4. Listen for future new service worker installations
           registration.addEventListener('updatefound', () => {
             const newWorker = registration.installing;
             if (newWorker) {
               newWorker.addEventListener('statechange', () => {
                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                  // A new version has been downloaded and installed in background
                   showUpdateToast(newWorker);
                 }
               });
@@ -415,7 +595,6 @@ if ('serviceWorker' in navigator) {
         });
     });
 
-    // 5. Instantly and smoothly reload the page when the new Service Worker becomes active
     let refreshing = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       if (refreshing) return;
@@ -426,14 +605,13 @@ if ('serviceWorker' in navigator) {
   }
 }
 
-// Function to slide down the premium glassmorphic PWA auto-update toast notification
+// Glassmorphic PWA auto-update toast notification
 function showUpdateToast(waitingWorker) {
   const toast = document.getElementById('pwa-update-toast');
   const refreshBtn = document.getElementById('pwa-refresh-btn');
   
   if (toast && refreshBtn) {
     toast.classList.add('show');
-    
     refreshBtn.addEventListener('click', () => {
       console.log("Trainee requested update activation. Posting skipWaiting message...");
       waitingWorker.postMessage({ action: 'skipWaiting' });
@@ -441,25 +619,14 @@ function showUpdateToast(waitingWorker) {
   }
 }
 
-// 7. Interactive Settings Drawer Event Listeners
-if (floatingAvatarBtn) {
-  floatingAvatarBtn.addEventListener('click', openDrawer);
-}
-
+// Settings Drawer Open / Close Trigger Listeners
+if (floatingAvatarBtn) floatingAvatarBtn.addEventListener('click', openDrawer);
 const navSettingsBtn = document.getElementById('nav-settings-btn');
-if (navSettingsBtn) {
-  navSettingsBtn.addEventListener('click', openDrawer);
-}
+if (navSettingsBtn) navSettingsBtn.addEventListener('click', openDrawer);
+if (drawerCloseBtn) drawerCloseBtn.addEventListener('click', closeDrawer);
+if (drawerOverlay) drawerOverlay.addEventListener('click', closeDrawer);
 
-if (drawerCloseBtn) {
-  drawerCloseBtn.addEventListener('click', closeDrawer);
-}
-
-if (drawerOverlay) {
-  drawerOverlay.addEventListener('click', closeDrawer);
-}
-
-// 8. Collapsible JSON Terminal Toggle (Settings Drawer)
+// Collapsible JSON Terminal Toggle (Settings Drawer)
 const drawerJsonToggle = document.getElementById('drawer-json-toggle');
 const drawerJsonContainer = document.getElementById('drawer-json-terminal-container');
 const drawerToggleArrow = document.getElementById('drawer-toggle-arrow');
@@ -472,11 +639,18 @@ if (drawerJsonToggle) {
   });
 }
 
-// 9. Premium iOS PWA Installation Banner Prompt Logic
+// Sensitive Information Toggle Button Listener
+if (toggleSensitiveBtn) {
+  toggleSensitiveBtn.addEventListener('click', () => {
+    isSensitiveDataVisible = !isSensitiveDataVisible;
+    toggleSensitiveBtn.innerHTML = isSensitiveDataVisible ? '🙈 הסתר פרטים מזהים' : '👁️ הצג פרטים מזהים';
+    updateAuthUI();
+  });
+}
+
+// Premium iOS PWA Installation Banner Prompt Logic
 window.addEventListener('load', () => {
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-  const isStandalone = window.navigator.standalone === true || 
-                       window.matchMedia('(display-mode: standalone)').matches;
   const iosPromptDismissed = localStorage.getItem('ios-pwa-prompt-dismissed');
   
   if (isIOS && !isStandalone && !iosPromptDismissed) {
@@ -484,7 +658,6 @@ window.addEventListener('load', () => {
     const closeBtn = document.getElementById('ios-prompt-close-btn');
     
     if (banner) {
-      // Show banner after 3 seconds for premium, elegant delayed appearance
       setTimeout(() => {
         banner.classList.add('show');
       }, 3000);
@@ -498,8 +671,7 @@ window.addEventListener('load', () => {
     }
   }
 });
-
-// ==========================================================================
+\n// ==========================================================================
 // 10. Cyber-Athletic Workout Tracker State & Interactive UI Engine
 // ==========================================================================
 let activeWorkout = null;

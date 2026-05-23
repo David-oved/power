@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="he" dir="rtl">
 <head>
   <meta charset="UTF-8">
   <!-- Viewport configured for native smartphone experiences (disables double-tap zoom) -->
@@ -247,7 +247,10 @@
   <div id="workout-summary-modal" class="workout-summary-modal">
     <div class="summary-modal-overlay"></div>
     <div class="summary-modal-card">
-      <button id="summary-close-btn" class="summary-close-btn">&times;</button>
+      <button id="summary-close-btn" class="summary-close-btn" aria-label="Close Summary">
+        <span class="close-icon-bar rotate-45"></span>
+        <span class="close-icon-bar rotate-minus-45"></span>
+      </button>
       <div class="summary-modal-glow"></div>
       <div class="summary-modal-header">
         <span class="summary-trophy-emoji">🏆</span>
@@ -313,7 +316,10 @@
   <!-- User Settings Drawer -->
   <aside id="settings-drawer" class="settings-drawer">
     <div class="drawer-header">
-      <button id="drawer-close-btn" class="drawer-close-btn" aria-label="Close Settings">&times;</button>
+      <button id="drawer-close-btn" class="drawer-close-btn" aria-label="Close Settings">
+        <span class="close-icon-bar rotate-45"></span>
+        <span class="close-icon-bar rotate-minus-45"></span>
+      </button>
       <div class="drawer-brand">
         <!-- Brand SVG Logo (Reused) -->
         <svg class="aura-logo-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -398,6 +404,13 @@
             <span class="status-label-mini">Active</span>
           </span>
         </div>
+      </div>
+
+      <!-- Toggle Sensitive Information Button for privacy & anti-shoulder-surfing -->
+      <div style="text-align: center; margin: 15px 0;">
+        <button id="drawer-toggle-sensitive-btn" class="btn btn-secondary" style="font-size: 0.8rem; padding: 6px 14px; border-radius: 8px; cursor: pointer; transition: all 0.2s ease;">
+          👁️ הצג פרטים מזהים
+        </button>
       </div>
 
       <!-- Collapsible retro-hacker green JSON Pre terminal -->
