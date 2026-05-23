@@ -31,13 +31,27 @@ if (window.firebaseConfig && window.firebaseConfig.apiKey && window.firebaseConf
 const authScreen = document.getElementById('auth-screen');
 const appScreen = document.getElementById('app-screen');
 const loginBtn = document.getElementById('google-login-btn');
-const logoutBtn = document.getElementById('logout-btn');
+const logoutBtn = document.getElementById('drawer-logout-btn');
 
-// User details DOM outlets
+// User details DOM outlets (Floating avatar & Sliding Settings Drawer widgets)
 const userDisplayName = document.getElementById('user-display-name');
-const userFullName = document.getElementById('user-full-name');
-const userEmail = document.getElementById('user-email');
-const userPhoto = document.getElementById('user-photo');
+const floatingUserPhoto = document.getElementById('floating-user-photo');
+
+const drawerUserPhoto = document.getElementById('drawer-user-photo');
+const drawerUserFullName = document.getElementById('drawer-user-full-name');
+const drawerUserEmail = document.getElementById('drawer-user-email');
+const drawerUserUid = document.getElementById('drawer-user-uid');
+const drawerUserVerifiedBadge = document.getElementById('drawer-user-verified-badge');
+const drawerUserProvider = document.getElementById('drawer-user-provider');
+const drawerUserCreated = document.getElementById('drawer-user-created');
+const drawerUserLastLogin = document.getElementById('drawer-user-last-login');
+const drawerUserJsonCode = document.getElementById('drawer-user-json-code');
+
+// Drawer structural elements
+const settingsDrawer = document.getElementById('settings-drawer');
+const drawerOverlay = document.getElementById('drawer-overlay');
+const floatingAvatarBtn = document.getElementById('floating-avatar-btn');
+const drawerCloseBtn = document.getElementById('drawer-close-btn');
 
 // Safe Date Parsing Helper Functions
 function safeFormatDate(value) {
@@ -58,6 +72,17 @@ function safeFormatDateTime(value) {
   }
   const d = new Date(value);
   return isNaN(d.getTime()) ? 'N/A' : d.toLocaleString();
+}
+
+// Settings Drawer Open / Close Interactive Logic
+function openDrawer() {
+  if (settingsDrawer) settingsDrawer.classList.add('open');
+  if (drawerOverlay) drawerOverlay.classList.add('open');
+}
+
+function closeDrawer() {
+  if (settingsDrawer) settingsDrawer.classList.remove('open');
+  if (drawerOverlay) drawerOverlay.classList.remove('open');
 }
 
 // Resolve the incoming redirect sign-in result on page load gracefully
@@ -143,31 +168,38 @@ if (firebaseEnabled) {
     if (user) {
       console.log("User signed in successfully:", user.displayName);
       
-      // Bind credentials securely to dashboard widgets
+      // Bind credentials securely to dashboard greeting and Settings Drawer widgets
       setElText('user-display-name', user.displayName ? user.displayName.split(' ')[0] : 'User');
-      setElText('user-full-name', user.displayName || 'Unknown User');
-      setElText('user-email', user.email || '--');
+      setElText('drawer-user-full-name', user.displayName || 'Unknown User');
+      setElText('drawer-user-email', user.email || '--');
       
-      // Fallback if user lacks profile photo
-      if (userPhoto) {
-        userPhoto.src = user.photoURL || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
-        userPhoto.onerror = () => {
-          userPhoto.src = 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
+      // Fallback if user lacks profile photo (Map to floating avatar and drawer large avatar)
+      const photoURL = user.photoURL || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
+      if (floatingUserPhoto) {
+        floatingUserPhoto.src = photoURL;
+        floatingUserPhoto.onerror = () => {
+          floatingUserPhoto.src = 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
+        };
+      }
+      if (drawerUserPhoto) {
+        drawerUserPhoto.src = photoURL;
+        drawerUserPhoto.onerror = () => {
+          drawerUserPhoto.src = 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
         };
       }
 
-      // Populate dynamic security and metadata stats safely
-      setElText('user-uid', user.uid);
-      setElText('user-provider', user.providerData?.[0]?.providerId || 'google.com');
+      // Populate dynamic security and metadata stats safely inside the Settings Drawer
+      setElText('drawer-user-uid', user.uid);
+      setElText('drawer-user-provider', user.providerData?.[0]?.providerId || 'google.com');
       
       const createdTime = user.metadata.createdAt || user.metadata.creationTime;
-      setElText('user-created', safeFormatDate(createdTime));
+      setElText('drawer-user-created', safeFormatDate(createdTime));
       
       const loginTime = user.metadata.lastLoginAt || user.metadata.lastSignInTime;
-      setElText('user-last-login', safeFormatDateTime(loginTime));
+      setElText('drawer-user-last-login', safeFormatDateTime(loginTime));
       
-      // Email verified badge
-      const badgeVerified = document.getElementById('user-verified-badge');
+      // Email verified badge inside Drawer
+      const badgeVerified = document.getElementById('drawer-user-verified-badge');
       if (badgeVerified) {
         if (user.emailVerified) {
           badgeVerified.textContent = 'Verified';
@@ -178,7 +210,7 @@ if (firebaseEnabled) {
         }
       }
       
-      // Format and dump raw JSON representation of Google credentials
+      // Format and dump raw JSON representation of Google credentials into Drawer code terminal
       const cleanUser = {
         uid: user.uid,
         displayName: user.displayName,
@@ -192,14 +224,14 @@ if (firebaseEnabled) {
         providerData: user.providerData
       };
       
-      const jsonCode = document.getElementById('user-json-code');
-      if (jsonCode) {
-        jsonCode.textContent = JSON.stringify(cleanUser, null, 2);
+      if (drawerUserJsonCode) {
+        drawerUserJsonCode.textContent = JSON.stringify(cleanUser, null, 2);
       }
 
       switchScreen(true);
     } else {
       console.log("No authenticated user active.");
+      closeDrawer();
       switchScreen(false);
     }
     
@@ -301,26 +333,28 @@ if ('serviceWorker' in navigator) {
   }
 }
 
-// 7. Interactive Glass Card Hover Tracking (HIGHLY OPTIMIZED)
-document.querySelectorAll('.card').forEach(card => {
-  card.addEventListener('mousemove', (e) => {
-    const rect = card.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    card.style.setProperty('--x', `${x}px`);
-    card.style.setProperty('--y', `${y}px`);
-  });
-});
+// 7. Interactive Settings Drawer Event Listeners
+if (floatingAvatarBtn) {
+  floatingAvatarBtn.addEventListener('click', openDrawer);
+}
 
-// 8. Collapsible JSON Terminal Toggle
-const jsonToggle = document.getElementById('json-toggle');
-const jsonContainer = document.getElementById('json-terminal-container');
-const toggleArrow = document.getElementById('toggle-arrow');
+if (drawerCloseBtn) {
+  drawerCloseBtn.addEventListener('click', closeDrawer);
+}
 
-if (jsonToggle) {
-  jsonToggle.addEventListener('click', () => {
-    const isExpanded = jsonContainer.classList.toggle('expanded');
-    toggleArrow.textContent = isExpanded ? '▲' : '▼';
-    jsonToggle.classList.toggle('active');
+if (drawerOverlay) {
+  drawerOverlay.addEventListener('click', closeDrawer);
+}
+
+// 8. Collapsible JSON Terminal Toggle (Settings Drawer)
+const drawerJsonToggle = document.getElementById('drawer-json-toggle');
+const drawerJsonContainer = document.getElementById('drawer-json-terminal-container');
+const drawerToggleArrow = document.getElementById('drawer-toggle-arrow');
+
+if (drawerJsonToggle) {
+  drawerJsonToggle.addEventListener('click', () => {
+    const isExpanded = drawerJsonContainer.classList.toggle('expanded');
+    drawerToggleArrow.textContent = isExpanded ? '▲' : '▼';
+    drawerJsonToggle.classList.toggle('active');
   });
 }

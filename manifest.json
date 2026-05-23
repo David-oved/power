@@ -4,8 +4,8 @@
   "description": "Premium Installable Web Application with Google Authentication",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#090b11",
-  "theme_color": "#2196f3",
+  "background_color": "#08090d",
+  "theme_color": "#00a2ff",
   "orientation": "portrait",
   "scope": "./",
   "icons": [
