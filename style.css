@@ -2761,7 +2761,7 @@ body:has(#app-screen.active) .ambient-glow {
 /* 7. Floating Glassmorphic Bottom Navigation Bar Styles */
 .bottom-nav-bar {
   position: fixed;
-  bottom: 1.5rem;
+  bottom: calc(1rem + env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
   width: calc(100% - 2.5rem);
@@ -2906,6 +2906,7 @@ body:has(#app-screen.active) .ambient-glow {
   margin: 1.2rem 0;
   text-align: right;
   width: 100%;
+  direction: rtl;
 }
 
 .template-select-label {
@@ -2945,6 +2946,7 @@ body:has(#app-screen.active) .ambient-glow {
   width: 100%;
   border-top: 1px solid #f1f5f9;
   padding-top: 1rem;
+  direction: rtl;
 }
 
 .template-save-label {
@@ -3057,6 +3059,111 @@ body:has(#app-screen.active) .ambient-glow {
 .track-pill[disabled] {
   opacity: 0.7;
   cursor: default;
+}
+
+/* ==========================================================================
+   Premium Glassmorphic PWA Auto-Update Toast
+   ========================================================================== */
+.pwa-update-toast {
+  position: fixed;
+  top: calc(1.2rem + env(safe-area-inset-top));
+  left: 50%;
+  transform: translate(-50%, -150%);
+  width: calc(100% - 2.5rem);
+  max-width: 440px;
+  border-radius: 20px;
+  z-index: 10005;
+  padding: 0.8rem 1.2rem;
+  
+  backdrop-filter: blur(25px) !important;
+  -webkit-backdrop-filter: blur(25px) !important;
+  background: rgba(255, 255, 255, 0.88) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08), 0 0 1px rgba(0, 0, 0, 0.1) !important;
+  
+  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pwa-update-toast.show {
+  transform: translate(-50%, 0);
+}
+
+@keyframes pulse-spark {
+  0% { transform: scale(1); opacity: 0.8; }
+  100% { transform: scale(1.2); opacity: 1; }
+}
+
+/* ==========================================================================
+   AuraApp - Unified Symmetrical Sets Grid Column Alignment Overrides
+   ========================================================================== */
+.sets-header-row,
+.set-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.6rem !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.sets-header-row {
+  padding: 0.5rem 0.75rem !important;
+  border-left: 1px solid transparent !important;
+  border-right: 1px solid transparent !important;
+}
+
+.sets-header-cell,
+.set-input-wrapper,
+.set-checkmark-btn {
+  text-align: center !important;
+}
+
+.sets-header-cell.cell-delete,
+.remove-set-btn {
+  flex: 0.4 !important;
+  width: auto !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+
+.sets-header-cell.cell-done,
+.set-checkmark-btn {
+  flex: 1.2 !important; /* Slightly wider for buttons & headers */
+  width: auto !important;
+}
+
+.sets-header-cell.cell-reps,
+.wrapper-reps {
+  flex: 1 !important;
+}
+
+.sets-header-cell.cell-weight,
+.wrapper-weight {
+  flex: 1 !important;
+}
+
+.sets-header-cell.cell-set,
+.set-number-label {
+  flex: 0.6 !important;
+  width: auto !important;
+  text-align: center !important;
+}
+
+/* Custom alignment for completed/pending badges in Hebrew */
+.exercise-card-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-direction: row-reverse !important;
+  gap: 0.5rem !important;
+}
+
+.exercise-title-container {
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  flex-direction: row-reverse !important;
+  flex-grow: 1 !important;
 }
 
 

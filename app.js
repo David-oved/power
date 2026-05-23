@@ -364,10 +364,60 @@ if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js')
         .then((registration) => {
           console.log('PWA Service Worker registered successfully! Scope:', registration.scope);
+          
+          // 1. Force check for updates on launch immediately
+          registration.update();
+          
+          // 2. Schedule automatic background update checks every 5 minutes
+          setInterval(() => {
+            registration.update();
+          }, 5 * 60 * 1000);
+
+          // 3. Check if there is already a waiting service worker (installed but waiting to activate)
+          if (registration.waiting) {
+            showUpdateToast(registration.waiting);
+          }
+
+          // 4. Listen for future new service worker installations
+          registration.addEventListener('updatefound', () => {
+            const newWorker = registration.installing;
+            if (newWorker) {
+              newWorker.addEventListener('statechange', () => {
+                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                  // A new version has been downloaded and installed in background
+                  showUpdateToast(newWorker);
+                }
+              });
+            }
+          });
         })
         .catch((error) => {
           console.error('Service Worker registration encountered an error:', error);
         });
+    });
+
+    // 5. Instantly and smoothly reload the page when the new Service Worker becomes active
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (refreshing) return;
+      refreshing = true;
+      console.log("Service Worker controller changed. Reloading page for new version...");
+      window.location.reload();
+    });
+  }
+}
+
+// Function to slide down the premium glassmorphic PWA auto-update toast notification
+function showUpdateToast(waitingWorker) {
+  const toast = document.getElementById('pwa-update-toast');
+  const refreshBtn = document.getElementById('pwa-refresh-btn');
+  
+  if (toast && refreshBtn) {
+    toast.classList.add('show');
+    
+    refreshBtn.addEventListener('click', () => {
+      console.log("Trainee requested update activation. Posting skipWaiting message...");
+      waitingWorker.postMessage({ action: 'skipWaiting' });
     });
   }
 }
@@ -637,60 +687,60 @@ function renderExercises() {
 
     return `
       <div class="exercise-card ${cardStatusClass} tracking-${ex.trackingType}">
-        <div class="exercise-card-header" style="display: flex; align-items: center; gap: 0.5rem; justify-content: space-between; flex-direction: row-reverse;">
-          <div style="display: flex; align-items: center; gap: 0.5rem; flex-direction: row-reverse;">
+        <div class="exercise-card-header">
+          <div class="exercise-title-container">
             ${isActive ? `
-              <button class="remove-exercise-btn" data-action="remove-exercise" data-exercise-id="${ex.id}" title="מחק תרגיל" style="margin-left: 0;">&times;</button>
+              <button class="remove-exercise-btn" data-action="remove-exercise" data-exercise-id="${ex.id}" title="מחק תרגיל">&times;</button>
             ` : ''}
-            <input type="text" class="exercise-name-input" placeholder="שם התרגיל (לדוגמה: לחיצת חזה)" value="${ex.name}" data-exercise-id="${ex.id}" ${!isActive ? 'disabled' : ''} style="text-align: right; width: 100%; border: none; border-bottom: 1px solid #e2e8f0; font-weight: 700; font-size: 1.1rem; outline: none; padding: 0.2rem 0;">
+            <input type="text" class="exercise-name-input" placeholder="שם התרגיל (לדוגמה: לחיצת חזה)" value="${ex.name}" data-exercise-id="${ex.id}" ${!isActive ? 'disabled' : ''}>
           </div>
           
           ${isCompleted ? `
-            <span class="badge-mini history-card-badge completed-badge" style="background: rgba(34, 197, 94, 0.08) !important; color: #22c55e !important; border: 1px solid rgba(34, 197, 94, 0.15) !important;">✓ הושלם</span>
+            <span class="badge-mini history-card-badge completed-badge">✓ הושלם</span>
           ` : ''}
           ${isPending ? `
-            <span class="badge-mini history-card-badge pending-badge" style="background: rgba(100, 116, 139, 0.08) !important; color: #64748b !important; border: 1px solid rgba(100, 116, 139, 0.15) !important;">🔒 בהמתנה</span>
+            <span class="badge-mini history-card-badge pending-badge">🔒 בהמתנה</span>
           ` : ''}
         </div>
 
         <!-- Dynamic Tracking Parameter Selector Segmented Pills -->
-        <div class="tracking-selector-wrapper" style="margin: 1rem 0; display: flex; justify-content: center;">
-          <div class="tracking-selector" style="display: flex; background: #f1f5f9; padding: 3px; border-radius: 12px; gap: 4px; width: 100%; max-width: 320px;">
-            <button class="track-pill ${ex.trackingType === 'both' ? 'active' : ''}" data-action="set-tracking" data-track-type="both" data-exercise-id="${ex.id}" ${!isActive ? 'disabled' : ''} style="flex: 1; border: none; padding: 6px 12px; border-radius: 9px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; background: ${ex.trackingType === 'both' ? '#ffffff' : 'transparent'}; color: ${ex.trackingType === 'both' ? '#1e293b' : '#64748b'}; box-shadow: ${ex.trackingType === 'both' ? '0 2px 8px rgba(0,0,0,0.05)' : 'none'}; pointer-events: ${isActive ? 'auto' : 'none'};">שניהם</button>
-            <button class="track-pill ${ex.trackingType === 'reps' ? 'active' : ''}" data-action="set-tracking" data-track-type="reps" data-exercise-id="${ex.id}" ${!isActive ? 'disabled' : ''} style="flex: 1; border: none; padding: 6px 12px; border-radius: 9px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; background: ${ex.trackingType === 'reps' ? '#ffffff' : 'transparent'}; color: ${ex.trackingType === 'reps' ? '#1e293b' : '#64748b'}; box-shadow: ${ex.trackingType === 'reps' ? '0 2px 8px rgba(0,0,0,0.05)' : 'none'}; pointer-events: ${isActive ? 'auto' : 'none'};">חזרות</button>
-            <button class="track-pill ${ex.trackingType === 'weight' ? 'active' : ''}" data-action="set-tracking" data-track-type="weight" data-exercise-id="${ex.id}" ${!isActive ? 'disabled' : ''} style="flex: 1; border: none; padding: 6px 12px; border-radius: 9px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; background: ${ex.trackingType === 'weight' ? '#ffffff' : 'transparent'}; color: ${ex.trackingType === 'weight' ? '#1e293b' : '#64748b'}; box-shadow: ${ex.trackingType === 'weight' ? '0 2px 8px rgba(0,0,0,0.05)' : 'none'}; pointer-events: ${isActive ? 'auto' : 'none'};">משקל</button>
+        <div class="tracking-selector-wrapper">
+          <div class="tracking-selector">
+            <button class="track-pill ${ex.trackingType === 'both' ? 'active' : ''}" data-action="set-tracking" data-track-type="both" data-exercise-id="${ex.id}" ${!isActive ? 'disabled' : ''}>שניהם</button>
+            <button class="track-pill ${ex.trackingType === 'reps' ? 'active' : ''}" data-action="set-tracking" data-track-type="reps" data-exercise-id="${ex.id}" ${!isActive ? 'disabled' : ''}>חזרות</button>
+            <button class="track-pill ${ex.trackingType === 'weight' ? 'active' : ''}" data-action="set-tracking" data-track-type="weight" data-exercise-id="${ex.id}" ${!isActive ? 'disabled' : ''}>משקל</button>
           </div>
         </div>
 
         <div class="sets-area" style="opacity: ${isPending ? '0.5' : '1'}; pointer-events: ${isPending ? 'none' : 'auto'};">
           ${ex.sets.length > 0 ? `
-            <div class="sets-header-row" style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; font-size: 0.75rem; color: #94a3b8; font-weight: 600; margin-bottom: 0.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.3rem;">
-              ${isActive ? '<span class="sets-header-cell cell-delete" style="width: 24px;"></span>' : ''}
-              <span class="sets-header-cell cell-done" style="width: 60px; text-align: center;">בוצע</span>
-              <span class="sets-header-cell cell-reps" style="flex: 1; text-align: center;">חזרות</span>
-              <span class="sets-header-cell cell-weight" style="flex: 1; text-align: center;">משקל</span>
-              <span class="sets-header-cell cell-set" style="width: 40px; text-align: right;">סט</span>
+            <div class="sets-header-row">
+              ${isActive ? '<span class="sets-header-cell cell-delete"></span>' : ''}
+              <span class="sets-header-cell cell-done">בוצע</span>
+              <span class="sets-header-cell cell-reps">חזרות</span>
+              <span class="sets-header-cell cell-weight">משקל</span>
+              <span class="sets-header-cell cell-set">סט</span>
             </div>
           ` : ''}
           
-          <div class="sets-list-container" style="display: flex; flex-direction: column; gap: 8px;">
+          <div class="sets-list-container">
             ${setRows}
           </div>
  
           ${isActive ? `
-            <button class="add-set-btn" data-action="add-set" data-exercise-id="${ex.id}" style="margin-top: 0.8rem; width: 100%; border: 1px dashed #cbd5e1; background: #f8f9fa; color: #2563eb; font-weight: 600; font-size: 0.85rem; border-radius: 10px; padding: 0.5rem; cursor: pointer; transition: all 0.2s ease;">
+            <button class="add-set-btn" data-action="add-set" data-exercise-id="${ex.id}">
               <span>➕</span> הוספת סט חדש
             </button>
           ` : ''}
 
           <div class="sets-area-footer" style="margin-top: 1rem; display: flex; justify-content: flex-end; gap: 0.5rem;">
             ${isActive ? `
-              <button class="btn btn-primary save-exercise-btn" data-action="save-exercise" data-exercise-id="${ex.id}" style="padding: 0.55rem 1.3rem; font-size: 0.85rem; border-radius: 12px; background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15) !important; color: #ffffff !important; border: none; font-weight: 700; cursor: pointer;">
+              <button class="btn btn-primary save-exercise-btn" data-action="save-exercise" data-exercise-id="${ex.id}">
                 <span>✓</span> שמור וסיים תרגיל
               </button>
             ` : ''}
             ${isCompleted ? `
-              <button class="btn btn-secondary edit-exercise-btn" data-action="edit-exercise" data-exercise-id="${ex.id}" style="padding: 0.55rem 1.3rem; font-size: 0.85rem; border-radius: 12px; border: 1px solid #cbd5e1; background: #f8f9fa !important; color: #475569 !important; font-weight: 700; cursor: pointer;">
+              <button class="btn btn-secondary edit-exercise-btn" data-action="edit-exercise" data-exercise-id="${ex.id}">
                 <span>✏️</span> ערוך תרגיל
               </button>
             ` : ''}

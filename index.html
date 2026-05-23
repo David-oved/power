@@ -442,6 +442,17 @@
     <div class="ios-pointing-arrow">↓</div>
   </div>
 
+  <!-- Premium Glassmorphic Update Toast -->
+  <div id="pwa-update-toast" class="pwa-update-toast">
+    <div class="toast-content" style="display: flex; align-items: center; justify-content: space-between; gap: 15px; direction: rtl;">
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span class="toast-spark" style="font-size: 1.2rem; animation: pulse-spark 1.5s infinite alternate;">✨</span>
+        <span class="toast-text" style="font-size: 0.85rem; font-weight: 600; color: #1e293b; text-align: right;">גרסה חדשה זמינה לשיפור הביצועים והעיצוב!</span>
+      </div>
+      <button id="pwa-refresh-btn" class="btn toast-refresh-btn" style="background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%) !important; color: #ffffff !important; border: none !important; font-size: 0.8rem !important; padding: 6px 14px !important; border-radius: 10px !important; font-weight: 700 !important; cursor: pointer !important; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.15) !important;">רענן כעת</button>
+    </div>
+  </div>
+
   <!-- Load global Firebase credential settings -->
   <script src="firebase-config.js"></script>
   <script type="module" src="app.js"></script>

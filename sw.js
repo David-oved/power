@@ -75,3 +75,10 @@ self.addEventListener('fetch', (event) => {
     })
   );
 });
+
+// Support programmatic skipWaiting message triggers
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.action === 'skipWaiting') {
+    self.skipWaiting();
+  }
+});
