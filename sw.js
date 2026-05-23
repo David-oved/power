@@ -1,5 +1,6 @@
 const CACHE_NAME = 'aura-app-v1.3';
 const ASSETS = [
+  './',
   './index.html',
   './style.css',
   './app.js',
@@ -47,11 +48,10 @@ self.addEventListener('fetch', (event) => {
   // Only cache GET requests
   if (event.request.method !== 'GET') return;
 
-  // Exclude Firebase active API endpoints but ALLOW caching of static JS SDK assets & Google Fonts
-  const isFirebaseApi = event.request.url.includes('identitytoolkit.googleapis.com') || 
-                         event.request.url.includes('securetoken.googleapis.com');
+  const isAuthOrFirebase = event.request.url.includes('/__/auth/') || 
+                           event.request.url.includes('googleapis.com');
   
-  if (isFirebaseApi) {
+  if (isAuthOrFirebase) {
     return; // Force network check for dynamic auth/token requests
   }
 

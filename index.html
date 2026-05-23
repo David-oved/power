@@ -15,7 +15,7 @@
   <!-- Manifest Link -->
   <link rel="manifest" href="manifest.json">
   <!-- Fallback iOS App Icon -->
-  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.svg">
 
   <!-- Google Fonts: Outfit for display, Inter for details -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,6 +26,19 @@
 </head>
 <body>
 
+  <!-- Premium Splash Screen Overlay on Startup -->
+  <div id="splash-screen">
+    <div class="splash-loader">
+      <div class="spinner-outer"></div>
+      <div class="spinner-inner"></div>
+    </div>
+    <div class="splash-brand">
+      <div class="splash-logo">✨</div>
+      <h1 class="splash-title">AuraApp</h1>
+      <p class="splash-subtitle">Premium Experience</p>
+    </div>
+  </div>
+
   <!-- Floating Blurred Neon Background Blobs -->
   <div class="ambient-glow bg-primary"></div>
   <div class="ambient-glow bg-secondary"></div>
@@ -34,7 +47,7 @@
   <div class="app-viewport">
     
     <!-- 1. SIGN-OUT SCREEN (AUTHENTICATION GATEWAY) -->
-    <section id="auth-screen" class="screen active">
+    <section id="auth-screen" class="screen">
       <div class="auth-card">
         <div class="brand-hero">
           <div class="brand-logo">✨</div>
