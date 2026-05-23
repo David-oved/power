@@ -15,7 +15,7 @@
   <!-- Manifest Link -->
   <link rel="manifest" href="manifest.json">
   <!-- Fallback iOS App Icon -->
-  <link rel="apple-touch-icon" href="icon-192.svg">
+  <link rel="apple-touch-icon" href="icon-192.png">
 
   <!-- Google Fonts: Outfit for display, Inter for details -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -291,6 +291,31 @@
       </button>
     </div>
   </aside>
+
+  <!-- Custom Premium iOS Installation Banner Prompt -->
+  <div id="ios-install-banner" class="ios-install-banner">
+    <button id="ios-prompt-close-btn" class="ios-prompt-close-btn" aria-label="Dismiss Prompt">&times;</button>
+    <div class="ios-prompt-content">
+      <div class="ios-prompt-header">
+        <span class="ios-prompt-emoji">📲</span>
+        <h4 class="ios-prompt-title">התקן את AuraApp</h4>
+      </div>
+      <p class="ios-prompt-desc">התקן את האפליקציה באייפון שלך כדי ליהנות מחוויית אימונים במסך מלא וטעינה מהירה במיוחד!</p>
+      
+      <div class="ios-prompt-steps">
+        <div class="ios-prompt-step">
+          <span class="step-icon">📤</span>
+          <span class="step-text">לחץ על כפתור <strong>השיתוף</strong> בתחתית הדפדפן</span>
+        </div>
+        <div class="ios-prompt-step">
+          <span class="step-icon">➕</span>
+          <span class="step-text">גלול מטה ובחר ב-<strong>"הוסף למסך הבית"</strong></span>
+        </div>
+      </div>
+    </div>
+    <!-- Pointing pulsing arrow indicating the iOS share button location at the bottom of the device -->
+    <div class="ios-pointing-arrow">↓</div>
+  </div>
 
   <!-- Load global Firebase credential settings -->
   <script src="firebase-config.js"></script>

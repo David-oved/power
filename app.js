@@ -174,17 +174,19 @@ if (firebaseEnabled) {
       setElText('drawer-user-email', user.email || '--');
       
       // Fallback if user lacks profile photo (Map to floating avatar and drawer large avatar)
-      const photoURL = user.photoURL || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
+      const photoURL = user.photoURL || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
       if (floatingUserPhoto) {
         floatingUserPhoto.src = photoURL;
         floatingUserPhoto.onerror = () => {
-          floatingUserPhoto.src = 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
+          floatingUserPhoto.onerror = null;
+          floatingUserPhoto.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
         };
       }
       if (drawerUserPhoto) {
         drawerUserPhoto.src = photoURL;
         drawerUserPhoto.onerror = () => {
-          drawerUserPhoto.src = 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
+          drawerUserPhoto.onerror = null;
+          drawerUserPhoto.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
         };
       }
 
@@ -262,6 +264,8 @@ loginBtn.addEventListener('click', async () => {
     // Try Popup first (ideal for Desktop, bypassed popups restrictions, instant login)
     await signInWithPopup(auth, googleProvider);
     console.log("Logged in successfully via Popup!");
+    loginBtn.disabled = false;
+    loginBtn.querySelector('.google-btn-text').textContent = originalText;
   } catch (error) {
     if (error.code === 'auth/popup-closed-by-user') {
       // User simply closed the popup: do not automatically trigger redirect
@@ -358,3 +362,31 @@ if (drawerJsonToggle) {
     drawerJsonToggle.classList.toggle('active');
   });
 }
+
+// 9. Premium iOS PWA Installation Banner Prompt Logic
+window.addEventListener('load', () => {
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const isStandalone = window.navigator.standalone === true || 
+                       window.matchMedia('(display-mode: standalone)').matches;
+  const iosPromptDismissed = localStorage.getItem('ios-pwa-prompt-dismissed');
+  
+  if (isIOS && !isStandalone && !iosPromptDismissed) {
+    const banner = document.getElementById('ios-install-banner');
+    const closeBtn = document.getElementById('ios-prompt-close-btn');
+    
+    if (banner) {
+      // Show banner after 3 seconds for premium, elegant delayed appearance
+      setTimeout(() => {
+        banner.classList.add('show');
+      }, 3000);
+      
+      if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+          banner.classList.remove('show');
+          localStorage.setItem('ios-pwa-prompt-dismissed', 'true');
+        });
+      }
+    }
+  }
+});
+

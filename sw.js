@@ -1,4 +1,4 @@
-const CACHE_NAME = 'aura-app-v1.3';
+const CACHE_NAME = 'aura-app-v1.4';
 const ASSETS = [
   './',
   './index.html',
@@ -7,7 +7,11 @@ const ASSETS = [
   './firebase-config.js',
   './manifest.json',
   './icon-192.svg',
-  './icon-512.svg'
+  './icon-512.svg',
+  './icon-192.png',
+  './icon-512.png',
+  'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js',
+  'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js'
 ];
 
 // Service Worker Install State - cache all core files
