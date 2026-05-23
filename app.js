@@ -98,8 +98,10 @@ if (firebaseEnabled) {
       // Handle known redirect errors gracefully
       if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
         console.log("Sign-in process was cancelled by the user.");
+      } else if (error.code === 'auth/web-storage-unsupported') {
+        alert("שים לב: הדפדפן הנוכחי שלך חוסם עוגיות או פועל במצב גלישה בסתר. אנא פתח את האפליקציה בדפדפן הרגיל (Chrome באנדרואיד או Safari באייפון) כדי שתוכל להתחבר בהצלחה.");
       } else {
-        alert(`Authentication Error during redirect: ${error.message}`);
+        alert(`שגיאת התחברות: ${error.message || 'נא לפתוח בדפדפן Chrome/Safari הרגיל'}`);
       }
     });
 }
@@ -249,7 +251,7 @@ if (firebaseEnabled) {
   }, 1000);
 }
 
-// 4. Trigger Google Sign-In Flow (Hybrid Strategy: Popup first, Redirect fallback)
+// 4. Trigger Google Sign-In Flow (Hybrid Strategy: Direct Redirect on Mobile, Popup with Redirect fallback on Desktop)
 loginBtn.addEventListener('click', async () => {
   if (!firebaseEnabled) {
     alert("Authentication features are currently unavailable because Firebase is not configured properly. Please check your config.");
@@ -260,39 +262,72 @@ loginBtn.addEventListener('click', async () => {
   const originalText = loginBtn.querySelector('.google-btn-text').textContent;
   loginBtn.querySelector('.google-btn-text').textContent = 'Connecting...';
 
-  try {
-    // Try Popup first (ideal for Desktop, bypassed popups restrictions, instant login)
-    await signInWithPopup(auth, googleProvider);
-    console.log("Logged in successfully via Popup!");
-    loginBtn.disabled = false;
-    loginBtn.querySelector('.google-btn-text').textContent = originalText;
-  } catch (error) {
-    if (error.code === 'auth/popup-closed-by-user') {
-      // User simply closed the popup: do not automatically trigger redirect
-      console.log("Popup closed by the user.");
-      alert("Sign-in process was cancelled. You can try again whenever you're ready!");
+  // Detect mobile devices (Android / iOS)
+  const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+  if (isMobileDevice) {
+    // Mobile always uses Redirect to bypass popup blocks & sandboxed webview constraints
+    console.log("Mobile device detected. Triggering signInWithRedirect...");
+    loginBtn.querySelector('.google-btn-text').textContent = 'Redirecting...';
+    try {
+      await signInWithRedirect(auth, googleProvider);
+    } catch (redirectError) {
+      console.error("Mobile redirect auth error:", redirectError);
+      handleAuthError(redirectError, loginBtn, originalText);
+    }
+  } else {
+    // Desktop tries Popup first for optimal instant-login experience
+    console.log("Desktop device detected. Attempting signInWithPopup...");
+    try {
+      await signInWithPopup(auth, googleProvider);
+      console.log("Logged in successfully via Popup!");
       loginBtn.disabled = false;
       loginBtn.querySelector('.google-btn-text').textContent = originalText;
-    } else if (error.code === 'auth/popup-blocked' || error.code === 'auth/operation-not-supported') {
-      // Fallback to Redirect only for compatibility/popup-blocked issues!
-      console.log("Popup blocked or unsupported. Falling back to Redirect...");
+    } catch (popupError) {
+      console.warn("Popup sign-in failed. Error code:", popupError.code);
+      
+      // If popup was cancelled by user, don't force redirect, just reset the button
+      if (popupError.code === 'auth/popup-closed-by-user' || popupError.code === 'auth/cancelled-popup-request') {
+        console.log("Sign-in process was cancelled by the user.");
+        loginBtn.disabled = false;
+        loginBtn.querySelector('.google-btn-text').textContent = originalText;
+        return;
+      }
+      
+      // For any other error (popup blocked, storage unsupported, etc.), fall back to Redirect!
+      console.log("Falling back to signInWithRedirect due to popup failure...");
       loginBtn.querySelector('.google-btn-text').textContent = 'Redirecting...';
       try {
         await signInWithRedirect(auth, googleProvider);
       } catch (redirectError) {
-        console.error("Redirect auth error:", redirectError);
-        alert(`Authentication Error: ${redirectError.message}`);
-        loginBtn.disabled = false;
-        loginBtn.querySelector('.google-btn-text').textContent = originalText;
+        console.error("Desktop redirect fallback auth error:", redirectError);
+        handleAuthError(redirectError, loginBtn, originalText);
       }
-    } else {
-      console.error("Popup auth error:", error.code, error.message);
-      alert(`Authentication Error: ${error.message}`);
-      loginBtn.disabled = false;
-      loginBtn.querySelector('.google-btn-text').textContent = originalText;
     }
   }
 });
+
+// Helper function to handle and translate authentication errors beautifully for the user
+function handleAuthError(error, btn, originalText) {
+  btn.disabled = false;
+  btn.querySelector('.google-btn-text').textContent = originalText;
+
+  console.error("Auth Error details:", error.code, error.message);
+
+  let userFriendlyMessage = "שגיאת התחברות. נא לנסות שוב.";
+  
+  if (error.code === 'auth/web-storage-unsupported') {
+    userFriendlyMessage = "הדפדפן שלך חוסם עוגיות צד שלישי (זה קורה לרוב בגלישה בסתר או בתוך אפליקציות כמו WhatsApp/Telegram). אנא העתק את הקישור ופתח אותו בדפדפן הרגיל של המכשיר (Chrome באנדרואיד או Safari באייפון) כדי שתוכל להתחבר.";
+  } else if (error.code === 'auth/popup-blocked') {
+    userFriendlyMessage = "חלונות קופצים חסומים בדפדפן שלך. אנא פתח את האפליקציה בדפדפן Chrome/Safari הרגיל.";
+  } else if (error.code === 'auth/network-request-failed') {
+    userFriendlyMessage = "בעיית רשת. נא לוודא שיש חיבור אינטרנט תקין ולנסות שוב.";
+  } else {
+    userFriendlyMessage = `שגיאת התחברות (${error.code || 'unknown'}): אנא ודא שהקישור פתוח בדפדפן Chrome/Safari הרגיל, ולא דרך חלון פנימי של WhatsApp/Telegram.`;
+  }
+
+  alert(userFriendlyMessage);
+}
 
 // 5. Trigger Log Out Flow
 logoutBtn.addEventListener('click', async () => {
@@ -342,6 +377,11 @@ if (floatingAvatarBtn) {
   floatingAvatarBtn.addEventListener('click', openDrawer);
 }
 
+const navSettingsBtn = document.getElementById('nav-settings-btn');
+if (navSettingsBtn) {
+  navSettingsBtn.addEventListener('click', openDrawer);
+}
+
 if (drawerCloseBtn) {
   drawerCloseBtn.addEventListener('click', closeDrawer);
 }
@@ -389,4 +429,674 @@ window.addEventListener('load', () => {
     }
   }
 });
+
+// ==========================================================================
+// 10. Cyber-Athletic Workout Tracker State & Interactive UI Engine
+// ==========================================================================
+let activeWorkout = null;
+let activeTimerInterval = null;
+let lastCompletedWorkout = null;
+
+// DOM Elements
+const startWorkoutBtn = document.getElementById('start-workout-btn');
+const workoutIdleView = document.getElementById('workout-idle-view');
+const workoutActiveView = document.getElementById('workout-active-view');
+const addExerciseBtn = document.getElementById('add-exercise-btn');
+const exercisesContainer = document.getElementById('exercises-container');
+const finishWorkoutBtn = document.getElementById('finish-workout-btn');
+const activeTimer = document.getElementById('active-timer');
+const activeExercisesCount = document.getElementById('active-exercises-count');
+
+const workoutSummaryModal = document.getElementById('workout-summary-modal');
+const summaryCloseBtn = document.getElementById('summary-close-btn');
+const summaryFinishBtn = document.getElementById('summary-finish-btn');
+const summaryDuration = document.getElementById('summary-duration');
+const summaryVolume = document.getElementById('summary-volume');
+const summaryExercises = document.getElementById('summary-exercises');
+const summarySets = document.getElementById('summary-sets');
+const workoutHistoryList = document.getElementById('workout-history-list');
+
+// Safe Time Formatting Utility (HH:MM:SS)
+function formatDuration(ms) {
+  const totalSeconds = Math.floor(ms / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  return [hours, minutes, seconds]
+    .map(val => val.toString().padStart(2, '0'))
+    .join(':');
+}
+
+// Local Storage History Operations
+function loadWorkoutHistory() {
+  try {
+    const historyJson = localStorage.getItem('aura-workout-history');
+    return historyJson ? JSON.parse(historyJson) : [];
+  } catch (e) {
+    console.error("Failed to load workout history from localStorage:", e);
+    return [];
+  }
+}
+
+function saveWorkoutToHistory(workout) {
+  try {
+    const history = loadWorkoutHistory();
+    history.unshift(workout); // Push new workout to the top
+    localStorage.setItem('aura-workout-history', JSON.stringify(history));
+  } catch (e) {
+    console.error("Failed to save workout to localStorage:", e);
+  }
+}
+
+function renderWorkoutHistory() {
+  if (!workoutHistoryList) return;
+  const history = loadWorkoutHistory();
+
+  if (history.length === 0) {
+    workoutHistoryList.innerHTML = `
+      <div class="history-empty-state">
+        <span class="empty-state-emoji">📊</span>
+        <p>אין עדיין אימונים מתועדים במכשיר. התחל אימון חדש כדי לראות את ההיסטוריה שלך כאן!</p>
+      </div>
+    `;
+    return;
+  }
+
+  workoutHistoryList.innerHTML = history.map(w => {
+    const dateStr = new Date(w.date).toLocaleDateString('he-IL', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+
+    return `
+      <div class="history-card">
+        <div class="history-card-header">
+          <span class="history-card-date">${dateStr}</span>
+          <span class="badge-mini history-card-badge">הושלם</span>
+        </div>
+        <div class="history-card-stats">
+          <div class="history-stat">
+            <span>⏱️</span>
+            <strong>${w.duration}</strong>
+          </div>
+          <div class="history-stat">
+            <span>🏋️‍♂️</span>
+            <strong>${w.volume.toLocaleString()} ק"ג</strong>
+          </div>
+          <div class="history-stat">
+            <span>💪</span>
+            <strong>${w.exercisesCount} תרגילים</strong>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// Timer Stopwatch Engine
+function startTimer() {
+  if (activeTimerInterval) clearInterval(activeTimerInterval);
+  activeWorkout.startTime = Date.now();
+  if (activeTimer) activeTimer.textContent = '00:00:00';
+
+  activeTimerInterval = setInterval(() => {
+    if (activeWorkout && activeTimer) {
+      const elapsed = Date.now() - activeWorkout.startTime;
+      activeTimer.textContent = formatDuration(elapsed);
+    }
+  }, 1000);
+}
+
+// Rendering Dynamic Exercises & Sets UI
+function renderExercises() {
+  if (!exercisesContainer) return;
+  
+  if (activeWorkout.exercises.length === 0) {
+    exercisesContainer.innerHTML = `
+      <div class="history-empty-state" style="padding: 3rem 1.5rem;">
+        <span class="empty-state-emoji">🏋️‍♂️</span>
+        <p>האימון ריק כעת. הוסף את התרגיל הראשון שלך כדי להתחיל לתעד משקלים וחזרות!</p>
+      </div>
+    `;
+    if (activeExercisesCount) activeExercisesCount.textContent = '0 תרגילים';
+    
+    // Enable Add Exercise button if activeWorkout is empty
+    if (addExerciseBtn) {
+      addExerciseBtn.disabled = false;
+      addExerciseBtn.style.opacity = '1';
+      addExerciseBtn.style.pointerEvents = 'auto';
+    }
+    return;
+  }
+
+  if (activeExercisesCount) {
+    activeExercisesCount.textContent = `${activeWorkout.exercises.length} תרגילים`;
+  }
+
+  // Find the first uncompleted exercise in the array to focus guide the trainee
+  const activeIndex = activeWorkout.exercises.findIndex(x => !x.completed);
+
+  // Set the Add Exercise button disabled status
+  const hasActiveExercise = activeWorkout.exercises.some(x => !x.completed);
+  if (addExerciseBtn) {
+    if (hasActiveExercise) {
+      addExerciseBtn.disabled = true;
+      addExerciseBtn.style.opacity = '0.5';
+      addExerciseBtn.style.pointerEvents = 'none';
+      addExerciseBtn.title = 'סיים את התרגיל הנוכחי כדי להוסיף תרגיל חדש';
+    } else {
+      addExerciseBtn.disabled = false;
+      addExerciseBtn.style.opacity = '1';
+      addExerciseBtn.style.pointerEvents = 'auto';
+      addExerciseBtn.title = '';
+    }
+  }
+
+  exercisesContainer.innerHTML = activeWorkout.exercises.map((ex, exIndex) => {
+    // Make sure trackingType is initialized
+    if (!ex.trackingType) ex.trackingType = 'both';
+    
+    const isCompleted = ex.completed === true;
+    // Active if it is the first uncompleted exercise, OR if all are completed (which shouldn't happen unless adding new)
+    const isActive = !isCompleted && (exIndex === activeIndex || activeIndex === -1);
+    const isPending = !isCompleted && exIndex !== activeIndex && activeIndex !== -1;
+    
+    let cardStatusClass = 'active-exercise';
+    if (isCompleted) cardStatusClass = 'saved';
+    else if (isPending) cardStatusClass = 'pending';
+
+    const setRows = ex.sets.map((set, setIndex) => {
+      const completedClass = set.completed ? 'completed' : '';
+      return `
+        <div class="set-row ${completedClass}" data-exercise-id="${ex.id}" data-set-id="${set.id}">
+          ${isActive ? `
+            <button class="remove-set-btn" data-action="remove-set" data-exercise-id="${ex.id}" data-set-id="${set.id}" title="מחק סט">&times;</button>
+          ` : ''}
+          
+          <!-- Checkmark Complete Button -->
+          <button class="set-checkmark-btn ${completedClass}" data-action="toggle-complete" data-exercise-id="${ex.id}" data-set-id="${set.id}" ${!isActive ? 'disabled' : ''}>
+            ${set.completed ? '✓' : 'סט ' + (setIndex + 1)}
+          </button>
+ 
+          <!-- Reps Input -->
+          <div class="set-input-wrapper wrapper-reps">
+            <input type="number" class="set-input set-reps-input" placeholder="חזרות" min="0" value="${set.reps}" data-exercise-id="${ex.id}" data-set-id="${set.id}" ${!isActive ? 'disabled' : ''}>
+          </div>
+ 
+          <!-- Weight Input -->
+          <div class="set-input-wrapper wrapper-weight">
+            <input type="number" class="set-input set-weight-input" placeholder="משקל" min="0" step="any" value="${set.weight}" data-exercise-id="${ex.id}" data-set-id="${set.id}" ${!isActive ? 'disabled' : ''}>
+          </div>
+ 
+          <span class="set-number-label">#${setIndex + 1}</span>
+        </div>
+      `;
+    }).join('');
+
+    return `
+      <div class="exercise-card ${cardStatusClass} tracking-${ex.trackingType}">
+        <div class="exercise-card-header" style="display: flex; align-items: center; gap: 0.5rem; justify-content: space-between; flex-direction: row-reverse;">
+          <div style="display: flex; align-items: center; gap: 0.5rem; flex-direction: row-reverse;">
+            ${isActive ? `
+              <button class="remove-exercise-btn" data-action="remove-exercise" data-exercise-id="${ex.id}" title="מחק תרגיל" style="margin-left: 0;">&times;</button>
+            ` : ''}
+            <input type="text" class="exercise-name-input" placeholder="שם התרגיל (לדוגמה: לחיצת חזה)" value="${ex.name}" data-exercise-id="${ex.id}" ${!isActive ? 'disabled' : ''} style="text-align: right; width: 100%; border: none; border-bottom: 1px solid #e2e8f0; font-weight: 700; font-size: 1.1rem; outline: none; padding: 0.2rem 0;">
+          </div>
+          
+          ${isCompleted ? `
+            <span class="badge-mini history-card-badge completed-badge" style="background: rgba(34, 197, 94, 0.08) !important; color: #22c55e !important; border: 1px solid rgba(34, 197, 94, 0.15) !important;">✓ הושלם</span>
+          ` : ''}
+          ${isPending ? `
+            <span class="badge-mini history-card-badge pending-badge" style="background: rgba(100, 116, 139, 0.08) !important; color: #64748b !important; border: 1px solid rgba(100, 116, 139, 0.15) !important;">🔒 בהמתנה</span>
+          ` : ''}
+        </div>
+
+        <!-- Dynamic Tracking Parameter Selector Segmented Pills -->
+        <div class="tracking-selector-wrapper" style="margin: 1rem 0; display: flex; justify-content: center;">
+          <div class="tracking-selector" style="display: flex; background: #f1f5f9; padding: 3px; border-radius: 12px; gap: 4px; width: 100%; max-width: 320px;">
+            <button class="track-pill ${ex.trackingType === 'both' ? 'active' : ''}" data-action="set-tracking" data-track-type="both" data-exercise-id="${ex.id}" ${!isActive ? 'disabled' : ''} style="flex: 1; border: none; padding: 6px 12px; border-radius: 9px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; background: ${ex.trackingType === 'both' ? '#ffffff' : 'transparent'}; color: ${ex.trackingType === 'both' ? '#1e293b' : '#64748b'}; box-shadow: ${ex.trackingType === 'both' ? '0 2px 8px rgba(0,0,0,0.05)' : 'none'}; pointer-events: ${isActive ? 'auto' : 'none'};">שניהם</button>
+            <button class="track-pill ${ex.trackingType === 'reps' ? 'active' : ''}" data-action="set-tracking" data-track-type="reps" data-exercise-id="${ex.id}" ${!isActive ? 'disabled' : ''} style="flex: 1; border: none; padding: 6px 12px; border-radius: 9px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; background: ${ex.trackingType === 'reps' ? '#ffffff' : 'transparent'}; color: ${ex.trackingType === 'reps' ? '#1e293b' : '#64748b'}; box-shadow: ${ex.trackingType === 'reps' ? '0 2px 8px rgba(0,0,0,0.05)' : 'none'}; pointer-events: ${isActive ? 'auto' : 'none'};">חזרות</button>
+            <button class="track-pill ${ex.trackingType === 'weight' ? 'active' : ''}" data-action="set-tracking" data-track-type="weight" data-exercise-id="${ex.id}" ${!isActive ? 'disabled' : ''} style="flex: 1; border: none; padding: 6px 12px; border-radius: 9px; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; background: ${ex.trackingType === 'weight' ? '#ffffff' : 'transparent'}; color: ${ex.trackingType === 'weight' ? '#1e293b' : '#64748b'}; box-shadow: ${ex.trackingType === 'weight' ? '0 2px 8px rgba(0,0,0,0.05)' : 'none'}; pointer-events: ${isActive ? 'auto' : 'none'};">משקל</button>
+          </div>
+        </div>
+
+        <div class="sets-area" style="opacity: ${isPending ? '0.5' : '1'}; pointer-events: ${isPending ? 'none' : 'auto'};">
+          ${ex.sets.length > 0 ? `
+            <div class="sets-header-row" style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; font-size: 0.75rem; color: #94a3b8; font-weight: 600; margin-bottom: 0.5rem; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.3rem;">
+              ${isActive ? '<span class="sets-header-cell cell-delete" style="width: 24px;"></span>' : ''}
+              <span class="sets-header-cell cell-done" style="width: 60px; text-align: center;">בוצע</span>
+              <span class="sets-header-cell cell-reps" style="flex: 1; text-align: center;">חזרות</span>
+              <span class="sets-header-cell cell-weight" style="flex: 1; text-align: center;">משקל</span>
+              <span class="sets-header-cell cell-set" style="width: 40px; text-align: right;">סט</span>
+            </div>
+          ` : ''}
+          
+          <div class="sets-list-container" style="display: flex; flex-direction: column; gap: 8px;">
+            ${setRows}
+          </div>
+ 
+          ${isActive ? `
+            <button class="add-set-btn" data-action="add-set" data-exercise-id="${ex.id}" style="margin-top: 0.8rem; width: 100%; border: 1px dashed #cbd5e1; background: #f8f9fa; color: #2563eb; font-weight: 600; font-size: 0.85rem; border-radius: 10px; padding: 0.5rem; cursor: pointer; transition: all 0.2s ease;">
+              <span>➕</span> הוספת סט חדש
+            </button>
+          ` : ''}
+
+          <div class="sets-area-footer" style="margin-top: 1rem; display: flex; justify-content: flex-end; gap: 0.5rem;">
+            ${isActive ? `
+              <button class="btn btn-primary save-exercise-btn" data-action="save-exercise" data-exercise-id="${ex.id}" style="padding: 0.55rem 1.3rem; font-size: 0.85rem; border-radius: 12px; background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15) !important; color: #ffffff !important; border: none; font-weight: 700; cursor: pointer;">
+                <span>✓</span> שמור וסיים תרגיל
+              </button>
+            ` : ''}
+            ${isCompleted ? `
+              <button class="btn btn-secondary edit-exercise-btn" data-action="edit-exercise" data-exercise-id="${ex.id}" style="padding: 0.55rem 1.3rem; font-size: 0.85rem; border-radius: 12px; border: 1px solid #cbd5e1; background: #f8f9fa !important; color: #475569 !important; font-weight: 700; cursor: pointer;">
+                <span>✏️</span> ערוך תרגיל
+              </button>
+            ` : ''}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ==========================================================================
+// Workout Routine Templates persistent vault logic
+// ==========================================================================
+function loadWorkoutTemplates() {
+  try {
+    const templatesJson = localStorage.getItem('aura-workout-templates');
+    return templatesJson ? JSON.parse(templatesJson) : [];
+  } catch (e) {
+    console.error("Failed to load workout templates from localStorage:", e);
+    return [];
+  }
+}
+
+function saveWorkoutTemplate(template) {
+  try {
+    const templates = loadWorkoutTemplates();
+    templates.push(template);
+    localStorage.setItem('aura-workout-templates', JSON.stringify(templates));
+  } catch (e) {
+    console.error("Failed to save workout template to localStorage:", e);
+  }
+}
+
+function populateTemplateDropdown() {
+  const selectEl = document.getElementById('routine-template-select');
+  if (!selectEl) return;
+  const templates = loadWorkoutTemplates();
+  
+  selectEl.innerHTML = '<option value="">-- אימון ריק (ללא תבנית) --</option>';
+  templates.forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t.id;
+    opt.textContent = t.name;
+    selectEl.appendChild(opt);
+  });
+}
+
+function saveTemplateIfRequested() {
+  const nameInput = document.getElementById('summary-template-name');
+  if (nameInput && nameInput.value.trim() && lastCompletedWorkout) {
+    const templateName = nameInput.value.trim();
+    
+    // Build template structure
+    const newTemplate = {
+      id: Date.now().toString(),
+      name: templateName,
+      exercises: lastCompletedWorkout.exercises.map(ex => ({
+        name: ex.name || 'תרגיל ללא שם',
+        trackingType: ex.trackingType || 'both',
+        setsCount: ex.sets.length,
+        defaultWeight: ex.sets[0]?.weight || '',
+        defaultReps: ex.sets[0]?.reps || ''
+      }))
+    };
+    
+    saveWorkoutTemplate(newTemplate);
+    populateTemplateDropdown();
+    nameInput.value = ''; // Reset input!
+  } else if (nameInput) {
+    nameInput.value = ''; // Reset input!
+  }
+}
+
+// Active UI State Transitions
+function startWorkout() {
+  const templateSelect = document.getElementById('routine-template-select');
+  const templateId = templateSelect ? templateSelect.value : '';
+
+  activeWorkout = {
+    startTime: Date.now(),
+    exercises: []
+  };
+
+  if (templateId) {
+    const templates = loadWorkoutTemplates();
+    const template = templates.find(t => t.id === templateId);
+    if (template) {
+      activeWorkout.exercises = template.exercises.map((templateEx, index) => {
+        const sets = [];
+        for (let i = 0; i < templateEx.setsCount; i++) {
+          sets.push({
+            id: (Date.now() + i + Math.random()).toString(),
+            weight: templateEx.defaultWeight || '',
+            reps: templateEx.defaultReps || '',
+            completed: false
+          });
+        }
+        return {
+          id: (Date.now() + index + Math.random()).toString(),
+          name: templateEx.name,
+          trackingType: templateEx.trackingType || 'both',
+          completed: false, // all loaded exercises start as pending except first
+          sets: sets
+        };
+      });
+    }
+  }
+
+  workoutIdleView.classList.remove('active');
+  setTimeout(() => {
+    workoutIdleView.style.display = 'none';
+    workoutActiveView.style.display = 'flex';
+    setTimeout(() => {
+      workoutActiveView.classList.add('active');
+      startTimer();
+      renderExercises();
+    }, 50);
+  }, 400);
+}
+
+function finishWorkout() {
+  if (!activeWorkout) return;
+
+  let totalSets = 0;
+  let totalVolume = 0;
+  let activeExercises = 0;
+
+  activeWorkout.exercises.forEach(ex => {
+    let exHasCompletedSet = false;
+    ex.sets.forEach(set => {
+      if (set.completed) {
+        totalSets++;
+        exHasCompletedSet = true;
+        const w = parseFloat(set.weight) || 0;
+        const r = parseInt(set.reps) || 0;
+        totalVolume += (w * r);
+      }
+    });
+    if (exHasCompletedSet) activeExercises++;
+  });
+
+  const durationMs = Date.now() - activeWorkout.startTime;
+  const durationStr = formatDuration(durationMs);
+
+  // If no sets are logged, alert and prompt
+  if (totalSets === 0 && activeWorkout.exercises.length > 0) {
+    const confirmFinish = confirm("לא סימנת אף סט כ-'בוצע' באימון זה. האם לסיים בכל זאת ללא שמירה בהיסטוריה?");
+    if (!confirmFinish) return;
+    
+    // Just return to home screen
+    closeSummary();
+    return;
+  }
+
+  // Create Workout Log object
+  const workoutLog = {
+    date: Date.now(),
+    duration: durationStr,
+    exercisesCount: activeExercises || activeWorkout.exercises.length,
+    setsCount: totalSets,
+    volume: totalVolume,
+    exercises: activeWorkout.exercises
+  };
+
+  if (totalSets > 0) {
+    saveWorkoutToHistory(workoutLog);
+    lastCompletedWorkout = workoutLog; // Assign lastCompletedWorkout!
+  } else {
+    lastCompletedWorkout = null;
+  }
+
+  // Populate summary fields
+  if (summaryDuration) summaryDuration.textContent = durationStr;
+  if (summaryVolume) summaryVolume.textContent = totalVolume.toLocaleString();
+  if (summaryExercises) summaryExercises.textContent = workoutLog.exercisesCount;
+  if (summarySets) summarySets.textContent = totalSets;
+
+  // Stop Timer
+  if (activeTimerInterval) clearInterval(activeTimerInterval);
+  activeTimerInterval = null;
+  activeWorkout = null;
+
+  // Show summary modal overlay
+  if (workoutSummaryModal) {
+    workoutSummaryModal.classList.add('active');
+  }
+}
+
+function closeSummary() {
+  saveTemplateIfRequested();
+
+  if (workoutSummaryModal) {
+    workoutSummaryModal.classList.remove('active');
+  }
+
+  workoutActiveView.classList.remove('active');
+  setTimeout(() => {
+    workoutActiveView.style.display = 'none';
+    workoutIdleView.style.display = 'flex';
+    setTimeout(() => {
+      workoutIdleView.classList.add('active');
+      renderWorkoutHistory();
+    }, 50);
+  }, 400);
+}
+
+// Bind Main Core Action Click Listeners
+if (startWorkoutBtn) {
+  startWorkoutBtn.addEventListener('click', startWorkout);
+}
+
+if (addExerciseBtn) {
+  addExerciseBtn.addEventListener('click', () => {
+    if (activeWorkout) {
+      const newEx = {
+        id: Date.now().toString(),
+        name: '',
+        sets: []
+      };
+      activeWorkout.exercises.push(newEx);
+      renderExercises();
+      
+      // Auto focus newly added exercise name input
+      const inputs = exercisesContainer.querySelectorAll('.exercise-name-input');
+      if (inputs.length > 0) {
+        inputs[inputs.length - 1].focus();
+      }
+    }
+  });
+}
+
+if (finishWorkoutBtn) {
+  finishWorkoutBtn.addEventListener('click', finishWorkout);
+}
+
+if (summaryCloseBtn) {
+  summaryCloseBtn.addEventListener('click', closeSummary);
+}
+
+if (summaryFinishBtn) {
+  summaryFinishBtn.addEventListener('click', closeSummary);
+}
+
+// Event Delegation for Dynamic Elements (Exercises container clicks & inputs)
+if (exercisesContainer) {
+  // 1. Typing Sync Logic (Ensures typing is preserved without redrawing input fields)
+  exercisesContainer.addEventListener('input', (e) => {
+    if (!activeWorkout) return;
+    
+    const target = e.target;
+    
+    // Sync Exercise Name
+    if (target.classList.contains('exercise-name-input')) {
+      const exId = target.dataset.exerciseId;
+      const ex = activeWorkout.exercises.find(x => x.id === exId);
+      if (ex) ex.name = target.value;
+    }
+    
+    // Sync Set Weight
+    if (target.classList.contains('set-weight-input')) {
+      const exId = target.dataset.exerciseId;
+      const setId = target.dataset.setId;
+      const ex = activeWorkout.exercises.find(x => x.id === exId);
+      if (ex) {
+        const set = ex.sets.find(s => s.id === setId);
+        if (set) set.weight = target.value;
+      }
+    }
+    
+    // Sync Set Reps
+    if (target.classList.contains('set-reps-input')) {
+      const exId = target.dataset.exerciseId;
+      const setId = target.dataset.setId;
+      const ex = activeWorkout.exercises.find(x => x.id === exId);
+      if (ex) {
+        const set = ex.sets.find(s => s.id === setId);
+        if (set) set.reps = target.value;
+      }
+    }
+  });
+
+  // 2. Action Clicks (Add set, remove set, remove exercise, toggle complete checkmark, save, edit, tracking parameter select)
+  exercisesContainer.addEventListener('click', (e) => {
+    if (!activeWorkout) return;
+
+    const btn = e.target.closest('button');
+    if (!btn) return;
+
+    const action = btn.dataset.action;
+    const exId = btn.dataset.exerciseId;
+    const setId = btn.dataset.setId;
+
+    if (action === 'save-exercise') {
+      const ex = activeWorkout.exercises.find(x => x.id === exId);
+      if (ex) {
+        if (!ex.name.trim()) {
+          alert("נא להזין שם לתרגיל לפני השמירה!");
+          return;
+        }
+        if (ex.sets.length === 0) {
+          alert("נא להוסיף לפחות סט אחד לתרגיל!");
+          return;
+        }
+        ex.completed = true;
+        renderExercises();
+      }
+      return;
+    }
+
+    if (action === 'edit-exercise') {
+      const ex = activeWorkout.exercises.find(x => x.id === exId);
+      if (ex) {
+        ex.completed = false;
+        renderExercises();
+      }
+      return;
+    }
+
+    if (action === 'set-tracking') {
+      const ex = activeWorkout.exercises.find(x => x.id === exId);
+      if (ex) {
+        ex.trackingType = btn.dataset.trackType;
+        renderExercises();
+      }
+      return;
+    }
+
+    if (action === 'add-set') {
+      const ex = activeWorkout.exercises.find(x => x.id === exId);
+      if (ex) {
+        ex.sets.push({
+          id: Date.now().toString(),
+          weight: '',
+          reps: '',
+          completed: false
+        });
+        renderExercises();
+      }
+    }
+
+    if (action === 'remove-set') {
+      const ex = activeWorkout.exercises.find(x => x.id === exId);
+      if (ex) {
+        ex.sets = ex.sets.filter(s => s.id !== setId);
+        renderExercises();
+      }
+    }
+
+    if (action === 'remove-exercise') {
+      const confirmRemove = confirm("האם למחוק תרגיל זה על כל הסטים שבו?");
+      if (confirmRemove) {
+        activeWorkout.exercises = activeWorkout.exercises.filter(x => x.id !== exId);
+        renderExercises();
+      }
+    }
+
+    if (action === 'toggle-complete') {
+      const ex = activeWorkout.exercises.find(x => x.id === exId);
+      if (ex) {
+        const set = ex.sets.find(s => s.id === setId);
+        if (set) {
+          set.completed = !set.completed;
+          
+          // Toggle local visual class dynamically so focus and values aren't disturbed
+          const row = btn.closest('.set-row');
+          if (row) {
+            if (set.completed) {
+              row.classList.add('completed');
+              btn.classList.add('completed');
+              btn.textContent = '✓';
+            } else {
+              row.classList.remove('completed');
+              btn.classList.remove('completed');
+              
+              // Get actual index of this set
+              const setIndex = ex.sets.indexOf(set);
+              btn.textContent = `סט ${setIndex + 1}`;
+            }
+          }
+        }
+      }
+    }
+  });
+}
+
+// Initialise Past Workout History list & Templates dropdown on startup
+window.addEventListener('load', () => {
+  renderWorkoutHistory();
+  populateTemplateDropdown();
+});
+
+// Clear Active Workout on firebase signout
+if (firebaseEnabled) {
+  onAuthStateChanged(auth, (user) => {
+    if (!user) {
+      if (activeTimerInterval) clearInterval(activeTimerInterval);
+      activeTimerInterval = null;
+      activeWorkout = null;
+      if (workoutSummaryModal) workoutSummaryModal.classList.remove('active');
+      if (workoutActiveView) workoutActiveView.style.display = 'none';
+      if (workoutIdleView) {
+        workoutIdleView.style.display = 'flex';
+        workoutIdleView.classList.add('active');
+      }
+    }
+  });
+}
+
 

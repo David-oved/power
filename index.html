@@ -164,17 +164,142 @@
         </button>
       </header>
 
-      <!-- Main Dashboard Grid (Cleaned up) -->
+      <!-- Main Dashboard Grid - Workout Tracker Hub -->
       <main class="dashboard-content">
-        <div class="dashboard-welcome-message">
-          <div class="glow-symbol">✨</div>
-          <h3>Your training dashboard is clear.</h3>
-          <p>Tap your profile avatar in the top right to access security settings, account details, and developer diagnostics.</p>
+        <div id="workout-hub" class="workout-hub">
+          
+          <!-- 1. IDLE VIEW: Start Workout & Trainee History -->
+          <div id="workout-idle-view" class="workout-view active">
+            <!-- Start Workout Hero Card -->
+            <div class="card workout-hero-card">
+              <div class="card-glow"></div>
+              <div class="workout-hero-content">
+                <span class="hero-workout-emoji">💪</span>
+                <h3 class="hero-workout-title">הגיע הזמן להתאמן</h3>
+                <p class="hero-workout-desc">תעד את האימון שלך בזמן אמת כדי לשמור על קצב התקדמות ומשקלי עבודה מדויקים בכל סט.</p>
+                
+                <div class="template-selector-container">
+                  <label for="routine-template-select" class="template-select-label">📋 בחירת תבנית אימון (אופציונלי):</label>
+                  <select id="routine-template-select" class="template-select">
+                    <option value="">-- אימון ריק --</option>
+                  </select>
+                </div>
+
+                <button id="start-workout-btn" class="btn btn-primary start-workout-btn">
+                  <span>⚡</span> תחילת אימון חדש
+                </button>
+              </div>
+            </div>
+
+            <!-- Trainee History List -->
+            <div class="workout-history-section">
+              <h4 class="history-section-title">⏱️ אימונים קודמים</h4>
+              <div id="workout-history-list" class="workout-history-list">
+                <!-- Fallback empty state -->
+                <div class="history-empty-state">
+                  <span class="empty-state-emoji">📊</span>
+                  <p>אין עדיין אימונים מתועדים במכשיר. התחל אימון חדש כדי לראות את ההיסטוריה שלך כאן!</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2. ACTIVE VIEW: Live Timer, Exercises list, and inputs -->
+          <div id="workout-active-view" class="workout-view">
+            <!-- Active Workout Header Bar -->
+            <div class="active-workout-header">
+              <div class="active-timer-box">
+                <span class="timer-icon">⏱️</span>
+                <span id="active-timer" class="timer-value">00:00:00</span>
+              </div>
+              <div class="active-stats-box">
+                <span id="active-exercises-count" class="badge-mini badge-verified">0 תרגילים</span>
+              </div>
+            </div>
+
+            <!-- Dynamic Exercises Cards Container -->
+            <div id="exercises-container" class="exercises-container"></div>
+
+            <!-- Active Workout Controls -->
+            <div class="active-workout-controls">
+              <button id="add-exercise-btn" class="btn btn-secondary add-exercise-btn">
+                <span>➕</span> הוספת תרגיל חדש
+              </button>
+              <button id="finish-workout-btn" class="btn btn-success finish-workout-btn">
+                <span>🏁</span> סיום וסיכום אימון
+              </button>
+            </div>
+          </div>
+
         </div>
       </main>
     </section>
 
   </div>
+
+  <!-- 3. SUMMARY OVERLAY MODAL -->
+  <div id="workout-summary-modal" class="workout-summary-modal">
+    <div class="summary-modal-overlay"></div>
+    <div class="summary-modal-card">
+      <button id="summary-close-btn" class="summary-close-btn">&times;</button>
+      <div class="summary-modal-glow"></div>
+      <div class="summary-modal-header">
+        <span class="summary-trophy-emoji">🏆</span>
+        <h3 class="summary-modal-title">אימון הושלם בהצלחה!</h3>
+        <p class="summary-modal-subtitle">עבודה מצוינת, הנה סיכום ההישגים שלך:</p>
+      </div>
+
+      <div class="summary-stats-grid">
+        <div class="summary-stat-card">
+          <span class="stat-icon">⏱️</span>
+          <span class="stat-label">משך האימון</span>
+          <span id="summary-duration" class="stat-value">--</span>
+        </div>
+        <div class="summary-stat-card">
+          <span class="stat-icon">🏋️‍♂️</span>
+          <span class="stat-label">נפח כולל (ק"ג)</span>
+          <span id="summary-volume" class="stat-value">--</span>
+        </div>
+        <div class="summary-stat-card">
+          <span class="stat-icon">💪</span>
+          <span class="stat-label">תרגילים</span>
+          <span id="summary-exercises" class="stat-value">--</span>
+        </div>
+        <div class="summary-stat-card">
+          <span class="stat-icon">🔢</span>
+          <span class="stat-label">סטים שבוצעו</span>
+          <span id="summary-sets" class="stat-value">--</span>
+        </div>
+      </div>
+
+      <div class="summary-template-save-box">
+        <label for="summary-template-name" class="template-save-label">💾 שמור אימון זה כתבנית לעתיד (אופציונלי):</label>
+        <input type="text" id="summary-template-name" placeholder="לדוגמה: אימון גוף מלא, אימון A" class="template-name-input">
+      </div>
+
+      <button id="summary-finish-btn" class="btn btn-primary summary-finish-btn">חזרה למסך הבית</button>
+    </div>
+  </div>
+
+  <!-- Floating Glassmorphic Bottom Navigation Bar -->
+  <nav class="bottom-nav-bar">
+    <button class="nav-tab active" data-tab="workouts">
+      <span class="nav-icon">🏋️‍♂️</span>
+      <span class="nav-label">Workouts</span>
+    </button>
+    <button class="nav-tab disabled" data-tab="meals" disabled>
+      <span class="nav-icon">🥗</span>
+      <span class="nav-label">Meals</span>
+    </button>
+    <button class="nav-tab disabled" data-tab="analytics" disabled>
+      <span class="nav-icon">📈</span>
+      <span class="nav-label">Analytics</span>
+    </button>
+    <button class="nav-tab" data-tab="settings" id="nav-settings-btn">
+      <span class="nav-icon">⚙️</span>
+      <span class="nav-label">Settings</span>
+    </button>
+  </nav>
 
   <!-- User Settings Drawer Overlay Backdrop -->
   <div id="drawer-overlay" class="drawer-overlay"></div>
