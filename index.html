@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <!-- Viewport configured for native smartphone experiences (disables double-tap zoom) -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>AuraApp</title>
+  
+  <!-- Web App Capabilities (Android & iOS Native Look) -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="AuraApp">
+  <meta name="mobile-web-app-capable" content="yes">
+
+  <!-- Manifest Link -->
+  <link rel="manifest" href="manifest.json">
+  <!-- Fallback iOS App Icon -->
+  <link rel="apple-touch-icon" href="icon-192.png">
+
+  <!-- Google Fonts: Outfit for display, Inter for details -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Floating Blurred Neon Background Blobs -->
+  <div class="ambient-glow bg-primary"></div>
+  <div class="ambient-glow bg-secondary"></div>
+
+  <!-- Global Application Wrapper -->
+  <div class="app-viewport">
+    
+    <!-- 1. SIGN-OUT SCREEN (AUTHENTICATION GATEWAY) -->
+    <section id="auth-screen" class="screen active">
+      <div class="auth-card">
+        <div class="brand-hero">
+          <div class="brand-logo">✨</div>
+          <h1 class="brand-title">AuraApp</h1>
+          <p class="brand-subtitle">Discover a premium cross-platform interface</p>
+        </div>
+        
+        <div class="divider"></div>
+
+        <!-- Google Custom Standard Sign-In Button -->
+        <button id="google-login-btn" class="google-btn">
+          <div class="google-icon-wrapper">
+            <svg class="google-icon" viewBox="0 0 24 24">
+              <path fill="#EA4335" d="M20.64 12.2c0-.7-.06-1.36-.18-2H12v3.8h4.84c-.2 1.1-.84 2.02-1.78 2.66v2.22h2.88c1.68-1.55 2.66-3.83 2.66-6.48z"/>
+              <path fill="#4285F4" d="M12 21c2.43 0 4.47-.8 5.96-2.22l-2.88-2.22c-.8.54-1.84.86-3.08.86-2.37 0-4.38-1.6-5.1-3.76H3.9v2.3C5.38 18.23 8.44 21 12 21z"/>
+              <path fill="#FBBC05" d="M6.9 13.66c-.18-.54-.28-1.12-.28-1.66s.1-1.12.28-1.66V8.04H3.9C3.32 9.2 3 10.57 3 12s.32 2.8.9 3.96l3-2.3z"/>
+              <path fill="#34A853" d="M12 6.36c1.32 0 2.5.45 3.44 1.35l2.58-2.58C16.46 3.68 14.43 3 12 3 8.44 3 5.38 5.77 3.9 8.04l3 2.3c.72-2.16 2.73-3.76 5.1-3.76z"/>
+            </svg>
+          </div>
+          <span class="google-btn-text">Sign in with Google</span>
+        </button>
+        
+        <div class="auth-footer">
+          <p>Secure authentication via Google Identity</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. SIGNED-IN SCREEN (MAIN APPLICATION DASHBOARD) -->
+    <section id="app-screen" class="screen">
+      <!-- Dashboard Header -->
+      <header class="app-header">
+        <div class="user-greeting">
+          <h2 class="welcome-text">Hey, <span id="user-display-name">User</span>!</h2>
+          <p class="status-subtitle">Account Active & Secure</p>
+        </div>
+        <div class="security-status">
+          <span class="status-dot"></span>
+          <span class="status-label">Online</span>
+        </div>
+      </header>
+
+      <!-- Main Dashboard Grid -->
+      <main class="dashboard-content">
+        <!-- User Profile Card -->
+        <div class="card profile-card">
+          <div class="card-glow"></div>
+          <div class="avatar-container">
+            <img id="user-photo" class="user-avatar" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" alt="User Avatar">
+          </div>
+          <div class="user-meta">
+            <h3 id="user-full-name" class="profile-name">User Name</h3>
+            <p id="user-email" class="profile-email">user@gmail.com</p>
+          </div>
+        </div>
+
+        <!-- Google Account Meta Stats -->
+        <div class="card meta-card">
+          <div class="card-glow"></div>
+          <div class="showcase-header">
+            <div class="showcase-icon">🔑</div>
+            <h4 class="showcase-title">Security & Account Details</h4>
+          </div>
+          
+          <div class="details-list">
+            <div class="details-row">
+              <span class="row-label">Unique User ID (UID)</span>
+              <span id="user-uid" class="row-value select-all">--</span>
+            </div>
+            <div class="details-row">
+              <span class="row-label">Email Status</span>
+              <span id="user-verified-badge" class="badge-mini">--</span>
+            </div>
+            <div class="details-row">
+              <span class="row-label">Provider ID</span>
+              <span id="user-provider" class="row-value uppercase">--</span>
+            </div>
+            <div class="details-row">
+              <span class="row-label">Account Created</span>
+              <span id="user-created" class="row-value">--</span>
+            </div>
+            <div class="details-row">
+              <span class="row-label">Last Login Time</span>
+              <span id="user-last-login" class="row-value">--</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Collapsible Terminal for Raw User JSON -->
+        <div class="card json-card">
+          <div class="card-glow"></div>
+          <div class="showcase-header expandable-header" id="json-toggle">
+            <div class="showcase-icon">💻</div>
+            <h4 class="showcase-title">Raw Google Profile JSON</h4>
+            <span id="toggle-arrow" class="toggle-arrow">▼</span>
+          </div>
+          <div id="json-terminal-container" class="terminal-container">
+            <pre><code id="user-json-code">Fetching details...</code></pre>
+          </div>
+        </div>
+
+        <!-- Log Out Button -->
+        <button id="logout-btn" class="btn btn-logout">
+          <span class="btn-icon">🚪</span> Sign Out
+        </button>
+      </main>
+    </section>
+
+  </div>
+
+  <!-- Load global Firebase credential settings -->
+  <script src="firebase-config.js"></script>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

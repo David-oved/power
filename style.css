@@ -1,0 +1,638 @@
+/* ==========================================================================
+   AuraApp - Design System & Visual Architecture
+   ========================================================================== */
+
+:root {
+  --font-display: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  /* HSL Tailored Dark Obsidian Palette */
+  --bg-app: hsl(225, 28%, 6%);
+  --bg-card: hsla(224, 26%, 12%, 0.6);
+  --bg-card-hover: hsla(224, 26%, 16%, 0.75);
+  --border-card: rgba(255, 255, 255, 0.08);
+  --border-card-hover: rgba(255, 255, 255, 0.15);
+
+  --text-main: hsl(220, 15%, 88%);
+  --text-muted: hsl(220, 10%, 62%);
+  --text-heading: hsl(0, 0%, 100%);
+
+  /* Neon Glow Accents */
+  --accent: hsl(217, 91%, 60%);
+  --accent-glow: hsla(217, 91%, 60%, 0.35);
+  --accent-light: hsl(217, 91%, 70%);
+
+  --color-success: hsl(142, 70%, 45%);
+  --color-success-glow: hsla(142, 70%, 45%, 0.35);
+  
+  --color-danger: hsl(354, 84%, 52%);
+  --color-danger-glow: hsla(354, 84%, 52%, 0.4);
+
+  --transition-smooth: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+  --radius-card: 24px;
+  --radius-btn: 30px;
+}
+
+/* 1. Global Reset & Base Setup */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent; /* Disable tap highlight on mobile browsers */
+  /* Support customized scrollbars in Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+body {
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden; /* Screen transition handled by viewport */
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Ambient Blurred Glow Blobs */
+.ambient-glow {
+  position: absolute;
+  width: 90vw;
+  height: 90vw;
+  max-width: 500px;
+  max-height: 500px;
+  border-radius: 50%;
+  filter: blur(100px);
+  z-index: -1;
+  opacity: 0.25;
+  pointer-events: none;
+}
+
+.bg-primary {
+  background: radial-gradient(circle, var(--accent) 0%, transparent 70%);
+  top: -10%;
+  right: -10%;
+  animation: float-glow-primary 25s ease-in-out infinite alternate;
+}
+
+.bg-secondary {
+  background: radial-gradient(circle, var(--color-success) 0%, transparent 70%);
+  bottom: -10%;
+  left: -10%;
+  animation: float-glow-secondary 25s ease-in-out infinite alternate;
+}
+
+@keyframes float-glow-primary {
+  0% { transform: translate(0, 0) scale(1); }
+  100% { transform: translate(-10%, 10%) scale(1.2); }
+}
+
+@keyframes float-glow-secondary {
+  0% { transform: translate(0, 0) scale(1.2); }
+  100% { transform: translate(10%, -10%) scale(0.9); }
+}
+
+/* 2. Mobile Native-Like Viewport */
+.app-viewport {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh; /* Dynamic viewport for modern devices */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  padding: 0; /* Remove top/bottom safe-area padding so backgrounds are full-bleed */
+}
+
+/* Screens Framework */
+.screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  padding: calc(1rem + env(safe-area-inset-top)) 1.5rem calc(1rem + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(15px);
+  transition: opacity 0.4s cubic-bezier(0.25, 1, 0.5, 1),
+              transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  z-index: 1;
+}
+
+.screen.active {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+  z-index: 2;
+}
+
+/* Enable scroll on Auth Screen for small or landscape viewports */
+#auth-screen {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  justify-content: flex-start;
+}
+
+/* 3. SIGN-OUT SCREEN (Auth Card) */
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-card);
+  padding: 3rem 2rem;
+  text-align: center;
+  box-shadow: 0 12px 40px 0 rgba(0, 0, 0, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
+  margin: auto 0;
+  transition: var(--transition-smooth);
+}
+
+.auth-card:hover {
+  border-color: var(--border-card-hover);
+  box-shadow: 0 16px 50px 0 rgba(0, 0, 0, 0.45), 
+              0 0 25px 0 var(--accent-glow);
+}
+
+.brand-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.brand-logo {
+  font-size: 3rem;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 0 15px var(--accent-glow));
+  animation: logo-pulsate 2.5s ease-in-out infinite alternate;
+}
+
+@keyframes logo-pulsate {
+  0% { transform: scale(1); filter: drop-shadow(0 0 8px var(--accent-glow)); }
+  100% { transform: scale(1.08); filter: drop-shadow(0 0 20px var(--accent)); }
+}
+
+.brand-title {
+  font-family: var(--font-display);
+  font-size: 2.3rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--text-heading);
+}
+
+.brand-subtitle {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  max-width: 250px;
+  margin: 0 auto;
+}
+
+.divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  width: 100%;
+}
+
+/* Custom Google Standard Button Layout (Google Branded Guidelines) */
+.google-btn {
+  height: 52px;
+  background-color: #ffffff;
+  border: none;
+  border-radius: var(--radius-btn);
+  display: flex;
+  align-items: center;
+  padding: 2px;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  transition: var(--transition-smooth);
+  width: 100%;
+  max-width: 280px;
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+}
+
+.google-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.35);
+}
+
+.google-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.google-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  background-color: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.google-icon {
+  width: 22px;
+  height: 22px;
+}
+
+.google-btn-text {
+  flex-grow: 1;
+  color: #1f1f1f;
+  font-family: var(--font-sans);
+  font-size: 0.98rem;
+  font-weight: 600;
+  text-align: center;
+  padding-right: 28px; /* Offset the icon width to center the text perfectly */
+}
+
+.auth-footer {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  letter-spacing: 0.2px;
+}
+
+/* 4. SIGNED-IN SCREEN (Dashboard Layout) */
+#app-screen {
+  justify-content: flex-start;
+  padding-top: 3rem;
+  padding-bottom: 2rem;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  width: 100%;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.welcome-text {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+.status-subtitle {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.security-status {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: rgba(76, 175, 80, 0.08);
+  padding: 0.35rem 0.8rem;
+  border-radius: 20px;
+  border: 1px solid rgba(76, 175, 80, 0.2);
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  background-color: var(--color-success);
+  border-radius: 50%;
+  display: inline-block;
+  animation: pulse-success 1.5s infinite;
+}
+
+.status-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-success);
+  letter-spacing: 0.5px;
+}
+
+@keyframes pulse-success {
+  0% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
+  70% { transform: scale(1.1); box-shadow: 0 0 0 5px rgba(76, 175, 80, 0); }
+  100% { transform: scale(0.9); box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+}
+
+.dashboard-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+/* Glass Cards */
+.card {
+  background: var(--bg-card);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-card);
+  padding: 1.5rem;
+  position: relative;
+  overflow: hidden;
+  transition: var(--transition-smooth);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.25);
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.card:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-card-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35);
+}
+
+.card-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(400px circle at var(--x, 0px) var(--y, 0px), rgba(255, 255, 255, 0.04), transparent 45%);
+  pointer-events: none;
+}
+
+/* Profile Card Specifics */
+.profile-card {
+  padding: 1.8rem;
+}
+
+.avatar-container {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  padding: 3px;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+  box-shadow: 0 0 15px var(--accent-glow);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.user-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--bg-app);
+}
+
+.user-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  flex-grow: 1;
+}
+
+.profile-name {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+.profile-email {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  word-break: break-all;
+}
+
+/* Showcase Card Specifics */
+.showcase-card {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.8rem;
+  padding: 1.8rem;
+}
+
+.showcase-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.showcase-icon {
+  font-size: 1.5rem;
+}
+
+.showcase-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-heading);
+}
+
+.showcase-desc {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.tag-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.4rem;
+}
+
+.tag {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 0.3rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+/* Dynamic Buttons */
+.btn {
+  height: 52px;
+  border-radius: var(--radius-btn);
+  border: none;
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  font-weight: 600;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.btn-logout {
+  background: rgba(244, 67, 54, 0.08);
+  color: var(--color-danger);
+  border: 1px solid rgba(244, 67, 54, 0.2);
+  box-shadow: 0 4px 15px rgba(244, 67, 54, 0.05);
+  margin-top: 1rem;
+}
+
+.btn-logout:hover {
+  background: rgba(244, 67, 54, 0.15);
+  border-color: rgba(244, 67, 54, 0.35);
+  box-shadow: 0 8px 25px var(--color-danger-glow);
+  transform: translateY(-2px);
+}
+
+.btn-logout:active {
+  transform: translateY(1px);
+}
+
+/* 5. Scrollbar styling */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+/* 6. Account Details List & Terminal Styling */
+.meta-card {
+  flex-direction: column;
+  align-items: stretch;
+  padding: 1.8rem;
+  gap: 1.5rem;
+}
+
+.details-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
+.details-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 0.8rem;
+  gap: 1rem;
+}
+
+.details-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.row-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.row-value {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-main);
+  text-align: right;
+  word-break: break-all;
+}
+
+/* Badges */
+.badge-mini {
+  padding: 0.25rem 0.65rem;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.badge-verified {
+  background: rgba(76, 175, 80, 0.1);
+  color: var(--color-success);
+  border: 1px solid rgba(76, 175, 80, 0.2);
+}
+
+.badge-unverified {
+  background: rgba(244, 67, 54, 0.1);
+  color: var(--color-danger);
+  border: 1px solid rgba(244, 67, 54, 0.2);
+}
+
+/* Collapsible JSON Terminal */
+.json-card {
+  flex-direction: column;
+  align-items: stretch;
+  padding: 1.2rem 1.8rem;
+  gap: 0;
+  cursor: pointer;
+}
+
+.expandable-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 0.5rem 0;
+  user-select: none;
+}
+
+.toggle-arrow {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  transition: transform 0.3s ease;
+}
+
+.expandable-header.active .toggle-arrow {
+  color: var(--accent);
+}
+
+.terminal-container {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.25, 1, 0.5, 1),
+              margin-top 0.3s ease,
+              opacity 0.3s ease;
+  opacity: 0;
+  width: 100%;
+}
+
+.terminal-container.expanded {
+  max-height: 380px;
+  margin-top: 1.2rem;
+  opacity: 1;
+}
+
+.terminal-container pre {
+  background: rgba(0, 0, 0, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 14px;
+  padding: 1.1rem;
+  font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace;
+  font-size: 0.78rem;
+  color: hsl(120, 80%, 75%); /* Retro hackers neon green */
+  overflow-x: auto;
+  box-shadow: inset 0 2px 8px rgba(0, 0, 0, 0.5);
+  margin: 0;
+}
+
