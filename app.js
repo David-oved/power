@@ -28,6 +28,27 @@ const userFullName = document.getElementById('user-full-name');
 const userEmail = document.getElementById('user-email');
 const userPhoto = document.getElementById('user-photo');
 
+// Safe Date Parsing Helper Functions
+function safeFormatDate(value) {
+  if (!value) return 'N/A';
+  const num = Number(value);
+  if (!isNaN(num) && num > 0) {
+    return new Date(num).toLocaleDateString();
+  }
+  const d = new Date(value);
+  return isNaN(d.getTime()) ? 'N/A' : d.toLocaleDateString();
+}
+
+function safeFormatDateTime(value) {
+  if (!value) return 'N/A';
+  const num = Number(value);
+  if (!isNaN(num) && num > 0) {
+    return new Date(num).toLocaleString();
+  }
+  const d = new Date(value);
+  return isNaN(d.getTime()) ? 'N/A' : d.toLocaleString();
+}
+
 // Resolve the incoming redirect sign-in result on page load
 getRedirectResult(auth)
   .then((result) => {
@@ -82,10 +103,10 @@ onAuthStateChanged(auth, (user) => {
     document.getElementById('user-provider').textContent = user.providerData[0] ? user.providerData[0].providerId : 'google.com';
     
     const createdTime = user.metadata.createdAt || user.metadata.creationTime;
-    document.getElementById('user-created').textContent = createdTime ? new Date(isNaN(createdTime) ? createdTime : parseInt(createdTime)).toLocaleDateString() : 'N/A';
+    document.getElementById('user-created').textContent = safeFormatDate(createdTime);
     
     const loginTime = user.metadata.lastLoginAt || user.metadata.lastSignInTime;
-    document.getElementById('user-last-login').textContent = loginTime ? new Date(isNaN(loginTime) ? loginTime : parseInt(loginTime)).toLocaleString() : 'N/A';
+    document.getElementById('user-last-login').textContent = safeFormatDateTime(loginTime);
     
     // Email verified badge
     const badgeVerified = document.getElementById('user-verified-badge');
