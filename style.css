@@ -62,13 +62,21 @@ button, [role="button"], .btn, .nav-tab, .track-pill,
   touch-action: manipulation;
 }
 
+html, body {
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
 body {
   background-color: var(--bg-app);
   color: var(--text-main);
   font-family: var(--font-sans);
   min-height: 100vh;
   position: relative;
-  overflow: hidden; /* Screen transition handled by viewport */
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }
@@ -137,10 +145,9 @@ body {
 .screen {
   position: absolute;
   top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  left: 50%;
   width: 100%;
+  max-width: 480px;
   height: 100%;
   padding: calc(1rem + env(safe-area-inset-top)) 1.5rem calc(1rem + env(safe-area-inset-bottom));
   display: flex;
@@ -148,7 +155,7 @@ body {
   justify-content: center;
   opacity: 0;
   pointer-events: none;
-  transform: translateY(15px);
+  transform: translateX(-50%) translateY(15px);
   transition: opacity 0.4s cubic-bezier(0.25, 1, 0.5, 1),
               transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
   z-index: 1;
@@ -165,7 +172,7 @@ body {
 .screen.active {
   opacity: 1;
   pointer-events: auto;
-  transform: translateY(0);
+  transform: translateX(-50%) translateY(0);
   z-index: 2;
 }
 
