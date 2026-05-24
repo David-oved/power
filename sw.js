@@ -1,9 +1,10 @@
-const CACHE_NAME = 'aura-app-v4.1';
+const CACHE_NAME = 'aura-app-v1.1';
 const ASSETS = [
   './',
   './index.html',
   './style.css',
   './app.js',
+  './sw.js',
   './firebase-config.js',
   './manifest.json',
   './icon-192.svg',
@@ -55,7 +56,7 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Intercept network requests - Stale-While-Revalidate with robust Firebase exclusion
+// Intercept network requests - Serving Cache-First for Core Assets & Stale-While-Revalidate for others
 self.addEventListener('fetch', (event) => {
   if (!event.request.url.startsWith('http')) return;
   if (event.request.method !== 'GET') return;
@@ -67,8 +68,7 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Dynamic Auth, Realtime Database, Firestore, and Google Account services robust exclusions
-  // Allow Google Fonts to be cached offline, but block all firebase / auth / real-time googleapis
+  // Firebase / External Auth Exclusions
   const isGoogleFont = url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com';
   const isAuthOrFirebase = 
     !isGoogleFont && (
@@ -85,14 +85,24 @@ self.addEventListener('fetch', (event) => {
     );
   
   if (isAuthOrFirebase) {
-    return; // Force direct network pass-through
+    return; // Direct network pass-through
   }
 
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
+    caches.match(event.request, { ignoreSearch: true }).then((cachedResponse) => {
       if (cachedResponse) {
-        // Fetch new version in background to update cache (Stale-While-Revalidate)
-        // Reconstruct the request if mode is 'navigate' to prevent security policy crash on background fetch
+        // Resolve request path against Scope to verify if it is a Core Shell Asset
+        const isCoreAsset = ASSETS.some(asset => {
+          const assetUrl = new URL(asset, self.location.href);
+          return url.pathname === assetUrl.pathname;
+        });
+
+        if (isCoreAsset) {
+          // Serve strictly Cache-First for Core Assets (Prevents overwriting active cache in background)
+          return cachedResponse;
+        }
+
+        // Stale-While-Revalidate for non-core cached assets (External images, fonts, icons)
         let fetchReq = event.request;
         if (event.request.mode === 'navigate') {
           fetchReq = new Request(event.request.url, {
@@ -107,10 +117,12 @@ self.addEventListener('fetch', (event) => {
           if (networkResponse.status === 200 || networkResponse.status === 0) {
             caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse.clone()));
           }
-        }).catch(() => {/* Ignore offline fetch errors */});
+        }).catch(() => {});
         
         return cachedResponse;
       }
+
+      // Network Fallback for cache miss
       return fetch(event.request).then((networkResponse) => {
         if (networkResponse.status === 200 || networkResponse.status === 0) {
           const responseClone = networkResponse.clone();
@@ -127,9 +139,16 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Support programmatic skipWaiting message triggers from PWA Update Toast
+// Support skipWaiting & getVersion messages
 self.addEventListener('message', (event) => {
   if (event.data && event.data.action === 'skipWaiting') {
     self.skipWaiting();
+  }
+  if (event.data && event.data.action === 'getVersion') {
+    if (event.ports && event.ports[0]) {
+      // Respond with the clean version suffix extracted from the current active cache name
+      const cleanVer = CACHE_NAME.replace('aura-app-', '');
+      event.ports[0].postMessage({ version: cleanVer });
+    }
   }
 });

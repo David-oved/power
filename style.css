@@ -2089,7 +2089,7 @@ body, #auth-screen, #app-screen, .drawer-content, .settings-drawer {
 .pwa-update-toast.show {
   opacity: 1;
   visibility: visible;
-  transform: translateX(-50%) translateY(-120px);
+  transform: translateX(-50%) translateY(-190px);
   pointer-events: auto;
 }
 
