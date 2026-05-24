@@ -650,29 +650,46 @@ if ('serviceWorker' in navigator) {
       }
     });
   } else {
+    // 1. שמירת המצב הראשוני של הדף - האם כבר נשלט ע"י SW בעת העלייה
+    const wasControlled = !!navigator.serviceWorker.controller;
+
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' })
         .then((registration) => {
           console.log('PWA Service Worker registered successfully! Scope:', registration.scope);
           
+          // בדיקת עדכונים מיידית בעליית הדף ובדיקה תקופתית כל 5 דקות
           registration.update();
-          
           setInterval(() => {
             registration.update();
           }, 5 * 60 * 1000);
 
+          // פונקציית עזר להאזנה למעבר ה-SW למצב מותקן (installed / waiting)
+          const trackInstalling = (worker) => {
+            worker.addEventListener('statechange', () => {
+              if (worker.state === 'installed') {
+                // מציגים את ה-Toast רק אם היה controller פעיל מקודם (כלומר זהו עדכון ולא התקנה ראשונה)
+                if (navigator.serviceWorker.controller) {
+                  showUpdateToast(worker);
+                }
+              }
+            });
+          };
+
+          // תרחיש א': SW כבר ממתין להפעלה ברקע מהפעלה קודמת
           if (registration.waiting) {
             showUpdateToast(registration.waiting);
           }
 
+          // תרחיש ב': SW נמצא כעת בתהליך התקנה פעיל בזמן עליית הדף
+          if (registration.installing) {
+            trackInstalling(registration.installing);
+          }
+
+          // תרחיש ג': התגלה SW חדש לגמרי בתהליך בדיקה (updatefound)
           registration.addEventListener('updatefound', () => {
-            const newWorker = registration.installing;
-            if (newWorker) {
-              newWorker.addEventListener('statechange', () => {
-                if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                  showUpdateToast(newWorker);
-                }
-              });
+            if (registration.installing) {
+              trackInstalling(registration.installing);
             }
           });
         })
@@ -681,25 +698,36 @@ if ('serviceWorker' in navigator) {
         });
     });
 
+    // 2. טיפול חסין ברענון הדף בעת החלפת הבקר הפעיל
     let refreshing = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       if (refreshing) return;
-      refreshing = true;
-      console.log("Service Worker controller changed. Reloading page for new version...");
-      window.location.reload();
+      
+      // ריענון יתבצע אך ורק אם הדף היה נשלט ע"י SW קודם לכן בעת העלייה!
+      // הדבר מונע לחלוטין את הרענון המטריד והשקט בהתקנה הראשונית (First-Time Install)
+      if (wasControlled) {
+        refreshing = true;
+        console.log("Service Worker controller changed. Reloading page for new version...");
+        window.location.reload();
+      }
     });
   }
 }
 
-// Glassmorphic PWA auto-update toast notification
+// התראה מנוהלת ומעוצבת לעדכון גרסת האפליקציה (PWA Toast)
 function showUpdateToast(waitingWorker) {
   const toast = document.getElementById('pwa-update-toast');
   const refreshBtn = document.getElementById('pwa-refresh-btn');
   
   if (toast && refreshBtn) {
     toast.classList.add('show');
-    refreshBtn.addEventListener('click', () => {
-      console.log("Trainee requested update activation. Posting skipWaiting message...");
+    
+    // מניעת כפל מאזינים על ידי שכפול הכפתור והחלפתו
+    const newRefreshBtn = refreshBtn.cloneNode(true);
+    refreshBtn.parentNode.replaceChild(newRefreshBtn, refreshBtn);
+    
+    newRefreshBtn.addEventListener('click', () => {
+      console.log("User requested update activation. Posting skipWaiting message...");
       waitingWorker.postMessage({ action: 'skipWaiting' });
     });
   }
