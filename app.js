@@ -105,6 +105,52 @@ const setElText = (id, text) => {
   if (el) el.textContent = text;
 };
 
+// Robust helper to trigger native-like local notifications
+async function triggerLocalNotification(title, body) {
+  if (!('Notification' in window)) {
+    console.warn("Notifications are not supported by this browser.");
+    return;
+  }
+  
+  if (Notification.permission !== 'granted') {
+    console.warn("Notification permission is not granted.");
+    return;
+  }
+
+  const options = {
+    body: body,
+    icon: './icon-192.png',
+    badge: './icon-192.png',
+    vibrate: [100, 50, 100],
+    data: {
+      dateOfArrival: Date.now(),
+      primaryKey: 1
+    }
+  };
+
+  // Try to use Service Worker registration first for full iOS and Android standalone PWA support
+  if ('serviceWorker' in navigator) {
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      if (reg && 'showNotification' in reg) {
+        await reg.showNotification(title, options);
+        console.log("Local notification triggered successfully via Service Worker.");
+        return;
+      }
+    } catch (e) {
+      console.warn("Service Worker notification failed, falling back to window.Notification:", e);
+    }
+  }
+
+  // Fallback to standard client-side Notification API
+  try {
+    new Notification(title, options);
+    console.log("Local notification triggered successfully via standard constructor.");
+  } catch (e) {
+    console.error("Failed to display notification:", e);
+  }
+}
+
 // Helper to hide splash screen overlay
 function hideSplashScreen() {
   const splash = document.getElementById('splash-screen');
@@ -222,9 +268,13 @@ if (isReturningFromRedirect && loginBtn) {
 
 
 // Monitor Firebase Authentication Transitions safely
+let initialAuthCheckDone = false;
 if (firebaseEnabled) {
   onAuthStateChanged(auth, (user) => {
     firebaseAuthResolved = true;
+    const isLoginTransition = initialAuthCheckDone && user && !currentUser;
+    const isLogoutTransition = initialAuthCheckDone && !user && currentUser;
+
     if (user) {
       SafeStorage.removeItem('authRedirectPending'); // Clear pending redirect flag
       console.log("User signed in successfully:", user.displayName);
@@ -232,12 +282,28 @@ if (firebaseEnabled) {
 
       updateAuthUI();
       switchScreen(true);
+
+      if (isLoginTransition) {
+        triggerLocalNotification(
+          "התחברת בהצלחה! 👋",
+          `ברוך הבא ל-Aura, ${user.displayName || 'משתמש'}!`
+        );
+      }
     } else {
       console.log("No authenticated user active.");
+      const prevUser = currentUser;
       resetLoginButtonState(); // Ensure button is unlocked if not logged in
       clearUserSession();
       switchScreen(false);
+
+      if (isLogoutTransition) {
+        triggerLocalNotification(
+          "התנתקת מהחשבון 🔒",
+          `להתראות ${prevUser && prevUser.displayName ? prevUser.displayName.split(' ')[0] : ''}, נתראה באימון הבא!`
+        );
+      }
     }
+    initialAuthCheckDone = true;
     hideSplashScreen();
   });
 
@@ -249,6 +315,10 @@ if (firebaseEnabled) {
         currentUser = result.user;
         updateAuthUI();
         switchScreen(true);
+        triggerLocalNotification(
+          "התחברת בהצלחה! 👋",
+          `ברוך הבא ל-Aura, ${result.user.displayName || 'משתמש'}!`
+        );
       }
       // If we finished resolving redirects and we are still not logged in, unlock the UI
       if (!auth.currentUser) {
@@ -477,6 +547,15 @@ if (loginBtn) {
     if (!firebaseEnabled) {
       alert("Authentication features are currently unavailable because Firebase is not configured properly. Please check your config.");
       return;
+    }
+
+    // Proactively request notification permission on user-initiated gesture
+    if ('Notification' in window && Notification.permission === 'default') {
+      try {
+        await Notification.requestPermission();
+      } catch (err) {
+        console.warn("Could not request notification permission on login click:", err);
+      }
     }
 
     const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -743,6 +822,15 @@ if (profilePicBtn && appLogoutBtn) {
 // Trigger Log Out Flow cleanly supporting Firebase Auth
 if (appLogoutBtn) {
   appLogoutBtn.addEventListener('click', async () => {
+    // Proactively request notification permission on user-initiated gesture if not yet determined
+    if ('Notification' in window && Notification.permission === 'default') {
+      try {
+        await Notification.requestPermission();
+      } catch (err) {
+        console.warn("Could not request notification permission on logout click:", err);
+      }
+    }
+
     if (!currentUser) {
       console.log("Logging out from guest mode...");
       clearUserSession();
