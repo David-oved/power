@@ -1,6 +1,6 @@
 // AuraApp - Core PWA Logic & Firebase Authentication Gateway
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, OAuthProvider, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 
 // ==========================================================================
@@ -56,6 +56,7 @@ const SafeStorage = {
 let app;
 let auth;
 let googleProvider;
+let appleProvider;
 let firebaseEnabled = false;
 let firebaseAuthResolved = false;
 
@@ -76,8 +77,14 @@ if (window.firebaseConfig && window.firebaseConfig.apiKey && window.firebaseConf
       
     googleProvider = new GoogleAuthProvider();
     googleProvider.setCustomParameters({ prompt: 'select_account' });
+    
+    // Initialize Apple OAuthProvider
+    appleProvider = new OAuthProvider('apple.com');
+    appleProvider.addScope('email');
+    appleProvider.addScope('name');
+    
     firebaseEnabled = true;
-    console.log("Firebase initialized successfully.");
+    console.log("Firebase & Apple Auth initialized successfully.");
   } catch (error) {
     console.error("Failed to initialize Firebase:", error);
   }
@@ -89,6 +96,8 @@ if (window.firebaseConfig && window.firebaseConfig.apiKey && window.firebaseConf
 const authScreen = document.getElementById('auth-screen');
 const appScreen = document.getElementById('app-screen');
 const loginBtn = document.getElementById('google-login-btn');
+const appleLoginBtn = document.getElementById('apple-login-btn');
+const guestLoginBtn = document.getElementById('guest-login-btn');
 
 const userDisplayName = document.getElementById('user-display-name');
 const appUserPhoto = document.getElementById('app-user-photo');
@@ -246,21 +255,35 @@ function resetLoginButtonState() {
       googleTextNode.textContent = 'Sign in with Google';
     }
   }
+  if (appleLoginBtn) {
+    appleLoginBtn.disabled = false;
+    const appleTextNode = appleLoginBtn.querySelector('.apple-btn-text');
+    if (appleTextNode) {
+      appleTextNode.textContent = 'Sign in with Apple';
+    }
+  }
 }
 
 // If returning from a redirect, disable the login button immediately to prevent double-taps
 const isReturningFromRedirect = SafeStorage.getItem('authRedirectPending') === 'true';
-if (isReturningFromRedirect && loginBtn) {
-  loginBtn.disabled = true;
-  const googleTextNode = loginBtn.querySelector('.google-btn-text');
-  if (googleTextNode) googleTextNode.textContent = 'מאמת...';
-  console.log("Detected return from redirect. Login button disabled pending auth resolution.");
+if (isReturningFromRedirect) {
+  if (loginBtn) {
+    loginBtn.disabled = true;
+    const googleTextNode = loginBtn.querySelector('.google-btn-text');
+    if (googleTextNode) googleTextNode.textContent = 'מאמת...';
+  }
+  if (appleLoginBtn) {
+    appleLoginBtn.disabled = true;
+    const appleTextNode = appleLoginBtn.querySelector('.apple-btn-text');
+    if (appleTextNode) appleTextNode.textContent = 'מאמת...';
+  }
+  console.log("Detected return from redirect. Login buttons disabled pending auth resolution.");
 
   // Fail-safe: Release the button and clear the flag if auth doesn't resolve in 10 seconds
   // (e.g., if the user manually returns after a Google error or blocks redirects in an in-app WebView)
   setTimeout(() => {
-    if (!currentUser && loginBtn.disabled) {
-      console.warn("Redirect auth resolution timed out. Releasing login button.");
+    if (!currentUser && ((loginBtn && loginBtn.disabled) || (appleLoginBtn && appleLoginBtn.disabled))) {
+      console.warn("Redirect auth resolution timed out. Releasing login buttons.");
       resetLoginButtonState();
     }
   }, 10000);
@@ -653,6 +676,93 @@ if (loginBtn) {
         }
       }
     }
+  });
+}
+
+// Sign in with Apple Event Listener
+if (appleLoginBtn) {
+  appleLoginBtn.addEventListener('click', async () => {
+    if (!firebaseEnabled) {
+      alert("Authentication features are currently unavailable because Firebase is not configured properly. Please check your config.");
+      return;
+    }
+
+    // Proactively request notification permission on user-initiated gesture
+    if ('Notification' in window && Notification.permission === 'default') {
+      try {
+        await Notification.requestPermission();
+      } catch (err) {
+        console.warn("Could not request notification permission on login click:", err);
+      }
+    }
+
+    const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isStandaloneMode = isStandalone || (window.navigator.standalone === true) || window.matchMedia('(display-mode: standalone)').matches;
+
+    appleLoginBtn.disabled = true;
+    const appleTextNode = appleLoginBtn.querySelector('.apple-btn-text');
+    const originalText = appleTextNode ? appleTextNode.textContent : 'Sign in with Apple';
+    if (appleTextNode) appleTextNode.textContent = 'Connecting...';
+
+    // Standalone PWAs on iOS/Android or mobile WebViews: use signInWithRedirect for Apple Auth
+    if (isStandaloneMode || isMobileDevice) {
+      console.log("Mobile or Standalone PWA environment. Using signInWithRedirect for Apple Auth...");
+      if (appleTextNode) appleTextNode.textContent = 'מעביר...';
+      SafeStorage.setItem('authRedirectPending', 'true');
+      try {
+        await signInWithRedirect(auth, appleProvider);
+      } catch (redirectError) {
+        SafeStorage.removeItem('authRedirectPending');
+        console.error("Apple redirect auth error:", redirectError);
+        resetLoginButtonState();
+        handleAuthError(redirectError, appleLoginBtn, originalText);
+      }
+    } else {
+      // Desktop
+      console.log("Desktop device. Attempting Apple Auth popup...");
+      try {
+        await signInWithPopup(auth, appleProvider);
+        appleLoginBtn.disabled = false;
+        if (appleTextNode) appleTextNode.textContent = originalText;
+      } catch (popupError) {
+        console.warn("Apple popup auth failed, falling back to redirect...", popupError);
+        if (popupError.code === 'auth/popup-closed-by-user' || popupError.code === 'auth/cancelled-popup-request') {
+          console.log("Apple Sign-in: popup closed by user.");
+          appleLoginBtn.disabled = false;
+          if (appleTextNode) appleTextNode.textContent = originalText;
+          return;
+        }
+        
+        // Fallback to redirect
+        if (appleTextNode) appleTextNode.textContent = 'Redirecting...';
+        SafeStorage.setItem('authRedirectPending', 'true');
+        try {
+          await signInWithRedirect(auth, appleProvider);
+        } catch (redirectError) {
+          SafeStorage.removeItem('authRedirectPending');
+          console.error("Apple redirect fallback auth error:", redirectError);
+          resetLoginButtonState();
+          handleAuthError(redirectError, appleLoginBtn, originalText);
+        }
+      }
+    }
+  });
+}
+
+// Guest Mode Login Event Listener
+if (guestLoginBtn) {
+  guestLoginBtn.addEventListener('click', () => {
+    console.log("Entering guest mode...");
+    currentUser = null;
+
+    // Clear profile image and display guest greeting
+    setElText('user-display-name', 'אורח');
+    const fallbackPhoto = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+    if (appUserPhoto) appUserPhoto.src = fallbackPhoto;
+
+    // Transition to main screen
+    switchScreen(true);
+    hideSplashScreen();
   });
 }
 
