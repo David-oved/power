@@ -167,6 +167,7 @@ body {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   justify-content: flex-start;
+  align-items: center; /* Symmetrically centers the auth card horizontally on iPhone/Safari under RTL */
 }
 
 /* 3. SIGN-OUT SCREEN (Auth Card) */
