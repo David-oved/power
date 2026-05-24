@@ -1,6 +1,7 @@
 // AuraApp - Core PWA Logic & Firebase Authentication Gateway
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, signOut, onAuthStateChanged, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
 
 // ==========================================================================
 // 1. SafeStorage Adapter to handle Private Browsing & Quota Limits safely
@@ -65,6 +66,14 @@ if (window.firebaseConfig && window.firebaseConfig.apiKey && window.firebaseConf
   try {
     app = initializeApp(window.firebaseConfig);
     auth = getAuth(app);
+    
+    // Force LocalStorage Persistence to prevent session loss in restrictive third-party cookie environments like Samsung Internet
+    if (typeof setPersistence === 'function' && typeof browserLocalPersistence !== 'undefined') {
+      setPersistence(auth, browserLocalPersistence)
+        .then(() => console.log("Firebase Auth persistence set to LocalStorage successfully."))
+        .catch((err) => console.warn("Failed to set Firebase Auth persistence:", err));
+    }
+      
     googleProvider = new GoogleAuthProvider();
     googleProvider.setCustomParameters({ prompt: 'select_account' });
     firebaseEnabled = true;
@@ -235,8 +244,11 @@ if (firebaseEnabled) {
   // Resolve redirect logins
   getRedirectResult(auth)
     .then((result) => {
-      if (result) {
+      if (result && result.user) {
         console.log("Redirect sign-in resolved successfully for:", result.user.displayName);
+        currentUser = result.user;
+        updateAuthUI();
+        switchScreen(true);
       }
       // If we finished resolving redirects and we are still not logged in, unlock the UI
       if (!auth.currentUser) {
@@ -478,44 +490,30 @@ if (loginBtn) {
     }
 
     if (isMobileDevice) {
-      if (isIOS) {
-        // iOS (both Safari and Standalone PWA): Use popup first to avoid ITP blocking
-        // signInWithRedirect is broken on iOS 17+ Safari due to ITP cross-origin storage blocking
-        console.log("iOS device detected. Launching popup auth to avoid ITP redirect issues...");
-        try {
-          await signInWithPopup(auth, googleProvider);
+      // Both Android and iOS: Use popup first to avoid ITP / anti-tracking storage blocking
+      // signInWithRedirect is broken on iOS 17+ and Samsung Internet due to cross-origin storage blocking
+      console.log("Mobile device detected. Launching popup auth to avoid redirect storage issues...");
+      try {
+        await signInWithPopup(auth, googleProvider);
+        loginBtn.disabled = false;
+        if (googleTextNode) googleTextNode.textContent = originalText;
+      } catch (popupError) {
+        console.warn("Mobile popup auth failed. Error:", popupError.code);
+        if (popupError.code === 'auth/popup-closed-by-user' || popupError.code === 'auth/cancelled-popup-request') {
+          console.log("Mobile: Sign-in popup was closed by user.");
           loginBtn.disabled = false;
           if (googleTextNode) googleTextNode.textContent = originalText;
-        } catch (popupError) {
-          console.warn("iOS popup auth failed. Error:", popupError.code);
-          if (popupError.code === 'auth/popup-closed-by-user' || popupError.code === 'auth/cancelled-popup-request') {
-            console.log("iOS: Sign-in popup was closed by user.");
-            loginBtn.disabled = false;
-            if (googleTextNode) googleTextNode.textContent = originalText;
-            return;
-          }
-          // Fallback to redirect for older iOS or in-app browsers
-          console.warn("iOS popup failed, falling back to redirect...", popupError);
-          if (googleTextNode) googleTextNode.textContent = 'מעביר...';
-          SafeStorage.setItem('authRedirectPending', 'true');
-          try {
-            await signInWithRedirect(auth, googleProvider);
-          } catch (redirectError) {
-            SafeStorage.removeItem('authRedirectPending');
-            console.error("iOS redirect fallback auth error:", redirectError);
-            handleAuthError(redirectError, loginBtn, originalText);
-          }
+          return;
         }
-      } else {
-        // Android and other mobile: use redirect
-        console.log("Android/mobile device detected. Triggering signInWithRedirect...");
+        // Fallback to redirect for older mobile browsers or in-app webviews
+        console.warn("Mobile popup failed, falling back to redirect...", popupError);
         if (googleTextNode) googleTextNode.textContent = 'מעביר...';
         SafeStorage.setItem('authRedirectPending', 'true');
         try {
           await signInWithRedirect(auth, googleProvider);
         } catch (redirectError) {
           SafeStorage.removeItem('authRedirectPending');
-          console.error("Mobile redirect auth error:", redirectError);
+          console.error("Mobile redirect fallback auth error:", redirectError);
           handleAuthError(redirectError, loginBtn, originalText);
         }
       }
