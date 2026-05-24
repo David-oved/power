@@ -625,7 +625,7 @@ if ('serviceWorker' in navigator) {
     });
   } else {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('./sw.js')
+      navigator.serviceWorker.register('./sw.js', { updateViaCache: 'none' })
         .then((registration) => {
           console.log('PWA Service Worker registered successfully! Scope:', registration.scope);
           

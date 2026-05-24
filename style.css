@@ -2141,7 +2141,6 @@ body, #auth-screen, #app-screen, .drawer-content, .settings-drawer {
 .settings-drawer,
 .drawer-overlay,
 .ios-install-banner,
-.pwa-update-toast,
 .workout-summary-modal {
   display: none !important;
 }
@@ -2163,7 +2162,7 @@ body.authenticated .ios-install-banner.show {
   display: block !important;
 }
 
-body.authenticated .pwa-update-toast.show {
+.pwa-update-toast.show {
   display: flex !important;
 }
 
