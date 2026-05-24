@@ -7,15 +7,20 @@ import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, Google
 // ==========================================================================
 const SafeStorage = {
   _fallbackMem: {},
+  _isSupportedCache: null,
   isSupported() {
+    if (this._isSupportedCache !== null) {
+      return this._isSupportedCache;
+    }
     try {
       const test = '__storage_test__';
       localStorage.setItem(test, test);
       localStorage.removeItem(test);
-      return true;
+      this._isSupportedCache = true;
     } catch (e) {
-      return false;
+      this._isSupportedCache = false;
     }
+    return this._isSupportedCache;
   },
   getItem(key) {
     if (this.isSupported()) {
@@ -48,9 +53,33 @@ let app;
 let auth;
 let googleProvider;
 let firebaseEnabled = false;
+let firebaseAuthResolved = false;
 
 let currentUser = null;
 let isSensitiveDataVisible = false;
+
+let activeWorkout = null;
+let activeTimerInterval = null;
+let lastCompletedWorkout = null;
+
+// DOM Elements
+const startWorkoutBtn = document.getElementById('start-workout-btn');
+const workoutIdleView = document.getElementById('workout-idle-view');
+const workoutActiveView = document.getElementById('workout-active-view');
+const addExerciseBtn = document.getElementById('add-exercise-btn');
+const exercisesContainer = document.getElementById('exercises-container');
+const finishWorkoutBtn = document.getElementById('finish-workout-btn');
+const activeTimer = document.getElementById('active-timer');
+const activeExercisesCount = document.getElementById('active-exercises-count');
+
+const workoutSummaryModal = document.getElementById('workout-summary-modal');
+const summaryCloseBtn = document.getElementById('summary-close-btn');
+const summaryFinishBtn = document.getElementById('summary-finish-btn');
+const summaryDuration = document.getElementById('summary-duration');
+const summaryVolume = document.getElementById('summary-volume');
+const summaryExercises = document.getElementById('summary-exercises');
+const summarySets = document.getElementById('summary-sets');
+const workoutHistoryList = document.getElementById('workout-history-list');
 
 // Initialize Firebase App robustly using credentials from firebase-config.js
 if (window.firebaseConfig && window.firebaseConfig.apiKey && window.firebaseConfig.apiKey !== "YOUR_API_KEY") {
@@ -96,6 +125,17 @@ const toggleSensitiveBtn = document.getElementById('drawer-toggle-sensitive-btn'
 // Standalone mode detection (PWA Installed)
 const isStandalone = window.navigator.standalone === true || 
                      window.matchMedia('(display-mode: standalone)').matches;
+
+// Safe HTML escape helper to prevent Persistent DOM XSS
+function escapeHTML(str) {
+  if (!str) return '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
 
 // Safe Date Parsing Helper Functions
 function safeFormatDate(value) {
@@ -144,11 +184,16 @@ function hideSplashScreen() {
 }
 
 // Manage App Screen Transitions adapted for Premium Splash Screen Overlay
+// CRITICAL SECURITY NOTE FOR FUTURE AGENTS:
+// To enforce strict visual isolation, all active application overlay/global elements (like bottom bars,
+// settings drawers, updates alerts, and modals) MUST be completely hidden on the initial login gate.
+// The presence of body class 'authenticated' is the strict CSS gatekeepers. DO NOT change this logic.
 function switchScreen(signedIn) {
   const splash = document.getElementById('splash-screen');
   const isSplashActive = splash && !splash.classList.contains('fade-out') && (splash.style.display !== 'none');
 
   if (signedIn) {
+    document.body.classList.add('authenticated');
     authScreen.classList.remove('active');
     setTimeout(() => {
       authScreen.style.display = 'none';
@@ -156,12 +201,13 @@ function switchScreen(signedIn) {
       if (isSplashActive) {
         setTimeout(() => {
           appScreen.classList.add('active');
-        }, 500);
+        }, 200);
       } else {
         setTimeout(() => appScreen.classList.add('active'), 50);
       }
     }, 400);
   } else {
+    document.body.classList.remove('authenticated');
     appScreen.classList.remove('active');
     setTimeout(() => {
       appScreen.style.display = 'none';
@@ -169,7 +215,7 @@ function switchScreen(signedIn) {
       if (isSplashActive) {
         setTimeout(() => {
           authScreen.classList.add('active');
-        }, 500);
+        }, 200);
       } else {
         setTimeout(() => authScreen.classList.add('active'), 50);
       }
@@ -217,14 +263,15 @@ function updateAuthUI() {
   setElText('user-display-name', name ? name.split(' ')[0] : 'User');
 
   // Photo Binding
-  const photoURL = currentUser.photoURL || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+  const fallbackPhoto = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+  const photoURL = currentUser.photoURL || fallbackPhoto;
   if (floatingUserPhoto) {
     floatingUserPhoto.src = photoURL;
-    floatingUserPhoto.onerror = () => { floatingUserPhoto.src = photoURL; };
+    floatingUserPhoto.onerror = () => { floatingUserPhoto.src = fallbackPhoto; };
   }
   if (drawerUserPhoto) {
     drawerUserPhoto.src = photoURL;
-    drawerUserPhoto.onerror = () => { drawerUserPhoto.src = photoURL; };
+    drawerUserPhoto.onerror = () => { drawerUserPhoto.src = fallbackPhoto; };
   }
 
   // Drawer Fields
@@ -281,6 +328,7 @@ function updateAuthUI() {
 // Reset DOM fields safely on Logout to avoid credential leakage
 function clearUserSession() {
   currentUser = null;
+  lastCompletedWorkout = null;
 
   closeDrawer();
 
@@ -310,17 +358,34 @@ function clearUserSession() {
   if (toggleSensitiveBtn) {
     toggleSensitiveBtn.innerHTML = '👁️ הצג פרטים מזהים';
   }
+
+  // Symmetrically clear workout DOM nodes to prevent shoulder surfing
+  if (workoutHistoryList) {
+    workoutHistoryList.innerHTML = `
+      <div class="history-empty-state">
+        <span class="empty-state-emoji">📊</span>
+        <p>אנא התחבר כדי לצפות בהיסטוריית האימונים שלך.</p>
+      </div>
+    `;
+  }
+  const selectEl = document.getElementById('routine-template-select');
+  if (selectEl) {
+    selectEl.innerHTML = '<option value="">-- אנא התחבר תחילה --</option>';
+  }
 }
 
 
 // Monitor Firebase Authentication Transitions safely
 if (firebaseEnabled) {
   onAuthStateChanged(auth, (user) => {
+    firebaseAuthResolved = true;
     if (user) {
       console.log("User signed in successfully:", user.displayName);
       currentUser = user;
 
       updateAuthUI();
+      renderWorkoutHistory();
+      populateTemplateDropdown();
       switchScreen(true);
     } else {
       console.log("No authenticated user active.");
@@ -347,6 +412,15 @@ if (firebaseEnabled) {
         alert(`שגיאת התחברות: ${error.message || 'נא לפתוח בדפדפן Chrome/Safari הרגיל'}`);
       }
     });
+
+  // Fail-safe: Hide the splash screen after 3.5 seconds if Firebase fails or hangs on startup
+  setTimeout(() => {
+    if (!firebaseAuthResolved) {
+      console.warn("Firebase Auth resolution timed out. Falling back to offline/auth login screen.");
+      switchScreen(false);
+    }
+    hideSplashScreen();
+  }, 3500);
 } else {
   // Graceful fallback for missing config on startup
   console.log("Firebase is disabled. Auth features are unavailable.");
@@ -370,19 +444,34 @@ loginBtn.addEventListener('click', async () => {
   loginBtn.querySelector('.google-btn-text').textContent = 'Connecting...';
 
   const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
-  // Use redirect for mobile or installed PWA to avoid sandbox issues
-  if (isMobileDevice || isStandalone) {
-    console.log("Mobile/Standalone browser detected. Triggering signInWithRedirect...");
-    loginBtn.querySelector('.google-btn-text').textContent = 'Redirecting...';
-    try {
-      await signInWithRedirect(auth, googleProvider);
-    } catch (redirectError) {
-      console.error("Mobile redirect auth error:", redirectError);
-      handleAuthError(redirectError, loginBtn, originalText);
+  if (isMobileDevice) {
+    if (isIOS && isStandalone) {
+      // iOS PWA installed mode sandboxes external redirects. Use in-app popup instead.
+      console.log("iOS Standalone PWA detected. Launching in-app popup auth...");
+      try {
+        await signInWithPopup(auth, googleProvider);
+        console.log("Logged in successfully via popup in iOS PWA!");
+        loginBtn.disabled = false;
+        loginBtn.querySelector('.google-btn-text').textContent = originalText;
+      } catch (popupError) {
+        console.warn("iOS Standalone PWA popup auth failed:", popupError);
+        handleAuthError(popupError, loginBtn, originalText);
+      }
+    } else {
+      console.log("Mobile device detected. Triggering signInWithRedirect...");
+      loginBtn.querySelector('.google-btn-text').textContent = 'Redirecting...';
+      try {
+        await signInWithRedirect(auth, googleProvider);
+      } catch (redirectError) {
+        console.error("Mobile redirect auth error:", redirectError);
+        handleAuthError(redirectError, loginBtn, originalText);
+      }
     }
   } else {
-    console.log(isStandalone ? "Installed PWA detected. Forcing popup sign-in..." : "Desktop device detected. Attempting signInWithPopup...");
+    // Desktop PWA Standalone and desktop browsers use popup which works flawlessly.
+    console.log("Desktop device or Standalone PWA detected. Attempting popup...");
     try {
       await signInWithPopup(auth, googleProvider);
       console.log("Logged in successfully!");
@@ -430,7 +519,7 @@ function detectEnvironmentAndWarn() {
           <span style="font-size: 1.1rem;">⚠️</span>
           <div>
             <strong>שים לב: דפדפן פנימי (WhatsApp/Telegram)!</strong><br>
-            התחברות עם Google עלולה להיכשל במצב זה. אנא לחץ על שלוש הנקודות בפינה העליונה ובחר <strong>"פתח בדפדפן הרגיל"</strong> (Chrome או Safari), או התחבר באמצעות <strong>מצב אורח</strong>.
+            התחברות עם Google עלולה להיכשל במצב זה. אנא לחץ על שלוש הנקודות בפינה העליונה (או לחצן השיתוף בתחתית) ובחר <strong>"פתח בדפדפן הרגיל"</strong> (Chrome באנדרואיד או Safari באייפון) כדי להתחבר בהצלחה.
           </div>
         </div>
       `;
@@ -440,7 +529,7 @@ function detectEnvironmentAndWarn() {
           <span style="font-size: 1.1rem;">🔒</span>
           <div>
             <strong>אחסון חסום / מצב גלישה בסתר פעיל!</strong><br>
-            הדפדפן שלך חוסם עוגיות או גישה לאחסון מקומי. התחברות Google לא תישמר. מומלץ להשתמש ב<strong>מצב אורח</strong> שעובד בצורה מושלמת גם ללא עוגיות.
+            הדפדפן שלך חוסם עוגיות או גישה לאחסון מקומי. התחברות Google לא תישמר. מומלץ להשתמש בדפדפן רגיל שאינו במצב גלישה בסתר.
           </div>
         </div>
       `;
@@ -464,7 +553,7 @@ function handleAuthError(error, btn, originalText) {
   if (error.code === 'auth/web-storage-unsupported') {
     userFriendlyMessage = "הדפדפן שלך חוסם עוגיות צד שלישי (זה קורה לרוב בגלישה בסתר או בתוך אפליקציות כמו WhatsApp/Telegram). אנא העתק את הקישור ופתח אותו בדפדפן הרגיל של המכשיר (Chrome באנדרואיד או Safari באייפון) כדי שתוכל להתחבר.";
   } else if (error.code === 'auth/popup-blocked') {
-    userFriendlyMessage = "חלונות קופצים חסומים בדפדפן שלך. אנא פתח את האפליקציה בדפדפן Chrome/Safari הרגיל או השתמש במצב אורח.";
+    userFriendlyMessage = "חלונות קופצים חסומים בדפדפן שלך. אנא פתח את האפליקציה בדפדפן Chrome/Safari הרגיל.";
   } else if (error.code === 'auth/network-request-failed') {
     userFriendlyMessage = "בעיית רשת. נא לוודא שיש חיבור אינטרנט תקין ולנסות שוב.";
   } else {
@@ -473,7 +562,7 @@ function handleAuthError(error, btn, originalText) {
   alert(userFriendlyMessage);
 }
 
-// Trigger Log Out Flow cleanly supporting Guest and Firebase
+// Trigger Log Out Flow cleanly supporting Firebase Auth
 logoutBtn.addEventListener('click', async () => {
 
   if (!firebaseEnabled) {
@@ -495,7 +584,8 @@ const isLocalhost = window.location.hostname === 'localhost' ||
                     window.location.protocol === 'file:';
 
 if ('serviceWorker' in navigator) {
-  if (isLocalhost) {
+  // Allow local service worker testing if developer sets localStorage.getItem('enableLocalSW') === 'true'
+  if (isLocalhost && localStorage.getItem('enableLocalSW') !== 'true') {
     navigator.serviceWorker.getRegistrations().then((registrations) => {
       for (let registration of registrations) {
         registration.unregister();
@@ -610,31 +700,11 @@ window.addEventListener('load', () => {
     }
   }
 });
-\n// ==========================================================================
+
+// ==========================================================================
 // 10. Cyber-Athletic Workout Tracker State & Interactive UI Engine
 // ==========================================================================
-let activeWorkout = null;
-let activeTimerInterval = null;
-let lastCompletedWorkout = null;
 
-// DOM Elements
-const startWorkoutBtn = document.getElementById('start-workout-btn');
-const workoutIdleView = document.getElementById('workout-idle-view');
-const workoutActiveView = document.getElementById('workout-active-view');
-const addExerciseBtn = document.getElementById('add-exercise-btn');
-const exercisesContainer = document.getElementById('exercises-container');
-const finishWorkoutBtn = document.getElementById('finish-workout-btn');
-const activeTimer = document.getElementById('active-timer');
-const activeExercisesCount = document.getElementById('active-exercises-count');
-
-const workoutSummaryModal = document.getElementById('workout-summary-modal');
-const summaryCloseBtn = document.getElementById('summary-close-btn');
-const summaryFinishBtn = document.getElementById('summary-finish-btn');
-const summaryDuration = document.getElementById('summary-duration');
-const summaryVolume = document.getElementById('summary-volume');
-const summaryExercises = document.getElementById('summary-exercises');
-const summarySets = document.getElementById('summary-sets');
-const workoutHistoryList = document.getElementById('workout-history-list');
 
 // Safe Time Formatting Utility (HH:MM:SS)
 function formatDuration(ms) {
@@ -650,7 +720,8 @@ function formatDuration(ms) {
 // Local Storage History Operations
 function loadWorkoutHistory() {
   try {
-    const historyJson = SafeStorage.getItem('aura-workout-history');
+    const key = currentUser ? `aura-workout-history_${currentUser.uid}` : 'aura-workout-history';
+    const historyJson = SafeStorage.getItem(key);
     return historyJson ? JSON.parse(historyJson) : [];
   } catch (e) {
     console.error("Failed to load workout history from localStorage:", e);
@@ -660,9 +731,10 @@ function loadWorkoutHistory() {
 
 function saveWorkoutToHistory(workout) {
   try {
+    const key = currentUser ? `aura-workout-history_${currentUser.uid}` : 'aura-workout-history';
     const history = loadWorkoutHistory();
     history.unshift(workout); // Push new workout to the top
-    SafeStorage.setItem('aura-workout-history', JSON.stringify(history));
+    SafeStorage.setItem(key, JSON.stringify(history));
   } catch (e) {
     console.error("Failed to save workout to localStorage:", e);
   }
@@ -822,7 +894,7 @@ function renderExercises() {
             ${isActive ? `
               <button class="remove-exercise-btn" data-action="remove-exercise" data-exercise-id="${ex.id}" title="מחק תרגיל">&times;</button>
             ` : ''}
-            <input type="text" class="exercise-name-input" placeholder="שם התרגיל (לדוגמה: לחיצת חזה)" value="${ex.name}" data-exercise-id="${ex.id}" ${!isActive ? 'disabled' : ''}>
+            <input type="text" class="exercise-name-input" placeholder="שם התרגיל (לדוגמה: לחיצת חזה)" value="${escapeHTML(ex.name)}" data-exercise-id="${ex.id}" ${!isActive ? 'disabled' : ''}>
           </div>
           
           ${isCompleted ? `
@@ -886,7 +958,8 @@ function renderExercises() {
 // ==========================================================================
 function loadWorkoutTemplates() {
   try {
-    const templatesJson = SafeStorage.getItem('aura-workout-templates');
+    const key = currentUser ? `aura-workout-templates_${currentUser.uid}` : 'aura-workout-templates';
+    const templatesJson = SafeStorage.getItem(key);
     return templatesJson ? JSON.parse(templatesJson) : [];
   } catch (e) {
     console.error("Failed to load workout templates from localStorage:", e);
@@ -896,9 +969,10 @@ function loadWorkoutTemplates() {
 
 function saveWorkoutTemplate(template) {
   try {
+    const key = currentUser ? `aura-workout-templates_${currentUser.uid}` : 'aura-workout-templates';
     const templates = loadWorkoutTemplates();
     templates.push(template);
-    SafeStorage.setItem('aura-workout-templates', JSON.stringify(templates));
+    SafeStorage.setItem(key, JSON.stringify(templates));
   } catch (e) {
     console.error("Failed to save workout template to localStorage:", e);
   }
@@ -994,6 +1068,19 @@ function startWorkout() {
 function finishWorkout() {
   if (!activeWorkout) return;
 
+  // Fix Issue 15: Block completely empty workouts and ask if they wish to cancel/discard
+  if (activeWorkout.exercises.length === 0) {
+    const confirmCancel = confirm("האימון הנוכחי ריק. האם ברצונך לבטל ולמחוק אותו?");
+    if (confirmCancel) {
+      if (activeTimerInterval) clearInterval(activeTimerInterval);
+      activeTimerInterval = null;
+      activeWorkout = null;
+      if (activeTimer) activeTimer.textContent = '00:00:00';
+      closeSummary();
+    }
+    return;
+  }
+
   let totalSets = 0;
   let totalVolume = 0;
   let activeExercises = 0;
@@ -1022,7 +1109,12 @@ function finishWorkout() {
     const confirmFinish = confirm("לא סימנת אף סט כ-'בוצע' באימון זה. האם לסיים בכל זאת ללא שמירה בהיסטוריה?");
     if (!confirmFinish) return;
     
-    // Just return to home screen
+    // Fix Issue 7: Properly clean up active interval timer and active states on cancellation
+    if (activeTimerInterval) clearInterval(activeTimerInterval);
+    activeTimerInterval = null;
+    activeWorkout = null;
+    if (activeTimer) activeTimer.textContent = '00:00:00';
+
     closeSummary();
     return;
   }
@@ -1260,8 +1352,7 @@ if (exercisesContainer) {
 
 // Initialise Past Workout History list & Templates dropdown on startup
 window.addEventListener('load', () => {
-  renderWorkoutHistory();
-  populateTemplateDropdown();
+  // Wiped to prevent DOM leak before successful onAuthStateChanged validation
 });
 
 // Clear Active Workout on firebase signout

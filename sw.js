@@ -68,14 +68,18 @@ self.addEventListener('fetch', (event) => {
   }
 
   // Dynamic Auth, Realtime Database, Firestore, and Google Account services robust exclusions
+  // Allow Google Fonts to be cached offline, but block all firebase / auth / real-time googleapis
+  const isGoogleFont = url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com';
   const isAuthOrFirebase = 
-    url.hostname.endsWith('firebaseapp.com') ||
-    url.hostname.endsWith('firebaseio.com') ||
-    url.hostname.endsWith('googleapis.com') ||
-    url.hostname.endsWith('google.com') ||
-    event.request.url.includes('/__/auth/') ||
-    event.request.url.includes('identitytoolkit') ||
-    event.request.url.includes('securetoken');
+    !isGoogleFont && (
+      url.hostname.endsWith('firebaseapp.com') ||
+      url.hostname.endsWith('firebaseio.com') ||
+      url.hostname.endsWith('googleapis.com') ||
+      url.hostname.endsWith('google.com') ||
+      event.request.url.includes('/__/auth/') ||
+      event.request.url.includes('identitytoolkit') ||
+      event.request.url.includes('securetoken')
+    );
   
   if (isAuthOrFirebase) {
     return; // Force direct network pass-through
@@ -85,7 +89,18 @@ self.addEventListener('fetch', (event) => {
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
         // Fetch new version in background to update cache (Stale-While-Revalidate)
-        fetch(event.request).then((networkResponse) => {
+        // Reconstruct the request if mode is 'navigate' to prevent security policy crash on background fetch
+        let fetchReq = event.request;
+        if (event.request.mode === 'navigate') {
+          fetchReq = new Request(event.request.url, {
+            method: event.request.method,
+            headers: event.request.headers,
+            credentials: event.request.credentials,
+            redirect: event.request.redirect
+          });
+        }
+
+        fetch(fetchReq).then((networkResponse) => {
           if (networkResponse.status === 200 || networkResponse.status === 0) {
             caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse.clone()));
           }
@@ -93,7 +108,13 @@ self.addEventListener('fetch', (event) => {
         
         return cachedResponse;
       }
-      return fetch(event.request).catch(() => {
+      return fetch(event.request).then((networkResponse) => {
+        if (networkResponse.status === 200 || networkResponse.status === 0) {
+          const responseClone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
+        }
+        return networkResponse;
+      }).catch(() => {
         return new Response('Network error and no cache available.', { 
           status: 503, 
           statusText: 'Service Unavailable' 
