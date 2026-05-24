@@ -94,7 +94,9 @@ self.addEventListener('fetch', (event) => {
         // Resolve request path against Scope to verify if it is a Core Shell Asset
         const isCoreAsset = ASSETS.some(asset => {
           const assetUrl = new URL(asset, self.location.href);
-          return url.pathname === assetUrl.pathname;
+          const p1 = url.pathname.replace(/\/$/, '');
+          const p2 = assetUrl.pathname.replace(/\/$/, '');
+          return p1 === p2;
         });
 
         if (isCoreAsset) {
