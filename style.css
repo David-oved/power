@@ -2246,3 +2246,23 @@ body.authenticated .workout-summary-modal.active {
   transition: var(--transition-smooth);
 }
 
+/* Subtle Sleek Version Badge */
+.app-version-badge {
+  position: absolute;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  left: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 4px 8px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  pointer-events: none;
+  z-index: 1000;
+  letter-spacing: 0.05em;
+}
+
+

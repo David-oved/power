@@ -53,6 +53,7 @@ const SafeStorage = {
 };
 
 // State Variables
+const APP_VERSION = '2.2'; // Change this number to match CACHE_NAME in sw.js on every GitHub update!
 let app;
 let auth;
 let googleProvider;
@@ -297,6 +298,10 @@ if (firebaseEnabled) {
 
 window.addEventListener('DOMContentLoaded', () => {
   detectEnvironmentAndWarn();
+  const versionDisplay = document.getElementById('app-version-display');
+  if (versionDisplay) {
+    versionDisplay.textContent = `v${APP_VERSION}`;
+  }
 });
 
 // Beautiful glassmorphic alert for iOS Standalone PWA security restriction
