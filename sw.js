@@ -30,7 +30,8 @@ self.addEventListener('install', (event) => {
         });
       });
       return Promise.all(cachePromises).catch(err => {
-        console.warn('Failed to cache some assets during install:', err);
+        console.error('Failed to cache some assets during install:', err);
+        throw err;
       });
     })
   );
@@ -92,7 +93,12 @@ self.addEventListener('fetch', (event) => {
         
         return cachedResponse;
       }
-      return fetch(event.request);
+      return fetch(event.request).catch(() => {
+        return new Response('Network error and no cache available.', { 
+          status: 503, 
+          statusText: 'Service Unavailable' 
+        });
+      });
     })
   );
 });

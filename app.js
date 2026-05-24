@@ -50,7 +50,6 @@ let googleProvider;
 let firebaseEnabled = false;
 
 let currentUser = null;
-let sessionType = null; // 'firebase', 'guest', or null
 let isSensitiveDataVisible = false;
 
 // Initialize Firebase App robustly using credentials from firebase-config.js
@@ -245,10 +244,7 @@ function updateAuthUI() {
 
   const badgeVerified = document.getElementById('drawer-user-verified-badge');
   if (badgeVerified) {
-    if (sessionType === 'guest') {
-      badgeVerified.textContent = 'Offline';
-      badgeVerified.className = 'badge-mini badge-unverified';
-    } else if (currentUser.emailVerified) {
+    if (currentUser.emailVerified) {
       badgeVerified.textContent = 'Verified';
       badgeVerified.className = 'badge-mini badge-verified';
     } else {
@@ -285,8 +281,6 @@ function updateAuthUI() {
 // Reset DOM fields safely on Logout to avoid credential leakage
 function clearUserSession() {
   currentUser = null;
-  sessionType = null;
-  SafeStorage.removeItem('aura-active-session-type');
 
   closeDrawer();
 
@@ -318,32 +312,6 @@ function clearUserSession() {
   }
 }
 
-// Guest Mode Login
-function loginAsGuest() {
-  console.log("Initializing guest session...");
-  let guestUid = SafeStorage.getItem('aura-guest-uid');
-  if (!guestUid) {
-    guestUid = 'GUEST-' + Math.random().toString(36).substring(2, 9).toUpperCase();
-    SafeStorage.setItem('aura-guest-uid', guestUid);
-  }
-
-  currentUser = {
-    uid: guestUid,
-    displayName: 'אורח',
-    email: 'guest@auraapp.local',
-    emailVerified: false,
-    providerData: [{ providerId: 'guest.session' }],
-    metadata: {
-      createdAt: Date.now(),
-      lastLoginAt: Date.now()
-    }
-  };
-  sessionType = 'guest';
-  SafeStorage.setItem('aura-active-session-type', 'guest');
-
-  updateAuthUI();
-  switchScreen(true);
-}
 
 // Monitor Firebase Authentication Transitions safely
 if (firebaseEnabled) {
@@ -351,18 +319,13 @@ if (firebaseEnabled) {
     if (user) {
       console.log("User signed in successfully:", user.displayName);
       currentUser = user;
-      sessionType = 'firebase';
-      SafeStorage.setItem('aura-active-session-type', 'firebase');
 
       updateAuthUI();
       switchScreen(true);
     } else {
-      // ONLY clear and kick out if we are not actively in a guest session!
-      if (sessionType !== 'guest') {
-        console.log("No authenticated user active.");
-        clearUserSession();
-        switchScreen(false);
-      }
+      console.log("No authenticated user active.");
+      clearUserSession();
+      switchScreen(false);
     }
     hideSplashScreen();
   });
@@ -386,22 +349,12 @@ if (firebaseEnabled) {
     });
 } else {
   // Graceful fallback for missing config on startup
-  console.log("Firebase is disabled. Checking for guest autologin...");
-  const savedType = SafeStorage.getItem('aura-active-session-type');
-  if (savedType === 'guest') {
-    loginAsGuest();
-  } else {
-    switchScreen(false);
-  }
+  console.log("Firebase is disabled. Auth features are unavailable.");
+  switchScreen(false);
   setTimeout(hideSplashScreen, 1000);
 }
 
-// Auto-Login Guest Session on startup if previously active
 window.addEventListener('DOMContentLoaded', () => {
-  const savedType = SafeStorage.getItem('aura-active-session-type');
-  if (savedType === 'guest') {
-    loginAsGuest();
-  }
   detectEnvironmentAndWarn();
 });
 
@@ -418,10 +371,9 @@ loginBtn.addEventListener('click', async () => {
 
   const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
-  // If mobile but NOT installed standalone PWA, we use redirect.
-  // If installed standalone PWA, we MUST use popup to avoid being broken inside iOS sandbox.
-  if (isMobileDevice && !isStandalone) {
-    console.log("Mobile browser detected. Triggering signInWithRedirect...");
+  // Use redirect for mobile or installed PWA to avoid sandbox issues
+  if (isMobileDevice || isStandalone) {
+    console.log("Mobile/Standalone browser detected. Triggering signInWithRedirect...");
     loginBtn.querySelector('.google-btn-text').textContent = 'Redirecting...';
     try {
       await signInWithRedirect(auth, googleProvider);
@@ -462,13 +414,6 @@ loginBtn.addEventListener('click', async () => {
   }
 });
 
-// Guest Bypass Button
-const guestLoginBtn = document.getElementById('guest-login-btn');
-if (guestLoginBtn) {
-  guestLoginBtn.addEventListener('click', () => {
-    loginAsGuest();
-  });
-}
 
 // Proactive Environment Warnings (WhatsApp/Telegram/Private Tabs)
 function detectEnvironmentAndWarn() {
@@ -530,12 +475,6 @@ function handleAuthError(error, btn, originalText) {
 
 // Trigger Log Out Flow cleanly supporting Guest and Firebase
 logoutBtn.addEventListener('click', async () => {
-  if (sessionType === 'guest') {
-    console.log("Signing out Guest session.");
-    clearUserSession();
-    switchScreen(false);
-    return;
-  }
 
   if (!firebaseEnabled) {
     alert("Sign out is unavailable in offline/demo mode.");
@@ -711,7 +650,7 @@ function formatDuration(ms) {
 // Local Storage History Operations
 function loadWorkoutHistory() {
   try {
-    const historyJson = localStorage.getItem('aura-workout-history');
+    const historyJson = SafeStorage.getItem('aura-workout-history');
     return historyJson ? JSON.parse(historyJson) : [];
   } catch (e) {
     console.error("Failed to load workout history from localStorage:", e);
@@ -723,7 +662,7 @@ function saveWorkoutToHistory(workout) {
   try {
     const history = loadWorkoutHistory();
     history.unshift(workout); // Push new workout to the top
-    localStorage.setItem('aura-workout-history', JSON.stringify(history));
+    SafeStorage.setItem('aura-workout-history', JSON.stringify(history));
   } catch (e) {
     console.error("Failed to save workout to localStorage:", e);
   }
@@ -947,7 +886,7 @@ function renderExercises() {
 // ==========================================================================
 function loadWorkoutTemplates() {
   try {
-    const templatesJson = localStorage.getItem('aura-workout-templates');
+    const templatesJson = SafeStorage.getItem('aura-workout-templates');
     return templatesJson ? JSON.parse(templatesJson) : [];
   } catch (e) {
     console.error("Failed to load workout templates from localStorage:", e);
@@ -959,7 +898,7 @@ function saveWorkoutTemplate(template) {
   try {
     const templates = loadWorkoutTemplates();
     templates.push(template);
-    localStorage.setItem('aura-workout-templates', JSON.stringify(templates));
+    SafeStorage.setItem('aura-workout-templates', JSON.stringify(templates));
   } catch (e) {
     console.error("Failed to save workout template to localStorage:", e);
   }
@@ -1065,8 +1004,10 @@ function finishWorkout() {
       if (set.completed) {
         totalSets++;
         exHasCompletedSet = true;
-        const w = parseFloat(set.weight) || 0;
-        const r = parseInt(set.reps) || 0;
+        const parsedW = parseFloat(set.weight);
+        const parsedR = parseInt(set.reps);
+        const w = isNaN(parsedW) ? 0 : parsedW;
+        const r = isNaN(parsedR) ? 0 : parsedR;
         totalVolume += (w * r);
       }
     });
