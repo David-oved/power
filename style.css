@@ -1667,6 +1667,8 @@ body, #auth-screen, #app-screen, .drawer-content, .settings-drawer {
   color: #39ff14; /* Hacker retro green */
   white-space: pre-wrap;
   word-wrap: break-word;
+  direction: ltr !important;
+  text-align: left !important;
 }
 
 .drawer-footer {
@@ -2084,6 +2086,7 @@ body, #auth-screen, #app-screen, .drawer-content, .settings-drawer {
   visibility: hidden;
   transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s, visibility 0.4s;
   pointer-events: none;
+  color: hsl(225, 24%, 12%) !important;
 }
 
 .pwa-update-toast.show {

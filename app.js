@@ -7,6 +7,7 @@ import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, Google
 // ==========================================================================
 const SafeStorage = {
   _fallbackMem: {},
+  _failedKeys: {},
   _isSupportedCache: null,
   isSupported() {
     if (this._isSupportedCache !== null) {
@@ -23,28 +24,33 @@ const SafeStorage = {
     return this._isSupportedCache;
   },
   getItem(key) {
-    if (this.isSupported()) {
-      return localStorage.getItem(key);
+    if (this.isSupported() && !this._failedKeys[key]) {
+      const val = localStorage.getItem(key);
+      if (val !== null) {
+        return val;
+      }
     }
-    return this._fallbackMem[key] || null;
+    return this._fallbackMem[key] !== undefined ? this._fallbackMem[key] : null;
   },
   setItem(key, value) {
+    this._fallbackMem[key] = String(value);
     if (this.isSupported()) {
       try {
         localStorage.setItem(key, value);
+        delete this._failedKeys[key];
         return;
       } catch (e) {
         console.warn("Storage write failed (quota exceeded?):", e);
+        this._failedKeys[key] = true;
       }
     }
-    this._fallbackMem[key] = String(value);
   },
   removeItem(key) {
+    delete this._fallbackMem[key];
+    delete this._failedKeys[key];
     if (this.isSupported()) {
       localStorage.removeItem(key);
-      return;
     }
-    delete this._fallbackMem[key];
   }
 };
 
@@ -102,6 +108,8 @@ const authScreen = document.getElementById('auth-screen');
 const appScreen = document.getElementById('app-screen');
 const loginBtn = document.getElementById('google-login-btn');
 const logoutBtn = document.getElementById('app-logout-btn') || document.getElementById('drawer-logout-btn');
+const appLogoutBtn = document.getElementById('app-logout-btn');
+const profilePicBtn = document.getElementById('profile-pic-btn');
 
 const userDisplayName = document.getElementById('user-display-name');
 const floatingUserPhoto = document.getElementById('floating-user-photo');
@@ -239,31 +247,41 @@ function switchScreen(signedIn) {
   const isSplashActive = splash && !splash.classList.contains('fade-out') && (splash.style.display !== 'none');
 
   if (signedIn) {
+    if (appLogoutBtn) {
+      appLogoutBtn.classList.remove('hide');
+    }
     document.body.classList.add('authenticated');
-    authScreen.classList.remove('active');
+    if (authScreen) authScreen.classList.remove('active');
     setTimeout(() => {
-      authScreen.style.display = 'none';
-      appScreen.style.display = 'flex';
+      if (authScreen) authScreen.style.display = 'none';
+      if (appScreen) appScreen.style.display = 'flex';
       if (isSplashActive) {
         setTimeout(() => {
-          appScreen.classList.add('active');
+          if (appScreen) appScreen.classList.add('active');
         }, 200);
       } else {
-        setTimeout(() => appScreen.classList.add('active'), 50);
+        setTimeout(() => {
+          if (appScreen) appScreen.classList.add('active');
+        }, 50);
       }
     }, 400);
   } else {
+    if (appLogoutBtn) {
+      appLogoutBtn.classList.add('hide');
+    }
     document.body.classList.remove('authenticated');
-    appScreen.classList.remove('active');
+    if (appScreen) appScreen.classList.remove('active');
     setTimeout(() => {
-      appScreen.style.display = 'none';
-      authScreen.style.display = 'flex';
+      if (appScreen) appScreen.style.display = 'none';
+      if (authScreen) authScreen.style.display = 'flex';
       if (isSplashActive) {
         setTimeout(() => {
-          authScreen.classList.add('active');
+          if (authScreen) authScreen.classList.add('active');
         }, 200);
       } else {
-        setTimeout(() => authScreen.classList.add('active'), 50);
+        setTimeout(() => {
+          if (authScreen) authScreen.classList.add('active');
+        }, 50);
       }
     }, 400);
   }
@@ -376,6 +394,7 @@ function clearUserSession() {
   currentUser = null;
   lastCompletedWorkout = null;
   SafeStorage._fallbackMem = {};
+  SafeStorage._failedKeys = {};
 
   closeDrawer();
 
@@ -519,90 +538,93 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 // Dynamic Mobile/Desktop & Standalone Authenticator Gateway
-loginBtn.addEventListener('click', async () => {
-  if (!firebaseEnabled) {
-    alert("Authentication features are currently unavailable because Firebase is not configured properly. Please check your config.");
-    return;
-  }
-
-  // Proactively request notification permission on user-initiated gesture (safely)
-  if ('Notification' in window && typeof Notification !== 'undefined' && Notification.permission === 'default') {
-    try {
-      await Notification.requestPermission();
-    } catch (err) {
-      console.warn("Could not request notification permission on login click:", err);
+if (loginBtn) {
+  loginBtn.addEventListener('click', async () => {
+    if (!firebaseEnabled) {
+      alert("Authentication features are currently unavailable because Firebase is not configured properly. Please check your config.");
+      return;
     }
-  }
 
-  loginBtn.disabled = true;
-  const originalText = loginBtn.querySelector('.google-btn-text').textContent;
-  loginBtn.querySelector('.google-btn-text').textContent = 'Connecting...';
-
-  const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-
-  if (isMobileDevice) {
-    if (isIOS && isStandalone) {
-      // iOS PWA installed mode sandboxes external redirects. Attempt popup first, then fall back dynamically to redirect if popup fails.
-      console.log("iOS Standalone PWA detected. Launching in-app popup auth...");
+    // Proactively request notification permission on user-initiated gesture (safely)
+    if ('Notification' in window && typeof Notification !== 'undefined' && Notification.permission === 'default') {
       try {
-        await signInWithPopup(auth, googleProvider);
-        console.log("Logged in successfully via popup in iOS PWA!");
-        loginBtn.disabled = false;
-        loginBtn.querySelector('.google-btn-text').textContent = originalText;
-      } catch (popupError) {
-        console.warn("iOS Standalone PWA popup auth failed. Falling back to signInWithRedirect...", popupError);
-        loginBtn.querySelector('.google-btn-text').textContent = 'Redirecting...';
+        await Notification.requestPermission();
+      } catch (err) {
+        console.warn("Could not request notification permission on login click:", err);
+      }
+    }
+
+    loginBtn.disabled = true;
+    const btnTextEl = loginBtn.querySelector('.google-btn-text');
+    const originalText = btnTextEl ? btnTextEl.textContent : 'Sign in with Google';
+    if (btnTextEl) btnTextEl.textContent = 'Connecting...';
+
+    const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+    if (isMobileDevice) {
+      if (isIOS && isStandalone) {
+        // iOS PWA installed mode sandboxes external redirects. Attempt popup first, then fall back dynamically to redirect if popup fails.
+        console.log("iOS Standalone PWA detected. Launching in-app popup auth...");
+        try {
+          await signInWithPopup(auth, googleProvider);
+          console.log("Logged in successfully via popup in iOS PWA!");
+          loginBtn.disabled = false;
+          if (btnTextEl) btnTextEl.textContent = originalText;
+        } catch (popupError) {
+          console.warn("iOS Standalone PWA popup auth failed. Falling back to signInWithRedirect...", popupError);
+          if (btnTextEl) btnTextEl.textContent = 'Redirecting...';
+          try {
+            await signInWithRedirect(auth, googleProvider);
+          } catch (redirectError) {
+            console.error("iOS Standalone PWA redirect fallback auth error:", redirectError);
+            handleAuthError(redirectError, loginBtn, originalText);
+          }
+        }
+      } else {
+        console.log("Mobile device detected. Triggering signInWithRedirect...");
+        if (btnTextEl) btnTextEl.textContent = 'Redirecting...';
         try {
           await signInWithRedirect(auth, googleProvider);
         } catch (redirectError) {
-          console.error("iOS Standalone PWA redirect fallback auth error:", redirectError);
+          console.error("Mobile redirect auth error:", redirectError);
           handleAuthError(redirectError, loginBtn, originalText);
         }
       }
     } else {
-      console.log("Mobile device detected. Triggering signInWithRedirect...");
-      loginBtn.querySelector('.google-btn-text').textContent = 'Redirecting...';
+      // Desktop PWA Standalone and desktop browsers use popup which works flawlessly.
+      console.log("Desktop device or Standalone PWA detected. Attempting popup...");
       try {
-        await signInWithRedirect(auth, googleProvider);
-      } catch (redirectError) {
-        console.error("Mobile redirect auth error:", redirectError);
-        handleAuthError(redirectError, loginBtn, originalText);
-      }
-    }
-  } else {
-    // Desktop PWA Standalone and desktop browsers use popup which works flawlessly.
-    console.log("Desktop device or Standalone PWA detected. Attempting popup...");
-    try {
-      await signInWithPopup(auth, googleProvider);
-      console.log("Logged in successfully!");
-      loginBtn.disabled = false;
-      loginBtn.querySelector('.google-btn-text').textContent = originalText;
-    } catch (popupError) {
-      console.warn("Popup sign-in failed. Error code:", popupError.code);
-      
-      if (popupError.code === 'auth/popup-closed-by-user' || popupError.code === 'auth/cancelled-popup-request') {
-        console.log("Sign-in process was cancelled by the user.");
+        await signInWithPopup(auth, googleProvider);
+        console.log("Logged in successfully!");
         loginBtn.disabled = false;
-        loginBtn.querySelector('.google-btn-text').textContent = originalText;
-        return;
-      }
-      
-      if (!isStandalone) {
-        console.log("Falling back to signInWithRedirect...");
-        loginBtn.querySelector('.google-btn-text').textContent = 'Redirecting...';
-        try {
-          await signInWithRedirect(auth, googleProvider);
-        } catch (redirectError) {
-          console.error("Desktop redirect fallback auth error:", redirectError);
-          handleAuthError(redirectError, loginBtn, originalText);
+        if (btnTextEl) btnTextEl.textContent = originalText;
+      } catch (popupError) {
+        console.warn("Popup sign-in failed. Error code:", popupError.code);
+        
+        if (popupError.code === 'auth/popup-closed-by-user' || popupError.code === 'auth/cancelled-popup-request') {
+          console.log("Sign-in process was cancelled by the user.");
+          loginBtn.disabled = false;
+          if (btnTextEl) btnTextEl.textContent = originalText;
+          return;
         }
-      } else {
-        handleAuthError(popupError, loginBtn, originalText);
+        
+        if (!isStandalone) {
+          console.log("Falling back to signInWithRedirect...");
+          if (btnTextEl) btnTextEl.textContent = 'Redirecting...';
+          try {
+            await signInWithRedirect(auth, googleProvider);
+          } catch (redirectError) {
+            console.error("Desktop redirect fallback auth error:", redirectError);
+            handleAuthError(redirectError, loginBtn, originalText);
+          }
+        } else {
+          handleAuthError(popupError, loginBtn, originalText);
+        }
       }
     }
-  }
-});
+  });
+}
 
 // Proactive Environment Warnings (WhatsApp/Telegram/Private Tabs)
 function detectEnvironmentAndWarn() {
@@ -663,28 +685,39 @@ function handleAuthError(error, btn, originalText) {
 }
 
 // Trigger Log Out Flow cleanly supporting Firebase Auth
-logoutBtn.addEventListener('click', async () => {
-  // Proactively request notification permission on user-initiated gesture if not yet determined
-  if ('Notification' in window && typeof Notification !== 'undefined' && Notification.permission === 'default') {
-    try {
-      await Notification.requestPermission();
-    } catch (err) {
-      console.warn("Could not request notification permission on logout click:", err);
+if (logoutBtn) {
+  logoutBtn.addEventListener('click', async () => {
+    // Proactively request notification permission on user-initiated gesture if not yet determined
+    if ('Notification' in window && typeof Notification !== 'undefined' && Notification.permission === 'default') {
+      try {
+        await Notification.requestPermission();
+      } catch (err) {
+        console.warn("Could not request notification permission on logout click:", err);
+      }
     }
-  }
 
-  if (!firebaseEnabled) {
-    alert("Sign out is unavailable in offline/demo mode.");
-    return;
-  }
+    if (!firebaseEnabled) {
+      alert("Sign out is unavailable in offline/demo mode.");
+      return;
+    }
 
-  try {
-    await signOut(auth);
-    console.log("Session signed out successfully.");
-  } catch (error) {
-    console.error("Sign-out process encountered an error:", error);
-  }
-});
+    try {
+      await signOut(auth);
+      console.log("Session signed out successfully.");
+    } catch (error) {
+      console.error("Sign-out process encountered an error:", error);
+    }
+  });
+}
+
+// Support profilePicBtn clicking to toggle the visibility of appLogoutBtn
+if (profilePicBtn) {
+  profilePicBtn.addEventListener('click', () => {
+    if (appLogoutBtn) {
+      appLogoutBtn.classList.toggle('hide');
+    }
+  });
+}
 
 // Register PWA Service Worker
 const isLocalhost = window.location.hostname === 'localhost' || 
@@ -847,6 +880,7 @@ function formatDuration(ms) {
 
 // Local Storage History Operations
 function loadWorkoutHistory() {
+  if (!currentUser) return [];
   try {
     const key = `aura-workout-history_${currentUser.uid}`;
     const historyJson = SafeStorage.getItem(key);
@@ -858,6 +892,7 @@ function loadWorkoutHistory() {
 }
 
 function saveWorkoutToHistory(workout) {
+  if (!currentUser) return;
   try {
     const key = `aura-workout-history_${currentUser.uid}`;
     const history = loadWorkoutHistory();
@@ -869,6 +904,7 @@ function saveWorkoutToHistory(workout) {
 }
 
 function renderWorkoutHistory() {
+  if (!currentUser) return;
   if (!workoutHistoryList) return;
   const history = loadWorkoutHistory();
 
@@ -1085,6 +1121,7 @@ function renderExercises() {
 // Workout Routine Templates persistent vault logic
 // ==========================================================================
 function loadWorkoutTemplates() {
+  if (!currentUser) return [];
   try {
     const key = `aura-workout-templates_${currentUser.uid}`;
     const templatesJson = SafeStorage.getItem(key);
@@ -1096,6 +1133,7 @@ function loadWorkoutTemplates() {
 }
 
 function saveWorkoutTemplate(template) {
+  if (!currentUser) return;
   try {
     const key = `aura-workout-templates_${currentUser.uid}`;
     const templates = loadWorkoutTemplates();
@@ -1109,6 +1147,10 @@ function saveWorkoutTemplate(template) {
 function populateTemplateDropdown() {
   const selectEl = document.getElementById('routine-template-select');
   if (!selectEl) return;
+  if (!currentUser) {
+    selectEl.innerHTML = '<option value="">-- אנא התחבר תחילה --</option>';
+    return;
+  }
   const templates = loadWorkoutTemplates();
   
   selectEl.innerHTML = '<option value="">-- אימון ריק (ללא תבנית) --</option>';
