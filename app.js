@@ -53,7 +53,6 @@ const SafeStorage = {
 };
 
 // State Variables
-const APP_VERSION = '1.1'; // Change this number to match CACHE_NAME in sw.js on every GitHub update!
 let app;
 let auth;
 let googleProvider;
@@ -296,12 +295,34 @@ if (firebaseEnabled) {
   setTimeout(hideSplashScreen, 1000);
 }
 
+// Fetch sw.js dynamically to read and display the currently running version dynamically
+function loadAppVersion() {
+  const versionDisplay = document.getElementById('app-version-display');
+  if (!versionDisplay) return;
+
+  fetch('./sw.js')
+    .then(response => {
+      if (!response.ok) throw new Error("Failed to fetch sw.js");
+      return response.text();
+    })
+    .then(code => {
+      const match = code.match(/const\s+CACHE_NAME\s*=\s*['"]([^'"]+)['"]/);
+      if (match) {
+        const cacheName = match[1];
+        const versionStr = cacheName.replace('aura-app-v', '');
+        versionDisplay.textContent = `v${versionStr}`;
+        console.log(`Dynamically resolved running app version from sw.js: v${versionStr}`);
+      }
+    })
+    .catch(err => {
+      console.warn("Failed to dynamically resolve app version from sw.js, using fallback:", err);
+      versionDisplay.textContent = 'v1.1'; // Robust default fallback
+    });
+}
+
 window.addEventListener('DOMContentLoaded', () => {
   detectEnvironmentAndWarn();
-  const versionDisplay = document.getElementById('app-version-display');
-  if (versionDisplay) {
-    versionDisplay.textContent = `v${APP_VERSION}`;
-  }
+  loadAppVersion();
 });
 
 // Beautiful glassmorphic alert for iOS Standalone PWA security restriction
