@@ -101,7 +101,6 @@ if (window.firebaseConfig && window.firebaseConfig.apiKey && window.firebaseConf
 const authScreen = document.getElementById('auth-screen');
 const appScreen = document.getElementById('app-screen');
 const loginBtn = document.getElementById('google-login-btn');
-const guestLoginBtn = document.getElementById('guest-login-btn');
 const logoutBtn = document.getElementById('drawer-logout-btn');
 
 const userDisplayName = document.getElementById('user-display-name');
@@ -510,47 +509,6 @@ loginBtn.addEventListener('click', async () => {
     }
   }
 });
-
-// Guest / Offline Mode Gateway listener
-if (guestLoginBtn) {
-  guestLoginBtn.addEventListener('click', () => {
-    console.log("Entering offline guest tracking mode...");
-    currentUser = null; // Mark as guest
-
-    // Load guest-isolated data and render UI
-    renderWorkoutHistory();
-    populateTemplateDropdown();
-
-    // Symmetrically clear drawer UI but customize for Guest
-    setElText('user-display-name', 'אורח');
-    setElText('drawer-user-full-name', 'משתמש אורח (לא מקוון)');
-    setElText('drawer-user-email', 'מצב אורח פעיל');
-    setElText('drawer-user-uid', 'GUEST_USER');
-    setElText('drawer-user-provider', 'Offline');
-    setElText('drawer-user-created', 'N/A');
-    setElText('drawer-user-last-login', 'N/A');
-    
-    const badgeVerified = document.getElementById('drawer-user-verified-badge');
-    if (badgeVerified) {
-      badgeVerified.textContent = 'Guest Mode';
-      badgeVerified.className = 'badge-mini badge-verified';
-    }
-
-    if (drawerUserJsonCode) {
-      drawerUserJsonCode.textContent = JSON.stringify({
-        mode: "Guest / Offline",
-        storageIsolation: "Offline key",
-        localWorkoutKey: "aura-workout-history",
-        localTemplatesKey: "aura-workout-templates"
-      }, null, 2);
-    }
-
-    // Smooth transition
-    switchScreen(true);
-    hideSplashScreen();
-  });
-}
-
 
 // Proactive Environment Warnings (WhatsApp/Telegram/Private Tabs)
 function detectEnvironmentAndWarn() {

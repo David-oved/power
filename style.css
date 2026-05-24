@@ -108,6 +108,8 @@ body {
 .app-viewport {
   position: relative;
   width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
   height: 100vh;
   height: 100dvh; /* Dynamic viewport for modern devices */
   display: flex;
@@ -115,16 +117,23 @@ body {
   align-items: center;
   overflow: hidden;
   padding: 0; /* Remove top/bottom safe-area padding so backgrounds are full-bleed */
+  background-color: var(--bg-app);
+  background-image: 
+    linear-gradient(45deg, hsl(225, 24%, 6%) 25%, transparent 25%, transparent 75%, hsl(225, 24%, 6%) 75%, hsl(225, 24%, 6%)), 
+    linear-gradient(45deg, hsl(225, 24%, 6%) 25%, var(--bg-app) 25%, var(--bg-app) 75%, hsl(225, 24%, 6%) 75%, hsl(225, 24%, 6%));
+  background-size: 10px 10px;
+  background-position: 0 0, 5px 5px;
+  box-shadow: 0 0 80px rgba(0, 0, 0, 0.7);
 }
 
 /* Screens Framework */
 .screen {
   position: absolute;
   top: 0;
-  left: 50%;
-  transform: translateX(-50%) translateY(15px);
+  left: 0;
+  right: 0;
+  bottom: 0;
   width: 100%;
-  max-width: 480px;
   height: 100%;
   padding: calc(1rem + env(safe-area-inset-top)) 1.5rem calc(1rem + env(safe-area-inset-bottom));
   display: flex;
@@ -132,6 +141,7 @@ body {
   justify-content: center;
   opacity: 0;
   pointer-events: none;
+  transform: translateY(15px);
   transition: opacity 0.4s cubic-bezier(0.25, 1, 0.5, 1),
               transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
   z-index: 1;
@@ -148,7 +158,7 @@ body {
 .screen.active {
   opacity: 1;
   pointer-events: auto;
-  transform: translateX(-50%) translateY(0);
+  transform: translateY(0);
   z-index: 2;
 }
 
@@ -1423,7 +1433,7 @@ body, #auth-screen, #app-screen, .drawer-content, .settings-drawer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 1.5rem;
+  padding: calc(1.5rem + env(safe-area-inset-top)) 1.5rem 1.5rem 1.5rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
@@ -1858,7 +1868,7 @@ body, #auth-screen, #app-screen, .drawer-content, .settings-drawer {
 
 .bottom-nav-bar {
   position: fixed;
-  bottom: 20px;
+  bottom: calc(20px + env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
   width: 90%;
@@ -1923,7 +1933,7 @@ body, #auth-screen, #app-screen, .drawer-content, .settings-drawer {
 
 .ios-install-banner {
   position: fixed;
-  bottom: 100px;
+  bottom: calc(100px + env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%) translateY(150px);
   width: 90%;
