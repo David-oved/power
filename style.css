@@ -55,6 +55,13 @@
   scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
 }
 
+/* iOS tap delay elimination */
+button, [role="button"], .btn, .nav-tab, .track-pill,
+.google-btn, .ios-prompt-close-btn, .add-set-btn,
+.set-checkmark-btn, input[type="submit"] {
+  touch-action: manipulation;
+}
+
 body {
   background-color: var(--bg-app);
   color: var(--text-main);
@@ -165,7 +172,6 @@ body {
 /* Enable scroll on Auth Screen for small or landscape viewports */
 #auth-screen {
   overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
   justify-content: flex-start;
   align-items: center; /* Symmetrically centers the auth card horizontally on iPhone/Safari under RTL */
 }
@@ -280,7 +286,8 @@ body {
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%;
+  height: 100svh;
+  height: 100dvh;
   background: var(--bg-app);
   background-image: 
     linear-gradient(45deg, hsl(225, 24%, 6%) 25%, transparent 25%, transparent 75%, hsl(225, 24%, 6%) 75%, hsl(225, 24%, 6%)), 
@@ -495,7 +502,6 @@ body {
 /* Prevent scroll rubber-banding & enable elastic scrolling zones */
 body, #auth-screen, #app-screen, .drawer-content, .settings-drawer {
   overscroll-behavior-y: contain !important;
-  -webkit-overflow-scrolling: touch !important;
 }
 
 /* Vector Close Buttons */
@@ -563,7 +569,6 @@ body, #auth-screen, #app-screen, .drawer-content, .settings-drawer {
 
 #app-screen {
   overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
   justify-content: flex-start;
   padding-bottom: calc(9rem + env(safe-area-inset-bottom)) !important;
 }
@@ -1456,7 +1461,6 @@ body, #auth-screen, #app-screen, .drawer-content, .settings-drawer {
   display: flex;
   flex-direction: column;
   gap: 2rem;
-  -webkit-overflow-scrolling: touch;
 }
 
 .drawer-profile-frame {

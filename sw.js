@@ -1,4 +1,4 @@
-const CACHE_NAME = 'aura-app-v1.9'; // Incremented cache version
+const CACHE_NAME = 'aura-app-v2.0';
 const ASSETS = [
   './',
   './index.html',
@@ -9,9 +9,9 @@ const ASSETS = [
   './icon-192.svg',
   './icon-512.svg',
   './icon-192.png',
-  './icon-512.png',
-  'https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js',
-  'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js'
+  './icon-512.png'
+  // Firebase SDK files intentionally excluded: served from Google CDN with long cache-control headers.
+  // Caching opaque cross-origin responses risks serving corrupted/stale Firebase SDK.
 ];
 
 // Service Worker Install State - cache all core files bypass HTTP cache
@@ -78,6 +78,7 @@ self.addEventListener('fetch', (event) => {
       url.hostname.endsWith('googleapis.com') ||
       url.hostname.endsWith('google.com') ||
       url.hostname === 'ssl.gstatic.com' ||
+      url.hostname === 'www.gstatic.com' ||
       event.request.url.includes('/__/auth/') ||
       event.request.url.includes('identitytoolkit') ||
       event.request.url.includes('securetoken')

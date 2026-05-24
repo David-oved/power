@@ -107,7 +107,9 @@ function hideSplashScreen() {
 }
 
 // Manage App Screen Transitions
+let _switchScreenCallId = 0;
 function switchScreen(signedIn) {
+  const callId = ++_switchScreenCallId; // Monotonically increasing — cancels any pending transition
   const splash = document.getElementById('splash-screen');
   const isSplashActive = splash && !splash.classList.contains('fade-out') && (splash.style.display !== 'none');
 
@@ -115,6 +117,7 @@ function switchScreen(signedIn) {
     document.body.classList.add('authenticated');
     authScreen.classList.remove('active');
     setTimeout(() => {
+      if (callId !== _switchScreenCallId) return; // Cancelled by newer call
       authScreen.style.display = 'none';
       appScreen.style.display = 'flex';
       if (isSplashActive) {
@@ -129,6 +132,7 @@ function switchScreen(signedIn) {
     document.body.classList.remove('authenticated');
     appScreen.classList.remove('active');
     setTimeout(() => {
+      if (callId !== _switchScreenCallId) return; // Cancelled by newer call
       appScreen.style.display = 'none';
       authScreen.style.display = 'flex';
       if (isSplashActive) {
@@ -174,10 +178,20 @@ function clearUserSession() {
   }
 }
 
+// If returning from a redirect, disable the login button immediately to prevent double-taps
+const isReturningFromRedirect = SafeStorage.getItem('authRedirectPending') === 'true';
+if (isReturningFromRedirect && loginBtn) {
+  loginBtn.disabled = true;
+  const googleTextNode = loginBtn.querySelector('.google-btn-text');
+  if (googleTextNode) googleTextNode.textContent = 'מאמת...';
+  console.log("Detected return from redirect. Login button disabled pending auth resolution.");
+}
+
 // Monitor Firebase Authentication Transitions safely
 if (firebaseEnabled) {
   onAuthStateChanged(auth, (user) => {
     firebaseAuthResolved = true;
+    SafeStorage.removeItem('authRedirectPending'); // Clear pending redirect flag
     if (user) {
       console.log("User signed in successfully:", user.displayName);
       currentUser = user;
@@ -200,6 +214,12 @@ if (firebaseEnabled) {
       }
     })
     .catch((error) => {
+      SafeStorage.removeItem('authRedirectPending');
+      if (loginBtn) {
+        loginBtn.disabled = false;
+        const googleTextNode = loginBtn.querySelector('.google-btn-text');
+        if (googleTextNode) googleTextNode.textContent = 'Sign in with Google';
+      }
       console.error("Error resolving redirect result:", error.code, error.message);
       if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
         console.log("Sign-in process was cancelled by the user.");
@@ -210,14 +230,26 @@ if (firebaseEnabled) {
       }
     });
 
-  // Fail-safe: Hide the splash screen after 3.5 seconds if Firebase fails or hangs on startup
+  // Fail-safe: Hide the splash screen after 8 seconds if Firebase fails or hangs on startup
+  // Increased from 3.5s to 8s to accommodate slow iOS networks and redirect processing time
   setTimeout(() => {
     if (!firebaseAuthResolved) {
-      console.warn("Firebase Auth resolution timed out. Falling back to offline/auth login screen.");
-      switchScreen(false);
+      // Double-check synchronous currentUser before showing login screen
+      // auth.currentUser may be populated even if onAuthStateChanged hasn't fired yet
+      const syncUser = auth.currentUser;
+      if (syncUser) {
+        console.log("Fail-safe: auth.currentUser found synchronously. Resolving as signed-in.");
+        firebaseAuthResolved = true;
+        currentUser = syncUser;
+        updateAuthUI();
+        switchScreen(true);
+      } else {
+        console.warn("Firebase Auth resolution timed out after 8s. Falling back to login screen.");
+        switchScreen(false);
+      }
     }
     hideSplashScreen();
-  }, 3500);
+  }, 8000);
 } else {
   // Graceful fallback for missing config on startup
   console.log("Firebase is disabled. Auth features are unavailable.");
@@ -246,29 +278,43 @@ if (loginBtn) {
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
 
     if (isMobileDevice) {
-      if (isIOS && isStandalone) {
-        // iOS PWA installed mode sandboxes external redirects. Attempt popup first.
-        console.log("iOS Standalone PWA detected. Launching popup auth...");
+      if (isIOS) {
+        // iOS (both Safari and Standalone PWA): Use popup first to avoid ITP blocking
+        // signInWithRedirect is broken on iOS 17+ Safari due to ITP cross-origin storage blocking
+        console.log("iOS device detected. Launching popup auth to avoid ITP redirect issues...");
         try {
           await signInWithPopup(auth, googleProvider);
           loginBtn.disabled = false;
           if (googleTextNode) googleTextNode.textContent = originalText;
         } catch (popupError) {
-          console.warn("iOS Standalone PWA popup auth failed. Falling back to redirect...", popupError);
-          if (googleTextNode) googleTextNode.textContent = 'Redirecting...';
+          console.warn("iOS popup auth failed. Error:", popupError.code);
+          if (popupError.code === 'auth/popup-closed-by-user' || popupError.code === 'auth/cancelled-popup-request') {
+            console.log("iOS: Sign-in popup was closed by user.");
+            loginBtn.disabled = false;
+            if (googleTextNode) googleTextNode.textContent = originalText;
+            return;
+          }
+          // Fallback to redirect for older iOS or in-app browsers
+          console.warn("iOS popup failed, falling back to redirect...", popupError);
+          if (googleTextNode) googleTextNode.textContent = 'מעביר...';
+          SafeStorage.setItem('authRedirectPending', 'true');
           try {
             await signInWithRedirect(auth, googleProvider);
           } catch (redirectError) {
-            console.error("iOS Standalone PWA redirect fallback auth error:", redirectError);
+            SafeStorage.removeItem('authRedirectPending');
+            console.error("iOS redirect fallback auth error:", redirectError);
             handleAuthError(redirectError, loginBtn, originalText);
           }
         }
       } else {
-        console.log("Mobile device detected. Triggering signInWithRedirect...");
-        if (googleTextNode) googleTextNode.textContent = 'Redirecting...';
+        // Android and other mobile: use redirect
+        console.log("Android/mobile device detected. Triggering signInWithRedirect...");
+        if (googleTextNode) googleTextNode.textContent = 'מעביר...';
+        SafeStorage.setItem('authRedirectPending', 'true');
         try {
           await signInWithRedirect(auth, googleProvider);
         } catch (redirectError) {
+          SafeStorage.removeItem('authRedirectPending');
           console.error("Mobile redirect auth error:", redirectError);
           handleAuthError(redirectError, loginBtn, originalText);
         }
