@@ -181,6 +181,18 @@ function clearUserSession() {
   }
 }
 
+// Centralized function to safely unlock and reset the login button
+function resetLoginButtonState() {
+  SafeStorage.removeItem('authRedirectPending');
+  if (loginBtn) {
+    loginBtn.disabled = false;
+    const googleTextNode = loginBtn.querySelector('.google-btn-text');
+    if (googleTextNode) {
+      googleTextNode.textContent = 'Sign in with Google';
+    }
+  }
+}
+
 // If returning from a redirect, disable the login button immediately to prevent double-taps
 const isReturningFromRedirect = SafeStorage.getItem('authRedirectPending') === 'true';
 if (isReturningFromRedirect && loginBtn) {
@@ -188,14 +200,24 @@ if (isReturningFromRedirect && loginBtn) {
   const googleTextNode = loginBtn.querySelector('.google-btn-text');
   if (googleTextNode) googleTextNode.textContent = 'מאמת...';
   console.log("Detected return from redirect. Login button disabled pending auth resolution.");
+
+  // Fail-safe: Release the button and clear the flag if auth doesn't resolve in 10 seconds
+  // (e.g., if the user manually returns after a Google error or blocks redirects in an in-app WebView)
+  setTimeout(() => {
+    if (!currentUser && loginBtn.disabled) {
+      console.warn("Redirect auth resolution timed out. Releasing login button.");
+      resetLoginButtonState();
+    }
+  }, 10000);
 }
+
 
 // Monitor Firebase Authentication Transitions safely
 if (firebaseEnabled) {
   onAuthStateChanged(auth, (user) => {
     firebaseAuthResolved = true;
-    SafeStorage.removeItem('authRedirectPending'); // Clear pending redirect flag
     if (user) {
+      SafeStorage.removeItem('authRedirectPending'); // Clear pending redirect flag
       console.log("User signed in successfully:", user.displayName);
       currentUser = user;
 
@@ -203,6 +225,7 @@ if (firebaseEnabled) {
       switchScreen(true);
     } else {
       console.log("No authenticated user active.");
+      resetLoginButtonState(); // Ensure button is unlocked if not logged in
       clearUserSession();
       switchScreen(false);
     }
@@ -215,14 +238,13 @@ if (firebaseEnabled) {
       if (result) {
         console.log("Redirect sign-in resolved successfully for:", result.user.displayName);
       }
+      // If we finished resolving redirects and we are still not logged in, unlock the UI
+      if (!auth.currentUser) {
+        resetLoginButtonState();
+      }
     })
     .catch((error) => {
-      SafeStorage.removeItem('authRedirectPending');
-      if (loginBtn) {
-        loginBtn.disabled = false;
-        const googleTextNode = loginBtn.querySelector('.google-btn-text');
-        if (googleTextNode) googleTextNode.textContent = 'Sign in with Google';
-      }
+      resetLoginButtonState(); // Unlock UI on error
       console.error("Error resolving redirect result:", error.code, error.message);
       if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
         console.log("Sign-in process was cancelled by the user.");
@@ -248,6 +270,7 @@ if (firebaseEnabled) {
         switchScreen(true);
       } else {
         console.warn("Firebase Auth resolution timed out after 8s. Falling back to login screen.");
+        resetLoginButtonState(); // Safe cleanup to unlock button
         switchScreen(false);
       }
     }
