@@ -58,7 +58,7 @@
 /* iOS tap delay elimination */
 button, [role="button"], .btn, .nav-tab, .track-pill,
 .google-btn, .ios-prompt-close-btn, .add-set-btn,
-.set-checkmark-btn, input[type="submit"] {
+.set-checkmark-btn, input[type="submit"], .drawer-json-header {
   touch-action: manipulation;
 }
 
@@ -932,6 +932,10 @@ body, #auth-screen, #app-screen, .drawer-content, .settings-drawer {
   background: linear-gradient(135deg, hsla(225, 20%, 11%, 0.7) 0%, hsla(225, 20%, 7%, 0.8) 100%);
 }
 
+[dir="rtl"] .history-card:hover {
+  transform: translateX(4px);
+}
+
 .history-card-header {
   display: flex;
   justify-content: space-between;
@@ -1404,7 +1408,7 @@ body, #auth-screen, #app-screen, .drawer-content, .settings-drawer {
 .settings-drawer {
   position: fixed;
   top: 0;
-  left: -100%; /* Left aligned sliding transitions */
+  left: 0;
   width: 100%;
   max-width: 380px;
   height: 100%;
@@ -1417,7 +1421,8 @@ body, #auth-screen, #app-screen, .drawer-content, .settings-drawer {
   z-index: 999;
   display: flex;
   flex-direction: column;
-  transition: left 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transform: translateX(-100%);
+  transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
   box-shadow: 24px 0 60px rgba(0, 0, 0, 0.7);
   direction: ltr; /* keep details left to right */
 }
@@ -1425,21 +1430,21 @@ body, #auth-screen, #app-screen, .drawer-content, .settings-drawer {
 /* RTL override for layout details in Hebrew */
 [dir="rtl"] .settings-drawer {
   left: auto;
-  right: -100%;
+  right: 0;
   border-right: none;
   border-left: 1px solid var(--border-card);
   box-shadow: -24px 0 60px rgba(0, 0, 0, 0.7);
-  transition: right 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transform: translateX(100%);
+  transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
   direction: rtl;
 }
 
 .settings-drawer.open {
-  left: 0;
+  transform: translateX(0);
 }
 
 [dir="rtl"] .settings-drawer.open {
-  right: 0;
-  left: auto;
+  transform: translateX(0);
 }
 
 .drawer-header {
@@ -1666,6 +1671,7 @@ body, #auth-screen, #app-screen, .drawer-content, .settings-drawer {
 
 .drawer-footer {
   padding: 1.5rem;
+  padding-bottom: calc(1.5rem + env(safe-area-inset-bottom));
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
 

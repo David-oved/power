@@ -23,15 +23,19 @@ const SafeStorage = {
     return this._isSupportedCache;
   },
   getItem(key) {
+    if (Object.prototype.hasOwnProperty.call(this._fallbackMem, key)) {
+      return this._fallbackMem[key];
+    }
     if (this.isSupported()) {
       return localStorage.getItem(key);
     }
-    return this._fallbackMem[key] || null;
+    return null;
   },
   setItem(key, value) {
     if (this.isSupported()) {
       try {
         localStorage.setItem(key, value);
+        delete this._fallbackMem[key];
         return;
       } catch (e) {
         console.warn("Storage write failed (quota exceeded?):", e);
@@ -40,11 +44,10 @@ const SafeStorage = {
     this._fallbackMem[key] = String(value);
   },
   removeItem(key) {
+    delete this._fallbackMem[key];
     if (this.isSupported()) {
       localStorage.removeItem(key);
-      return;
     }
-    delete this._fallbackMem[key];
   }
 };
 
@@ -261,6 +264,152 @@ window.addEventListener('DOMContentLoaded', () => {
   detectEnvironmentAndWarn();
 });
 
+// Beautiful glassmorphic alert for iOS Standalone PWA security restriction
+function showIOSStandaloneAlert() {
+  const overlay = document.createElement('div');
+  overlay.id = 'ios-standalone-alert-overlay';
+  overlay.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100dvh;
+    background: rgba(9, 10, 15, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    box-sizing: border-box;
+    font-family: var(--font-sans);
+    animation: fadeIn 0.4s ease-out;
+  `;
+
+  const card = document.createElement('div');
+  card.style.cssText = `
+    width: 100%;
+    max-width: 400px;
+    background: linear-gradient(135deg, hsla(225, 20%, 9%, 0.95) 0%, hsla(225, 20%, 5%, 0.98) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: var(--radius-card);
+    padding: 32px 24px;
+    text-align: right;
+    direction: rtl;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8), 0 0 35px var(--electric-blue-glow-subtle);
+    position: relative;
+    overflow: hidden;
+    animation: slideUp 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  `;
+
+  // Neon glowing border edge
+  const borderEdge = document.createElement('div');
+  borderEdge.style.cssText = `
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--electric-blue) 0%, var(--neon-orange) 100%);
+  `;
+  card.appendChild(borderEdge);
+
+  const header = document.createElement('div');
+  header.style.cssText = `
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  `;
+
+  const icon = document.createElement('span');
+  icon.textContent = '🔒';
+  icon.style.cssText = `
+    font-size: 2.2rem;
+    filter: drop-shadow(0 0 10px var(--neon-orange-glow));
+  `;
+  header.appendChild(icon);
+
+  const title = document.createElement('h3');
+  title.textContent = 'מגבלת אבטחה ב-iOS (Apple)';
+  title.style.cssText = `
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--text-heading);
+    font-family: var(--font-display);
+  `;
+  header.appendChild(title);
+  card.appendChild(header);
+
+  const bodyText = document.createElement('div');
+  bodyText.style.cssText = `
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 24px;
+  `;
+  bodyText.innerHTML = `
+    עקב מגבלות האבטחה של חברת <strong>Apple</strong> במצב אפליקציה מותקנת (PWA) ב-iOS, Google אינה מאפשרת לבצע התחברות לחשבון ממסך זה.
+    <br><br>
+    <strong>כיצד להתחבר בקלות?</strong>
+    <ol style="margin-top: 10px; margin-bottom: 10px; padding-right: 20px; color: var(--text-main); display: flex; flex-direction: column; gap: 8px;">
+      <li>פתחו את דפדפן <strong>Safari</strong> הרגיל באייפון.</li>
+      <li>היכנסו לכתובת האפליקציה והתחברו לחשבונכם (ההתחברות בדפדפן עובדת בצורה מלאה ומאובטחת).</li>
+      <li>לאחר שהתחברתם ב-Safari, חזרו לכאן (לאפליקציה במסך הבית) ותהיו מחוברים באופן אוטומטי!</li>
+    </ol>
+  `;
+  card.appendChild(bodyText);
+
+  const closeBtn = document.createElement('button');
+  closeBtn.textContent = 'הבנתי, תודה';
+  closeBtn.style.cssText = `
+    width: 100%;
+    background: linear-gradient(135deg, var(--electric-blue) 0%, #2563eb 100%);
+    color: #ffffff;
+    border: none;
+    border-radius: var(--radius-btn);
+    padding: 14px 20px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+    transition: var(--transition-smooth);
+    font-family: var(--font-sans);
+  `;
+  
+  closeBtn.addEventListener('click', () => {
+    overlay.style.opacity = '0';
+    overlay.style.transition = 'opacity 0.25s ease';
+    setTimeout(() => {
+      overlay.remove();
+    }, 250);
+  });
+  
+  card.appendChild(closeBtn);
+  overlay.appendChild(card);
+  
+  // Dynamic slide-in keyframes style if not already exists
+  if (!document.getElementById('ios-alert-animations')) {
+    const styleEl = document.createElement('style');
+    styleEl.id = 'ios-alert-animations';
+    styleEl.textContent = `
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      @keyframes slideUp {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+    `;
+    document.head.appendChild(styleEl);
+  }
+
+  document.body.appendChild(overlay);
+}
+
 // Dynamic Mobile/Desktop & Standalone Authenticator Gateway
 if (loginBtn) {
   loginBtn.addEventListener('click', async () => {
@@ -269,13 +418,41 @@ if (loginBtn) {
       return;
     }
 
+    const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const isAndroid = /Android/i.test(navigator.userAgent);
+    const isStandaloneMode = isStandalone || (window.navigator.standalone === true) || window.matchMedia('(display-mode: standalone)').matches;
+
+    // Handle iOS Standalone: prevent sign-in and show beautiful alert
+    if (isStandaloneMode && isIOS) {
+      showIOSStandaloneAlert();
+      return;
+    }
+
     loginBtn.disabled = true;
     const googleTextNode = loginBtn.querySelector('.google-btn-text');
     const originalText = googleTextNode ? googleTextNode.textContent : 'Sign in with Google';
     if (googleTextNode) googleTextNode.textContent = 'Connecting...';
 
-    const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    // Handle Android Standalone: use signInWithPopup
+    if (isStandaloneMode && isAndroid) {
+      console.log("Android Standalone PWA detected. Triggering signInWithPopup...");
+      try {
+        await signInWithPopup(auth, googleProvider);
+        loginBtn.disabled = false;
+        if (googleTextNode) googleTextNode.textContent = originalText;
+      } catch (popupError) {
+        console.warn("Android Standalone popup auth failed. Error:", popupError.code);
+        if (popupError.code === 'auth/popup-closed-by-user' || popupError.code === 'auth/cancelled-popup-request') {
+          console.log("Android Standalone: Sign-in popup was closed by user.");
+          loginBtn.disabled = false;
+          if (googleTextNode) googleTextNode.textContent = originalText;
+          return;
+        }
+        handleAuthError(popupError, loginBtn, originalText);
+      }
+      return;
+    }
 
     if (isMobileDevice) {
       if (isIOS) {
