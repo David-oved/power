@@ -101,6 +101,7 @@ if (window.firebaseConfig && window.firebaseConfig.apiKey && window.firebaseConf
 const authScreen = document.getElementById('auth-screen');
 const appScreen = document.getElementById('app-screen');
 const loginBtn = document.getElementById('google-login-btn');
+const guestLoginBtn = document.getElementById('guest-login-btn');
 const logoutBtn = document.getElementById('drawer-logout-btn');
 
 const userDisplayName = document.getElementById('user-display-name');
@@ -329,6 +330,7 @@ function updateAuthUI() {
 function clearUserSession() {
   currentUser = null;
   lastCompletedWorkout = null;
+  SafeStorage._fallbackMem = {};
 
   closeDrawer();
 
@@ -448,7 +450,7 @@ loginBtn.addEventListener('click', async () => {
 
   if (isMobileDevice) {
     if (isIOS && isStandalone) {
-      // iOS PWA installed mode sandboxes external redirects. Use in-app popup instead.
+      // iOS PWA installed mode sandboxes external redirects. Attempt popup first, then fall back dynamically to redirect if popup fails.
       console.log("iOS Standalone PWA detected. Launching in-app popup auth...");
       try {
         await signInWithPopup(auth, googleProvider);
@@ -456,8 +458,14 @@ loginBtn.addEventListener('click', async () => {
         loginBtn.disabled = false;
         loginBtn.querySelector('.google-btn-text').textContent = originalText;
       } catch (popupError) {
-        console.warn("iOS Standalone PWA popup auth failed:", popupError);
-        handleAuthError(popupError, loginBtn, originalText);
+        console.warn("iOS Standalone PWA popup auth failed. Falling back to signInWithRedirect...", popupError);
+        loginBtn.querySelector('.google-btn-text').textContent = 'Redirecting...';
+        try {
+          await signInWithRedirect(auth, googleProvider);
+        } catch (redirectError) {
+          console.error("iOS Standalone PWA redirect fallback auth error:", redirectError);
+          handleAuthError(redirectError, loginBtn, originalText);
+        }
       }
     } else {
       console.log("Mobile device detected. Triggering signInWithRedirect...");
@@ -502,6 +510,46 @@ loginBtn.addEventListener('click', async () => {
     }
   }
 });
+
+// Guest / Offline Mode Gateway listener
+if (guestLoginBtn) {
+  guestLoginBtn.addEventListener('click', () => {
+    console.log("Entering offline guest tracking mode...");
+    currentUser = null; // Mark as guest
+
+    // Load guest-isolated data and render UI
+    renderWorkoutHistory();
+    populateTemplateDropdown();
+
+    // Symmetrically clear drawer UI but customize for Guest
+    setElText('user-display-name', 'אורח');
+    setElText('drawer-user-full-name', 'משתמש אורח (לא מקוון)');
+    setElText('drawer-user-email', 'מצב אורח פעיל');
+    setElText('drawer-user-uid', 'GUEST_USER');
+    setElText('drawer-user-provider', 'Offline');
+    setElText('drawer-user-created', 'N/A');
+    setElText('drawer-user-last-login', 'N/A');
+    
+    const badgeVerified = document.getElementById('drawer-user-verified-badge');
+    if (badgeVerified) {
+      badgeVerified.textContent = 'Guest Mode';
+      badgeVerified.className = 'badge-mini badge-verified';
+    }
+
+    if (drawerUserJsonCode) {
+      drawerUserJsonCode.textContent = JSON.stringify({
+        mode: "Guest / Offline",
+        storageIsolation: "Offline key",
+        localWorkoutKey: "aura-workout-history",
+        localTemplatesKey: "aura-workout-templates"
+      }, null, 2);
+    }
+
+    // Smooth transition
+    switchScreen(true);
+    hideSplashScreen();
+  });
+}
 
 
 // Proactive Environment Warnings (WhatsApp/Telegram/Private Tabs)
@@ -565,6 +613,13 @@ function handleAuthError(error, btn, originalText) {
 // Trigger Log Out Flow cleanly supporting Firebase Auth
 logoutBtn.addEventListener('click', async () => {
 
+  if (!currentUser) {
+    console.log("Logging out from offline guest mode...");
+    clearUserSession();
+    switchScreen(false);
+    return;
+  }
+
   if (!firebaseEnabled) {
     alert("Sign out is unavailable in offline/demo mode.");
     return;
@@ -585,7 +640,7 @@ const isLocalhost = window.location.hostname === 'localhost' ||
 
 if ('serviceWorker' in navigator) {
   // Allow local service worker testing if developer sets localStorage.getItem('enableLocalSW') === 'true'
-  if (isLocalhost && localStorage.getItem('enableLocalSW') !== 'true') {
+  if (isLocalhost && SafeStorage.getItem('enableLocalSW') !== 'true') {
     navigator.serviceWorker.getRegistrations().then((registrations) => {
       for (let registration of registrations) {
         registration.unregister();
@@ -680,7 +735,7 @@ if (toggleSensitiveBtn) {
 // Premium iOS PWA Installation Banner Prompt Logic
 window.addEventListener('load', () => {
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-  const iosPromptDismissed = localStorage.getItem('ios-pwa-prompt-dismissed');
+  const iosPromptDismissed = SafeStorage.getItem('ios-pwa-prompt-dismissed');
   
   if (isIOS && !isStandalone && !iosPromptDismissed) {
     const banner = document.getElementById('ios-install-banner');
@@ -694,7 +749,7 @@ window.addEventListener('load', () => {
       if (closeBtn) {
         closeBtn.addEventListener('click', () => {
           banner.classList.remove('show');
-          localStorage.setItem('ios-pwa-prompt-dismissed', 'true');
+          SafeStorage.setItem('ios-pwa-prompt-dismissed', 'true');
         });
       }
     }

@@ -24,6 +24,54 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   
   <link rel="stylesheet" href="style.css">
+  <style>
+    /* Premium Glassmorphic Offline/Guest Mode Button */
+    #guest-login-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.08) 100%);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      color: var(--text-main);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius-btn);
+      padding: 14px 20px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 
+        0 8px 32px 0 rgba(0, 0, 0, 0.37),
+        inset 0 1px 1px rgba(255, 255, 255, 0.15);
+      transition: var(--transition-smooth);
+      font-family: var(--font-sans);
+      width: 100%;
+      margin-top: -10px;
+    }
+    #guest-login-btn:hover {
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.12) 100%);
+      border-color: rgba(255, 255, 255, 0.18);
+      transform: translateY(-2px);
+      box-shadow: 
+        0 12px 40px 0 rgba(0, 0, 0, 0.45),
+        0 0 20px var(--electric-blue-glow-subtle),
+        inset 0 1px 1px rgba(255, 255, 255, 0.25);
+    }
+    #guest-login-btn:active {
+      transform: translateY(0);
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.1) 100%);
+    }
+    .guest-icon-wrapper {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .guest-icon {
+      width: 24px;
+      height: 24px;
+    }
+  </style>
 </head>
 <body>
 
@@ -141,6 +189,11 @@
             </svg>
           </div>
           <span class="google-btn-text">Sign in with Google</span>
+        </button>
+
+        <!-- Premium Glassmorphic Offline/Guest Bypass Button -->
+        <button id="guest-login-btn" class="btn btn-secondary guest-btn" style="margin-top: 15px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; font-weight: 600; padding: 12px; border-radius: 12px; font-family: 'Outfit', 'Inter', sans-serif;">
+          <span>🏃‍♂️</span> המשך כמפתח / במצב לא מקוון
         </button>
 
         

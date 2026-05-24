@@ -74,8 +74,10 @@ self.addEventListener('fetch', (event) => {
     !isGoogleFont && (
       url.hostname.endsWith('firebaseapp.com') ||
       url.hostname.endsWith('firebaseio.com') ||
+      url.hostname.endsWith('web.app') ||
       url.hostname.endsWith('googleapis.com') ||
       url.hostname.endsWith('google.com') ||
+      url.hostname === 'ssl.gstatic.com' ||
       event.request.url.includes('/__/auth/') ||
       event.request.url.includes('identitytoolkit') ||
       event.request.url.includes('securetoken')
