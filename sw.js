@@ -1,10 +1,4 @@
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-const CACHE_NAME = 'aura-app-v1.5';
-=======
->>>>>>> 30c2df11e4a9c31e39fd2660dbd810e3d5400934
-const CACHE_NAME = 'aura-app-v1.8';
+const CACHE_NAME = 'aura-app-v1.9';
 const ASSETS = [
   './',
   './index.html',
