@@ -53,7 +53,7 @@ const SafeStorage = {
 };
 
 // State Variables
-const APP_VERSION = '2.2'; // Change this number to match CACHE_NAME in sw.js on every GitHub update!
+const APP_VERSION = '2.3'; // Change this number to match CACHE_NAME in sw.js on every GitHub update!
 let app;
 let auth;
 let googleProvider;
