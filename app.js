@@ -137,6 +137,52 @@ function escapeHTML(str) {
     .replace(/'/g, '&#039;');
 }
 
+// Robust helper to trigger native-like local notifications
+async function triggerLocalNotification(title, body) {
+  if (!('Notification' in window) || typeof Notification === 'undefined') {
+    console.warn("Notifications are not supported in this browser environment.");
+    return;
+  }
+  
+  if (Notification.permission !== 'granted') {
+    console.warn("Notification permission is not granted.");
+    return;
+  }
+
+  const options = {
+    body: body,
+    icon: './icon-192.png',
+    badge: './icon-192.png',
+    vibrate: [100, 50, 100],
+    data: {
+      dateOfArrival: Date.now(),
+      primaryKey: 1
+    }
+  };
+
+  // Try to use Service Worker registration first for full iOS and Android standalone PWA support
+  if ('serviceWorker' in navigator) {
+    try {
+      const reg = await navigator.serviceWorker.ready;
+      if (reg && 'showNotification' in reg) {
+        await reg.showNotification(title, options);
+        console.log("Local notification triggered successfully via Service Worker.");
+        return;
+      }
+    } catch (e) {
+      console.warn("Service Worker notification failed, falling back to window.Notification:", e);
+    }
+  }
+
+  // Fallback to standard client-side Notification API (for desktop browsers)
+  try {
+    new Notification(title, options);
+    console.log("Local notification triggered successfully via standard constructor.");
+  } catch (e) {
+    console.error("Failed to display notification:", e);
+  }
+}
+
 // Safe Date Parsing Helper Functions
 function safeFormatDate(value) {
   if (!value) return 'N/A';
@@ -377,9 +423,14 @@ function clearUserSession() {
 
 
 // Monitor Firebase Authentication Transitions safely
+// Monitor Firebase Authentication Transitions safely
+let initialAuthCheckDone = false;
 if (firebaseEnabled) {
   onAuthStateChanged(auth, (user) => {
     firebaseAuthResolved = true;
+    const isLoginTransition = initialAuthCheckDone && user && !currentUser;
+    const isLogoutTransition = initialAuthCheckDone && !user && currentUser;
+
     if (user) {
       console.log("User signed in successfully:", user.displayName);
       currentUser = user;
@@ -388,19 +439,53 @@ if (firebaseEnabled) {
       renderWorkoutHistory();
       populateTemplateDropdown();
       switchScreen(true);
+
+      // Trigger notification if it's a real-time transition, and we haven't welcomed them in this session
+      const hasBeenWelcomed = sessionStorage.getItem('aura_session_welcomed');
+      if (isLoginTransition && !hasBeenWelcomed && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+        triggerLocalNotification(
+          "התחברת בהצלחה! 👋",
+          `ברוך הבא ל-Aura, ${user.displayName || 'משתמש'}!`
+        );
+        sessionStorage.setItem('aura_session_welcomed', 'true');
+      } else {
+        // If already logged in, quietly mark welcomed so we do not spam them
+        sessionStorage.setItem('aura_session_welcomed', 'true');
+      }
     } else {
       console.log("No authenticated user active.");
+      const prevUser = currentUser;
+      
+      // Clear session guard on sign out
+      sessionStorage.removeItem('aura_session_welcomed');
+      
       clearUserSession();
       switchScreen(false);
+
+      if (isLogoutTransition && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+        triggerLocalNotification(
+          "התנתקת מהחשבון 🔒",
+          `להתראות ${prevUser && prevUser.displayName ? prevUser.displayName.split(' ')[0] : ''}, נתראה באימון הבא!`
+        );
+      }
     }
+    initialAuthCheckDone = true;
     hideSplashScreen();
   });
 
   // Resolve redirect logins
   getRedirectResult(auth)
     .then((result) => {
-      if (result) {
+      if (result && result.user) {
         console.log("Redirect sign-in resolved successfully for:", result.user.displayName);
+        // Force session welcomed flag to prevent double-firing
+        sessionStorage.setItem('aura_session_welcomed', 'true');
+        if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+          triggerLocalNotification(
+            "התחברת בהצלחה! 👋",
+            `ברוך הבא ל-Aura, ${result.user.displayName || 'משתמש'}!`
+          );
+        }
       }
     })
     .catch((error) => {
@@ -438,6 +523,15 @@ loginBtn.addEventListener('click', async () => {
   if (!firebaseEnabled) {
     alert("Authentication features are currently unavailable because Firebase is not configured properly. Please check your config.");
     return;
+  }
+
+  // Proactively request notification permission on user-initiated gesture (safely)
+  if ('Notification' in window && typeof Notification !== 'undefined' && Notification.permission === 'default') {
+    try {
+      await Notification.requestPermission();
+    } catch (err) {
+      console.warn("Could not request notification permission on login click:", err);
+    }
   }
 
   loginBtn.disabled = true;
@@ -570,6 +664,14 @@ function handleAuthError(error, btn, originalText) {
 
 // Trigger Log Out Flow cleanly supporting Firebase Auth
 logoutBtn.addEventListener('click', async () => {
+  // Proactively request notification permission on user-initiated gesture if not yet determined
+  if ('Notification' in window && typeof Notification !== 'undefined' && Notification.permission === 'default') {
+    try {
+      await Notification.requestPermission();
+    } catch (err) {
+      console.warn("Could not request notification permission on logout click:", err);
+    }
+  }
 
   if (!firebaseEnabled) {
     alert("Sign out is unavailable in offline/demo mode.");

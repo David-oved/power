@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-const CACHE_NAME = 'aura-app-v1.1';
-=======
 const CACHE_NAME = 'aura-app-v1.8';
->>>>>>> a6068b5ff134fc72d7be88967a3957cd501ac648
 const ASSETS = [
   './',
   './index.html',
@@ -150,8 +146,8 @@ self.addEventListener('message', (event) => {
   }
   if (event.data && event.data.action === 'getVersion') {
     if (event.ports && event.ports[0]) {
-      // Respond with the clean version suffix extracted from the current active cache name
-      const cleanVer = CACHE_NAME.replace('aura-app-', '');
+      // Respond with the clean version suffix extracted from the current active cache name (stripping any leading v)
+      const cleanVer = CACHE_NAME.replace('aura-app-', '').replace(/^v/, '');
       event.ports[0].postMessage({ version: cleanVer });
     }
   }
