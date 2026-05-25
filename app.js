@@ -1,3 +1,22 @@
+// =========================================================================================
+// ⚠️ AI AGENTS SECURITY & PRESERVATION GUARD - PLEASE READ CAREFULLY!
+// =========================================================================================
+// This codebase has a highly custom, optimized PWA On-Demand Update Engine and a Version
+// Isolation Guard in app.js and sw.js.
+// 
+// RULES OF ENGAGEMENT:
+// 1. DO NOT touch the Service Worker registration and loadAppVersion / showUpdateToast functions.
+// 2. DO NOT revert the PWA update flow back to automatic background-caching in sw.js.
+// 3. DO NOT change the active user profile image element ID (#app-user-photo) in DOM binding.
+// 4. NOTE: Most of the workout, sets, and exercise logic in app.js is CURRENTLY "inactive/dormant"
+//    because index.html is in a Minimal Profile Hub state. DO NOT try to delete or "revive"
+//    it unless explicitly asked by the user.
+// 
+// 🚨 CRITICAL RULE: If these constraints interfere with a task given to you by the user,
+// you MUST ask the user in the chat for explicit permission first! Do NOT make changes to
+// these flows without the user's explicit OK in the chat!
+// =========================================================================================
+
 // AuraApp - Core PWA Logic & Firebase Authentication Gateway
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -112,6 +131,9 @@ const appLogoutBtn = document.getElementById('app-logout-btn');
 const profilePicBtn = document.getElementById('profile-pic-btn');
 
 const userDisplayName = document.getElementById('user-display-name');
+const navUserPhoto = document.getElementById('nav-user-photo');
+const settingsUserPhoto = document.getElementById('settings-user-photo');
+const appUserPhoto = settingsUserPhoto; // Mapping compatibility for dormant code
 const floatingUserPhoto = document.getElementById('floating-user-photo');
 
 const drawerUserPhoto = document.getElementById('drawer-user-photo');
@@ -329,6 +351,14 @@ function updateAuthUI() {
   // Photo Binding
   const fallbackPhoto = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
   const photoURL = currentUser.photoURL || fallbackPhoto;
+  if (navUserPhoto) {
+    navUserPhoto.src = photoURL;
+    navUserPhoto.onerror = () => { navUserPhoto.src = fallbackPhoto; };
+  }
+  if (settingsUserPhoto) {
+    settingsUserPhoto.src = photoURL;
+    settingsUserPhoto.onerror = () => { settingsUserPhoto.src = fallbackPhoto; };
+  }
   if (floatingUserPhoto) {
     floatingUserPhoto.src = photoURL;
     floatingUserPhoto.onerror = () => { floatingUserPhoto.src = fallbackPhoto; };
@@ -417,8 +447,13 @@ function clearUserSession() {
   }
 
   const fallbackPhoto = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
+  if (navUserPhoto) navUserPhoto.src = fallbackPhoto;
+  if (settingsUserPhoto) settingsUserPhoto.src = fallbackPhoto;
   if (floatingUserPhoto) floatingUserPhoto.src = fallbackPhoto;
   if (drawerUserPhoto) drawerUserPhoto.src = fallbackPhoto;
+  
+  // Reset tabs to default Settings tab upon logout
+  resetTabs();
 
   isSensitiveDataVisible = false;
   if (toggleSensitiveBtn) {
@@ -1549,5 +1584,47 @@ if (firebaseEnabled) {
     }
   });
 }
+
+// ==========================================================================
+// iOS 26 Tab Switching Engine & Tab Reset Logic
+// ==========================================================================
+function resetTabs() {
+  const navTabs = document.querySelectorAll('.ios-bottom-nav .nav-tab');
+  const tabPanes = document.querySelectorAll('.tab-content-container .tab-pane');
+  
+  navTabs.forEach(t => t.classList.remove('active'));
+  tabPanes.forEach(p => p.classList.remove('active'));
+  
+  const settingsTab = document.querySelector('.ios-bottom-nav .nav-tab[data-tab="settings"]');
+  if (settingsTab) settingsTab.classList.add('active');
+  
+  const settingsPane = document.getElementById('tab-settings');
+  if (settingsPane) settingsPane.classList.add('active');
+}
+
+// Binds tab clicking event listeners
+const navTabs = document.querySelectorAll('.ios-bottom-nav .nav-tab');
+const tabPanes = document.querySelectorAll('.tab-content-container .tab-pane');
+
+navTabs.forEach((tab) => {
+  tab.addEventListener('click', () => {
+    const targetTab = tab.dataset.tab;
+    if (!targetTab) return;
+
+    // Update active class on tab buttons
+    navTabs.forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+
+    // Update active class on tab panes
+    tabPanes.forEach((pane) => {
+      pane.classList.remove('active');
+      if (pane.id === `tab-${targetTab}`) {
+        pane.classList.add('active');
+      }
+    });
+    
+    console.log(`Switched to tab: ${targetTab}`);
+  });
+});
 
 

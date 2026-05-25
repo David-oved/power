@@ -172,22 +172,101 @@
 
     <!-- 2. SIGNED-IN SCREEN (MAIN APPLICATION DASHBOARD) -->
     <section id="app-screen" class="screen">
-      <div class="minimal-profile-container">
-        <!-- Centered Profile Avatar Button -->
-        <button id="profile-pic-btn" class="minimal-avatar-btn" aria-label="Open Logout Action">
-          <img id="app-user-photo" class="minimal-user-avatar" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" alt="User Profile">
-          <span class="avatar-glow-ring"></span>
-        </button>
+      <div class="tab-content-container">
         
-        <!-- Welcome Display Name -->
-        <h2 class="welcome-text" style="margin-top: 1.5rem; text-align: center;">היי, <span id="user-display-name">User</span>!</h2>
-        
-        <!-- Minimal Sign Out Button -->
-        <button id="app-logout-btn" class="btn btn-logout hide" style="margin-top: 2rem; width: 100%; max-width: 240px; background: var(--color-danger); box-shadow: 0 4px 15px var(--color-danger-glow);">
-          <span class="btn-icon">🚪</span> יציאה מהחשבון
-        </button>
+        <!-- Tab 1: Profile & Settings (Active by default, leftmost) -->
+        <div id="tab-settings" class="tab-pane active">
+          <div class="premium-settings-card">
+            <div class="settings-avatar-glow">
+              <button id="profile-pic-btn" class="minimal-avatar-btn" style="background: none; border: none; cursor: pointer; padding: 0; outline: none;">
+                <img id="settings-user-photo" class="settings-avatar" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" alt="User Profile">
+                <span class="avatar-glow-ring"></span>
+              </button>
+            </div>
+            
+            <h2 class="welcome-text" style="margin-top: 1.5rem; text-align: center;">היי, <span id="user-display-name">User</span>!</h2>
+            <p class="settings-subtitle" style="text-align: center; color: var(--color-text-muted); font-size: 0.85rem; margin-top: 0.5rem; font-family: 'Inter', sans-serif;">מרכז הגדרות פרופיל מאובטח</p>
+            
+            <div class="settings-actions" style="margin-top: 2rem; display: flex; justify-content: center; width: 100%;">
+              <button id="app-logout-btn" class="btn btn-logout hide" style="width: 100%; max-width: 240px; background: var(--color-danger); box-shadow: 0 4px 15px var(--color-danger-glow);">
+                <span class="btn-icon">🚪</span> יציאה מהחשבון
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 2: Workouts (Coming Soon) -->
+        <div id="tab-workouts" class="tab-pane">
+          <div class="coming-soon-card">
+            <span class="coming-soon-emoji">🏋️‍♂️</span>
+            <h3 class="coming-soon-title">מערכת האימונים</h3>
+            <p class="coming-soon-desc">בקרוב מאוד - תכנון ומעקב אחר אימוני הכושר שלך בעיצוב iOS 26 יוקרתי.</p>
+            <span class="badge-soon">COMING SOON</span>
+          </div>
+        </div>
+
+        <!-- Tab 3: Analytics (Coming Soon) -->
+        <div id="tab-analytics" class="tab-pane">
+          <div class="coming-soon-card">
+            <span class="coming-soon-emoji">📈</span>
+            <h3 class="coming-soon-title">מדדי התקדמות</h3>
+            <p class="coming-soon-desc">בקרוב מאוד - גרפים מתקדמים ודוחות ביצועים מותאמים אישית.</p>
+            <span class="badge-soon">COMING SOON</span>
+          </div>
+        </div>
+
+        <!-- Tab 4: Community (Coming Soon) -->
+        <div id="tab-community" class="tab-pane">
+          <div class="coming-soon-card">
+            <span class="coming-soon-emoji">👥</span>
+            <h3 class="coming-soon-title">קהילה ושיתוף</h3>
+            <p class="coming-soon-desc">בקרוב מאוד - שיתוף הישגים עם חברים ואתגרים קבוצתיים.</p>
+            <span class="badge-soon">COMING SOON</span>
+          </div>
+        </div>
+
       </div>
     </section>
+
+    <!-- Premium iOS 26 Bottom Navigation Bar -->
+    <nav class="ios-bottom-nav">
+      <div class="nav-container">
+        <!-- Leftmost Tab: Settings -->
+        <button class="nav-tab active" data-tab="settings" aria-label="Settings Tab">
+          <div class="nav-avatar-wrapper">
+            <img id="nav-user-photo" class="nav-avatar" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" alt="Settings">
+            <span class="avatar-active-ring"></span>
+          </div>
+        </button>
+
+        <!-- Tab 2: Workouts -->
+        <button class="nav-tab" data-tab="workouts" aria-label="Workouts Tab">
+          <div class="tab-icon-wrapper">
+            <span class="tab-icon">🏋️‍♂️</span>
+            <span class="tab-label">אימונים</span>
+          </div>
+          <span class="coming-soon-dot"></span>
+        </button>
+
+        <!-- Tab 3: Analytics -->
+        <button class="nav-tab" data-tab="analytics" aria-label="Analytics Tab">
+          <div class="tab-icon-wrapper">
+            <span class="tab-icon">📈</span>
+            <span class="tab-label">מדדים</span>
+          </div>
+          <span class="coming-soon-dot"></span>
+        </button>
+
+        <!-- Tab 4: Community -->
+        <button class="nav-tab" data-tab="community" aria-label="Community Tab">
+          <div class="tab-icon-wrapper">
+            <span class="tab-icon">👥</span>
+            <span class="tab-label">קהילה</span>
+          </div>
+          <span class="coming-soon-dot"></span>
+        </button>
+      </div>
+    </nav>
   </div>
 
   <!-- Custom Premium iOS Installation Banner Prompt -->

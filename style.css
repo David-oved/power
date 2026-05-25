@@ -2268,4 +2268,297 @@ body.authenticated .workout-summary-modal.active {
   letter-spacing: 0.05em;
 }
 
+/* ==========================================================================
+   iOS 26 Floating Bottom Navigation Bar & Tabs
+   ========================================================================== */
+
+.ios-bottom-nav {
+  position: fixed;
+  bottom: calc(24px + env(safe-area-inset-bottom, 24px));
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 48px);
+  max-width: 420px;
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(20px) saturate(190%);
+  -webkit-backdrop-filter: blur(20px) saturate(190%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 30px;
+  box-shadow: 
+    0 15px 35px rgba(0, 0, 0, 0.4),
+    0 0 1px rgba(255, 255, 255, 0.15) inset;
+  z-index: 1000;
+  display: none; /* Hidden by default on auth screen */
+  overflow: visible;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+body.authenticated .ios-bottom-nav {
+  display: block;
+  animation: slide-up-nav 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slide-up-nav {
+  from {
+    transform: translate(-50%, 80px);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
+
+.ios-bottom-nav .nav-container {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 8px 12px;
+  direction: ltr; /* Keeps leftmost slot consistently on the left */
+}
+
+.ios-bottom-nav .nav-tab {
+  background: transparent;
+  border: none;
+  position: relative;
+  cursor: pointer;
+  padding: 8px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ios-bottom-nav .nav-tab:active {
+  transform: scale(0.88);
+}
+
+.ios-bottom-nav .nav-tab .tab-icon-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.ios-bottom-nav .nav-tab .tab-icon {
+  font-size: 1.35rem;
+  opacity: 0.45;
+  transition: all 0.3s ease;
+  filter: grayscale(100%) brightness(0.8);
+}
+
+.ios-bottom-nav .nav-tab .tab-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  opacity: 0.5;
+  transition: all 0.3s ease;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Active Tab Styles */
+.ios-bottom-nav .nav-tab.active .tab-icon {
+  opacity: 1;
+  transform: scale(1.1);
+  filter: none;
+}
+
+.ios-bottom-nav .nav-tab.active .tab-label {
+  color: var(--electric-blue-light);
+  opacity: 1;
+  font-weight: 700;
+}
+
+/* Leftmost Avatar Slot */
+.ios-bottom-nav .nav-avatar-wrapper {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  padding: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ios-bottom-nav .nav-tab.active .nav-avatar-wrapper {
+  background: linear-gradient(135deg, var(--electric-blue) 0%, var(--electric-blue-light) 100%);
+  box-shadow: 0 0 12px var(--electric-blue-glow-subtle);
+  transform: scale(1.08);
+}
+
+.ios-bottom-nav .nav-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid #090a0f;
+  background: var(--bg-card);
+}
+
+.ios-bottom-nav .avatar-active-ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 50%;
+  border: 2px solid var(--electric-blue-light);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.ios-bottom-nav .nav-tab.active .avatar-active-ring {
+  opacity: 1;
+}
+
+/* Coming Soon Indicators */
+.ios-bottom-nav .coming-soon-dot {
+  position: absolute;
+  top: 6px;
+  right: 12px;
+  width: 5px;
+  height: 5px;
+  background: var(--electric-blue);
+  border-radius: 50%;
+  opacity: 0.35;
+}
+
+/* ==========================================================================
+   iOS 26 Multi-Tab Screens & Coming Soon Cards
+   ========================================================================== */
+
+.tab-content-container {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+  padding-bottom: calc(100px + env(safe-area-inset-bottom, 24px)); /* Prevent bottom nav overlay overlapping content */
+}
+
+.tab-pane {
+  display: none;
+  opacity: 0;
+  transform: scale(0.97) translateY(15px);
+  transition: 
+    opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.tab-pane.active {
+  display: flex;
+  opacity: 1;
+  transform: scale(1) translateY(0);
+}
+
+/* Premium Settings Card */
+.premium-settings-card {
+  width: 100%;
+  max-width: 380px;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 28px;
+  padding: 2.5rem 2rem;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.settings-avatar-glow {
+  position: relative;
+  width: 110px;
+  height: 110px;
+  border-radius: 50%;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.settings-avatar {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3.5px solid #090a0f;
+  background: var(--bg-card);
+  z-index: 2;
+  box-shadow: 0 0 25px var(--electric-blue-glow-subtle);
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.minimal-avatar-btn:hover .settings-avatar {
+  transform: scale(1.05);
+}
+
+/* Coming Soon Cards */
+.coming-soon-card {
+  width: 100%;
+  max-width: 360px;
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 28px;
+  padding: 3rem 2rem;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.2rem;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+}
+
+.coming-soon-emoji {
+  font-size: 3.5rem;
+  margin-bottom: 0.5rem;
+  filter: drop-shadow(0 0 15px rgba(0, 162, 255, 0.25));
+  animation: cs-float 3s ease-in-out infinite alternate;
+}
+
+@keyframes cs-float {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-10px); }
+}
+
+.coming-soon-title {
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.45rem;
+  font-weight: 800;
+  color: var(--text-heading);
+}
+
+.coming-soon-desc {
+  font-size: 0.88rem;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+  font-family: 'Inter', sans-serif;
+  direction: rtl;
+}
+
+.badge-soon {
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  background: linear-gradient(135deg, var(--electric-blue) 0%, var(--electric-blue-light) 100%);
+  color: #ffffff;
+  padding: 6px 14px;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 162, 255, 0.2);
+}
+
 
