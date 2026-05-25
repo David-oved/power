@@ -58,17 +58,17 @@
         <svg class="aura-logo-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <linearGradient id="neon-orange-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="hsl(22, 100%, 55%)" />
-              <stop offset="100%" stop-color="hsl(38, 100%, 60%)" />
+              <stop offset="0%" stop-color="#dc2626" />
+              <stop offset="100%" stop-color="#f43f5e" />
             </linearGradient>
             <linearGradient id="electric-blue-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="hsl(200, 100%, 50%)" />
-              <stop offset="100%" stop-color="hsl(175, 100%, 45%)" />
+              <stop offset="0%" stop-color="#a1a1aa" />
+              <stop offset="100%" stop-color="#ffffff" />
             </linearGradient>
             <linearGradient id="mixed-accent-grad" x1="0%" y1="100%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="hsl(200, 100%, 50%)" />
-              <stop offset="50%" stop-color="hsl(22, 100%, 55%)" />
-              <stop offset="100%" stop-color="hsl(38, 100%, 60%)" />
+              <stop offset="0%" stop-color="#52525b" />
+              <stop offset="50%" stop-color="#dc2626" />
+              <stop offset="100%" stop-color="#ffffff" />
             </linearGradient>
           </defs>
           <g class="aura-ring-group">
@@ -113,17 +113,17 @@
             <svg class="aura-logo-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
               <defs>
                 <linearGradient id="neon-orange-grad-hero" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="hsl(22, 100%, 55%)" />
-                  <stop offset="100%" stop-color="hsl(38, 100%, 60%)" />
+                  <stop offset="0%" stop-color="#dc2626" />
+                  <stop offset="100%" stop-color="#f43f5e" />
                 </linearGradient>
                 <linearGradient id="electric-blue-grad-hero" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stop-color="hsl(200, 100%, 50%)" />
-                  <stop offset="100%" stop-color="hsl(175, 100%, 45%)" />
+                  <stop offset="0%" stop-color="#a1a1aa" />
+                  <stop offset="100%" stop-color="#ffffff" />
                 </linearGradient>
                 <linearGradient id="mixed-accent-grad-hero" x1="0%" y1="100%" x2="100%" y2="0%">
-                  <stop offset="0%" stop-color="hsl(200, 100%, 50%)" />
-                  <stop offset="50%" stop-color="hsl(22, 100%, 55%)" />
-                  <stop offset="100%" stop-color="hsl(38, 100%, 60%)" />
+                  <stop offset="0%" stop-color="#52525b" />
+                  <stop offset="50%" stop-color="#dc2626" />
+                  <stop offset="100%" stop-color="#ffffff" />
                 </linearGradient>
               </defs>
               <g class="aura-ring-group">
@@ -178,91 +178,237 @@
         <div id="tab-settings" class="tab-pane active">
           
           <!-- Sub-view 1: Main iOS Settings Screen -->
-          <div id="settings-main-view" class="ios-settings-card">
+          <div id="settings-main-view" class="ios-settings-scroll-container">
             <h2 class="settings-main-title">הגדרות</h2>
             
-            <div class="ios-settings-list">
-              <!-- Account Details Row (Clickable) -->
-              <button id="go-to-account-btn" class="ios-settings-row">
-                <div class="row-left-group">
-                  <span class="row-chevron">←</span>
+            <!-- iOS Search Bar -->
+            <div class="ios-search-wrapper">
+              <input type="search" id="settings-search" class="ios-search-bar" placeholder="חיפוש" autocomplete="off">
+              <span class="ios-search-icon">🔍</span>
+            </div>
+
+            <!-- iOS Profile Card Group -->
+            <div class="ios-settings-card-group">
+              <button id="go-to-account-btn" class="ios-setting-row ios-profile-card">
+                <div class="ios-row-left">
+                  <span class="ios-row-chevron">←</span>
                 </div>
-                <div class="row-right-group">
-                  <span class="row-icon">👤</span>
-                  <span class="row-label">פרטי חשבון</span>
+                <div class="ios-profile-right">
+                  <div class="ios-profile-avatar-wrapper">
+                    <img id="settings-user-photo-main" class="ios-profile-avatar" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" alt="User Settings Profile">
+                    <span class="avatar-glow-ring"></span>
+                  </div>
+                  <div class="ios-profile-info">
+                    <span id="settings-user-name-main" class="ios-profile-name">משתמש</span>
+                    <span class="ios-profile-subtext">חשבון, אבטחה, יציאה</span>
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            <!-- Apple Intelligence / Aura AI Style Banner -->
+            <div id="aura-ai-banner" class="ios-intelligence-card">
+              <div class="ios-row-left">
+                <span class="ios-row-chevron">←</span>
+              </div>
+              <div class="ios-intelligence-text-box">
+                <span class="ios-intelligence-title">הכל מוכן לקראת Aura AI</span>
+                <span class="ios-intelligence-desc">מאמן אישי חכם מבוסס בינה מלאכותית</span>
+              </div>
+            </div>
+
+            <!-- Group 1: אימונים והעדפות (Workouts & Preferences) -->
+            <div class="ios-settings-card-group" data-group-name="אימונים והעדפות">
+              <!-- Weekly Goal -->
+              <button class="ios-setting-row" id="row-weekly-goal">
+                <div class="ios-row-left">
+                  <span id="value-weekly-goal" class="ios-row-detail-text">3 אימונים</span>
+                  <span class="ios-row-chevron">←</span>
+                </div>
+                <div class="ios-row-right">
+                  <span class="ios-row-icon-badge bg-ios-orange">🎯</span>
+                  <span class="ios-row-label">יעד אימונים שבועי</span>
+                </div>
+              </button>
+              
+              <!-- Default Activity Location -->
+              <button class="ios-setting-row" id="row-default-location">
+                <div class="ios-row-left">
+                  <span id="value-default-location" class="ios-row-detail-text">חדר כושר</span>
+                  <span class="ios-row-chevron">←</span>
+                </div>
+                <div class="ios-row-right">
+                  <span class="ios-row-icon-badge bg-ios-blue">📍</span>
+                  <span class="ios-row-label">מיקום ברירת מחדל</span>
                 </div>
               </button>
 
-              <!-- Placeholder Premium Rows (Coming Soon) -->
-              <div class="ios-settings-row disabled">
-                <div class="row-left-group">
-                  <span class="row-badge">בקרוב</span>
+              <!-- Rest Time -->
+              <button class="ios-setting-row" id="row-rest-time">
+                <div class="ios-row-left">
+                  <span id="value-rest-time" class="ios-row-detail-text">90 שניות</span>
+                  <span class="ios-row-chevron">←</span>
                 </div>
-                <div class="row-right-group">
-                  <span class="row-icon">🔔</span>
-                  <span class="row-label">התראות</span>
+                <div class="ios-row-right">
+                  <span class="ios-row-icon-badge bg-ios-purple">⏱️</span>
+                  <span class="ios-row-label">זמן מנוחה בין סטים</span>
+                </div>
+              </button>
+
+              <!-- Notifications Active Toggle -->
+              <div class="ios-setting-row no-hover" id="row-notifications">
+                <div class="ios-row-left">
+                  <label class="ios-toggle-switch">
+                    <input type="checkbox" id="toggle-notifications" checked>
+                    <span class="ios-toggle-slider"></span>
+                  </label>
+                </div>
+                <div class="ios-row-right">
+                  <span class="ios-row-icon-badge bg-ios-red">🔔</span>
+                  <span class="ios-row-label">התראות ותזכורות</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Group 2: סנכרון וחיבורים (Sync & Integrations) -->
+            <div class="ios-settings-card-group" data-group-name="סנכרון וחיבורים">
+              <!-- Bluetooth Sensor -->
+              <button class="ios-setting-row" id="row-bluetooth-sensor">
+                <div class="ios-row-left">
+                  <span id="value-bluetooth-sensor" class="ios-row-detail-text">מנותק</span>
+                  <span class="ios-row-chevron">←</span>
+                </div>
+                <div class="ios-row-right">
+                  <span class="ios-row-icon-badge bg-ios-teal">💙</span>
+                  <span class="ios-row-label">חיישן דופק (Bluetooth)</span>
+                </div>
+              </button>
+
+              <!-- Auto Cloud Sync -->
+              <div class="ios-setting-row no-hover" id="row-cloud-sync">
+                <div class="ios-row-left">
+                  <label class="ios-toggle-switch">
+                    <input type="checkbox" id="toggle-cloud-sync" checked>
+                    <span class="ios-toggle-slider"></span>
+                  </label>
+                </div>
+                <div class="ios-row-right">
+                  <span class="ios-row-icon-badge bg-ios-green">☁️</span>
+                  <span class="ios-row-label">סנכרון נתונים אוטומטי</span>
                 </div>
               </div>
 
-              <div class="ios-settings-row disabled">
-                <div class="row-left-group">
-                  <span class="row-badge">בקרוב</span>
+              <!-- Backup & Restore -->
+              <button class="ios-setting-row" id="row-backup-restore">
+                <div class="ios-row-left">
+                  <span class="ios-row-chevron">←</span>
                 </div>
-                <div class="row-right-group">
-                  <span class="row-icon">🔒</span>
-                  <span class="row-label">אבטחה ופרטיות</span>
+                <div class="ios-row-right">
+                  <span class="ios-row-icon-badge bg-ios-gray">💾</span>
+                  <span class="ios-row-label">גיבוי ושחזור נתונים</span>
+                </div>
+              </button>
+            </div>
+
+            <!-- Group 3: ערכת נושא ואפשרויות -->
+            <div class="ios-settings-card-group" data-group-name="ערכת נושא ואפשרויות">
+              <!-- Workout Battery Saver -->
+              <div class="ios-setting-row no-hover" id="row-battery-saver">
+                <div class="ios-row-left">
+                  <label class="ios-toggle-switch">
+                    <input type="checkbox" id="toggle-battery-saver">
+                    <span class="ios-toggle-slider"></span>
+                  </label>
+                </div>
+                <div class="ios-row-right">
+                  <span class="ios-row-icon-badge bg-ios-pink">🔋</span>
+                  <span class="ios-row-label">חיסכון בסוללה באימון</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Group 4: אודות (About) -->
+            <div class="ios-settings-card-group" data-group-name="אודות">
+              <!-- App Version -->
+              <div class="ios-setting-row no-hover" id="row-app-version">
+                <div class="ios-row-left">
+                  <span id="value-app-version" class="ios-row-detail-text">v1.1</span>
+                </div>
+                <div class="ios-row-right">
+                  <span class="ios-row-icon-badge bg-ios-indigo">ℹ️</span>
+                  <span class="ios-row-label">גרסת האפליקציה</span>
                 </div>
               </div>
 
-              <div class="ios-settings-row disabled">
-                <div class="row-left-group">
-                  <span class="row-badge">בקרוב</span>
+              <!-- Terms & Support -->
+              <button class="ios-setting-row" id="row-terms-privacy">
+                <div class="ios-row-left">
+                  <span class="ios-row-chevron">←</span>
                 </div>
-                <div class="row-right-group">
-                  <span class="row-icon">🎨</span>
-                  <span class="row-label">ערכת נושא</span>
+                <div class="ios-row-right">
+                  <span class="ios-row-icon-badge bg-ios-gray">📄</span>
+                  <span class="ios-row-label">תנאי שימוש ופרטיות</span>
                 </div>
-              </div>
+              </button>
+
+              <button class="ios-setting-row" id="row-support-feedback">
+                <div class="ios-row-left">
+                  <span class="ios-row-chevron">←</span>
+                </div>
+                <div class="ios-row-right">
+                  <span class="ios-row-icon-badge bg-ios-blue">💬</span>
+                  <span class="ios-row-label">תמיכה ומשוב</span>
+                </div>
+              </button>
             </div>
           </div>
 
           <!-- Sub-view 2: Account Details Screen (Hidden by default) -->
-          <div id="settings-account-view" class="ios-settings-card hide">
+          <div id="settings-account-view" class="hide">
             <div class="ios-settings-header">
               <button id="back-to-settings-btn" class="ios-back-btn">
-                <span class="back-arrow">→</span> חזרה
+                חזרה <span class="back-arrow">→</span>
               </button>
               <h2 class="settings-sub-title">פרטי חשבון</h2>
             </div>
             
-            <div class="account-profile-card">
-              <div class="settings-avatar-glow">
-                <div class="minimal-avatar-btn">
-                  <img id="settings-user-photo" class="settings-avatar" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" alt="User Profile">
-                  <span class="avatar-glow-ring"></span>
-                </div>
+            <div class="ios-account-profile-card">
+              <div class="ios-settings-avatar-glow">
+                <img id="settings-user-photo" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" alt="User Profile">
               </div>
-              
               <h3 class="welcome-text">היי, <span id="user-display-name">User</span>!</h3>
               <p class="settings-subtitle">מרכז הגדרות פרופיל מאובטח</p>
             </div>
 
             <!-- Profile Info Fields -->
-            <div class="ios-settings-list" style="margin-top: 1.5rem;">
-              <div class="ios-settings-field">
+            <div class="ios-settings-field-group">
+              <div class="ios-settings-field-row">
                 <span id="settings-user-name-field" class="field-value">User</span>
                 <span class="field-label">שם משתמש</span>
               </div>
-              <div class="ios-settings-field">
+              <div class="ios-settings-field-row">
                 <span id="settings-user-email-field" class="field-value">user@gmail.com</span>
                 <span class="field-label">אימייל</span>
               </div>
             </div>
             
-            <div class="settings-actions" style="margin-top: 2rem; display: flex; justify-content: center; width: 100%;">
-              <button id="app-logout-btn" class="btn btn-logout hide" style="width: 100%; max-width: 240px; background: var(--color-danger); box-shadow: 0 4px 15px var(--color-danger-glow);">
+            <div class="settings-actions" style="margin-top: 1rem; display: flex; justify-content: center; width: 100%;">
+              <button id="app-logout-btn" class="btn btn-logout hide" style="width: 100%; max-width: 240px;">
                 <span class="btn-icon">🚪</span> יציאה מהחשבון
               </button>
+            </div>
+          </div>
+
+          <!-- iOS Selection Modal Overlay (Custom iOS light modal sheet) -->
+          <div id="ios-selection-modal" class="ios-modal-overlay">
+            <div class="ios-modal-card">
+              <div class="ios-modal-header">
+                <button id="ios-modal-close" class="ios-modal-close-btn">ביטול</button>
+                <h4 id="ios-modal-title" class="ios-modal-title">בחר ערך</h4>
+              </div>
+              <div id="ios-modal-options" class="ios-modal-options-list">
+                <!-- Injected dynamically in app.js -->
+              </div>
             </div>
           </div>
 
@@ -452,7 +598,7 @@
         <span class="toast-spark" style="font-size: 1.2rem; animation: pulse-spark 1.5s infinite alternate;">✨</span>
         <span class="toast-text" style="font-size: 0.85rem; font-weight: 600; color: #1e293b; text-align: right;">גרסה חדשה זמינה לשיפור הביצועים והעיצוב!</span>
       </div>
-      <button id="pwa-refresh-btn" class="btn toast-refresh-btn" style="background: linear-gradient(135deg, #2563eb 0%, #3b82f6 100%) !important; color: #ffffff !important; border: none !important; font-size: 0.8rem !important; padding: 6px 14px !important; border-radius: 10px !important; font-weight: 700 !important; cursor: pointer !important; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.15) !important;">רענן כעת</button>
+      <button id="pwa-refresh-btn" class="btn toast-refresh-btn" style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%) !important; color: #ffffff !important; border: none !important; font-size: 0.8rem !important; padding: 6px 14px !important; border-radius: 10px !important; font-weight: 700 !important; cursor: pointer !important; box-shadow: 0 4px 10px rgba(220, 38, 38, 0.25) !important;">רענן כעת</button>
     </div>
   </div>
 
