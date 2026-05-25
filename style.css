@@ -1411,7 +1411,7 @@ body.authenticated .ios-bottom-nav {
   justify-content: space-around;
   align-items: center;
   padding: 4px 12px;
-  direction: ltr; /* Keeps leftmost slot consistently on the left */
+  direction: rtl !important; /* Workouts on the far right, Settings on the far left */
 }
 
 .ios-bottom-nav .nav-tab {
@@ -2421,16 +2421,16 @@ body.authenticated .ios-bottom-nav {
 /* ==========================================================================
    AuraApp Redesigned Settings Tab - Classic iOS Light Theme
    ========================================================================== */
-/* Prevent clipping and allow full bleed when settings tab is active */
-.tab-content-container:has(#tab-settings.active) {
+/* Prevent clipping and allow full bleed when any tab is active */
+.tab-content-container:has(.tab-pane.active) {
   overflow: visible !important;
 }
 
-#app-screen:has(#tab-settings.active) {
+#app-screen:has(.tab-pane.active) {
   overflow: hidden !important;
 }
 
-#tab-settings {
+#tab-settings, #tab-workouts, #tab-analytics, #tab-community {
   position: absolute !important;
   top: calc(-1rem - env(safe-area-inset-top)) !important;
   left: -1.5rem !important;
@@ -2441,13 +2441,26 @@ body.authenticated .ios-bottom-nav {
   background-color: #f2f2f7 !important;
   color: #1c1c1e !important;
   padding: 0 !important;
-  display: flex;
+  display: none !important;
+  pointer-events: none !important; /* Complete isolation when inactive */
   flex-direction: column;
-  overflow-y: auto !important;
   overscroll-behavior-y: contain;
   direction: rtl;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
   z-index: 1;
+}
+
+#tab-settings {
+  overflow-y: auto !important;
+}
+
+#tab-workouts, #tab-analytics, #tab-community {
+  overflow: hidden !important;
+}
+
+#tab-settings.active, #tab-workouts.active, #tab-analytics.active, #tab-community.active {
+  display: flex !important;
+  pointer-events: auto !important; /* Full interaction when active */
 }
 
 /* Custom scrollbars inside settings for unified appearance */
@@ -3264,6 +3277,224 @@ body.authenticated .ios-bottom-nav {
 .set-row {
   transition: all 0.25s ease;
 }
+
+/* ==========================================================================
+   AuraApp Redesigned Multi-Tab Theme System - Dark & Light Mode Overrides
+   ========================================================================== */
+
+/* 1. Global Tab Titles styling (Aligned large bold top-right RTL, exactly like settings) */
+.tab-pane .settings-main-title {
+  color: #000000 !important;
+  font-family: var(--font-display) !important;
+  font-size: 2.1rem !important;
+  font-weight: 800 !important;
+  margin-bottom: 1.5rem !important;
+  margin-top: 0.5rem !important;
+  text-align: right !important;
+  text-shadow: none !important;
+  letter-spacing: -0.5px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  padding: calc(1.5rem + env(safe-area-inset-top, 24px)) 1.5rem 1rem 1.5rem !important;
+}
+
+.tab-pane.dark-theme .settings-main-title {
+  color: #ffffff !important;
+}
+
+/* 2. Expanded Dark Theme overrides for all four tabs */
+#tab-settings.dark-theme,
+#tab-workouts.dark-theme,
+#tab-analytics.dark-theme,
+#tab-community.dark-theme {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+/* 3. CLASSIC iOS LIGHT THEME OVERRIDES FOR WORKOUTS, HISTORY & COMMUNITY TABS */
+
+/* General background & text in light mode */
+.tab-pane:not(.dark-theme) {
+  background-color: #f2f2f7 !important;
+  color: #1c1c1e !important;
+}
+
+/* Location Selector Grid & Coming Soon Cards */
+.tab-pane:not(.dark-theme) .location-select-title,
+.tab-pane:not(.dark-theme) .coming-soon-title {
+  color: #000000 !important;
+}
+
+.tab-pane:not(.dark-theme) .coming-soon-desc {
+  color: #3a3a3c !important;
+}
+
+.tab-pane:not(.dark-theme) .coming-soon-card,
+.tab-pane:not(.dark-theme) .location-tile {
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  color: #1c1c1e !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05) !important;
+}
+
+.tab-pane:not(.dark-theme) .location-tile:hover {
+  background: #e5e5ea !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+}
+
+.tab-pane:not(.dark-theme) .location-tile .tile-label {
+  color: #1c1c1e !important;
+}
+
+.tab-pane:not(.dark-theme) .btn-cancel-link {
+  color: #007aff !important; /* Premium iOS blue link */
+}
+
+/* Active Tracker Headers */
+.tab-pane:not(.dark-theme) .active-workout-header-bar {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+.tab-pane:not(.dark-theme) .active-location-badge,
+.tab-pane:not(.dark-theme) .active-timer-box {
+  color: #1c1c1e !important;
+}
+
+/* Exercises Tracking Cards & Set Rows */
+.tab-pane:not(.dark-theme) .exercise-card {
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  color: #1c1c1e !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important;
+}
+
+.tab-pane:not(.dark-theme) .exercise-card.saved {
+  background: #ffffff !important;
+  border: 1px solid rgba(34, 197, 94, 0.4) !important;
+  box-shadow: 
+    0 8px 24px rgba(0, 0, 0, 0.05),
+    0 0 12px rgba(34, 197, 94, 0.04) !important;
+}
+
+.tab-pane:not(.dark-theme) .exercise-card.saved .exercise-name-input {
+  color: #16a34a !important;
+}
+
+.tab-pane:not(.dark-theme) .exercise-name-input {
+  color: #000000 !important;
+  border-bottom: 1.5px solid rgba(0, 0, 0, 0.1) !important;
+}
+
+.tab-pane:not(.dark-theme) .exercise-name-input::placeholder {
+  color: #c7c7cc !important;
+}
+
+.tab-pane:not(.dark-theme) .sets-header-row {
+  color: #8e8e93 !important;
+}
+
+.tab-pane:not(.dark-theme) .set-row {
+  background: #f2f2f7 !important;
+  border: 1px solid rgba(0, 0, 0, 0.04) !important;
+}
+
+.tab-pane:not(.dark-theme) .set-row.completed {
+  background: rgba(34, 197, 94, 0.06) !important;
+  border-color: rgba(34, 197, 94, 0.25) !important;
+}
+
+.tab-pane:not(.dark-theme) .set-number-label {
+  color: #1c1c1e !important;
+}
+
+.tab-pane:not(.dark-theme) .set-input {
+  background: #ffffff !important;
+  border: 1.5px solid rgba(0, 0, 0, 0.1) !important;
+  color: #000000 !important;
+}
+
+.tab-pane:not(.dark-theme) .set-input:focus:not(:disabled) {
+  border-color: #007aff !important;
+}
+
+.tab-pane:not(.dark-theme) .set-input:disabled {
+  background: #e5e5ea !important;
+  color: #8e8e93 !important;
+}
+
+.tab-pane:not(.dark-theme) .set-checkmark-btn {
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  color: #8e8e93 !important;
+}
+
+.tab-pane:not(.dark-theme) .set-checkmark-btn:hover:not(:disabled) {
+  border-color: #007aff !important;
+  color: #007aff !important;
+}
+
+.tab-pane:not(.dark-theme) .add-set-btn {
+  border: 1px dashed rgba(0, 0, 0, 0.15) !important;
+  color: #3a3a3c !important;
+}
+
+.tab-pane:not(.dark-theme) .add-set-btn:hover {
+  border-color: #007aff !important;
+  color: #007aff !important;
+}
+
+.tab-pane:not(.dark-theme) .edit-exercise-btn {
+  background: #e5e5ea !important;
+  color: #1c1c1e !important;
+}
+
+/* Analytics Tab: Workout History logs */
+.tab-pane:not(.dark-theme) .history-card {
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  color: #1c1c1e !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important;
+}
+
+.tab-pane:not(.dark-theme) .history-card:hover {
+  background: #f2f2f7 !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+}
+
+.tab-pane:not(.dark-theme) .history-card-header {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+
+.tab-pane:not(.dark-theme) .history-card-date {
+  color: #000000 !important;
+}
+
+.tab-pane:not(.dark-theme) .history-stat {
+  color: #8e8e93 !important;
+}
+
+.tab-pane:not(.dark-theme) .history-stat strong {
+  color: #000000 !important;
+}
+
+.tab-pane:not(.dark-theme) .history-exercise-row {
+  border-bottom: 1px dashed rgba(0, 0, 0, 0.06) !important;
+}
+
+.tab-pane:not(.dark-theme) .history-exercise-name {
+  color: #000000 !important;
+}
+
+.tab-pane:not(.dark-theme) .history-set-pill {
+  background: #f2f2f7 !important;
+  color: #1c1c1e !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+}
+
+.tab-pane:not(.dark-theme) .history-empty-state p {
+  color: #8e8e93 !important;
+}
+
 
 
 
