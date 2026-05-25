@@ -1344,16 +1344,29 @@ function renderExercisePickerFilters() {
   if (!container || !activeWorkout) return;
   container.innerHTML = '';
   
-  let categories = ['הכל'];
+  let baseCats = [];
   if (activeWorkout.location === 'gym') {
-    categories = ['הכל', 'חזה', 'גב', 'כתפיים', 'רגליים', 'ידיים', 'בטן', 'אירובי'];
+    baseCats = ['חזה', 'גב', 'כתפיים', 'רגליים', 'ידיים', 'בטן', 'אירובי'];
   } else if (activeWorkout.location === 'park') {
-    categories = ['הכל', 'מתח', 'דחיפה', 'רגליים', 'ליבה ואירובי'];
+    baseCats = ['מתח', 'דחיפה', 'רגליים', 'ליבה ואירובי'];
   } else {
-    categories = ['הכל', 'מותאם אישית'];
+    baseCats = ['מותאם אישית'];
   }
   
-  categories.forEach(cat => {
+  // Retrieve custom exercise categories matching current location
+  const customCats = customExercises
+    .filter(ex => {
+      if (activeWorkout.location === 'gym' || activeWorkout.location === 'park') {
+        return ex.locationType === activeWorkout.location;
+      }
+      return true;
+    })
+    .map(ex => ex.category || 'מותאם אישית');
+    
+  // Combine unique categories
+  const allCats = ['הכל', ...new Set([...baseCats, ...customCats])];
+  
+  allCats.forEach(cat => {
     const btn = document.createElement('button');
     btn.className = `category-filter-btn ${currentActiveCategoryFilter === cat ? 'active' : ''}`;
     btn.textContent = cat;
@@ -1449,6 +1462,16 @@ function renderExercisePickerList() {
 
 // Bind workout setup events on DOM Ready
 onDOMReady(() => {
+  // Close modals when clicking on their background overlay
+  document.querySelectorAll('.workout-modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        overlay.classList.add('hide');
+        selectedExerciseForAdding = null;
+      }
+    });
+  });
+
   // Search input filter listener
   const searchInput = document.getElementById('exercise-search-input');
   if (searchInput) {
@@ -1520,16 +1543,20 @@ onDOMReady(() => {
   const addCustomExBtn = document.getElementById('add-custom-exercise-btn');
   if (addCustomExBtn) {
     addCustomExBtn.addEventListener('click', () => {
-      const input = document.getElementById('custom-exercise-name-input');
-      if (!input || input.value.trim() === '') {
+      const nameInput = document.getElementById('custom-exercise-name-input');
+      const categoryInput = document.getElementById('custom-exercise-category-input');
+      
+      if (!nameInput || nameInput.value.trim() === '') {
         alert('אנא הזן שם לתרגיל המותאם אישית.');
         return;
       }
       
-      const exName = input.value.trim();
+      const exName = nameInput.value.trim();
+      const exCategory = categoryInput ? categoryInput.value.trim() || 'מותאם אישית' : 'מותאם אישית';
+      
       const newEx = {
         name: exName,
-        category: 'מותאם אישית',
+        category: exCategory,
         locationType: activeWorkout ? activeWorkout.location : 'custom'
       };
       
@@ -1538,7 +1565,8 @@ onDOMReady(() => {
         SafeStorage.setItem(`aura-custom-exercises_${currentUser.uid}`, JSON.stringify(customExercises));
       }
       
-      input.value = '';
+      nameInput.value = '';
+      if (categoryInput) categoryInput.value = '';
       
       // Auto-select and trigger metrics choice
       selectedExerciseForAdding = exName;
@@ -1549,14 +1577,17 @@ onDOMReady(() => {
       const metricModal = document.getElementById('metric-selector-modal');
       if (metricModal) metricModal.classList.remove('hide');
       
+      renderExercisePickerFilters();
       renderExercisePickerList();
     });
   }
 
-  // Bind Metric Selector Tiles click
+  // Bind Metric Selector Tiles click using stable references
   document.querySelectorAll('.metric-tile').forEach(tile => {
-    tile.addEventListener('click', (e) => {
-      const metricType = e.currentTarget.getAttribute('data-metric');
+    tile.addEventListener('click', () => {
+      const metricType = tile.getAttribute('data-metric');
+      console.log('Metric selection clicked:', metricType, 'for exercise:', selectedExerciseForAdding);
+      
       if (selectedExerciseForAdding && activeWorkout) {
         activeWorkout.exercises.push({
           name: selectedExerciseForAdding,
@@ -1572,6 +1603,8 @@ onDOMReady(() => {
         const metricModal = document.getElementById('metric-selector-modal');
         if (metricModal) metricModal.classList.add('hide');
         selectedExerciseForAdding = null;
+      } else {
+        console.warn('Metric selection ignored because selectedExerciseForAdding or activeWorkout is missing.');
       }
     });
   });
