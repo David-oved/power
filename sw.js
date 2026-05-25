@@ -27,22 +27,6 @@ const ASSETS = [
   './icon-512.png'
   // Firebase SDK files intentionally excluded: served from Google CDN with long cache-control headers.
   // Caching opaque cross-origin responses risks serving corrupted/stale Firebase SDK.
-];============================================================
-
-const CACHE_NAME = 'aura-app-v1.9';
-const ASSETS = [
-  './',
-  './index.html',
-  './style.css',
-  './app.js',
-  './sw.js',
-  './firebase-config.js',
-  './manifest.json',
-  './icon-512.svg',
-  './icon-192.png',
-  './icon-512.png'
-  // Firebase SDK files intentionally excluded: served from Google CDN with long cache-control headers.
-  // Caching opaque cross-origin responses risks serving corrupted/stale Firebase SDK.
 ];
 
 // Service Worker Install State - cache all core files bypass HTTP cache
