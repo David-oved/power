@@ -13,7 +13,7 @@
 // these flows without the user's explicit OK in the chat!
 // =========================================================================================
 
-const CACHE_NAME = 'aura-app-v1.8';
+const CACHE_NAME = 'aura-app-v1.9';
 const ASSETS = [
   './',
   './index.html',
@@ -86,52 +86,54 @@ self.addEventListener('fetch', (event) => {
   }
 
   event.respondWith(
-    caches.match(event.request, { ignoreSearch: true }).then((cachedResponse) => {
-      if (cachedResponse) {
-        // Resolve request path against Scope to verify if it is a Core Shell Asset
-        const isCoreAsset = ASSETS.some(asset => {
-          const assetUrl = new URL(asset, self.location.href);
-          const p1 = url.pathname.replace(/\/$/, '');
-          const p2 = assetUrl.pathname.replace(/\/$/, '');
-          return p1 === p2;
-        });
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.match(event.request, { ignoreSearch: true }).then((cachedResponse) => {
+        if (cachedResponse) {
+          // Resolve request path against Scope to verify if it is a Core Shell Asset
+          const isCoreAsset = ASSETS.some(asset => {
+            const assetUrl = new URL(asset, self.location.href);
+            const p1 = url.pathname.replace(/\/$/, '');
+            const p2 = assetUrl.pathname.replace(/\/$/, '');
+            return p1 === p2;
+          });
 
-        if (isCoreAsset) {
-          // Serve strictly Cache-First for Core Assets (Prevents overwriting active cache in background)
+          if (isCoreAsset) {
+            // Serve strictly Cache-First for Core Assets (Prevents overwriting active cache in background)
+            return cachedResponse;
+          }
+
+          // Stale-While-Revalidate for non-core cached assets (External images, fonts, icons)
+          let fetchReq = event.request;
+          if (event.request.mode === 'navigate') {
+            fetchReq = new Request(event.request.url, {
+              method: event.request.method,
+              headers: event.request.headers,
+              credentials: event.request.credentials,
+              redirect: event.request.redirect
+            });
+          }
+
+          fetch(fetchReq).then((networkResponse) => {
+            if (networkResponse.status === 200 || networkResponse.status === 0) {
+              cache.put(event.request, networkResponse.clone());
+            }
+          }).catch(() => {});
+          
           return cachedResponse;
         }
 
-        // Stale-While-Revalidate for non-core cached assets (External images, fonts, icons)
-        let fetchReq = event.request;
-        if (event.request.mode === 'navigate') {
-          fetchReq = new Request(event.request.url, {
-            method: event.request.method,
-            headers: event.request.headers,
-            credentials: event.request.credentials,
-            redirect: event.request.redirect
-          });
-        }
-
-        fetch(fetchReq).then((networkResponse) => {
+        // Network Fallback for cache miss
+        return fetch(event.request).then((networkResponse) => {
           if (networkResponse.status === 200 || networkResponse.status === 0) {
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse.clone()));
+            const responseClone = networkResponse.clone();
+            cache.put(event.request, responseClone);
           }
-        }).catch(() => {});
-        
-        return cachedResponse;
-      }
-
-      // Network Fallback for cache miss
-      return fetch(event.request).then((networkResponse) => {
-        if (networkResponse.status === 200 || networkResponse.status === 0) {
-          const responseClone = networkResponse.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
-        }
-        return networkResponse;
-      }).catch(() => {
-        return new Response('Network error and no cache available.', { 
-          status: 503, 
-          statusText: 'Service Unavailable' 
+          return networkResponse;
+        }).catch(() => {
+          return new Response('Network error and no cache available.', { 
+            status: 503, 
+            statusText: 'Service Unavailable' 
+          });
         });
       });
     })
