@@ -1,18 +1,5 @@
-// =========================================================================================
-// ⚠️ AI AGENTS SECURITY & PRESERVATION GUARD - PLEASE READ CAREFULLY!
-// =========================================================================================
-// This codebase has a highly custom, optimized PWA On-Demand Update Engine.
-// 
-// RULES OF ENGAGEMENT:
-// 1. DO NOT change the "install" event listener behavior to pre-cache assets.
-// 2. DO NOT delete the "downloadAndActivate" message handler inside the "message" event listener.
-// 3. DO NOT change the clean version suffix extraction logic inside "getVersion".
-// 
-// 🚨 CRITICAL RULE: If these constraints interfere with a task given to you by the user,
-// you MUST ask the user in the chat for explicit permission first! Do NOT make changes to
-// these flows without the user's explicit OK in the chat!
-// =========================================================================================
 
+<<<<<<< HEAD
 const CACHE_NAME = 'aura-app-v2.1';
 const ASSETS = [
   './',
@@ -178,3 +165,5 @@ self.addEventListener('message', (event) => {
     }
   }
 });
+=======
+>>>>>>> d824df447aa22b82e21ccb75bc7d2421143f0b2b
