@@ -325,6 +325,8 @@ function updateAuthUI() {
 
   // Header Display Name
   setElText('user-display-name', name ? name.split(' ')[0] : 'User');
+  setElText('settings-user-name-field', name);
+  setElText('settings-user-email-field', email);
 
   // Photo Binding
   const fallbackPhoto = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
@@ -406,6 +408,13 @@ function clearUserSession() {
   closeDrawer();
 
   setElText('user-display-name', 'User');
+  setElText('settings-user-name-field', 'User');
+  setElText('settings-user-email-field', 'user@gmail.com');
+  const mainView = document.getElementById('settings-main-view');
+  const accountView = document.getElementById('settings-account-view');
+  if (mainView) mainView.classList.remove('hide');
+  if (accountView) accountView.classList.add('hide');
+
   setElText('drawer-user-full-name', 'User Name');
   setElText('drawer-user-email', 'user@gmail.com');
   setElText('drawer-user-uid', '--');
@@ -748,6 +757,20 @@ if ('serviceWorker' in navigator) {
     };
 
     window.addEventListener('load', () => {
+      // Trigger update notification on load if we just updated successfully
+      const justUpdated = SafeStorage.getItem('pwa_just_updated');
+      if (justUpdated) {
+        SafeStorage.removeItem('pwa_just_updated');
+        setTimeout(() => {
+          if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+            triggerLocalNotification(
+              "העדכון הותקן בהצלחה! ✨",
+              "האפליקציה עודכנה לגרסה האחרונה. תהנה מהשיפורים והעיצוב החדש!"
+            );
+          }
+        }, 1500);
+      }
+
       navigator.serviceWorker.register('./sw.js')
         .then((registration) => {
           console.log('PWA Service Worker registered successfully! Scope:', registration.scope);
@@ -786,6 +809,7 @@ if ('serviceWorker' in navigator) {
       if (refreshing) return;
       refreshing = true;
       console.log("Service Worker controller changed. Reloading page for new version...");
+      SafeStorage.setItem('pwa_just_updated', 'true');
       window.location.reload();
     });
 
@@ -926,5 +950,29 @@ navTabs.forEach((tab) => {
     console.log(`Switched to tab: ${targetTab}`);
   });
 });
+
+// ==========================================================================
+// iOS Settings Sub-navigation (Main View <-> Account Details View)
+// ==========================================================================
+const goToAccountBtn = document.getElementById('go-to-account-btn');
+const backToSettingsBtn = document.getElementById('back-to-settings-btn');
+const settingsMainView = document.getElementById('settings-main-view');
+const settingsAccountView = document.getElementById('settings-account-view');
+
+if (goToAccountBtn && settingsMainView && settingsAccountView) {
+  goToAccountBtn.addEventListener('click', () => {
+    settingsMainView.classList.add('hide');
+    settingsAccountView.classList.remove('hide');
+    console.log("Navigated to Account Details Sub-view.");
+  });
+}
+
+if (backToSettingsBtn && settingsMainView && settingsAccountView) {
+  backToSettingsBtn.addEventListener('click', () => {
+    settingsAccountView.classList.add('hide');
+    settingsMainView.classList.remove('hide');
+    console.log("Navigated back to Main Settings View.");
+  });
+}
 
 
