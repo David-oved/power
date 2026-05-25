@@ -550,9 +550,15 @@ if (firebaseEnabled) {
   setTimeout(hideSplashScreen, 1000);
 }
 
-window.addEventListener('DOMContentLoaded', () => {
-  detectEnvironmentAndWarn();
-});
+function onDOMReady(fn) {
+  if (document.readyState === 'loading') {
+    window.addEventListener('DOMContentLoaded', fn);
+  } else {
+    fn();
+  }
+}
+
+onDOMReady(detectEnvironmentAndWarn);
 
 // Dynamic Mobile/Desktop & Standalone Authenticator Gateway
 if (loginBtn) {
@@ -1057,7 +1063,10 @@ function clearWorkoutSession() {
   const startBtn = document.getElementById('start-workout-btn');
   
   if (activeView) activeView.classList.add('hide');
-  if (idleView) idleView.classList.add('active');
+  if (idleView) {
+    idleView.classList.add('active');
+    idleView.classList.remove('hide');
+  }
   if (locationGrid) locationGrid.classList.add('hide');
   if (startBtn) startBtn.classList.remove('hide');
   
@@ -1115,7 +1124,10 @@ function startNewWorkout(location) {
   const idleView = document.getElementById('workout-idle-view');
   const activeView = document.getElementById('workout-active-view');
   
-  if (idleView) idleView.classList.remove('active');
+  if (idleView) {
+    idleView.classList.remove('active');
+    idleView.classList.add('hide');
+  }
   if (activeView) activeView.classList.remove('hide');
   
   // Reset Start buttons for next time
@@ -1144,7 +1156,10 @@ function resumeWorkoutTimer() {
   const activeView = document.getElementById('workout-active-view');
   const idleView = document.getElementById('workout-idle-view');
   
-  if (idleView) idleView.classList.remove('active');
+  if (idleView) {
+    idleView.classList.remove('active');
+    idleView.classList.add('hide');
+  }
   if (activeView) activeView.classList.remove('hide');
   
   const badgeIcon = document.getElementById('active-location-icon');
@@ -1531,7 +1546,10 @@ if (finishWorkoutBtn) {
     const activeView = document.getElementById('workout-active-view');
     const idleView = document.getElementById('workout-idle-view');
     if (activeView) activeView.classList.add('hide');
-    if (idleView) idleView.classList.add('active');
+    if (idleView) {
+      idleView.classList.add('active');
+      idleView.classList.remove('hide');
+    }
     
     // Re-render History list
     renderWorkoutHistory();
@@ -1563,10 +1581,11 @@ function cancelWorkoutSession() {
     SafeStorage.removeItem(`aura-active-workout_${currentUser.uid}`);
   }
   
-  const activeView = document.getElementById('workout-active-view');
-  const idleView = document.getElementById('workout-idle-view');
   if (activeView) activeView.classList.add('hide');
-  if (idleView) idleView.classList.add('active');
+  if (idleView) {
+    idleView.classList.add('active');
+    idleView.classList.remove('hide');
+  }
 }
 
 // Render Workout History list in Tab 3
@@ -1964,9 +1983,7 @@ function initPremiumSettings() {
 }
 
 // Invoke the premium settings view initializer on window load and dynamic transitions
-window.addEventListener('DOMContentLoaded', () => {
-  initPremiumSettings();
-});
+onDOMReady(initPremiumSettings);
 
 
 // ==========================================================================
@@ -2042,7 +2059,7 @@ function handleRestTimerExpiration() {
 }
 
 // Bind Rest Timer controls
-window.addEventListener('DOMContentLoaded', () => {
+onDOMReady(() => {
   const closeBtn = document.getElementById('close-rest-timer-btn');
   const plus30Btn = document.getElementById('rest-timer-plus-30');
   const minus30Btn = document.getElementById('rest-timer-minus-30');
