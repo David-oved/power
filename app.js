@@ -736,7 +736,7 @@ if ('serviceWorker' in navigator) {
   } else {
     // Helper to query cache version dynamically from active Service Worker
     const loadAppVersion = (reg) => {
-      const activeWorker = reg.active || reg.waiting || reg.installing;
+      const activeWorker = navigator.serviceWorker.controller || reg.active;
       if (!activeWorker) return;
       
       const messageChannel = new MessageChannel();
@@ -803,8 +803,16 @@ function showUpdateToast(waitingWorker) {
   if (toast && refreshBtn) {
     toast.classList.add('show');
     refreshBtn.addEventListener('click', () => {
-      console.log("Trainee requested update activation. Posting skipWaiting message...");
-      waitingWorker.postMessage({ action: 'skipWaiting' });
+      console.log("User requested update activation. Initiating on-demand asset download...");
+      
+      // Make the button disabled and change its visual state to loading
+      refreshBtn.disabled = true;
+      refreshBtn.style.opacity = '0.7';
+      refreshBtn.style.cursor = 'not-allowed';
+      refreshBtn.textContent = 'מוריד עדכונים... ⏳';
+      
+      // Send message to Service Worker to start download and skip waiting
+      waitingWorker.postMessage({ action: 'downloadAndActivate' });
     });
   }
 }

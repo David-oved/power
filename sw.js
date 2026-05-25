@@ -15,27 +15,10 @@ const ASSETS = [
 ];
 
 // Service Worker Install State - cache all core files bypass HTTP cache
+// Service Worker Install State - resolve immediately without downloading assets (On-Demand Updates)
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log('Service Worker: Caching critical assets with reload bypass');
-      // Use cache: 'reload' on Requests to force network fetch, bypassing stale browser HTTP cache
-      const cachePromises = ASSETS.map((url) => {
-        const request = new Request(url, { cache: 'reload' });
-        return fetch(request).then((response) => {
-          if (response.ok || response.status === 0) { // status 0 allows caching cross-origin opaque CDN assets
-            return cache.put(url, response);
-          }
-          throw new Error(`Failed to fetch ${url} (status: ${response.status})`);
-        });
-      });
-      return Promise.all(cachePromises).catch(err => {
-        console.error('Failed to cache some assets during install:', err);
-        throw err;
-      });
-    })
-  );
-  // DELETED self.skipWaiting() from here so that PWA update toast works perfectly!
+  console.log('Service Worker: Installed immediately. Assets will be cached on-demand.');
+  event.waitUntil(Promise.resolve());
 });
 
 // Activate state - clean up old caches
@@ -140,10 +123,30 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Support skipWaiting & getVersion messages
+// Support skipWaiting, getVersion & downloadAndActivate messages
 self.addEventListener('message', (event) => {
   if (event.data && event.data.action === 'skipWaiting') {
     self.skipWaiting();
+  }
+  if (event.data && event.data.action === 'downloadAndActivate') {
+    console.log('Service Worker: On-demand download request received. Caching critical assets...');
+    caches.open(CACHE_NAME).then((cache) => {
+      const cachePromises = ASSETS.map((url) => {
+        const request = new Request(url, { cache: 'reload' });
+        return fetch(request).then((response) => {
+          if (response.ok || response.status === 0) {
+            return cache.put(url, response);
+          }
+          throw new Error(`Failed to fetch ${url} (status: ${response.status})`);
+        });
+      });
+      return Promise.all(cachePromises);
+    }).then(() => {
+      console.log('Service Worker: On-demand caching completed successfully. Activating...');
+      self.skipWaiting();
+    }).catch((err) => {
+      console.error('Service Worker: On-demand caching failed:', err);
+    });
   }
   if (event.data && event.data.action === 'getVersion') {
     if (event.ports && event.ports[0]) {
