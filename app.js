@@ -995,6 +995,11 @@ let activeTimerInterval = null;
 let workoutHistory = [];
 let editingWorkout = null;
 
+// Rest Timer State Variables
+let restTimerInterval = null;
+let restTimerSecondsLeft = 0;
+
+
 // Initialize workouts state on user auth
 function initWorkouts() {
   if (!currentUser) return;
@@ -1037,6 +1042,10 @@ function clearWorkoutSession() {
     clearInterval(activeTimerInterval);
     activeTimerInterval = null;
   }
+  
+  // Stop the rest timer on logout
+  if (typeof stopRestTimer === 'function') stopRestTimer();
+
   activeWorkout = null;
   workoutHistory = [];
   editingWorkout = null;
@@ -1416,6 +1425,9 @@ function renderExercises() {
           set.completed = true;
           saveActiveWorkoutState();
           renderExercises();
+
+          // Trigger premium Rest Timer countdown
+          if (typeof startRestTimer === 'function') startRestTimer(90);
         }
       });
       checkWrapper.appendChild(checkBtn);
@@ -1430,7 +1442,12 @@ function renderExercises() {
       addSetBtn.className = 'add-set-btn';
       addSetBtn.textContent = '➕ הוסף סט חדש';
       addSetBtn.addEventListener('click', () => {
-        ex.sets.push({ reps: '', weight: '', completed: false });
+        const lastSet = ex.sets[ex.sets.length - 1];
+        ex.sets.push({
+          reps: lastSet ? lastSet.reps : '',
+          weight: lastSet ? lastSet.weight : '',
+          completed: false
+        });
         saveActiveWorkoutState();
         renderExercises();
       });
@@ -1448,17 +1465,40 @@ if (finishWorkoutBtn) {
   finishWorkoutBtn.addEventListener('click', () => {
     if (!activeWorkout) return;
     
-    if (activeWorkout.exercises.length === 0) {
-      if (confirm('אין תרגילים באימון זה. האם ברצונך לבטל את האימון ולחזור למסך הראשי?')) {
+    // Auto-complete any active exercises that have valid sets filled but weren't finalized
+    activeWorkout.exercises.forEach(ex => {
+      if (!ex.completed && ex.name.trim() !== '') {
+        ex.sets.forEach(set => {
+          if (!set.completed) {
+            const hasReps = set.reps !== '' && Number(set.reps) > 0;
+            const hasWeight = set.weight !== '' && Number(set.weight) >= 0;
+            if (hasReps || hasWeight) {
+              set.completed = true;
+            }
+          }
+        });
+        const hasCompletedSets = ex.sets.some(s => s.completed);
+        if (hasCompletedSets) {
+          ex.completed = true;
+        }
+      }
+    });
+
+    // Sanitization: Filter out empty sets and discard exercises with no valid sets or empty names
+    const sanitizedExercises = activeWorkout.exercises.map(ex => {
+      const clonedEx = JSON.parse(JSON.stringify(ex));
+      clonedEx.sets = clonedEx.sets.filter(s => {
+        const hasReps = s.reps !== null && String(s.reps).trim() !== '' && Number(s.reps) > 0;
+        const hasWeight = s.weight !== null && String(s.weight).trim() !== '' && Number(s.weight) >= 0;
+        return s.completed && (hasReps || hasWeight);
+      });
+      return clonedEx;
+    }).filter(ex => ex.name.trim() !== '' && ex.sets.length > 0);
+
+    if (sanitizedExercises.length === 0) {
+      if (confirm('אין תרגילים תקפים שהושלמו באימון זה. האם ברצונך לבטל את האימון ולחזור למסך הראשי?')) {
         cancelWorkoutSession();
       }
-      return;
-    }
-    
-    // Gating check: Are all exercises completed?
-    const hasUncompleted = activeWorkout.exercises.some(ex => !ex.completed);
-    if (hasUncompleted) {
-      alert('לא ניתן לסיים אימון כל עוד יש תרגילים פעילים שטרם הושלמו. אנא שמור וסיים את כל התרגילים (או מחק אותם) תחילה.');
       return;
     }
     
@@ -1470,15 +1510,17 @@ if (finishWorkoutBtn) {
       date: Date.now(),
       location: activeWorkout.location,
       duration: durationSeconds,
-      exercises: JSON.parse(JSON.stringify(activeWorkout.exercises))
+      exercises: sanitizedExercises
     };
     
     // Add to history
     workoutHistory.push(workoutLog);
     SafeStorage.setItem(`aura-workout-history_${currentUser.uid}`, JSON.stringify(workoutHistory));
     
-    // Clean up active session
+    // Clean up active session and Rest Timer
     SafeStorage.removeItem(`aura-active-workout_${currentUser.uid}`);
+    if (typeof stopRestTimer === 'function') stopRestTimer();
+
     if (activeTimerInterval) {
       clearInterval(activeTimerInterval);
       activeTimerInterval = null;
@@ -1512,6 +1554,10 @@ function cancelWorkoutSession() {
     clearInterval(activeTimerInterval);
     activeTimerInterval = null;
   }
+  
+  // Stop the rest timer on cancel
+  if (typeof stopRestTimer === 'function') stopRestTimer();
+
   activeWorkout = null;
   if (currentUser) {
     SafeStorage.removeItem(`aura-active-workout_${currentUser.uid}`);
@@ -1773,7 +1819,12 @@ function renderModalExercises() {
     addSetBtn.className = 'add-set-btn';
     addSetBtn.textContent = '➕ הוסף סט';
     addSetBtn.addEventListener('click', () => {
-      ex.sets.push({ reps: '', weight: '', completed: true });
+      const lastSet = ex.sets[ex.sets.length - 1];
+      ex.sets.push({
+        reps: lastSet ? lastSet.reps : '',
+        weight: lastSet ? lastSet.weight : '',
+        completed: true
+      });
       renderModalExercises();
     });
     setsArea.appendChild(addSetBtn);
@@ -1916,6 +1967,124 @@ function initPremiumSettings() {
 window.addEventListener('DOMContentLoaded', () => {
   initPremiumSettings();
 });
+
+
+// ==========================================================================
+// 19. PREMIUM REST TIMER SYSTEM
+// ==========================================================================
+function startRestTimer(seconds = 90) {
+  // Clear any existing rest timer
+  stopRestTimer();
+
+  restTimerSecondsLeft = seconds;
+  const bubble = document.getElementById('rest-timer-bubble');
+
+  if (bubble) {
+    bubble.classList.remove('hide');
+    bubble.classList.remove('expired');
+  }
+
+  updateRestTimerUI();
+
+  restTimerInterval = setInterval(() => {
+    restTimerSecondsLeft--;
+    if (restTimerSecondsLeft <= 0) {
+      restTimerSecondsLeft = 0;
+      updateRestTimerUI();
+      handleRestTimerExpiration();
+    } else {
+      updateRestTimerUI();
+    }
+  }, 1000);
+}
+
+function stopRestTimer() {
+  if (restTimerInterval) {
+    clearInterval(restTimerInterval);
+    restTimerInterval = null;
+  }
+  const bubble = document.getElementById('rest-timer-bubble');
+  if (bubble) {
+    bubble.classList.add('hide');
+    bubble.classList.remove('expired');
+  }
+}
+
+function updateRestTimerUI() {
+  const countdownDisplay = document.getElementById('rest-timer-countdown');
+  if (!countdownDisplay) return;
+
+  const mins = Math.floor(restTimerSecondsLeft / 60);
+  const secs = restTimerSecondsLeft % 60;
+  countdownDisplay.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+}
+
+function handleRestTimerExpiration() {
+  if (restTimerInterval) {
+    clearInterval(restTimerInterval);
+    restTimerInterval = null;
+  }
+
+  const bubble = document.getElementById('rest-timer-bubble');
+  if (bubble) {
+    bubble.classList.add('expired');
+  }
+
+  // Trigger Local Notification
+  if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+    triggerLocalNotification("המנוחה נגמרה! ⏱️💪", "הגיע הזמן לסט הבא. קדימה, לעבודה!");
+  }
+
+  // Support mobile haptic vibration
+  if (navigator.vibrate) {
+    navigator.vibrate([200, 100, 200]);
+  }
+}
+
+// Bind Rest Timer controls
+window.addEventListener('DOMContentLoaded', () => {
+  const closeBtn = document.getElementById('close-rest-timer-btn');
+  const plus30Btn = document.getElementById('rest-timer-plus-30');
+  const minus30Btn = document.getElementById('rest-timer-minus-30');
+
+  if (closeBtn) {
+    closeBtn.addEventListener('click', stopRestTimer);
+  }
+
+  if (plus30Btn) {
+    plus30Btn.addEventListener('click', () => {
+      restTimerSecondsLeft += 30;
+      // If it was expired or stopped, revive it
+      if (restTimerSecondsLeft > 0 && !restTimerInterval) {
+        const bubble = document.getElementById('rest-timer-bubble');
+        if (bubble) bubble.classList.remove('expired');
+        
+        restTimerInterval = setInterval(() => {
+          restTimerSecondsLeft--;
+          if (restTimerSecondsLeft <= 0) {
+            restTimerSecondsLeft = 0;
+            updateRestTimerUI();
+            handleRestTimerExpiration();
+          } else {
+            updateRestTimerUI();
+          }
+        }, 1000);
+      }
+      updateRestTimerUI();
+    });
+  }
+
+  if (minus30Btn) {
+    minus30Btn.addEventListener('click', () => {
+      restTimerSecondsLeft = Math.max(0, restTimerSecondsLeft - 30);
+      updateRestTimerUI();
+      if (restTimerSecondsLeft === 0) {
+        handleRestTimerExpiration();
+      }
+    });
+  }
+});
+
 
 
 
