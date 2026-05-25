@@ -180,15 +180,10 @@
           <!-- Sub-view 1: Main iOS Settings Screen -->
           <div id="settings-main-view" class="ios-settings-scroll-container">
             <h2 class="settings-main-title">הגדרות</h2>
-            
-            <!-- iOS Search Bar -->
-            <div class="ios-search-wrapper">
-              <input type="search" id="settings-search" class="ios-search-bar" placeholder="חיפוש" autocomplete="off">
-              <span class="ios-search-icon">🔍</span>
-            </div>
 
-            <!-- iOS Profile Card Group -->
+            <!-- iOS Settings Card Group -->
             <div class="ios-settings-card-group">
+              <!-- Row 1: Account Settings (Clickable Profile Row) -->
               <button id="go-to-account-btn" class="ios-setting-row ios-profile-card">
                 <div class="ios-row-left">
                   <span class="ios-row-chevron">←</span>
@@ -200,166 +195,24 @@
                   </div>
                   <div class="ios-profile-info">
                     <span id="settings-user-name-main" class="ios-profile-name">משתמש</span>
-                    <span class="ios-profile-subtext">חשבון, אבטחה, יציאה</span>
+                    <span class="ios-profile-subtext">פרופיל, אבטחה, התנתקות</span>
                   </div>
                 </div>
               </button>
-            </div>
 
-            <!-- Apple Intelligence / Aura AI Style Banner -->
-            <div id="aura-ai-banner" class="ios-intelligence-card">
-              <div class="ios-row-left">
-                <span class="ios-row-chevron">←</span>
-              </div>
-              <div class="ios-intelligence-text-box">
-                <span class="ios-intelligence-title">הכל מוכן לקראת Aura AI</span>
-                <span class="ios-intelligence-desc">מאמן אישי חכם מבוסס בינה מלאכותית</span>
-              </div>
-            </div>
-
-            <!-- Group 1: אימונים והעדפות (Workouts & Preferences) -->
-            <div class="ios-settings-card-group" data-group-name="אימונים והעדפות">
-              <!-- Weekly Goal -->
-              <button class="ios-setting-row" id="row-weekly-goal">
-                <div class="ios-row-left">
-                  <span id="value-weekly-goal" class="ios-row-detail-text">3 אימונים</span>
-                  <span class="ios-row-chevron">←</span>
-                </div>
-                <div class="ios-row-right">
-                  <span class="ios-row-icon-badge bg-ios-orange">🎯</span>
-                  <span class="ios-row-label">יעד אימונים שבועי</span>
-                </div>
-              </button>
-              
-              <!-- Default Activity Location -->
-              <button class="ios-setting-row" id="row-default-location">
-                <div class="ios-row-left">
-                  <span id="value-default-location" class="ios-row-detail-text">חדר כושר</span>
-                  <span class="ios-row-chevron">←</span>
-                </div>
-                <div class="ios-row-right">
-                  <span class="ios-row-icon-badge bg-ios-blue">📍</span>
-                  <span class="ios-row-label">מיקום ברירת מחדל</span>
-                </div>
-              </button>
-
-              <!-- Rest Time -->
-              <button class="ios-setting-row" id="row-rest-time">
-                <div class="ios-row-left">
-                  <span id="value-rest-time" class="ios-row-detail-text">90 שניות</span>
-                  <span class="ios-row-chevron">←</span>
-                </div>
-                <div class="ios-row-right">
-                  <span class="ios-row-icon-badge bg-ios-purple">⏱️</span>
-                  <span class="ios-row-label">זמן מנוחה בין סטים</span>
-                </div>
-              </button>
-
-              <!-- Notifications Active Toggle -->
-              <div class="ios-setting-row no-hover" id="row-notifications">
+              <!-- Row 2: Dark Mode Toggle Switch -->
+              <div class="ios-setting-row no-hover" id="row-settings-dark-mode">
                 <div class="ios-row-left">
                   <label class="ios-toggle-switch">
-                    <input type="checkbox" id="toggle-notifications" checked>
+                    <input type="checkbox" id="toggle-settings-dark-mode">
                     <span class="ios-toggle-slider"></span>
                   </label>
                 </div>
                 <div class="ios-row-right">
-                  <span class="ios-row-icon-badge bg-ios-red">🔔</span>
-                  <span class="ios-row-label">התראות ותזכורות</span>
+                  <span class="ios-row-icon-badge bg-ios-gray">🌙</span>
+                  <span class="ios-row-label">מצב כהה</span>
                 </div>
               </div>
-            </div>
-
-            <!-- Group 2: סנכרון וחיבורים (Sync & Integrations) -->
-            <div class="ios-settings-card-group" data-group-name="סנכרון וחיבורים">
-              <!-- Bluetooth Sensor -->
-              <button class="ios-setting-row" id="row-bluetooth-sensor">
-                <div class="ios-row-left">
-                  <span id="value-bluetooth-sensor" class="ios-row-detail-text">מנותק</span>
-                  <span class="ios-row-chevron">←</span>
-                </div>
-                <div class="ios-row-right">
-                  <span class="ios-row-icon-badge bg-ios-teal">💙</span>
-                  <span class="ios-row-label">חיישן דופק (Bluetooth)</span>
-                </div>
-              </button>
-
-              <!-- Auto Cloud Sync -->
-              <div class="ios-setting-row no-hover" id="row-cloud-sync">
-                <div class="ios-row-left">
-                  <label class="ios-toggle-switch">
-                    <input type="checkbox" id="toggle-cloud-sync" checked>
-                    <span class="ios-toggle-slider"></span>
-                  </label>
-                </div>
-                <div class="ios-row-right">
-                  <span class="ios-row-icon-badge bg-ios-green">☁️</span>
-                  <span class="ios-row-label">סנכרון נתונים אוטומטי</span>
-                </div>
-              </div>
-
-              <!-- Backup & Restore -->
-              <button class="ios-setting-row" id="row-backup-restore">
-                <div class="ios-row-left">
-                  <span class="ios-row-chevron">←</span>
-                </div>
-                <div class="ios-row-right">
-                  <span class="ios-row-icon-badge bg-ios-gray">💾</span>
-                  <span class="ios-row-label">גיבוי ושחזור נתונים</span>
-                </div>
-              </button>
-            </div>
-
-            <!-- Group 3: ערכת נושא ואפשרויות -->
-            <div class="ios-settings-card-group" data-group-name="ערכת נושא ואפשרויות">
-              <!-- Workout Battery Saver -->
-              <div class="ios-setting-row no-hover" id="row-battery-saver">
-                <div class="ios-row-left">
-                  <label class="ios-toggle-switch">
-                    <input type="checkbox" id="toggle-battery-saver">
-                    <span class="ios-toggle-slider"></span>
-                  </label>
-                </div>
-                <div class="ios-row-right">
-                  <span class="ios-row-icon-badge bg-ios-pink">🔋</span>
-                  <span class="ios-row-label">חיסכון בסוללה באימון</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Group 4: אודות (About) -->
-            <div class="ios-settings-card-group" data-group-name="אודות">
-              <!-- App Version -->
-              <div class="ios-setting-row no-hover" id="row-app-version">
-                <div class="ios-row-left">
-                  <span id="value-app-version" class="ios-row-detail-text">v1.1</span>
-                </div>
-                <div class="ios-row-right">
-                  <span class="ios-row-icon-badge bg-ios-indigo">ℹ️</span>
-                  <span class="ios-row-label">גרסת האפליקציה</span>
-                </div>
-              </div>
-
-              <!-- Terms & Support -->
-              <button class="ios-setting-row" id="row-terms-privacy">
-                <div class="ios-row-left">
-                  <span class="ios-row-chevron">←</span>
-                </div>
-                <div class="ios-row-right">
-                  <span class="ios-row-icon-badge bg-ios-gray">📄</span>
-                  <span class="ios-row-label">תנאי שימוש ופרטיות</span>
-                </div>
-              </button>
-
-              <button class="ios-setting-row" id="row-support-feedback">
-                <div class="ios-row-left">
-                  <span class="ios-row-chevron">←</span>
-                </div>
-                <div class="ios-row-right">
-                  <span class="ios-row-icon-badge bg-ios-blue">💬</span>
-                  <span class="ios-row-label">תמיכה ומשוב</span>
-                </div>
-              </button>
             </div>
           </div>
 
