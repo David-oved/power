@@ -827,6 +827,19 @@ if ('serviceWorker' in navigator) {
       console.log("Service Worker controller changed. Reloading page for new version...");
       window.location.reload();
     });
+
+    navigator.serviceWorker.addEventListener('message', (event) => {
+      if (event.data && event.data.action === 'updateFailed') {
+        const refreshBtn = document.getElementById('pwa-refresh-btn');
+        if (refreshBtn) {
+          refreshBtn.disabled = false;
+          refreshBtn.style.opacity = '1';
+          refreshBtn.style.cursor = 'pointer';
+          refreshBtn.textContent = 'רענן כעת';
+        }
+        alert('הורדת העדכון נכשלה. אנא ודא שיש לך חיבור רשת תקין ונסה שוב.');
+      }
+    });
   }
 }
 
@@ -866,8 +879,13 @@ const drawerToggleArrow = document.getElementById('drawer-toggle-arrow');
 
 if (drawerJsonToggle) {
   drawerJsonToggle.addEventListener('click', () => {
-    const isExpanded = drawerJsonContainer.classList.toggle('expanded');
-    drawerToggleArrow.textContent = isExpanded ? '▲' : '▼';
+    let isExpanded = false;
+    if (drawerJsonContainer) {
+      isExpanded = drawerJsonContainer.classList.toggle('expanded');
+    }
+    if (drawerToggleArrow) {
+      drawerToggleArrow.textContent = isExpanded ? '▲' : '▼';
+    }
     drawerJsonToggle.classList.toggle('active');
   });
 }

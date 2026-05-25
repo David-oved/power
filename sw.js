@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // =========================================================================================
 // ⚠️ AI AGENTS SECURITY & PRESERVATION GUARD - PLEASE READ CAREFULLY!
 // =========================================================================================
@@ -15,9 +14,6 @@
 // =========================================================================================
 
 const CACHE_NAME = 'aura-app-v1.9';
-=======
-const CACHE_NAME = 'aura-app-v1.6';
->>>>>>> 7dae4e760ce0b10b2f8eec2827a587b9c2a797a9
 const ASSETS = [
   './',
   './index.html',
@@ -167,6 +163,11 @@ self.addEventListener('message', (event) => {
       self.skipWaiting();
     }).catch((err) => {
       console.error('Service Worker: On-demand caching failed:', err);
+      self.clients.matchAll().then((clients) => {
+        clients.forEach((client) => {
+          client.postMessage({ action: 'updateFailed' });
+        });
+      });
     });
   }
   if (event.data && event.data.action === 'getVersion') {
