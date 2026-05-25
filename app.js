@@ -1344,29 +1344,16 @@ function renderExercisePickerFilters() {
   if (!container || !activeWorkout) return;
   container.innerHTML = '';
   
-  let baseCats = [];
+  let categories = ['הכל'];
   if (activeWorkout.location === 'gym') {
-    baseCats = ['חזה', 'גב', 'כתפיים', 'רגליים', 'ידיים', 'בטן', 'אירובי'];
+    categories = ['הכל', 'חזה', 'גב', 'כתפיים', 'רגליים', 'ידיים', 'בטן', 'אירובי'];
   } else if (activeWorkout.location === 'park') {
-    baseCats = ['מתח', 'דחיפה', 'רגליים', 'ליבה ואירובי'];
+    categories = ['הכל', 'מתח', 'דחיפה', 'רגליים', 'ליבה ואירובי'];
   } else {
-    baseCats = ['מותאם אישית'];
+    categories = ['הכל', 'מותאם אישית'];
   }
   
-  // Retrieve custom exercise categories matching current location
-  const customCats = customExercises
-    .filter(ex => {
-      if (activeWorkout.location === 'gym' || activeWorkout.location === 'park') {
-        return ex.locationType === activeWorkout.location;
-      }
-      return true;
-    })
-    .map(ex => ex.category || 'מותאם אישית');
-    
-  // Combine unique categories
-  const allCats = ['הכל', ...new Set([...baseCats, ...customCats])];
-  
-  allCats.forEach(cat => {
+  categories.forEach(cat => {
     const btn = document.createElement('button');
     btn.className = `category-filter-btn ${currentActiveCategoryFilter === cat ? 'active' : ''}`;
     btn.textContent = cat;
@@ -1462,16 +1449,6 @@ function renderExercisePickerList() {
 
 // Bind workout setup events on DOM Ready
 onDOMReady(() => {
-  // Close modals when clicking on their background overlay
-  document.querySelectorAll('.workout-modal-overlay').forEach(overlay => {
-    overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) {
-        overlay.classList.add('hide');
-        selectedExerciseForAdding = null;
-      }
-    });
-  });
-
   // Search input filter listener
   const searchInput = document.getElementById('exercise-search-input');
   if (searchInput) {
@@ -1539,47 +1516,20 @@ onDOMReady(() => {
     });
   }
 
-  // Open Custom Exercise Modal
-  const openCustomExModalBtn = document.getElementById('open-custom-exercise-modal-btn');
-  if (openCustomExModalBtn) {
-    openCustomExModalBtn.addEventListener('click', () => {
-      const modal = document.getElementById('custom-exercise-modal');
-      if (modal) modal.classList.remove('hide');
-    });
-  }
-
-  // Close Custom Exercise Modal
-  const closeCustomExModalBtn = document.getElementById('close-custom-exercise-modal-btn');
-  if (closeCustomExModalBtn) {
-    closeCustomExModalBtn.addEventListener('click', () => {
-      const modal = document.getElementById('custom-exercise-modal');
-      if (modal) modal.classList.add('hide');
-    });
-  }
-
-  // Save Custom Exercise inside Modal
-  const saveCustomExModalBtn = document.getElementById('save-custom-exercise-modal-btn');
-  if (saveCustomExModalBtn) {
-    saveCustomExModalBtn.addEventListener('click', () => {
-      const nameInput = document.getElementById('custom-exercise-new-name-input');
-      const categorySelect = document.getElementById('custom-exercise-new-category-select');
-      
-      if (!nameInput || nameInput.value.trim() === '') {
+  // Create Custom Exercise inside Exercise Picker Modal
+  const addCustomExBtn = document.getElementById('add-custom-exercise-btn');
+  if (addCustomExBtn) {
+    addCustomExBtn.addEventListener('click', () => {
+      const input = document.getElementById('custom-exercise-name-input');
+      if (!input || input.value.trim() === '') {
         alert('אנא הזן שם לתרגיל המותאם אישית.');
         return;
       }
       
-      if (!categorySelect || categorySelect.value === '') {
-        alert('אנא בחר קטגוריה.');
-        return;
-      }
-      
-      const exName = nameInput.value.trim();
-      const exCategory = categorySelect.value;
-      
+      const exName = input.value.trim();
       const newEx = {
         name: exName,
-        category: exCategory,
+        category: 'מותאם אישית',
         locationType: activeWorkout ? activeWorkout.location : 'custom'
       };
       
@@ -1588,11 +1538,7 @@ onDOMReady(() => {
         SafeStorage.setItem(`aura-custom-exercises_${currentUser.uid}`, JSON.stringify(customExercises));
       }
       
-      nameInput.value = '';
-      categorySelect.selectedIndex = 0;
-      
-      const modal = document.getElementById('custom-exercise-modal');
-      if (modal) modal.classList.add('hide');
+      input.value = '';
       
       // Auto-select and trigger metrics choice
       selectedExerciseForAdding = exName;
@@ -1603,37 +1549,42 @@ onDOMReady(() => {
       const metricModal = document.getElementById('metric-selector-modal');
       if (metricModal) metricModal.classList.remove('hide');
       
-      renderExercisePickerFilters();
       renderExercisePickerList();
     });
   }
 
-  // Bind Metric Selector Tiles click using robust document-level event delegation
-  document.addEventListener('click', (e) => {
-    const tile = e.target.closest('.metric-tile');
-    if (!tile) return;
-    
-    const metricType = tile.getAttribute('data-metric');
-    console.log('Metric selection clicked (delegated):', metricType, 'for exercise:', selectedExerciseForAdding);
-    
-    if (selectedExerciseForAdding && activeWorkout) {
-      activeWorkout.exercises.push({
-        name: selectedExerciseForAdding,
-        metricType: metricType,
-        completed: false,
-        sets: [
-          { reps: '', weight: '', completed: false }
-        ]
-      });
-      saveActiveWorkoutState();
-      renderExercises();
+  // Bind Metric Selector Tiles click
+  document.querySelectorAll('.metric-tile').forEach(tile => {
+    tile.addEventListener('click', () => {
+      const metricType = tile.getAttribute('data-metric');
+      console.log("Metric tile clicked. Chosen metricType:", metricType, "selectedExerciseForAdding:", selectedExerciseForAdding);
       
-      const metricModal = document.getElementById('metric-selector-modal');
-      if (metricModal) metricModal.classList.add('hide');
-      selectedExerciseForAdding = null;
-    } else {
-      console.warn('Metric selection ignored because selectedExerciseForAdding or activeWorkout is missing.');
-    }
+      if (!selectedExerciseForAdding) {
+        console.warn("No selected exercise for adding. Checking active picker state...");
+        alert('שגיאה: לא נבחר תרגיל. אנא בחר תרגיל שוב.');
+        return;
+      }
+      
+      if (activeWorkout) {
+        activeWorkout.exercises.push({
+          name: selectedExerciseForAdding,
+          metricType: metricType,
+          completed: false,
+          sets: [
+            { reps: '', weight: '', completed: false }
+          ]
+        });
+        saveActiveWorkoutState();
+        renderExercises();
+        
+        const metricModal = document.getElementById('metric-selector-modal');
+        if (metricModal) metricModal.classList.add('hide');
+        selectedExerciseForAdding = null;
+        console.log("Successfully added exercise with metric configuration.");
+      } else {
+        console.error("No active workout session found.");
+      }
+    });
   });
 });
 
@@ -1642,11 +1593,6 @@ const addExerciseBtn = document.getElementById('add-exercise-btn');
 if (addExerciseBtn) {
   addExerciseBtn.addEventListener('click', () => {
     if (!activeWorkout) return;
-    
-    // Discard any exercises that have 0 completed sets to prevent clogging
-    activeWorkout.exercises = activeWorkout.exercises.filter(ex => ex.sets.some(s => s.completed));
-    saveActiveWorkoutState();
-    renderExercises();
     
     // Guard: Can't add if there is any active exercise not completed
     const hasActive = activeWorkout.exercises.some(ex => !ex.completed);
