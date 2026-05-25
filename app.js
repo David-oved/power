@@ -1952,32 +1952,31 @@ function deleteWorkoutFromHistory(workoutId) {
 function initPremiumSettings() {
   console.log("Initializing premium iOS Settings View...");
 
-  // Load Saved Dark Mode setting strictly for Settings Tab
-  const tabSettings = document.getElementById('tab-settings');
+  const allTabs = document.querySelectorAll('.tab-content-container .tab-pane');
   const toggleDarkMode = document.getElementById('toggle-settings-dark-mode');
   
   const isDarkMode = SafeStorage.getItem('settings_dark_mode') === 'true';
 
-  if (tabSettings) {
+  allTabs.forEach(tab => {
     if (isDarkMode) {
-      tabSettings.classList.add('dark-theme');
+      tab.classList.add('dark-theme');
     } else {
-      tabSettings.classList.remove('dark-theme');
+      tab.classList.remove('dark-theme');
     }
-  }
+  });
 
   if (toggleDarkMode) {
     toggleDarkMode.checked = isDarkMode;
     toggleDarkMode.addEventListener('change', (e) => {
       SafeStorage.setItem('settings_dark_mode', e.target.checked);
       console.log('Saved settings dark mode active preference:', e.target.checked);
-      if (tabSettings) {
+      allTabs.forEach(tab => {
         if (e.target.checked) {
-          tabSettings.classList.add('dark-theme');
+          tab.classList.add('dark-theme');
         } else {
-          tabSettings.classList.remove('dark-theme');
+          tab.classList.remove('dark-theme');
         }
-      }
+      });
     });
   }
 }
