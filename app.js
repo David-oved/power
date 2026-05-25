@@ -643,30 +643,6 @@ if (loginBtn) {
   });
 }
 
-// Guest Mode Login Listener
-const guestLoginBtn = document.getElementById('guest-login-btn');
-if (guestLoginBtn) {
-  guestLoginBtn.addEventListener('click', () => {
-    currentUser = {
-      uid: 'guest_user',
-      displayName: 'אורח דמו',
-      email: 'guest@aura.app',
-      emailVerified: false,
-      photoURL: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
-    };
-    updateAuthUI();
-    if (typeof initWorkouts === 'function') initWorkouts();
-    switchScreen(true);
-    
-    if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-      triggerLocalNotification(
-        "התחברת כאורח! 👤",
-        "ברוך הבא למצב דמו של AuraApp. כל הנתונים יישמרו מקומית במכשיר שלך."
-      );
-    }
-  });
-}
-
 // Proactive Environment Warnings (WhatsApp/Telegram/Private Tabs)
 function detectEnvironmentAndWarn() {
   const storageOk = SafeStorage.isSupported();
@@ -1026,15 +1002,7 @@ let restTimerSecondsLeft = 0;
 
 // Initialize workouts state on user auth
 function initWorkouts() {
-  if (!currentUser) {
-    currentUser = {
-      uid: 'guest_user',
-      displayName: 'אורח דמו',
-      email: 'guest@aura.app',
-      emailVerified: false,
-      photoURL: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='
-    };
-  }
+  if (!currentUser) return;
   
   // Load History
   const historyData = SafeStorage.getItem(`aura-workout-history_${currentUser.uid}`);
