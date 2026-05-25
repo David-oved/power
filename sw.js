@@ -1,6 +1,6 @@
 
 <<<<<<< HEAD
-const CACHE_NAME = 'aura-app-v2.1';
+const CACHE_NAME = 'aura-app-v2.2';
 const ASSETS = [
   './',
   './index.html',
