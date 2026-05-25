@@ -441,6 +441,8 @@ function clearUserSession() {
   // Reset tabs to default Settings tab upon logout
   resetTabs();
 
+  if (typeof clearWorkoutSession === 'function') clearWorkoutSession();
+
   isSensitiveDataVisible = false;
   if (toggleSensitiveBtn) {
     toggleSensitiveBtn.innerHTML = '👁️ הצג פרטים מזהים';
@@ -462,6 +464,7 @@ if (firebaseEnabled) {
       currentUser = user;
 
       updateAuthUI();
+      if (typeof initWorkouts === 'function') initWorkouts();
       switchScreen(true);
 
       // Trigger notification if it's a real-time transition, and we haven't welcomed them in this session
@@ -974,5 +977,895 @@ if (backToSettingsBtn && settingsMainView && settingsAccountView) {
     console.log("Navigated back to Main Settings View.");
   });
 }
+
+// ==========================================================================
+// 18. CYBER WORKOUT STATE MACHINE & HISTORY MANAGER
+// ==========================================================================
+let activeWorkout = null;
+let activeTimerInterval = null;
+let workoutHistory = [];
+let editingWorkout = null;
+
+// Initialize workouts state on user auth
+function initWorkouts() {
+  if (!currentUser) return;
+  
+  // Load History
+  const historyData = SafeStorage.getItem(`aura-workout-history_${currentUser.uid}`);
+  if (historyData) {
+    try {
+      workoutHistory = JSON.parse(historyData);
+    } catch (e) {
+      console.error("Failed to parse workout history, resetting:", e);
+      workoutHistory = [];
+    }
+  } else {
+    workoutHistory = [];
+  }
+  
+  // Render Tab 3 History Logs
+  renderWorkoutHistory();
+  
+  // Restore Active Workout if any (anti-data loss on reload)
+  const activeData = SafeStorage.getItem(`aura-active-workout_${currentUser.uid}`);
+  if (activeData) {
+    try {
+      activeWorkout = JSON.parse(activeData);
+      if (activeWorkout && activeWorkout.startTime) {
+        console.log("Restored active workout from storage, resuming timer...");
+        resumeWorkoutTimer();
+      }
+    } catch (e) {
+      console.error("Failed to parse restored active workout:", e);
+      activeWorkout = null;
+    }
+  }
+}
+
+// Clear workout session on logout
+function clearWorkoutSession() {
+  if (activeTimerInterval) {
+    clearInterval(activeTimerInterval);
+    activeTimerInterval = null;
+  }
+  activeWorkout = null;
+  workoutHistory = [];
+  editingWorkout = null;
+  
+  // Reset active UI views to idle
+  const activeView = document.getElementById('workout-active-view');
+  const idleView = document.getElementById('workout-idle-view');
+  const locationGrid = document.getElementById('location-selector-grid');
+  const startBtn = document.getElementById('start-workout-btn');
+  
+  if (activeView) activeView.classList.add('hide');
+  if (idleView) idleView.classList.add('active');
+  if (locationGrid) locationGrid.classList.add('hide');
+  if (startBtn) startBtn.classList.remove('hide');
+  
+  const historyList = document.getElementById('workout-history-list');
+  if (historyList) historyList.innerHTML = '';
+}
+
+// Toggle grid to select location
+const startWorkoutBtn = document.getElementById('start-workout-btn');
+const cancelLocationBtn = document.getElementById('cancel-location-btn');
+const locationGrid = document.getElementById('location-selector-grid');
+
+if (startWorkoutBtn && locationGrid) {
+  startWorkoutBtn.addEventListener('click', () => {
+    startWorkoutBtn.classList.add('hide');
+    locationGrid.classList.remove('hide');
+  });
+}
+
+if (cancelLocationBtn && startWorkoutBtn && locationGrid) {
+  cancelLocationBtn.addEventListener('click', () => {
+    locationGrid.classList.add('hide');
+    startWorkoutBtn.classList.remove('hide');
+  });
+}
+
+// Select Gym / Park
+const selectGymBtn = document.getElementById('select-gym-btn');
+const selectParkBtn = document.getElementById('select-park-btn');
+
+if (selectGymBtn) {
+  selectGymBtn.addEventListener('click', () => {
+    startNewWorkout('gym');
+  });
+}
+
+if (selectParkBtn) {
+  selectParkBtn.addEventListener('click', () => {
+    startNewWorkout('park');
+  });
+}
+
+function startNewWorkout(location) {
+  if (!currentUser) return;
+  
+  activeWorkout = {
+    startTime: Date.now(),
+    location: location,
+    exercises: []
+  };
+  
+  SafeStorage.setItem(`aura-active-workout_${currentUser.uid}`, JSON.stringify(activeWorkout));
+  
+  // Transition Views
+  const idleView = document.getElementById('workout-idle-view');
+  const activeView = document.getElementById('workout-active-view');
+  
+  if (idleView) idleView.classList.remove('active');
+  if (activeView) activeView.classList.remove('hide');
+  
+  // Reset Start buttons for next time
+  if (locationGrid) locationGrid.classList.add('hide');
+  if (startWorkoutBtn) startWorkoutBtn.classList.remove('hide');
+  
+  // Update Header Badge
+  const badgeIcon = document.getElementById('active-location-icon');
+  const badgeText = document.getElementById('active-location-text');
+  if (badgeIcon) badgeIcon.textContent = location === 'gym' ? '🏋️‍♂️' : '🌳';
+  if (badgeText) badgeText.textContent = location === 'gym' ? 'חדר כושר' : 'פארק';
+  
+  // Reset Timer UI
+  const timerDisplay = document.getElementById('active-timer');
+  if (timerDisplay) timerDisplay.textContent = '00:00:00';
+  
+  // Start Timer
+  if (activeTimerInterval) clearInterval(activeTimerInterval);
+  activeTimerInterval = setInterval(updateActiveTimer, 1000);
+  
+  // Render exercises list (empty)
+  renderExercises();
+}
+
+function resumeWorkoutTimer() {
+  const activeView = document.getElementById('workout-active-view');
+  const idleView = document.getElementById('workout-idle-view');
+  
+  if (idleView) idleView.classList.remove('active');
+  if (activeView) activeView.classList.remove('hide');
+  
+  const badgeIcon = document.getElementById('active-location-icon');
+  const badgeText = document.getElementById('active-location-text');
+  if (badgeIcon) badgeIcon.textContent = activeWorkout.location === 'gym' ? '🏋️‍♂️' : '🌳';
+  if (badgeText) badgeText.textContent = activeWorkout.location === 'gym' ? 'חדר כושר' : 'פארק';
+  
+  if (activeTimerInterval) clearInterval(activeTimerInterval);
+  activeTimerInterval = setInterval(updateActiveTimer, 1000);
+  updateActiveTimer();
+  
+  renderExercises();
+}
+
+function updateActiveTimer() {
+  if (!activeWorkout || !activeWorkout.startTime) return;
+  
+  const diffMs = Date.now() - activeWorkout.startTime;
+  const totalSecs = Math.floor(diffMs / 1000);
+  
+  const hrs = Math.floor(totalSecs / 3600);
+  const mins = Math.floor((totalSecs % 3600) / 60);
+  const secs = totalSecs % 60;
+  
+  const pad = (num) => String(num).padStart(2, '0');
+  
+  const timerDisplay = document.getElementById('active-timer');
+  if (timerDisplay) {
+    timerDisplay.textContent = `${pad(hrs)}:${pad(mins)}:${pad(secs)}`;
+  }
+}
+
+// Add Exercise Button Listener
+const addExerciseBtn = document.getElementById('add-exercise-btn');
+if (addExerciseBtn) {
+  addExerciseBtn.addEventListener('click', () => {
+    if (!activeWorkout) return;
+    
+    // Guard: Can't add if there is any active exercise not completed
+    const hasActive = activeWorkout.exercises.some(ex => !ex.completed);
+    if (hasActive) {
+      alert("לא ניתן להתחיל תרגיל חדש כל עוד לא סיימת את התרגיל הנוכחי. אנא שמור וסיים אותו תחילה.");
+      return;
+    }
+    
+    const newEx = {
+      id: Date.now(),
+      name: '',
+      completed: false,
+      sets: [
+        { reps: '', weight: '', completed: false }
+      ]
+    };
+    
+    activeWorkout.exercises.push(newEx);
+    SafeStorage.setItem(`aura-active-workout_${currentUser.uid}`, JSON.stringify(activeWorkout));
+    
+    renderExercises();
+    
+    // Auto scroll down to the new exercise card
+    setTimeout(() => {
+      const container = document.getElementById('exercises-container');
+      if (container) {
+        container.scrollTop = container.scrollHeight;
+      }
+    }, 100);
+  });
+}
+
+function saveActiveWorkoutState() {
+  if (currentUser && activeWorkout) {
+    SafeStorage.setItem(`aura-active-workout_${currentUser.uid}`, JSON.stringify(activeWorkout));
+  }
+}
+
+// Render dynamic Exercises List in Tab 2
+function renderExercises() {
+  const container = document.getElementById('exercises-container');
+  if (!container || !activeWorkout) return;
+  
+  container.innerHTML = '';
+  
+  const hasUncompleted = activeWorkout.exercises.some(ex => !ex.completed);
+  
+  // Disable / Enable Add Exercise Button styles
+  if (addExerciseBtn) {
+    if (hasUncompleted) {
+      addExerciseBtn.disabled = true;
+      addExerciseBtn.style.opacity = '0.4';
+      addExerciseBtn.style.cursor = 'not-allowed';
+    } else {
+      addExerciseBtn.disabled = false;
+      addExerciseBtn.style.opacity = '1';
+      addExerciseBtn.style.cursor = 'pointer';
+    }
+  }
+  
+  activeWorkout.exercises.forEach((ex, exIdx) => {
+    const card = document.createElement('div');
+    card.className = `exercise-card ${ex.completed ? 'saved' : ''}`;
+    
+    // Header Row
+    const header = document.createElement('div');
+    header.className = 'exercise-card-header';
+    
+    const titleContainer = document.createElement('div');
+    titleContainer.className = 'exercise-title-container';
+    
+    // Trash icon to delete exercise (only if not completed)
+    if (!ex.completed) {
+      const removeExBtn = document.createElement('button');
+      removeExBtn.className = 'remove-exercise-btn';
+      removeExBtn.innerHTML = '🗑️';
+      removeExBtn.title = 'מחק תרגיל';
+      removeExBtn.addEventListener('click', () => {
+        activeWorkout.exercises.splice(exIdx, 1);
+        saveActiveWorkoutState();
+        renderExercises();
+      });
+      titleContainer.appendChild(removeExBtn);
+    }
+    
+    const nameInput = document.createElement('input');
+    nameInput.type = 'text';
+    nameInput.className = 'exercise-name-input';
+    nameInput.placeholder = 'שם התרגיל (לדוגמה: לחיצת חזה)';
+    nameInput.value = ex.name;
+    nameInput.disabled = ex.completed;
+    nameInput.addEventListener('input', (e) => {
+      ex.name = e.target.value;
+      saveActiveWorkoutState();
+    });
+    
+    titleContainer.appendChild(nameInput);
+    header.appendChild(titleContainer);
+    
+    // Save / Edit exercise button on top corner
+    const actionBtn = document.createElement('button');
+    if (ex.completed) {
+      actionBtn.className = 'btn edit-exercise-btn';
+      actionBtn.textContent = 'ערוך תרגיל ✏️';
+      actionBtn.addEventListener('click', () => {
+        ex.completed = false;
+        saveActiveWorkoutState();
+        renderExercises();
+      });
+    } else {
+      actionBtn.className = 'btn save-exercise-btn';
+      actionBtn.textContent = 'סיום תרגיל ✓';
+      actionBtn.addEventListener('click', () => {
+        // Validate Exercise Name
+        if (!ex.name.trim()) {
+          alert('אנא הזן את שם התרגיל לפני הסיום.');
+          nameInput.focus();
+          return;
+        }
+        
+        // Auto-complete active sets that have valid inputs but weren't checked
+        ex.sets.forEach(set => {
+          if (!set.completed) {
+            const hasReps = set.reps !== '' && Number(set.reps) > 0;
+            const hasWeight = set.weight !== '' && Number(set.weight) >= 0;
+            if (hasReps || hasWeight) {
+              set.completed = true;
+            }
+          }
+        });
+        
+        // Validate at least one set is completed
+        const hasCompletedSets = ex.sets.some(s => s.completed);
+        if (!hasCompletedSets) {
+          alert('אנא השלם לפחות סט אחד (הזן משקל או חזרות וסמן כבוצע).');
+          return;
+        }
+        
+        ex.completed = true;
+        saveActiveWorkoutState();
+        renderExercises();
+      });
+    }
+    
+    header.appendChild(actionBtn);
+    card.appendChild(header);
+    
+    // Sets Container Area
+    const setsArea = document.createElement('div');
+    setsArea.className = 'sets-area';
+    
+    // Sets Header Row (Direction LTR: Set, Weight, Reps, Mark)
+    const setsHeader = document.createElement('div');
+    setsHeader.className = 'sets-header-row';
+    setsHeader.innerHTML = `
+      <div>מחק</div>
+      <div>משקל (ק״ג)</div>
+      <div>חזרות</div>
+      <div>סט</div>
+    `;
+    setsArea.appendChild(setsHeader);
+    
+    ex.sets.forEach((set, setIdx) => {
+      const setRow = document.createElement('div');
+      setRow.className = `set-row ${set.completed ? 'completed' : ''}`;
+      
+      // Remove Set Button (Trash symbol on the left in LTR)
+      const removeSetBtn = document.createElement('button');
+      removeSetBtn.className = 'remove-set-btn';
+      removeSetBtn.innerHTML = '✕';
+      removeSetBtn.disabled = ex.completed;
+      removeSetBtn.addEventListener('click', () => {
+        if (ex.sets.length > 1) {
+          ex.sets.splice(setIdx, 1);
+          saveActiveWorkoutState();
+          renderExercises();
+        } else {
+          alert('תרגיל חייב להכיל לפחות סט אחד.');
+        }
+      });
+      setRow.appendChild(removeSetBtn);
+      
+      // Weight Input
+      const weightWrapper = document.createElement('div');
+      weightWrapper.className = 'set-input-wrapper';
+      const weightInput = document.createElement('input');
+      weightInput.type = 'number';
+      weightInput.className = 'set-input';
+      weightInput.placeholder = '-';
+      weightInput.value = set.weight;
+      weightInput.disabled = ex.completed || set.completed;
+      weightInput.addEventListener('input', (e) => {
+        set.weight = e.target.value;
+        saveActiveWorkoutState();
+      });
+      weightWrapper.appendChild(weightInput);
+      setRow.appendChild(weightWrapper);
+      
+      // Reps Input
+      const repsWrapper = document.createElement('div');
+      repsWrapper.className = 'set-input-wrapper';
+      const repsInput = document.createElement('input');
+      repsInput.type = 'number';
+      repsInput.className = 'set-input';
+      repsInput.placeholder = '-';
+      repsInput.value = set.reps;
+      repsInput.disabled = ex.completed || set.completed;
+      repsInput.addEventListener('input', (e) => {
+        set.reps = e.target.value;
+        saveActiveWorkoutState();
+      });
+      repsWrapper.appendChild(repsInput);
+      setRow.appendChild(repsWrapper);
+      
+      // Set Checkmark Button (Status toggle)
+      const checkWrapper = document.createElement('div');
+      checkWrapper.className = 'set-input-wrapper';
+      const checkBtn = document.createElement('button');
+      checkBtn.className = `set-checkmark-btn ${set.completed ? 'completed' : ''}`;
+      checkBtn.textContent = set.completed ? '✓' : String(setIdx + 1);
+      checkBtn.disabled = ex.completed;
+      checkBtn.addEventListener('click', () => {
+        if (set.completed) {
+          // Toggle off
+          set.completed = false;
+          saveActiveWorkoutState();
+          renderExercises();
+        } else {
+          // Validate: At least reps or weight is filled
+          const hasReps = repsInput.value.trim() !== '' && Number(repsInput.value) > 0;
+          const hasWeight = weightInput.value.trim() !== '' && Number(weightInput.value) >= 0;
+          
+          if (!hasReps && !hasWeight) {
+            alert('אנא מלא לפחות שדה אחד: חזרות או משקל.');
+            repsInput.focus();
+            return;
+          }
+          
+          set.reps = repsInput.value;
+          set.weight = weightInput.value;
+          set.completed = true;
+          saveActiveWorkoutState();
+          renderExercises();
+        }
+      });
+      checkWrapper.appendChild(checkBtn);
+      setRow.appendChild(checkWrapper);
+      
+      setsArea.appendChild(setRow);
+    });
+    
+    // Add Set Button
+    if (!ex.completed) {
+      const addSetBtn = document.createElement('button');
+      addSetBtn.className = 'add-set-btn';
+      addSetBtn.textContent = '➕ הוסף סט חדש';
+      addSetBtn.addEventListener('click', () => {
+        ex.sets.push({ reps: '', weight: '', completed: false });
+        saveActiveWorkoutState();
+        renderExercises();
+      });
+      setsArea.appendChild(addSetBtn);
+    }
+    
+    card.appendChild(setsArea);
+    container.appendChild(card);
+  });
+}
+
+// Finish Workout Event Listener
+const finishWorkoutBtn = document.getElementById('finish-workout-btn');
+if (finishWorkoutBtn) {
+  finishWorkoutBtn.addEventListener('click', () => {
+    if (!activeWorkout) return;
+    
+    if (activeWorkout.exercises.length === 0) {
+      if (confirm('אין תרגילים באימון זה. האם ברצונך לבטל את האימון ולחזור למסך הראשי?')) {
+        cancelWorkoutSession();
+      }
+      return;
+    }
+    
+    // Gating check: Are all exercises completed?
+    const hasUncompleted = activeWorkout.exercises.some(ex => !ex.completed);
+    if (hasUncompleted) {
+      alert('לא ניתן לסיים אימון כל עוד יש תרגילים פעילים שטרם הושלמו. אנא שמור וסיים את כל התרגילים (או מחק אותם) תחילה.');
+      return;
+    }
+    
+    // Calculate final duration
+    const durationSeconds = Math.floor((Date.now() - activeWorkout.startTime) / 1000);
+    
+    const workoutLog = {
+      id: Date.now(),
+      date: Date.now(),
+      location: activeWorkout.location,
+      duration: durationSeconds,
+      exercises: JSON.parse(JSON.stringify(activeWorkout.exercises))
+    };
+    
+    // Add to history
+    workoutHistory.push(workoutLog);
+    SafeStorage.setItem(`aura-workout-history_${currentUser.uid}`, JSON.stringify(workoutHistory));
+    
+    // Clean up active session
+    SafeStorage.removeItem(`aura-active-workout_${currentUser.uid}`);
+    if (activeTimerInterval) {
+      clearInterval(activeTimerInterval);
+      activeTimerInterval = null;
+    }
+    activeWorkout = null;
+    
+    // Reset Workouts Tab Views to Idle
+    const activeView = document.getElementById('workout-active-view');
+    const idleView = document.getElementById('workout-idle-view');
+    if (activeView) activeView.classList.add('hide');
+    if (idleView) idleView.classList.add('active');
+    
+    // Re-render History list
+    renderWorkoutHistory();
+    
+    // Switch dynamically to Tab 3 (Analytics/Data Tab)
+    const analyticsTabBtn = document.querySelector('.ios-bottom-nav .nav-tab[data-tab="analytics"]');
+    if (analyticsTabBtn) {
+      analyticsTabBtn.click();
+    }
+    
+    // Trigger successful notification
+    if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+      triggerLocalNotification("אימון נשמר בהצלחה! 💪", "הנתונים שלך מוגנים ומאובטחים לצמיתות במכשיר.");
+    }
+  });
+}
+
+function cancelWorkoutSession() {
+  if (activeTimerInterval) {
+    clearInterval(activeTimerInterval);
+    activeTimerInterval = null;
+  }
+  activeWorkout = null;
+  if (currentUser) {
+    SafeStorage.removeItem(`aura-active-workout_${currentUser.uid}`);
+  }
+  
+  const activeView = document.getElementById('workout-active-view');
+  const idleView = document.getElementById('workout-idle-view');
+  if (activeView) activeView.classList.add('hide');
+  if (idleView) idleView.classList.add('active');
+}
+
+// Render Workout History list in Tab 3
+function renderWorkoutHistory() {
+  const listContainer = document.getElementById('workout-history-list');
+  if (!listContainer) return;
+  
+  listContainer.innerHTML = '';
+  
+  if (workoutHistory.length === 0) {
+    const emptyState = document.createElement('div');
+    emptyState.className = 'history-empty-state';
+    emptyState.innerHTML = `
+      <span class="empty-state-emoji">📊</span>
+      <h3 style="font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; color: #ffffff;">אין אימונים מוקלטים עדיין</h3>
+      <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.5; margin-top: 6px;">האימונים שתבצע ותסיים יישמרו כאן לצמיתות בצורה מסודרת עם פרטי נפח ומשכים!</p>
+    `;
+    listContainer.appendChild(emptyState);
+    return;
+  }
+  
+  // Sort history descending (latest first)
+  const sorted = [...workoutHistory].sort((a, b) => b.date - a.date);
+  
+  sorted.forEach(log => {
+    const card = document.createElement('div');
+    card.className = 'history-card';
+    
+    // Calculate total sets & volume
+    let totalSets = 0;
+    let totalVolume = 0;
+    
+    log.exercises.forEach(ex => {
+      ex.sets.forEach(set => {
+        if (set.completed) {
+          totalSets++;
+          const reps = Number(set.reps) || 0;
+          const weight = Number(set.weight) || 0;
+          totalVolume += (reps * weight);
+        }
+      });
+    });
+    
+    // Duration formatting
+    let durationText = '';
+    if (log.duration < 60) {
+      durationText = 'פחות מדקה';
+    } else if (log.duration < 3600) {
+      durationText = `${Math.floor(log.duration / 60)} דק׳`;
+    } else {
+      const hrs = Math.floor(log.duration / 3600);
+      const mins = Math.floor((log.duration % 3600) / 60);
+      durationText = `${hrs} שעות ו-${mins} דק׳`;
+    }
+    
+    // Date formatting (Hebrew)
+    const dateObj = new Date(log.date);
+    const dateFormatted = dateObj.toLocaleDateString('he-IL', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'numeric',
+      year: 'numeric'
+    });
+    
+    card.innerHTML = `
+      <div class="history-card-header">
+        <span class="history-card-badge ${log.location === 'gym' ? 'badge-gym' : 'badge-park'}">
+          ${log.location === 'gym' ? '🏋️‍♂️ חדר כושר' : '🌳 פארק'}
+        </span>
+        <div class="history-card-date">${dateFormatted}</div>
+      </div>
+      <div class="history-card-stats">
+        <div class="history-stat">⏱️ <strong>${durationText}</strong></div>
+        <div class="history-stat">💪 <strong>${log.exercises.length} תרגילים</strong> (${totalSets} סטים)</div>
+        <div class="history-stat">📊 נפח: <strong>${totalVolume.toLocaleString()} ק״ג</strong></div>
+      </div>
+    `;
+    
+    // Card clicking opens Edit Modal
+    card.addEventListener('click', () => {
+      openEditModal(log.id);
+    });
+    
+    listContainer.appendChild(card);
+  });
+}
+
+// Workout History Editor Modal system
+const editModal = document.getElementById('workout-edit-modal');
+const closeEditModalBtn = document.getElementById('close-edit-modal-btn');
+const saveEditedWorkoutBtn = document.getElementById('save-edited-workout-btn');
+const deleteWorkoutBtn = document.getElementById('delete-workout-btn');
+
+if (closeEditModalBtn && editModal) {
+  closeEditModalBtn.addEventListener('click', () => {
+    editModal.classList.add('hide');
+    editingWorkout = null;
+  });
+}
+
+function openEditModal(workoutId) {
+  const original = workoutHistory.find(w => w.id === workoutId);
+  if (!original || !editModal) return;
+  
+  // Clone the workout object so modifications are staged
+  editingWorkout = JSON.parse(JSON.stringify(original));
+  
+  // Load Meta Info
+  const metaContainer = document.getElementById('modal-workout-meta');
+  if (metaContainer) {
+    const dateObj = new Date(editingWorkout.date);
+    const dateText = dateObj.toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric', year: 'numeric' });
+    
+    let durationText = '';
+    if (editingWorkout.duration < 60) {
+      durationText = 'פחות מדקה';
+    } else if (editingWorkout.duration < 3600) {
+      durationText = `${Math.floor(editingWorkout.duration / 60)} דקות`;
+    } else {
+      const hrs = Math.floor(editingWorkout.duration / 3600);
+      const mins = Math.floor((editingWorkout.duration % 3600) / 60);
+      durationText = `${hrs} שעות ו-${mins} דק׳`;
+    }
+    
+    metaContainer.innerHTML = `
+      <div>📍 <strong>${editingWorkout.location === 'gym' ? 'חדר כושר' : 'פארק'}</strong></div>
+      <div>⏱️ משך: <strong>${durationText}</strong></div>
+      <div>📅 תאריך: <strong>${dateText}</strong></div>
+    `;
+  }
+  
+  renderModalExercises();
+  
+  // Display Modal Panel
+  editModal.classList.remove('hide');
+}
+
+function renderModalExercises() {
+  const container = document.getElementById('modal-exercises-container');
+  if (!container || !editingWorkout) return;
+  
+  container.innerHTML = '';
+  
+  editingWorkout.exercises.forEach((ex, exIdx) => {
+    const card = document.createElement('div');
+    card.className = 'exercise-card';
+    card.style.background = 'rgba(255, 255, 255, 0.03)';
+    
+    // Header
+    const header = document.createElement('div');
+    header.className = 'exercise-card-header';
+    
+    const titleContainer = document.createElement('div');
+    titleContainer.className = 'exercise-title-container';
+    
+    const removeExBtn = document.createElement('button');
+    removeExBtn.className = 'remove-exercise-btn';
+    removeExBtn.innerHTML = '🗑️';
+    removeExBtn.addEventListener('click', () => {
+      editingWorkout.exercises.splice(exIdx, 1);
+      renderModalExercises();
+    });
+    titleContainer.appendChild(removeExBtn);
+    
+    const nameInput = document.createElement('input');
+    nameInput.type = 'text';
+    nameInput.className = 'exercise-name-input';
+    nameInput.placeholder = 'שם התרגיל';
+    nameInput.value = ex.name;
+    nameInput.addEventListener('input', (e) => {
+      ex.name = e.target.value;
+    });
+    titleContainer.appendChild(nameInput);
+    header.appendChild(titleContainer);
+    
+    card.appendChild(header);
+    
+    // Sets list (LTR layout)
+    const setsArea = document.createElement('div');
+    setsArea.className = 'sets-area';
+    
+    const setsHeader = document.createElement('div');
+    setsHeader.className = 'sets-header-row';
+    setsHeader.innerHTML = `
+      <div>מחק</div>
+      <div>משקל</div>
+      <div>חזרות</div>
+      <div>סט</div>
+    `;
+    setsArea.appendChild(setsHeader);
+    
+    ex.sets.forEach((set, setIdx) => {
+      const setRow = document.createElement('div');
+      setRow.className = 'set-row completed'; // All saved/edited sets are fully unlocked in edit mode
+      
+      // Remove Set
+      const removeSetBtn = document.createElement('button');
+      removeSetBtn.className = 'remove-set-btn';
+      removeSetBtn.innerHTML = '✕';
+      removeSetBtn.addEventListener('click', () => {
+        if (ex.sets.length > 1) {
+          ex.sets.splice(setIdx, 1);
+          renderModalExercises();
+        } else {
+          alert('תרגיל חייב להכיל לפחות סט אחד.');
+        }
+      });
+      setRow.appendChild(removeSetBtn);
+      
+      // Weight
+      const weightWrapper = document.createElement('div');
+      weightWrapper.className = 'set-input-wrapper';
+      const weightInput = document.createElement('input');
+      weightInput.type = 'number';
+      weightInput.className = 'set-input';
+      weightInput.value = set.weight;
+      weightInput.addEventListener('input', (e) => {
+        set.weight = e.target.value;
+      });
+      weightWrapper.appendChild(weightInput);
+      setRow.appendChild(weightWrapper);
+      
+      // Reps
+      const repsWrapper = document.createElement('div');
+      repsWrapper.className = 'set-input-wrapper';
+      const repsInput = document.createElement('input');
+      repsInput.type = 'number';
+      repsInput.className = 'set-input';
+      repsInput.value = set.reps;
+      repsInput.addEventListener('input', (e) => {
+        set.reps = e.target.value;
+      });
+      repsWrapper.appendChild(repsInput);
+      setRow.appendChild(repsWrapper);
+      
+      // Set label
+      const setLabelWrapper = document.createElement('div');
+      setLabelWrapper.className = 'set-input-wrapper';
+      const setLabel = document.createElement('span');
+      setLabel.className = 'set-number-label';
+      setLabel.textContent = String(setIdx + 1);
+      setLabelWrapper.appendChild(setLabel);
+      setRow.appendChild(setLabelWrapper);
+      
+      setsArea.appendChild(setRow);
+    });
+    
+    // Add Set button in modal
+    const addSetBtn = document.createElement('button');
+    addSetBtn.className = 'add-set-btn';
+    addSetBtn.textContent = '➕ הוסף סט';
+    addSetBtn.addEventListener('click', () => {
+      ex.sets.push({ reps: '', weight: '', completed: true });
+      renderModalExercises();
+    });
+    setsArea.appendChild(addSetBtn);
+    
+    card.appendChild(setsArea);
+    container.appendChild(card);
+  });
+  
+  // Add Exercise button inside edit modal
+  const addExBtn = document.createElement('button');
+  addExBtn.className = 'btn btn-secondary';
+  addExBtn.style.width = '100%';
+  addExBtn.style.marginTop = '10px';
+  addExBtn.textContent = '➕ הוסף תרגיל חדש';
+  addExBtn.addEventListener('click', () => {
+    editingWorkout.exercises.push({
+      id: Date.now(),
+      name: '',
+      completed: true,
+      sets: [{ reps: '', weight: '', completed: true }]
+    });
+    renderModalExercises();
+  });
+  container.appendChild(addExBtn);
+}
+
+// Save Edited Workout
+if (saveEditedWorkoutBtn) {
+  saveEditedWorkoutBtn.addEventListener('click', () => {
+    if (!editingWorkout || !currentUser) return;
+    
+    // Validations
+    if (editingWorkout.exercises.length === 0) {
+      if (confirm('לא נותרו תרגילים באימון זה. האם ברצונך למחוק אותו לגמרי מההיסטוריה?')) {
+        deleteWorkoutFromHistory(editingWorkout.id);
+      }
+      return;
+    }
+    
+    for (let i = 0; i < editingWorkout.exercises.length; i++) {
+      const ex = editingWorkout.exercises[i];
+      if (!ex.name.trim()) {
+        alert('אנא ודא שלכל התרגילים יש שם.');
+        return;
+      }
+      
+      // Filter out completely empty sets in edit mode for user convenience, or validate
+      ex.sets = ex.sets.filter(s => {
+        const hasReps = s.reps !== null && String(s.reps).trim() !== '' && Number(s.reps) > 0;
+        const hasWeight = s.weight !== null && String(s.weight).trim() !== '' && Number(s.weight) >= 0;
+        return hasReps || hasWeight;
+      });
+      
+      if (ex.sets.length === 0) {
+        alert(`התרגיל "${ex.name}" חייב להכיל לפחות סט אחד בעל ערכים תקינים.`);
+        return;
+      }
+      
+      // Mark all sets completed inside this edited workout log
+      ex.sets.forEach(s => s.completed = true);
+      ex.completed = true;
+    }
+    
+    // Update main history array
+    const originalIdx = workoutHistory.findIndex(w => w.id === editingWorkout.id);
+    if (originalIdx !== -1) {
+      workoutHistory[originalIdx] = editingWorkout;
+      SafeStorage.setItem(`aura-workout-history_${currentUser.uid}`, JSON.stringify(workoutHistory));
+      
+      // UI refresh
+      renderWorkoutHistory();
+      
+      // Close modal
+      editModal.classList.add('hide');
+      editingWorkout = null;
+    }
+  });
+}
+
+// Delete Workout from History
+if (deleteWorkoutBtn) {
+  deleteWorkoutBtn.addEventListener('click', () => {
+    if (!editingWorkout) return;
+    
+    if (confirm('האם אתה בטוח שברצונך למחוק את האימון הזה לצמיתות מההיסטוריה? פעולה זו אינה ניתנת לביטול.')) {
+      deleteWorkoutFromHistory(editingWorkout.id);
+    }
+  });
+}
+
+function deleteWorkoutFromHistory(workoutId) {
+  if (!currentUser) return;
+  
+  workoutHistory = workoutHistory.filter(w => w.id !== workoutId);
+  SafeStorage.setItem(`aura-workout-history_${currentUser.uid}`, JSON.stringify(workoutHistory));
+  
+  renderWorkoutHistory();
+  
+  if (editModal) editModal.classList.add('hide');
+  editingWorkout = null;
+}
+
 
 
