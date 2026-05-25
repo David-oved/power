@@ -1433,24 +1433,46 @@ function renderExercisePickerList() {
   
   if (fullList.length === 0) {
     const noResults = document.createElement('div');
-    noResults.style.gridColumn = '1 / -1';
-    noResults.style.textAlign = 'center';
-    noResults.style.padding = '20px';
-    noResults.style.color = 'var(--text-muted)';
-    noResults.style.fontSize = '0.9rem';
+    noResults.className = 'exercise-picker-empty';
     noResults.textContent = 'לא נמצאו תרגילים מתאימים';
     container.appendChild(noResults);
     return;
   }
   
+  // Category color map for badges
+  const categoryColors = {
+    'חזה':      { bg: 'rgba(239,68,68,0.15)',   color: '#f87171' },
+    'גב':       { bg: 'rgba(59,130,246,0.15)',  color: '#60a5fa' },
+    'כתפיים':    { bg: 'rgba(168,85,247,0.15)',  color: '#c084fc' },
+    'רגליים':    { bg: 'rgba(34,197,94,0.15)',   color: '#4ade80' },
+    'ידיים':    { bg: 'rgba(251,146,60,0.15)',  color: '#fb923c' },
+    'בטן':      { bg: 'rgba(234,179,8,0.15)',   color: '#facc15' },
+    'אירובי':    { bg: 'rgba(20,184,166,0.15)',  color: '#2dd4bf' },
+    'ליבה':      { bg: 'rgba(100,116,139,0.15)', color: '#94a3b8' },
+    'מתח':      { bg: 'rgba(100,116,139,0.15)', color: '#94a3b8' },
+    'דחיפה':    { bg: 'rgba(239,68,68,0.15)',   color: '#f87171' },
+    'ליבה ואירובי': { bg: 'rgba(20,184,166,0.15)', color: '#2dd4bf' },
+    'מותאם אישית': { bg: 'rgba(56,189,248,0.15)',  color: '#38bdf8' },
+  };
+  
   fullList.forEach(ex => {
-    const btn = document.createElement('button');
-    btn.className = 'exercise-picker-item-btn';
-    btn.innerHTML = `
-      <div style="font-weight: 700; text-align: right; width: 100%; color: #ffffff;">${ex.name}</div>
-      <div style="font-size: 0.75rem; color: var(--text-muted); text-align: right; margin-top: 4px;">${ex.category || 'תרגיל'}</div>
+    const item = document.createElement('button');
+    item.className = 'exercise-list-item';
+    
+    const catStyle = categoryColors[ex.category] || { bg: 'rgba(255,255,255,0.06)', color: 'var(--text-muted)' };
+    const emoji = ex.emoji ? `<span class="ex-list-emoji">${ex.emoji}</span>` : '';
+    
+    item.innerHTML = `
+      <div class="ex-list-info">
+        ${emoji}
+        <span class="ex-list-name">${ex.name}</span>
+      </div>
+      <div class="ex-list-right">
+        <span class="ex-category-badge" style="background: ${catStyle.bg}; color: ${catStyle.color};">${ex.category || 'תרגיל'}</span>
+        <span class="ex-list-arrow">←</span>
+      </div>
     `;
-    btn.addEventListener('click', () => {
+    item.addEventListener('click', () => {
       selectedExerciseForAdding = ex.name;
       
       // Hide exercise picker
@@ -1461,7 +1483,7 @@ function renderExercisePickerList() {
       const metricModal = document.getElementById('metric-selector-modal');
       if (metricModal) metricModal.classList.remove('hide');
     });
-    container.appendChild(btn);
+    container.appendChild(item);
   });
 }
 
@@ -1554,21 +1576,99 @@ onDOMReady(() => {
     });
   }
 
-  // Create Custom Exercise inside Exercise Picker Modal
-  const addCustomExBtn = document.getElementById('add-custom-exercise-btn');
-  if (addCustomExBtn) {
-    addCustomExBtn.addEventListener('click', () => {
-      const input = document.getElementById('custom-exercise-name-input');
-      if (!input || input.value.trim() === '') {
+  // Open Custom Exercise Modal button (new flow)
+  const openCustomExModalBtn = document.getElementById('open-custom-exercise-modal-btn');
+  if (openCustomExModalBtn) {
+    openCustomExModalBtn.addEventListener('click', () => {
+      const customExModal = document.getElementById('custom-exercise-modal');
+      if (customExModal) {
+        // Reset form state
+        const nameInput = document.getElementById('new-custom-exercise-name-input');
+        if (nameInput) nameInput.value = '';
+        
+        // Reset category pills to default
+        document.querySelectorAll('#custom-ex-category-selector .category-pill-btn').forEach(btn => {
+          btn.classList.remove('active');
+          if (btn.dataset.category === 'מותאם אישית') btn.classList.add('active');
+        });
+        
+        // Reset emoji to none
+        document.querySelectorAll('#custom-ex-emoji-selector .emoji-pick-btn').forEach(btn => {
+          btn.classList.remove('active');
+          if (btn.dataset.emoji === '') btn.classList.add('active');
+        });
+        
+        customExModal.classList.remove('hide');
+        setTimeout(() => { if (nameInput) nameInput.focus(); }, 100);
+      }
+    });
+  }
+
+  // Category pill single-select in custom exercise modal
+  const categoryPillContainer = document.getElementById('custom-ex-category-selector');
+  if (categoryPillContainer) {
+    categoryPillContainer.addEventListener('click', (e) => {
+      const pill = e.target.closest('.category-pill-btn');
+      if (!pill) return;
+      categoryPillContainer.querySelectorAll('.category-pill-btn').forEach(b => b.classList.remove('active'));
+      pill.classList.add('active');
+    });
+  }
+
+  // Emoji single-select in custom exercise modal
+  const emojiSelectorContainer = document.getElementById('custom-ex-emoji-selector');
+  if (emojiSelectorContainer) {
+    emojiSelectorContainer.addEventListener('click', (e) => {
+      const emojiBtn = e.target.closest('.emoji-pick-btn');
+      if (!emojiBtn) return;
+      emojiSelectorContainer.querySelectorAll('.emoji-pick-btn').forEach(b => b.classList.remove('active'));
+      emojiBtn.classList.add('active');
+    });
+  }
+
+  // Close Custom Exercise Modal
+  const closeCustomExModalBtn = document.getElementById('close-custom-exercise-modal-btn');
+  if (closeCustomExModalBtn) {
+    closeCustomExModalBtn.addEventListener('click', () => {
+      const customExModal = document.getElementById('custom-exercise-modal');
+      if (customExModal) customExModal.classList.add('hide');
+    });
+  }
+
+  // Backdrop click to close custom exercise modal
+  const customExModal = document.getElementById('custom-exercise-modal');
+  if (customExModal) {
+    customExModal.addEventListener('click', (e) => {
+      if (e.target === customExModal) customExModal.classList.add('hide');
+    });
+  }
+
+  // Save Custom Exercise from new modal
+  const saveCustomExBtn = document.getElementById('save-custom-exercise-btn');
+  if (saveCustomExBtn) {
+    saveCustomExBtn.addEventListener('click', () => {
+      const nameInput = document.getElementById('new-custom-exercise-name-input');
+      if (!nameInput || nameInput.value.trim() === '') {
         alert('אנא הזן שם לתרגיל המותאם אישית.');
+        if (nameInput) nameInput.focus();
         return;
       }
       
-      const exName = input.value.trim();
+      const exName = nameInput.value.trim();
+      
+      // Get selected category
+      const activeCatPill = document.querySelector('#custom-ex-category-selector .category-pill-btn.active');
+      const selectedCategory = activeCatPill ? activeCatPill.dataset.category : 'מותאם אישית';
+      
+      // Get selected emoji
+      const activeEmojiBtn = document.querySelector('#custom-ex-emoji-selector .emoji-pick-btn.active');
+      const selectedEmoji = activeEmojiBtn ? activeEmojiBtn.dataset.emoji : '';
+      
       const newEx = {
         name: exName,
-        category: 'מותאם אישית',
-        locationType: activeWorkout ? activeWorkout.location : 'custom'
+        category: selectedCategory,
+        locationType: activeWorkout ? activeWorkout.location : 'custom',
+        emoji: selectedEmoji || ''
       };
       
       customExercises.push(newEx);
@@ -1576,7 +1676,9 @@ onDOMReady(() => {
         SafeStorage.setItem(`aura-custom-exercises_${currentUser.uid}`, JSON.stringify(customExercises));
       }
       
-      input.value = '';
+      // Close custom exercise modal
+      const customExModal = document.getElementById('custom-exercise-modal');
+      if (customExModal) customExModal.classList.add('hide');
       
       // Auto-select and trigger metrics choice
       selectedExerciseForAdding = exName;
@@ -1587,11 +1689,19 @@ onDOMReady(() => {
       const metricModal = document.getElementById('metric-selector-modal');
       if (metricModal) metricModal.classList.remove('hide');
       
+      // Re-render the list in background
       renderExercisePickerList();
     });
   }
 
-  // Bind Metric Selector Tiles click
+  // Legacy add-custom-exercise-btn (gracefully inactive since we removed the inline creator)
+  // Kept as a no-op stub to avoid errors if anything references it externally
+  const legacyAddCustomExBtn = document.getElementById('add-custom-exercise-btn');
+  if (legacyAddCustomExBtn) {
+    legacyAddCustomExBtn.style.display = 'none'; // Hidden fallback
+  }
+
+  // Bind Metric Selector Tiles click — now opens rest-config modal FIRST
   document.querySelectorAll('.metric-tile').forEach(tile => {
     tile.addEventListener('click', () => {
       const metricType = tile.getAttribute('data-metric');
@@ -1603,25 +1713,18 @@ onDOMReady(() => {
         return;
       }
       
-      if (activeWorkout) {
-        activeWorkout.exercises.push({
-          name: selectedExerciseForAdding,
-          metricType: metricType,
-          completed: false,
-          sets: [
-            { reps: '', weight: '', completed: false }
-          ]
-        });
-        saveActiveWorkoutState();
-        renderExercises();
-        
-        const metricModal = document.getElementById('metric-selector-modal');
-        if (metricModal) metricModal.classList.add('hide');
-        selectedExerciseForAdding = null;
-        console.log("Successfully added exercise with metric configuration.");
-      } else {
+      if (!activeWorkout) {
         console.error("No active workout session found.");
+        return;
       }
+      
+      // Store pending metricType; hide metric modal and open rest-config modal
+      pendingMetricType = metricType;
+      const metricModal = document.getElementById('metric-selector-modal');
+      if (metricModal) metricModal.classList.add('hide');
+      
+      // Open rest config modal
+      openRestConfigModal();
     });
   });
 });
@@ -1747,21 +1850,17 @@ function renderExercises() {
       actionBtn.className = 'btn save-exercise-btn';
       actionBtn.textContent = 'סיום תרגיל ✓';
       actionBtn.addEventListener('click', () => {
-        // Validate at least one set is completed
         const hasCompletedSets = ex.sets.some(s => s.completed);
         if (!hasCompletedSets) {
           alert('אנא השלם לפחות סט אחד.');
           return;
         }
-        
         ex.completed = true;
-        // Clean out any trailing incomplete sets on save for user convenience
         ex.sets = ex.sets.filter(s => s.completed);
         saveActiveWorkoutState();
         renderExercises();
       });
     }
-    
     header.appendChild(actionBtn);
     card.appendChild(header);
     
@@ -1769,122 +1868,63 @@ function renderExercises() {
     const setsArea = document.createElement('div');
     setsArea.className = 'sets-area';
     
-    // Sets Header Row
-    const setsHeader = document.createElement('div');
-    const colsClass = metricType === 'both' ? 'grid-4-cols' : 'grid-3-cols';
-    setsHeader.className = `sets-header-row ${colsClass}`;
+    // ---- NEW BEHAVIOR: compact completed sets + enter-set button ----
     
-    let headerHTML = '';
-    if (metricType === 'both') {
-      headerHTML = `
-        <div>מחק</div>
-        <div>משקל (ק״ג)</div>
-        <div>חזרות</div>
-        <div>סט</div>
-      `;
-    } else if (metricType === 'reps') {
-      headerHTML = `
-        <div>מחק</div>
-        <div>חזרות</div>
-        <div>סט</div>
-      `;
-    } else if (metricType === 'weight') {
-      headerHTML = `
-        <div>מחק</div>
-        <div>משקל (ק״ג)</div>
-        <div>סט</div>
-      `;
-    }
-    setsHeader.innerHTML = headerHTML;
-    setsArea.appendChild(setsHeader);
-    
-    // Filter/slice sets: show completed sets plus EXACTLY ONE active incomplete set if exercise not completed
-    let visibleSets = [];
-    if (ex.completed) {
-      visibleSets = [...ex.sets];
-    } else {
-      const firstIncompleteIdx = ex.sets.findIndex(s => !s.completed);
-      if (firstIncompleteIdx === -1) {
-        visibleSets = [...ex.sets];
-      } else {
-        visibleSets = ex.sets.slice(0, firstIncompleteIdx + 1);
-      }
-    }
-    
-    visibleSets.forEach((set) => {
-      const realSetIdx = ex.sets.indexOf(set);
-      const setRow = document.createElement('div');
-      setRow.className = `set-row ${colsClass} ${set.completed ? 'completed' : ''}`;
-      
-      // Remove Set Button
-      const removeSetBtn = document.createElement('button');
-      removeSetBtn.className = 'remove-set-btn';
-      removeSetBtn.innerHTML = '✕';
-      removeSetBtn.disabled = ex.completed || set.completed; // lock completed sets
-      removeSetBtn.addEventListener('click', () => {
-        if (ex.sets.length > 1) {
-          ex.sets.splice(realSetIdx, 1);
-          saveActiveWorkoutState();
-          renderExercises();
+    // Show all completed sets as compact read-only rows
+    const completedSets = ex.sets.filter(s => s.completed);
+    if (completedSets.length > 0) {
+      const compactList = document.createElement('div');
+      compactList.className = 'compact-sets-list';
+      completedSets.forEach((set, idx) => {
+        const row = document.createElement('div');
+        row.className = 'compact-set-row';
+        let valueStr = '';
+        if (metricType === 'both') {
+          valueStr = `${set.weight || 0} ק״ג × ${set.reps || 0} חזרות`;
+        } else if (metricType === 'weight') {
+          valueStr = `${set.weight || 0} ק״ג`;
         } else {
-          alert('תרגיל חייב להכיל לפחות סט אחד.');
+          valueStr = `${set.reps || 0} חזרות`;
         }
+        const realIdx = ex.sets.indexOf(set);
+        row.innerHTML = `
+          <span class="compact-set-values">${valueStr}</span>
+          <span class="compact-set-num">סט ${realIdx + 1}</span>
+        `;
+        // Click on completed set to undo it (toggle off)
+        if (!ex.completed) {
+          row.style.cursor = 'pointer';
+          row.title = 'לחץ לביטול הסט';
+          row.addEventListener('click', () => {
+            set.completed = false;
+            set.reps = set.reps || '';
+            set.weight = set.weight || '';
+            saveActiveWorkoutState();
+            renderExercises();
+          });
+        }
+        compactList.appendChild(row);
       });
-      setRow.appendChild(removeSetBtn);
+      setsArea.appendChild(compactList);
+    }
+    
+    // If exercise not yet completed, show the "enter set data" button for the next active set
+    if (!ex.completed) {
+      const nextIncompleteIdx = ex.sets.findIndex(s => !s.completed);
+      const activeSetIdx = nextIncompleteIdx !== -1 ? nextIncompleteIdx : ex.sets.length;
       
-      // Weight Input (shown if both or weight)
-      let weightInput = null;
-      if (metricType === 'both' || metricType === 'weight') {
-        const weightWrapper = document.createElement('div');
-        weightWrapper.className = 'set-input-wrapper';
-        weightInput = document.createElement('input');
-        weightInput.type = 'number';
-        weightInput.className = 'set-input';
-        weightInput.placeholder = '-';
-        weightInput.value = set.weight;
-        weightInput.disabled = ex.completed || set.completed;
-        weightInput.addEventListener('input', (e) => {
-          set.weight = e.target.value;
-          saveActiveWorkoutState();
-        });
-        weightWrapper.appendChild(weightInput);
-        setRow.appendChild(weightWrapper);
-      }
-      
-      // Reps Input (shown if both or reps)
-      let repsInput = null;
-      if (metricType === 'both' || metricType === 'reps') {
-        const repsWrapper = document.createElement('div');
-        repsWrapper.className = 'set-input-wrapper';
-        repsInput = document.createElement('input');
-        repsInput.type = 'number';
-        repsInput.className = 'set-input';
-        repsInput.placeholder = '-';
-        repsInput.value = set.reps;
-        repsInput.disabled = ex.completed || set.completed;
-        repsInput.addEventListener('input', (e) => {
-          set.reps = e.target.value;
-          saveActiveWorkoutState();
-        });
-        repsWrapper.appendChild(repsInput);
-        setRow.appendChild(repsWrapper);
-      }
-      
-      // Set Checkmark Button (Status toggle)
-      const checkWrapper = document.createElement('div');
-      checkWrapper.className = 'set-input-wrapper';
-      const checkBtn = document.createElement('button');
-      checkBtn.className = `set-checkmark-btn ${set.completed ? 'completed' : ''}`;
-      checkBtn.textContent = set.completed ? '✓' : String(realSetIdx + 1);
-      checkBtn.disabled = ex.completed;
-      
-      checkBtn.addEventListener('click', () => {
-        if (set.completed) {
-          // Toggle off
-          set.completed = false;
-          saveActiveWorkoutState();
-          renderExercises();
-        } else {
+      const enterSetBtn = document.createElement('button');
+      enterSetBtn.className = 'enter-set-data-btn';
+      enterSetBtn.textContent = `▶ הזן נתוני סט ${activeSetIdx + 1}`;
+      enterSetBtn.addEventListener('click', () => {
+        openSetEntryModal(ex, activeSetIdx, exIdx);
+      });
+      setsArea.appendChild(enterSetBtn);
+    }
+    
+    card.appendChild(setsArea);
+    container.appendChild(card);
+  });
           // Validate according to metric configuration
           let hasReps = true;
           let hasWeight = true;
