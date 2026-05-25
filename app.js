@@ -996,10 +996,72 @@ if (backToSettingsBtn && settingsMainView && settingsAccountView) {
 // ==========================================================================
 // 18. CYBER WORKOUT STATE MACHINE & HISTORY MANAGER
 // ==========================================================================
+const GYM_EXERCISES = [
+  { name: 'לחיצת חזה עם מוט', category: 'חזה' },
+  { name: 'לחיצת חזה בשיפוע חיובי', category: 'חזה' },
+  { name: 'פרפר בכבלים', category: 'חזה' },
+  { name: 'לחיצת חזה במכונה', category: 'חזה' },
+  { name: 'דדליפט', category: 'גב' },
+  { name: 'משיכת פולי עליון', category: 'גב' },
+  { name: 'חתירה בכבלים', category: 'גב' },
+  { name: 'מתח', category: 'גב' },
+  { name: 'חתירה עם משקולת יד', category: 'גב' },
+  { name: 'לחיצת כתפיים עם משקולות', category: 'כתפיים' },
+  { name: 'הרחקת זרועות לצדדים', category: 'כתפיים' },
+  { name: 'הרמת ידיים לפנים', category: 'כתפיים' },
+  { name: 'פרפר אחורי במכונה', category: 'כתפיים' },
+  { name: 'פייס פולס', category: 'כתפיים' },
+  { name: 'משיכת כתפיים (Shrugs)', category: 'כתפיים' },
+  { name: 'סקוואט עם מוט', category: 'רגליים' },
+  { name: 'לחיצת רגליים במכונה', category: 'רגליים' },
+  { name: 'פשיטת ברכיים', category: 'רגליים' },
+  { name: 'כפיפת ברכיים', category: 'רגליים' },
+  { name: 'דדליפט רומני', category: 'רגליים' },
+  { name: 'הרמת עקבים (Calves)', category: 'רגליים' },
+  { name: 'כפיפת מרפקים עם מוט', category: 'ידיים' },
+  { name: 'כפיפת מרפקים פטישים', category: 'ידיים' },
+  { name: 'כפיפת מרפקים בכור כומר', category: 'ידיים' },
+  { name: 'פשיטת מרפקים בפולי', category: 'ידיים' },
+  { name: 'פשיטת מרפקים מעל הראש', category: 'ידיים' },
+  { name: 'כפיפות בטן', category: 'בטן' },
+  { name: 'פלאנק', category: 'בטן' },
+  { name: 'הרמת רגליים בתלייה', category: 'בטן' },
+  { name: 'ריצה על הליכון', category: 'אירובי' }
+];
+
+const PARK_EXERCISES = [
+  { name: 'מתח רגיל', category: 'מתח' },
+  { name: 'מתח באחיזה הפוכה (Chin-ups)', category: 'מתח' },
+  { name: 'מאסל-אפ (Muscle-ups)', category: 'מתח' },
+  { name: 'חתירה אוסטרלית', category: 'מתח' },
+  { name: 'מקבילים (Dips)', category: 'דחיפה' },
+  { name: 'שכיבות שמיכה', category: 'דחיפה' },
+  { name: 'שכיבות שמיכה יהלום', category: 'דחיפה' },
+  { name: 'שכיבות שמיכה בשיפוע שלילי', category: 'דחיפה' },
+  { name: 'שכיבות שמיכה פייק', category: 'דחיפה' },
+  { name: 'מקבילים אחוריים על ספסל', category: 'דחיפה' },
+  { name: 'פיסטול סקוואט', category: 'רגליים' },
+  { name: 'סקוואט משקל גוף', category: 'רגליים' },
+  { name: 'לאנג׳ים', category: 'רגליים' },
+  { name: 'עליות מדרגה', category: 'רגליים' },
+  { name: 'הרמת עקבים', category: 'רגליים' },
+  { name: 'פלאנק', category: 'ליבה ואירובי' },
+  { name: 'הרמת רגליים על ספסל', category: 'ליבה ואירובי' },
+  { name: 'ברפיז (Burpees)', category: 'ליבה ואירובי' },
+  { name: 'אל-סיט (L-Sit)', category: 'ליבה ואירובי' },
+  { name: 'מטפס הרים', category: 'ליבה ואירובי' }
+];
+
 let activeWorkout = null;
 let activeTimerInterval = null;
 let workoutHistory = [];
 let editingWorkout = null;
+
+// Custom Locations & Exercises State
+let customLocations = [];
+let customExercises = [];
+let selectedExerciseForAdding = null;
+let currentActiveCategoryFilter = 'הכל';
 
 // Rest Timer State Variables
 let restTimerInterval = null;
@@ -1023,8 +1085,37 @@ function initWorkouts() {
     workoutHistory = [];
   }
   
+  // Load Custom Locations
+  const locsData = SafeStorage.getItem(`aura-custom-locations_${currentUser.uid}`);
+  if (locsData) {
+    try {
+      customLocations = JSON.parse(locsData);
+    } catch (e) {
+      console.error("Failed to parse custom locations:", e);
+      customLocations = [];
+    }
+  } else {
+    customLocations = [];
+  }
+  
+  // Load Custom Exercises
+  const exsData = SafeStorage.getItem(`aura-custom-exercises_${currentUser.uid}`);
+  if (exsData) {
+    try {
+      customExercises = JSON.parse(exsData);
+    } catch (e) {
+      console.error("Failed to parse custom exercises:", e);
+      customExercises = [];
+    }
+  } else {
+    customExercises = [];
+  }
+  
   // Render Tab 3 History Logs
   renderWorkoutHistory();
+  
+  // Render location grid dynamically
+  renderLocationSelectorGrid();
   
   // Restore Active Workout if any (anti-data loss on reload)
   const activeData = SafeStorage.getItem(`aura-active-workout_${currentUser.uid}`);
@@ -1093,28 +1184,80 @@ if (cancelLocationBtn && startWorkoutBtn && locationGrid) {
   });
 }
 
-// Select Gym / Park
-const selectGymBtn = document.getElementById('select-gym-btn');
-const selectParkBtn = document.getElementById('select-park-btn');
+// Dynamic Location Selector Grid Render
+function renderLocationSelectorGrid() {
+  const container = document.getElementById('location-tiles-container');
+  if (!container) return;
+  container.innerHTML = '';
+  
+  // Default Gym Tile
+  const gymTile = document.createElement('button');
+  gymTile.className = 'location-tile';
+  gymTile.innerHTML = `
+    <span class="tile-icon">🏋️‍♂️</span>
+    <span class="tile-label">חדר כושר</span>
+  `;
+  gymTile.addEventListener('click', () => startNewWorkout('gym'));
+  container.appendChild(gymTile);
 
-if (selectGymBtn) {
-  selectGymBtn.addEventListener('click', () => {
-    startNewWorkout('gym');
+  // Default Park Tile
+  const parkTile = document.createElement('button');
+  parkTile.className = 'location-tile';
+  parkTile.innerHTML = `
+    <span class="tile-icon">🌳</span>
+    <span class="tile-label">פארק</span>
+  `;
+  parkTile.addEventListener('click', () => startNewWorkout('park'));
+  container.appendChild(parkTile);
+
+  // Render Custom Locations
+  customLocations.forEach(loc => {
+    const tile = document.createElement('button');
+    tile.className = 'location-tile';
+    tile.innerHTML = `
+      <span class="tile-icon">${loc.emoji || '💪'}</span>
+      <span class="tile-label">${loc.name}</span>
+    `;
+    tile.addEventListener('click', () => startNewWorkout(loc.id, loc.name, loc.emoji));
+    container.appendChild(tile);
   });
+
+  // Add Custom Location Tile
+  const addTile = document.createElement('button');
+  addTile.className = 'location-tile add-custom-location-tile';
+  addTile.innerHTML = `
+    <span class="tile-icon">➕</span>
+    <span class="tile-label">סוג אימון חדש</span>
+  `;
+  addTile.addEventListener('click', () => {
+    const modal = document.getElementById('custom-location-modal');
+    if (modal) modal.classList.remove('hide');
+  });
+  container.appendChild(addTile);
 }
 
-if (selectParkBtn) {
-  selectParkBtn.addEventListener('click', () => {
-    startNewWorkout('park');
-  });
-}
-
-function startNewWorkout(location) {
+function startNewWorkout(location, name = '', emoji = '') {
   if (!currentUser) return;
+  
+  let dispName = 'חדר כושר';
+  let dispEmoji = '🏋️‍♂️';
+  
+  if (location === 'gym') {
+    dispName = 'חדר כושר';
+    dispEmoji = '🏋️‍♂️';
+  } else if (location === 'park') {
+    dispName = 'פארק';
+    dispEmoji = '🌳';
+  } else {
+    dispName = name || 'אימון מותאם';
+    dispEmoji = emoji || '💪';
+  }
   
   activeWorkout = {
     startTime: Date.now(),
     location: location,
+    locationName: dispName,
+    locationEmoji: dispEmoji,
     exercises: []
   };
   
@@ -1137,8 +1280,8 @@ function startNewWorkout(location) {
   // Update Header Badge
   const badgeIcon = document.getElementById('active-location-icon');
   const badgeText = document.getElementById('active-location-text');
-  if (badgeIcon) badgeIcon.textContent = location === 'gym' ? '🏋️‍♂️' : '🌳';
-  if (badgeText) badgeText.textContent = location === 'gym' ? 'חדר כושר' : 'פארק';
+  if (badgeIcon) badgeIcon.textContent = dispEmoji;
+  if (badgeText) badgeText.textContent = dispName;
   
   // Reset Timer UI
   const timerDisplay = document.getElementById('active-timer');
@@ -1164,8 +1307,11 @@ function resumeWorkoutTimer() {
   
   const badgeIcon = document.getElementById('active-location-icon');
   const badgeText = document.getElementById('active-location-text');
-  if (badgeIcon) badgeIcon.textContent = activeWorkout.location === 'gym' ? '🏋️‍♂️' : '🌳';
-  if (badgeText) badgeText.textContent = activeWorkout.location === 'gym' ? 'חדר כושר' : 'פארק';
+  const dispEmoji = activeWorkout.locationEmoji || (activeWorkout.location === 'gym' ? '🏋️‍♂️' : '🌳');
+  const dispName = activeWorkout.locationName || (activeWorkout.location === 'gym' ? 'חדר כושר' : 'פארק');
+  
+  if (badgeIcon) badgeIcon.textContent = dispEmoji;
+  if (badgeText) badgeText.textContent = dispName;
   
   if (activeTimerInterval) clearInterval(activeTimerInterval);
   activeTimerInterval = setInterval(updateActiveTimer, 1000);
@@ -1192,6 +1338,245 @@ function updateActiveTimer() {
   }
 }
 
+// Exercise Picker List and Filters Rendering
+function renderExercisePickerFilters() {
+  const container = document.getElementById('exercise-category-filters');
+  if (!container || !activeWorkout) return;
+  container.innerHTML = '';
+  
+  let categories = ['הכל'];
+  if (activeWorkout.location === 'gym') {
+    categories = ['הכל', 'חזה', 'גב', 'כתפיים', 'רגליים', 'ידיים', 'בטן', 'אירובי'];
+  } else if (activeWorkout.location === 'park') {
+    categories = ['הכל', 'מתח', 'דחיפה', 'רגליים', 'ליבה ואירובי'];
+  } else {
+    categories = ['הכל', 'מותאם אישית'];
+  }
+  
+  categories.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = `category-filter-btn ${currentActiveCategoryFilter === cat ? 'active' : ''}`;
+    btn.textContent = cat;
+    btn.addEventListener('click', () => {
+      currentActiveCategoryFilter = cat;
+      renderExercisePickerFilters();
+      renderExercisePickerList();
+    });
+    container.appendChild(btn);
+  });
+}
+
+function renderExercisePickerList() {
+  const container = document.getElementById('exercise-picker-list');
+  if (!container || !activeWorkout) return;
+  container.innerHTML = '';
+  
+  const searchInput = document.getElementById('exercise-search-input');
+  const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
+  
+  // Get base exercises
+  let baseList = [];
+  if (activeWorkout.location === 'gym') {
+    baseList = [...GYM_EXERCISES];
+  } else if (activeWorkout.location === 'park') {
+    baseList = [...PARK_EXERCISES];
+  } else {
+    baseList = [...GYM_EXERCISES, ...PARK_EXERCISES];
+  }
+  
+  // Add custom user-created exercises
+  const userCustoms = customExercises.filter(ex => {
+    if (activeWorkout.location === 'gym' || activeWorkout.location === 'park') {
+      return ex.locationType === activeWorkout.location;
+    }
+    return true;
+  });
+  
+  let fullList = [...baseList, ...userCustoms];
+  
+  // Remove duplicates by name
+  const seen = new Set();
+  fullList = fullList.filter(ex => {
+    const k = ex.name.trim();
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+  
+  // Filter by category
+  if (currentActiveCategoryFilter !== 'הכל') {
+    fullList = fullList.filter(ex => ex.category === currentActiveCategoryFilter);
+  }
+  
+  // Filter by search query
+  if (query) {
+    fullList = fullList.filter(ex => ex.name.toLowerCase().includes(query));
+  }
+  
+  if (fullList.length === 0) {
+    const noResults = document.createElement('div');
+    noResults.style.gridColumn = '1 / -1';
+    noResults.style.textAlign = 'center';
+    noResults.style.padding = '20px';
+    noResults.style.color = 'var(--text-muted)';
+    noResults.style.fontSize = '0.9rem';
+    noResults.textContent = 'לא נמצאו תרגילים מתאימים';
+    container.appendChild(noResults);
+    return;
+  }
+  
+  fullList.forEach(ex => {
+    const btn = document.createElement('button');
+    btn.className = 'exercise-picker-item-btn';
+    btn.innerHTML = `
+      <div style="font-weight: 700; text-align: right; width: 100%; color: #ffffff;">${ex.name}</div>
+      <div style="font-size: 0.75rem; color: var(--text-muted); text-align: right; margin-top: 4px;">${ex.category || 'תרגיל'}</div>
+    `;
+    btn.addEventListener('click', () => {
+      selectedExerciseForAdding = ex.name;
+      
+      // Hide exercise picker
+      const pickerModal = document.getElementById('exercise-picker-modal');
+      if (pickerModal) pickerModal.classList.add('hide');
+      
+      // Open metric selector modal
+      const metricModal = document.getElementById('metric-selector-modal');
+      if (metricModal) metricModal.classList.remove('hide');
+    });
+    container.appendChild(btn);
+  });
+}
+
+// Bind workout setup events on DOM Ready
+onDOMReady(() => {
+  // Search input filter listener
+  const searchInput = document.getElementById('exercise-search-input');
+  if (searchInput) {
+    searchInput.addEventListener('input', renderExercisePickerList);
+  }
+  
+  // Close exercise picker button
+  const closePickerBtn = document.getElementById('close-exercise-picker-btn');
+  if (closePickerBtn) {
+    closePickerBtn.addEventListener('click', () => {
+      const pickerModal = document.getElementById('exercise-picker-modal');
+      if (pickerModal) pickerModal.classList.add('hide');
+    });
+  }
+
+  // Close Custom Location Modal
+  const closeCustomLocBtn = document.getElementById('close-custom-location-btn');
+  if (closeCustomLocBtn) {
+    closeCustomLocBtn.addEventListener('click', () => {
+      const modal = document.getElementById('custom-location-modal');
+      if (modal) modal.classList.add('hide');
+    });
+  }
+
+  // Close Metric Selector Modal
+  const closeMetricBtn = document.getElementById('close-metric-selector-btn');
+  if (closeMetricBtn) {
+    closeMetricBtn.addEventListener('click', () => {
+      const modal = document.getElementById('metric-selector-modal');
+      if (modal) modal.classList.add('hide');
+      selectedExerciseForAdding = null;
+    });
+  }
+
+  // Save Custom Location
+  const saveCustomLocBtn = document.getElementById('save-custom-location-btn');
+  if (saveCustomLocBtn) {
+    saveCustomLocBtn.addEventListener('click', () => {
+      const nameInput = document.getElementById('custom-location-name-input');
+      const emojiInput = document.getElementById('custom-location-emoji-input');
+      
+      if (!nameInput || nameInput.value.trim() === '') {
+        alert('אנא הזן שם לסוג האימון.');
+        return;
+      }
+      
+      const newLoc = {
+        id: 'custom_' + Date.now(),
+        name: nameInput.value.trim(),
+        emoji: emojiInput ? emojiInput.value.trim() || '💪' : '💪'
+      };
+      
+      customLocations.push(newLoc);
+      if (currentUser) {
+        SafeStorage.setItem(`aura-custom-locations_${currentUser.uid}`, JSON.stringify(customLocations));
+      }
+      
+      nameInput.value = '';
+      if (emojiInput) emojiInput.value = '';
+      
+      const modal = document.getElementById('custom-location-modal');
+      if (modal) modal.classList.add('hide');
+      
+      renderLocationSelectorGrid();
+    });
+  }
+
+  // Create Custom Exercise inside Exercise Picker Modal
+  const addCustomExBtn = document.getElementById('add-custom-exercise-btn');
+  if (addCustomExBtn) {
+    addCustomExBtn.addEventListener('click', () => {
+      const input = document.getElementById('custom-exercise-name-input');
+      if (!input || input.value.trim() === '') {
+        alert('אנא הזן שם לתרגיל המותאם אישית.');
+        return;
+      }
+      
+      const exName = input.value.trim();
+      const newEx = {
+        name: exName,
+        category: 'מותאם אישית',
+        locationType: activeWorkout ? activeWorkout.location : 'custom'
+      };
+      
+      customExercises.push(newEx);
+      if (currentUser) {
+        SafeStorage.setItem(`aura-custom-exercises_${currentUser.uid}`, JSON.stringify(customExercises));
+      }
+      
+      input.value = '';
+      
+      // Auto-select and trigger metrics choice
+      selectedExerciseForAdding = exName;
+      
+      const pickerModal = document.getElementById('exercise-picker-modal');
+      if (pickerModal) pickerModal.classList.add('hide');
+      
+      const metricModal = document.getElementById('metric-selector-modal');
+      if (metricModal) metricModal.classList.remove('hide');
+      
+      renderExercisePickerList();
+    });
+  }
+
+  // Bind Metric Selector Tiles click
+  document.querySelectorAll('.metric-tile').forEach(tile => {
+    tile.addEventListener('click', (e) => {
+      const metricType = e.currentTarget.getAttribute('data-metric');
+      if (selectedExerciseForAdding && activeWorkout) {
+        activeWorkout.exercises.push({
+          name: selectedExerciseForAdding,
+          metricType: metricType,
+          completed: false,
+          sets: [
+            { reps: '', weight: '', completed: false }
+          ]
+        });
+        saveActiveWorkoutState();
+        renderExercises();
+        
+        const metricModal = document.getElementById('metric-selector-modal');
+        if (metricModal) metricModal.classList.add('hide');
+        selectedExerciseForAdding = null;
+      }
+    });
+  });
+});
+
 // Add Exercise Button Listener
 const addExerciseBtn = document.getElementById('add-exercise-btn');
 if (addExerciseBtn) {
@@ -1201,41 +1586,22 @@ if (addExerciseBtn) {
     // Guard: Can't add if there is any active exercise not completed
     const hasActive = activeWorkout.exercises.some(ex => !ex.completed);
     if (hasActive) {
-      alert("לא ניתן להתחיל תרגיל חדש כל עוד לא סיימת את התרגיל הנוכחי. אנא שמור וסיים אותו תחילה.");
+      alert('נא לסיים את התרגיל הנוכחי לפני הוספת תרגיל חדש.');
       return;
     }
     
-    const newEx = {
-      id: Date.now(),
-      name: '',
-      completed: false,
-      sets: [
-        { reps: '', weight: '', completed: false }
-      ]
-    };
-    
-    activeWorkout.exercises.push(newEx);
-    SafeStorage.setItem(`aura-active-workout_${currentUser.uid}`, JSON.stringify(activeWorkout));
-    
-    renderExercises();
-    
-    // Auto scroll down to the new exercise card
-    setTimeout(() => {
-      const container = document.getElementById('exercises-container');
-      if (container) {
-        container.scrollTop = container.scrollHeight;
-      }
-    }, 100);
+    // Open exercise picker modal
+    const pickerModal = document.getElementById('exercise-picker-modal');
+    if (pickerModal) {
+      pickerModal.classList.remove('hide');
+      const searchInput = document.getElementById('exercise-search-input');
+      if (searchInput) searchInput.value = '';
+      currentActiveCategoryFilter = 'הכל';
+      renderExercisePickerFilters();
+      renderExercisePickerList();
+    }
   });
-}
-
-function saveActiveWorkoutState() {
-  if (currentUser && activeWorkout) {
-    SafeStorage.setItem(`aura-active-workout_${currentUser.uid}`, JSON.stringify(activeWorkout));
-  }
-}
-
-// Render dynamic Exercises List in Tab 2
+}// Render dynamic Exercises List in Tab 2
 function renderExercises() {
   const container = document.getElementById('exercises-container');
   if (!container || !activeWorkout) return;
@@ -1261,6 +1627,8 @@ function renderExercises() {
     const card = document.createElement('div');
     card.className = `exercise-card ${ex.completed ? 'saved' : ''}`;
     
+    const metricType = ex.metricType || 'both'; // Default compatibility
+    
     // Header Row
     const header = document.createElement('div');
     header.className = 'exercise-card-header';
@@ -1282,18 +1650,30 @@ function renderExercises() {
       titleContainer.appendChild(removeExBtn);
     }
     
-    const nameInput = document.createElement('input');
-    nameInput.type = 'text';
-    nameInput.className = 'exercise-name-input';
-    nameInput.placeholder = 'שם התרגיל (לדוגמה: לחיצת חזה)';
-    nameInput.value = ex.name;
-    nameInput.disabled = ex.completed;
-    nameInput.addEventListener('input', (e) => {
-      ex.name = e.target.value;
-      saveActiveWorkoutState();
-    });
+    const nameLabel = document.createElement('span');
+    nameLabel.className = 'exercise-name-label';
+    nameLabel.style.fontSize = '1.15rem';
+    nameLabel.style.fontWeight = '800';
+    nameLabel.style.color = '#ffffff';
+    nameLabel.textContent = ex.name;
+    titleContainer.appendChild(nameLabel);
     
-    titleContainer.appendChild(nameInput);
+    // Metric Badge
+    let metricLabel = '⚖️ משקל וחזרות';
+    if (metricType === 'reps') metricLabel = '🔢 חזרות בלבד';
+    if (metricType === 'weight') metricLabel = '🏋️‍♂️ משקל בלבד';
+    
+    const metricBadge = document.createElement('span');
+    metricBadge.className = 'badge-mini';
+    metricBadge.style.marginRight = '8px';
+    metricBadge.style.fontSize = '0.75rem';
+    metricBadge.style.background = 'rgba(255,255,255,0.06)';
+    metricBadge.style.color = 'var(--text-muted)';
+    metricBadge.style.padding = '3px 8px';
+    metricBadge.style.borderRadius = '20px';
+    metricBadge.textContent = metricLabel;
+    titleContainer.appendChild(metricBadge);
+    
     header.appendChild(titleContainer);
     
     // Save / Edit exercise button on top corner
@@ -1310,32 +1690,16 @@ function renderExercises() {
       actionBtn.className = 'btn save-exercise-btn';
       actionBtn.textContent = 'סיום תרגיל ✓';
       actionBtn.addEventListener('click', () => {
-        // Validate Exercise Name
-        if (!ex.name.trim()) {
-          alert('אנא הזן את שם התרגיל לפני הסיום.');
-          nameInput.focus();
-          return;
-        }
-        
-        // Auto-complete active sets that have valid inputs but weren't checked
-        ex.sets.forEach(set => {
-          if (!set.completed) {
-            const hasReps = set.reps !== '' && Number(set.reps) > 0;
-            const hasWeight = set.weight !== '' && Number(set.weight) >= 0;
-            if (hasReps || hasWeight) {
-              set.completed = true;
-            }
-          }
-        });
-        
         // Validate at least one set is completed
         const hasCompletedSets = ex.sets.some(s => s.completed);
         if (!hasCompletedSets) {
-          alert('אנא השלם לפחות סט אחד (הזן משקל או חזרות וסמן כבוצע).');
+          alert('אנא השלם לפחות סט אחד.');
           return;
         }
         
         ex.completed = true;
+        // Clean out any trailing incomplete sets on save for user convenience
+        ex.sets = ex.sets.filter(s => s.completed);
         saveActiveWorkoutState();
         renderExercises();
       });
@@ -1348,29 +1712,60 @@ function renderExercises() {
     const setsArea = document.createElement('div');
     setsArea.className = 'sets-area';
     
-    // Sets Header Row (Direction LTR: Set, Weight, Reps, Mark)
+    // Sets Header Row
     const setsHeader = document.createElement('div');
     setsHeader.className = 'sets-header-row';
-    setsHeader.innerHTML = `
-      <div>מחק</div>
-      <div>משקל (ק״ג)</div>
-      <div>חזרות</div>
-      <div>סט</div>
-    `;
+    
+    let headerHTML = '';
+    if (metricType === 'both') {
+      headerHTML = `
+        <div>מחק</div>
+        <div>משקל (ק״ג)</div>
+        <div>חזרות</div>
+        <div>סט</div>
+      `;
+    } else if (metricType === 'reps') {
+      headerHTML = `
+        <div>מחק</div>
+        <div>חזרות</div>
+        <div>סט</div>
+      `;
+    } else if (metricType === 'weight') {
+      headerHTML = `
+        <div>מחק</div>
+        <div>משקל (ק״ג)</div>
+        <div>סט</div>
+      `;
+    }
+    setsHeader.innerHTML = headerHTML;
     setsArea.appendChild(setsHeader);
     
-    ex.sets.forEach((set, setIdx) => {
+    // Filter/slice sets: show completed sets plus EXACTLY ONE active incomplete set if exercise not completed
+    let visibleSets = [];
+    if (ex.completed) {
+      visibleSets = [...ex.sets];
+    } else {
+      const firstIncompleteIdx = ex.sets.findIndex(s => !s.completed);
+      if (firstIncompleteIdx === -1) {
+        visibleSets = [...ex.sets];
+      } else {
+        visibleSets = ex.sets.slice(0, firstIncompleteIdx + 1);
+      }
+    }
+    
+    visibleSets.forEach((set) => {
+      const realSetIdx = ex.sets.indexOf(set);
       const setRow = document.createElement('div');
       setRow.className = `set-row ${set.completed ? 'completed' : ''}`;
       
-      // Remove Set Button (Trash symbol on the left in LTR)
+      // Remove Set Button
       const removeSetBtn = document.createElement('button');
       removeSetBtn.className = 'remove-set-btn';
       removeSetBtn.innerHTML = '✕';
-      removeSetBtn.disabled = ex.completed;
+      removeSetBtn.disabled = ex.completed || set.completed; // lock completed sets
       removeSetBtn.addEventListener('click', () => {
         if (ex.sets.length > 1) {
-          ex.sets.splice(setIdx, 1);
+          ex.sets.splice(realSetIdx, 1);
           saveActiveWorkoutState();
           renderExercises();
         } else {
@@ -1379,45 +1774,52 @@ function renderExercises() {
       });
       setRow.appendChild(removeSetBtn);
       
-      // Weight Input
-      const weightWrapper = document.createElement('div');
-      weightWrapper.className = 'set-input-wrapper';
-      const weightInput = document.createElement('input');
-      weightInput.type = 'number';
-      weightInput.className = 'set-input';
-      weightInput.placeholder = '-';
-      weightInput.value = set.weight;
-      weightInput.disabled = ex.completed || set.completed;
-      weightInput.addEventListener('input', (e) => {
-        set.weight = e.target.value;
-        saveActiveWorkoutState();
-      });
-      weightWrapper.appendChild(weightInput);
-      setRow.appendChild(weightWrapper);
+      // Weight Input (shown if both or weight)
+      let weightInput = null;
+      if (metricType === 'both' || metricType === 'weight') {
+        const weightWrapper = document.createElement('div');
+        weightWrapper.className = 'set-input-wrapper';
+        weightInput = document.createElement('input');
+        weightInput.type = 'number';
+        weightInput.className = 'set-input';
+        weightInput.placeholder = '-';
+        weightInput.value = set.weight;
+        weightInput.disabled = ex.completed || set.completed;
+        weightInput.addEventListener('input', (e) => {
+          set.weight = e.target.value;
+          saveActiveWorkoutState();
+        });
+        weightWrapper.appendChild(weightInput);
+        setRow.appendChild(weightWrapper);
+      }
       
-      // Reps Input
-      const repsWrapper = document.createElement('div');
-      repsWrapper.className = 'set-input-wrapper';
-      const repsInput = document.createElement('input');
-      repsInput.type = 'number';
-      repsInput.className = 'set-input';
-      repsInput.placeholder = '-';
-      repsInput.value = set.reps;
-      repsInput.disabled = ex.completed || set.completed;
-      repsInput.addEventListener('input', (e) => {
-        set.reps = e.target.value;
-        saveActiveWorkoutState();
-      });
-      repsWrapper.appendChild(repsInput);
-      setRow.appendChild(repsWrapper);
+      // Reps Input (shown if both or reps)
+      let repsInput = null;
+      if (metricType === 'both' || metricType === 'reps') {
+        const repsWrapper = document.createElement('div');
+        repsWrapper.className = 'set-input-wrapper';
+        repsInput = document.createElement('input');
+        repsInput.type = 'number';
+        repsInput.className = 'set-input';
+        repsInput.placeholder = '-';
+        repsInput.value = set.reps;
+        repsInput.disabled = ex.completed || set.completed;
+        repsInput.addEventListener('input', (e) => {
+          set.reps = e.target.value;
+          saveActiveWorkoutState();
+        });
+        repsWrapper.appendChild(repsInput);
+        setRow.appendChild(repsWrapper);
+      }
       
       // Set Checkmark Button (Status toggle)
       const checkWrapper = document.createElement('div');
       checkWrapper.className = 'set-input-wrapper';
       const checkBtn = document.createElement('button');
       checkBtn.className = `set-checkmark-btn ${set.completed ? 'completed' : ''}`;
-      checkBtn.textContent = set.completed ? '✓' : String(setIdx + 1);
+      checkBtn.textContent = set.completed ? '✓' : String(realSetIdx + 1);
       checkBtn.disabled = ex.completed;
+      
       checkBtn.addEventListener('click', () => {
         if (set.completed) {
           // Toggle off
@@ -1425,22 +1827,34 @@ function renderExercises() {
           saveActiveWorkoutState();
           renderExercises();
         } else {
-          // Validate: At least reps or weight is filled
-          const hasReps = repsInput.value.trim() !== '' && Number(repsInput.value) > 0;
-          const hasWeight = weightInput.value.trim() !== '' && Number(weightInput.value) >= 0;
+          // Validate according to metric configuration
+          let hasReps = true;
+          let hasWeight = true;
           
-          if (!hasReps && !hasWeight) {
-            alert('אנא מלא לפחות שדה אחד: חזרות או משקל.');
-            repsInput.focus();
+          if (metricType === 'both' || metricType === 'reps') {
+            hasReps = repsInput && repsInput.value.trim() !== '' && Number(repsInput.value) > 0;
+          }
+          if (metricType === 'both' || metricType === 'weight') {
+            hasWeight = weightInput && weightInput.value.trim() !== '' && Number(weightInput.value) >= 0;
+          }
+          
+          if (!hasReps && (metricType === 'both' || metricType === 'reps')) {
+            alert('אנา הזן מספר חזרות תקין.');
+            if (repsInput) repsInput.focus();
+            return;
+          }
+          if (!hasWeight && (metricType === 'both' || metricType === 'weight')) {
+            alert('אנא הזן משקל תקין.');
+            if (weightInput) weightInput.focus();
             return;
           }
           
-          set.reps = repsInput.value;
-          set.weight = weightInput.value;
+          if (repsInput) set.reps = repsInput.value;
+          if (weightInput) set.weight = weightInput.value;
           set.completed = true;
           saveActiveWorkoutState();
           renderExercises();
-
+ 
           // Trigger premium Rest Timer countdown
           if (typeof startRestTimer === 'function') startRestTimer(90);
         }
@@ -1451,22 +1865,24 @@ function renderExercises() {
       setsArea.appendChild(setRow);
     });
     
-    // Add Set Button
+    // Add Set Button - Only show if exercise is not completed AND the last set is completed!
     if (!ex.completed) {
-      const addSetBtn = document.createElement('button');
-      addSetBtn.className = 'add-set-btn';
-      addSetBtn.textContent = '➕ הוסף סט חדש';
-      addSetBtn.addEventListener('click', () => {
-        const lastSet = ex.sets[ex.sets.length - 1];
-        ex.sets.push({
-          reps: lastSet ? lastSet.reps : '',
-          weight: lastSet ? lastSet.weight : '',
-          completed: false
+      const lastSet = ex.sets[ex.sets.length - 1];
+      if (lastSet && lastSet.completed) {
+        const addSetBtn = document.createElement('button');
+        addSetBtn.className = 'add-set-btn';
+        addSetBtn.textContent = '➕ הוסף סט חדש';
+        addSetBtn.addEventListener('click', () => {
+          ex.sets.push({
+            reps: lastSet.reps || '',
+            weight: lastSet.weight || '',
+            completed: false
+          });
+          saveActiveWorkoutState();
+          renderExercises();
         });
-        saveActiveWorkoutState();
-        renderExercises();
-      });
-      setsArea.appendChild(addSetBtn);
+        setsArea.appendChild(addSetBtn);
+      }
     }
     
     card.appendChild(setsArea);
