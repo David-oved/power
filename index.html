@@ -343,15 +343,44 @@
                 <!-- Injected dynamically -->
               </div>
 
-              <!-- Custom Exercise Creator -->
-              <div class="custom-exercise-creator" style="padding: 15px 1.5rem; border-top: 1px solid rgba(255, 255, 255, 0.05); display: flex; flex-direction: column; gap: 10px; background: rgba(0,0,0,0.2);">
-                <div style="display: flex; gap: 10px; width: 100%;">
-                  <input type="text" id="custom-exercise-name-input" placeholder="➕ שם תרגיל מותאם אישית..." style="flex: 1; padding: 10px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; color: #ffffff; text-align: right; direction: rtl;">
-                </div>
-                <div style="display: flex; gap: 10px; width: 100%;">
-                  <input type="text" id="custom-exercise-category-input" placeholder="🏷️ קטגוריה (חזה, גב, מתח, רגליים...)" style="flex: 1; padding: 10px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; color: #ffffff; text-align: right; direction: rtl;">
-                  <button id="add-custom-exercise-btn" class="btn btn-primary" style="padding: 10px 16px; font-size: 0.9rem; font-weight: bold; white-space: nowrap;">הוסף תרגיל</button>
-                </div>
+              <!-- Custom Exercise Trigger Button -->
+              <div class="custom-exercise-trigger-wrapper" style="padding: 15px 1.5rem; border-top: 1px solid rgba(255, 255, 255, 0.05); display: flex; background: rgba(0,0,0,0.2);">
+                <button id="open-custom-exercise-modal-btn" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 0.95rem; font-weight: bold; border-radius: 12px; box-shadow: 0 4px 15px rgba(220, 38, 38, 0.25);">
+                  ➕ יצירת תרגיל מותאם אישית
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Custom Exercise Creation Modal -->
+          <div id="custom-exercise-modal" class="workout-modal-overlay hide" style="z-index: 1350;">
+            <div class="workout-modal-card" style="max-width: 380px; width: 90%;">
+              <div class="modal-header" style="padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+                <button id="close-custom-exercise-modal-btn" class="btn-cancel-link" style="background: none; border: none; font-size: 0.95rem; font-weight: 700; color: var(--text-muted); cursor: pointer;">ביטול</button>
+                <h3 class="modal-title" style="margin: 0; font-size: 1.15rem; font-weight: 800; color: #ffffff;">תרגיל חדש</h3>
+                <span style="width: 40px;"></span>
+              </div>
+              <div class="modal-body" style="padding: 1.5rem; text-align: center; display: flex; flex-direction: column; gap: 15px;">
+                <h4 style="font-size: 1.05rem; color: #ffffff; text-align: right; direction: rtl;">צור תרגיל מותאם אישית חדש:</h4>
+                
+                <input type="text" id="custom-exercise-new-name-input" placeholder="שם התרגיל (למשל: שכיבות שמיכה רחבות)" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; color: #ffffff; text-align: right; direction: rtl; outline: none;">
+                
+                <select id="custom-exercise-new-category-select" style="width: 100%; padding: 12px; background: #161824; border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; color: #ffffff; text-align: right; direction: rtl; outline: none; -webkit-appearance: none; appearance: none; cursor: pointer;">
+                  <option value="" disabled selected>בחר קטגוריה...</option>
+                  <option value="חזה">חזה</option>
+                  <option value="גב">גב</option>
+                  <option value="כתפיים">כתפיים</option>
+                  <option value="רגליים">רגליים</option>
+                  <option value="ידיים">ידיים</option>
+                  <option value="בטן">בטן</option>
+                  <option value="אירובי">אירובי</option>
+                  <option value="מתח">מתח</option>
+                  <option value="דחיפה">דחיפה</option>
+                  <option value="ליבה ואירובי">ליבה ואירובי</option>
+                  <option value="מותאם אישית">מותאם אישית</option>
+                </select>
+
+                <button id="save-custom-exercise-modal-btn" class="btn btn-primary" style="width: 100%; padding: 12px; font-weight: bold; border-radius: 12px;">צור תרגיל</button>
               </div>
             </div>
           </div>
