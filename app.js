@@ -1539,20 +1539,43 @@ onDOMReady(() => {
     });
   }
 
-  // Create Custom Exercise inside Exercise Picker Modal
-  const addCustomExBtn = document.getElementById('add-custom-exercise-btn');
-  if (addCustomExBtn) {
-    addCustomExBtn.addEventListener('click', () => {
-      const nameInput = document.getElementById('custom-exercise-name-input');
-      const categoryInput = document.getElementById('custom-exercise-category-input');
+  // Open Custom Exercise Modal
+  const openCustomExModalBtn = document.getElementById('open-custom-exercise-modal-btn');
+  if (openCustomExModalBtn) {
+    openCustomExModalBtn.addEventListener('click', () => {
+      const modal = document.getElementById('custom-exercise-modal');
+      if (modal) modal.classList.remove('hide');
+    });
+  }
+
+  // Close Custom Exercise Modal
+  const closeCustomExModalBtn = document.getElementById('close-custom-exercise-modal-btn');
+  if (closeCustomExModalBtn) {
+    closeCustomExModalBtn.addEventListener('click', () => {
+      const modal = document.getElementById('custom-exercise-modal');
+      if (modal) modal.classList.add('hide');
+    });
+  }
+
+  // Save Custom Exercise inside Modal
+  const saveCustomExModalBtn = document.getElementById('save-custom-exercise-modal-btn');
+  if (saveCustomExModalBtn) {
+    saveCustomExModalBtn.addEventListener('click', () => {
+      const nameInput = document.getElementById('custom-exercise-new-name-input');
+      const categorySelect = document.getElementById('custom-exercise-new-category-select');
       
       if (!nameInput || nameInput.value.trim() === '') {
         alert('אנא הזן שם לתרגיל המותאם אישית.');
         return;
       }
       
+      if (!categorySelect || categorySelect.value === '') {
+        alert('אנא בחר קטגוריה.');
+        return;
+      }
+      
       const exName = nameInput.value.trim();
-      const exCategory = categoryInput ? categoryInput.value.trim() || 'מותאם אישית' : 'מותאם אישית';
+      const exCategory = categorySelect.value;
       
       const newEx = {
         name: exName,
@@ -1566,7 +1589,10 @@ onDOMReady(() => {
       }
       
       nameInput.value = '';
-      if (categoryInput) categoryInput.value = '';
+      categorySelect.selectedIndex = 0;
+      
+      const modal = document.getElementById('custom-exercise-modal');
+      if (modal) modal.classList.add('hide');
       
       // Auto-select and trigger metrics choice
       selectedExerciseForAdding = exName;
@@ -1582,31 +1608,32 @@ onDOMReady(() => {
     });
   }
 
-  // Bind Metric Selector Tiles click using stable references
-  document.querySelectorAll('.metric-tile').forEach(tile => {
-    tile.addEventListener('click', () => {
-      const metricType = tile.getAttribute('data-metric');
-      console.log('Metric selection clicked:', metricType, 'for exercise:', selectedExerciseForAdding);
+  // Bind Metric Selector Tiles click using robust document-level event delegation
+  document.addEventListener('click', (e) => {
+    const tile = e.target.closest('.metric-tile');
+    if (!tile) return;
+    
+    const metricType = tile.getAttribute('data-metric');
+    console.log('Metric selection clicked (delegated):', metricType, 'for exercise:', selectedExerciseForAdding);
+    
+    if (selectedExerciseForAdding && activeWorkout) {
+      activeWorkout.exercises.push({
+        name: selectedExerciseForAdding,
+        metricType: metricType,
+        completed: false,
+        sets: [
+          { reps: '', weight: '', completed: false }
+        ]
+      });
+      saveActiveWorkoutState();
+      renderExercises();
       
-      if (selectedExerciseForAdding && activeWorkout) {
-        activeWorkout.exercises.push({
-          name: selectedExerciseForAdding,
-          metricType: metricType,
-          completed: false,
-          sets: [
-            { reps: '', weight: '', completed: false }
-          ]
-        });
-        saveActiveWorkoutState();
-        renderExercises();
-        
-        const metricModal = document.getElementById('metric-selector-modal');
-        if (metricModal) metricModal.classList.add('hide');
-        selectedExerciseForAdding = null;
-      } else {
-        console.warn('Metric selection ignored because selectedExerciseForAdding or activeWorkout is missing.');
-      }
-    });
+      const metricModal = document.getElementById('metric-selector-modal');
+      if (metricModal) metricModal.classList.add('hide');
+      selectedExerciseForAdding = null;
+    } else {
+      console.warn('Metric selection ignored because selectedExerciseForAdding or activeWorkout is missing.');
+    }
   });
 });
 
@@ -1615,6 +1642,11 @@ const addExerciseBtn = document.getElementById('add-exercise-btn');
 if (addExerciseBtn) {
   addExerciseBtn.addEventListener('click', () => {
     if (!activeWorkout) return;
+    
+    // Discard any exercises that have 0 completed sets to prevent clogging
+    activeWorkout.exercises = activeWorkout.exercises.filter(ex => ex.sets.some(s => s.completed));
+    saveActiveWorkoutState();
+    renderExercises();
     
     // Guard: Can't add if there is any active exercise not completed
     const hasActive = activeWorkout.exercises.some(ex => !ex.completed);
