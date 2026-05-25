@@ -2421,6 +2421,15 @@ body.authenticated .ios-bottom-nav {
 /* ==========================================================================
    AuraApp Redesigned Settings Tab - Classic iOS Light Theme
    ========================================================================== */
+/* Prevent clipping and allow full bleed when settings tab is active */
+.tab-content-container:has(#tab-settings.active) {
+  overflow: visible !important;
+}
+
+#app-screen:has(#tab-settings.active) {
+  overflow: hidden !important;
+}
+
 #tab-settings {
   position: absolute !important;
   top: calc(-1rem - env(safe-area-inset-top)) !important;
