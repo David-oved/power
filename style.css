@@ -6,42 +6,42 @@
   --font-display: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
-  /* HSL Tailored Dark Obsidian Palette */
-  --bg-app: hsl(225, 24%, 12%);
-  --bg-card: hsla(225, 20%, 8%, 0.65);
-  --bg-card-hover: hsla(225, 20%, 12%, 0.8);
-  --border-card: rgba(255, 255, 255, 0.06);
-  --border-card-hover: rgba(255, 255, 255, 0.12);
+  /* Hardcore Forged Iron Gym - Cast Iron & Concrete Dark Palette */
+  --bg-app: #08080a; /* Deep solid steel black */
+  --bg-card: rgba(20, 20, 24, 0.88); /* Heavy cast iron black card */
+  --bg-card-hover: rgba(36, 36, 40, 0.95); /* Steel gray hover state */
+  --border-card: rgba(255, 255, 255, 0.08); /* Sharp raw steel thin border */
+  --border-card-hover: rgba(255, 255, 255, 0.16);
 
-  --text-main: hsl(220, 15%, 90%);
-  --text-muted: hsl(220, 10%, 65%);
-  --text-heading: hsl(0, 0%, 100%);
+  --text-main: #e4e4e7; /* Steel white main text */
+  --text-muted: #a1a1aa; /* Muted concrete gray text */
+  --text-heading: #ffffff; /* Stark platinum white */
 
-  /* Cyber-Athletic Neon Highlights */
-  --neon-orange: hsl(22, 100%, 55%);
-  --neon-orange-glow: hsla(22, 100%, 55%, 0.4);
-  --neon-orange-glow-subtle: hsla(22, 100%, 55%, 0.15);
-  --neon-orange-light: hsl(22, 100%, 68%);
+  /* Cyber-Athletic Neon Highlights - Remapped to Molten Red & Forged Crimson */
+  --electric-blue: #dc2626; /* Stark Molten Red */
+  --electric-blue-glow: rgba(220, 38, 38, 0.35); /* Molten red fire glow */
+  --electric-blue-glow-subtle: rgba(220, 38, 38, 0.12);
+  --electric-blue-light: #ef4444; /* Glowing active red */
 
-  --electric-blue: hsl(200, 100%, 50%);
-  --electric-blue-glow: hsla(200, 100%, 50%, 0.4);
-  --electric-blue-glow-subtle: hsla(200, 100%, 50%, 0.15);
-  --electric-blue-light: hsl(200, 100%, 65%);
+  --neon-orange: #f43f5e; /* Forged Crimson highlight */
+  --neon-orange-glow: rgba(244, 63, 94, 0.35); /* Hot crimson glow */
+  --neon-orange-glow-subtle: rgba(244, 63, 94, 0.12);
+  --neon-orange-light: #fb7185; /* Active crimson rose */
 
   /* Keep core accent mapped to electric blue for automatic compatibility */
   --accent: var(--electric-blue);
   --accent-glow: var(--electric-blue-glow);
   --accent-light: var(--electric-blue-light);
 
-  --color-success: hsl(142, 70%, 45%);
-  --color-success-glow: hsla(142, 70%, 45%, 0.35);
+  --color-success: #16a34a; /* Raw sports green success state */
+  --color-success-glow: rgba(22, 163, 74, 0.3);
   
-  --color-danger: hsl(354, 84%, 52%);
-  --color-danger-glow: hsla(354, 84%, 52%, 0.4);
+  --color-danger: #dc2626; /* Stark molten red danger state */
+  --color-danger-glow: rgba(220, 38, 38, 0.35);
 
   --transition-smooth: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
-  --radius-card: 24px;
-  --radius-btn: 30px;
+  --radius-card: 20px; /* Sharper cards for high-performance aesthetic */
+  --radius-btn: 24px;  /* Sharper action buttons */
 }
 
 /* 1. Global Reset & Base Setup */
@@ -81,32 +81,32 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Ambient Blurred Glow Blobs */
+/* Ambient Blurred Glow Blobs (Deep Red Forged Heat Foundry vibe) */
 .ambient-glow {
   position: absolute;
-  width: 90vw;
-  height: 90vw;
-  max-width: 500px;
-  max-height: 500px;
+  width: 70vw;
+  height: 70vw;
+  max-width: 420px;
+  max-height: 420px;
   border-radius: 50%;
-  filter: blur(100px);
+  filter: blur(120px);
   z-index: -1;
-  opacity: 0.25;
+  opacity: 0.16;
   pointer-events: none;
 }
 
 .bg-primary {
-  background: radial-gradient(circle, var(--electric-blue) 0%, transparent 70%);
-  top: -10%;
-  right: -10%;
-  animation: float-glow-primary 25s ease-in-out infinite alternate;
+  background: radial-gradient(circle, #b91c1c 0%, transparent 70%);
+  top: -5%;
+  right: -5%;
+  animation: float-glow-primary 28s ease-in-out infinite alternate;
 }
 
 .bg-secondary {
-  background: radial-gradient(circle, var(--neon-orange) 0%, transparent 70%);
-  bottom: -10%;
-  left: -10%;
-  animation: float-glow-secondary 25s ease-in-out infinite alternate;
+  background: radial-gradient(circle, #dc2626 0%, transparent 75%);
+  bottom: -5%;
+  left: -5%;
+  animation: float-glow-secondary 28s ease-in-out infinite alternate;
 }
 
 @keyframes float-glow-primary {
@@ -2416,6 +2416,552 @@ body.authenticated .ios-bottom-nav {
   padding: 1.5rem;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   background: hsla(225, 20%, 4%, 0.4);
+}
+
+/* ==========================================================================
+   AuraApp Redesigned Settings Tab - Classic iOS Light Theme
+   ========================================================================== */
+#tab-settings {
+  background-color: #f2f2f7 !important;
+  color: #1c1c1e !important;
+  padding: 0 !important;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow-y: auto !important;
+  overscroll-behavior-y: contain;
+  direction: rtl;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
+}
+
+/* Custom scrollbars inside settings for unified appearance */
+#tab-settings::-webkit-scrollbar {
+  width: 6px;
+}
+#tab-settings::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.15);
+  border-radius: 3px;
+}
+
+/* Scroll Container */
+.ios-settings-scroll-container {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Search Bar Wrapper */
+.ios-search-wrapper {
+  margin-bottom: 20px;
+  width: 100%;
+  position: relative;
+}
+
+.ios-search-bar {
+  width: 100%;
+  height: 38px;
+  background: #e3e3e9;
+  border: none;
+  border-radius: 10px;
+  padding: 0 35px 0 15px; /* RTL spacing */
+  font-size: 1.05rem;
+  color: #1c1c1e;
+  box-sizing: border-box;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.ios-search-bar:focus {
+  outline: none;
+  background: #d1d1d6;
+}
+
+.ios-search-icon {
+  position: absolute;
+  top: 50%;
+  right: 12px;
+  transform: translateY(-50%);
+  color: #8e8e93;
+  font-size: 1.1rem;
+  pointer-events: none;
+}
+
+/* Settings Main Title override */
+#tab-settings .settings-main-title {
+  color: #000000 !important;
+  font-family: var(--font-display) !important;
+  font-size: 2.1rem !important;
+  font-weight: 800 !important;
+  margin-bottom: 1.5rem !important;
+  margin-top: 0.5rem !important;
+  text-align: right !important;
+  text-shadow: none !important;
+  letter-spacing: -0.5px !important;
+}
+
+/* iOS Cards (Rounded White Segments) */
+.ios-settings-card-group {
+  background: #ffffff !important;
+  border-radius: 12px !important;
+  margin-bottom: 20px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 1px rgba(0, 0, 0, 0.02) !important;
+  overflow: hidden !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+/* Single Setting Row */
+.ios-setting-row {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 12px 16px !important;
+  background: #ffffff !important;
+  border: none !important;
+  border-bottom: 0.5px solid #e5e5ea !important;
+  cursor: pointer !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  transition: background-color 0.15s ease !important;
+  text-decoration: none !important;
+}
+
+.ios-setting-row:last-child {
+  border-bottom: none !important;
+}
+
+.ios-setting-row:hover:not(.no-hover) {
+  background-color: #f2f2f7 !important;
+}
+
+/* Left part (Action, Toggle, or Chevron) */
+.ios-row-left {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.ios-row-detail-text {
+  font-size: 0.95rem !important;
+  color: #8e8e93 !important;
+}
+
+.ios-row-chevron {
+  font-size: 0.95rem !important;
+  color: #c7c7cc !important;
+  font-weight: 600 !important;
+  margin-left: 2px !important;
+}
+
+/* Right part (Icon + Label) */
+.ios-row-right {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+
+.ios-row-icon-badge {
+  width: 28px !important;
+  height: 28px !important;
+  border-radius: 7px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #ffffff !important;
+  font-size: 1.05rem !important;
+  flex-shrink: 0 !important;
+}
+
+/* iOS Colored Badges styles */
+.bg-ios-blue { background-color: #007aff !important; }
+.bg-ios-orange { background-color: #ff9500 !important; }
+.bg-ios-green { background-color: #34c759 !important; }
+.bg-ios-purple { background-color: #5856d6 !important; }
+.bg-ios-red { background-color: #ff3b30 !important; }
+.bg-ios-pink { background-color: #ff2d55 !important; }
+.bg-ios-gray { background-color: #8e8e93 !important; }
+.bg-ios-teal { background-color: #5ac8fa !important; }
+.bg-ios-indigo { background-color: #5856d6 !important; }
+
+.ios-row-label {
+  font-size: 1.05rem !important;
+  font-weight: 500 !important;
+  color: #1c1c1e !important;
+}
+
+/* Top Profile Card Specific */
+.ios-profile-card {
+  padding: 16px 16px !important;
+}
+
+.ios-profile-right {
+  display: flex !important;
+  align-items: center !important;
+  gap: 16px !important;
+}
+
+.ios-profile-avatar-wrapper {
+  position: relative !important;
+  width: 60px !important;
+  height: 60px !important;
+  flex-shrink: 0 !important;
+}
+
+.ios-profile-avatar {
+  width: 60px !important;
+  height: 60px !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+}
+
+.ios-profile-avatar-wrapper .avatar-glow-ring {
+  border-color: #007aff !important;
+}
+
+.ios-profile-info {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 3px !important;
+  text-align: right !important;
+}
+
+.ios-profile-name {
+  font-family: var(--font-display) !important;
+  font-size: 1.35rem !important;
+  font-weight: 700 !important;
+  color: #000000 !important;
+  letter-spacing: -0.3px !important;
+}
+
+.ios-profile-subtext {
+  font-size: 0.85rem !important;
+  color: #8e8e93 !important;
+}
+
+/* Apple/Aura Intelligence Premium Promo Card */
+.ios-intelligence-card {
+  background: linear-gradient(135deg, #ffffff 0%, #f5f8ff 50%, #fffbf5 100%) !important;
+  border: 1.5px solid transparent !important;
+  background-clip: padding-box !important;
+  border-radius: 12px !important;
+  margin-bottom: 20px !important;
+  padding: 16px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 0 12px rgba(0, 122, 255, 0.05) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  cursor: pointer !important;
+  position: relative !important;
+  box-sizing: border-box !important;
+}
+
+.ios-intelligence-card::after {
+  content: "" !important;
+  position: absolute !important;
+  top: -1.5px !important;
+  left: -1.5px !important;
+  right: -1.5px !important;
+  bottom: -1.5px !important;
+  border-radius: inherit !important;
+  padding: 1.5px !important;
+  background: linear-gradient(135deg, #007aff 0%, transparent 40%, transparent 60%, #ff9500 100%) !important;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0) !important;
+  -webkit-mask-composite: xor !important;
+  mask-composite: exclude !important;
+  pointer-events: none !important;
+  z-index: 1 !important;
+  opacity: 0.3 !important;
+}
+
+.ios-intelligence-text-box {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 3px !important;
+  text-align: right !important;
+}
+
+.ios-intelligence-title {
+  font-family: var(--font-display) !important;
+  font-size: 1.05rem !important;
+  font-weight: 700 !important;
+  color: #000000 !important;
+}
+
+.ios-intelligence-desc {
+  font-size: 0.85rem !important;
+  color: #8e8e93 !important;
+}
+
+/* Custom iOS Switch Toggle Slider */
+.ios-toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 51px;
+  height: 31px;
+  flex-shrink: 0;
+}
+
+.ios-toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.ios-toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #e9e9ea;
+  transition: .3s;
+  border-radius: 34px;
+}
+
+.ios-toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 27px;
+  width: 27px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: .3s;
+  border-radius: 50%;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15), 0 1px 1px rgba(0, 0, 0, 0.05);
+}
+
+.ios-toggle-switch input:checked + .ios-toggle-slider {
+  background-color: #34c759;
+}
+
+.ios-toggle-switch input:checked + .ios-toggle-slider:before {
+  transform: translateX(20px);
+}
+
+/* Sub-view 2: Account Details Screen (Light Theme Styles) */
+#settings-account-view {
+  background-color: #f2f2f7 !important;
+  color: #1c1c1e !important;
+  padding: 1.5rem !important;
+  min-height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+}
+
+#settings-account-view .ios-settings-header {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  margin-bottom: 2rem !important;
+  direction: rtl !important;
+}
+
+#settings-account-view .ios-back-btn {
+  background: none !important;
+  border: none !important;
+  font-size: 1.05rem !important;
+  font-weight: 600 !important;
+  color: #007aff !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  padding: 0 !important;
+  font-family: inherit !important;
+}
+
+#settings-account-view .settings-sub-title {
+  font-family: var(--font-display) !important;
+  font-size: 1.3rem !important;
+  font-weight: 700 !important;
+  color: #000000 !important;
+  margin: 0 !important;
+}
+
+.ios-account-profile-card {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 12px !important;
+  margin-bottom: 2rem !important;
+  text-align: center !important;
+}
+
+.ios-settings-avatar-glow {
+  position: relative !important;
+  width: 90px !important;
+  height: 90px !important;
+}
+
+.ios-settings-avatar-glow img {
+  width: 90px !important;
+  height: 90px !important;
+  border-radius: 50% !important;
+  object-fit: cover !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08) !important;
+}
+
+#settings-account-view .welcome-text {
+  font-family: var(--font-display) !important;
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  color: #000000 !important;
+  margin-bottom: 2px !important;
+}
+
+#settings-account-view .settings-subtitle {
+  font-size: 0.9rem !important;
+  color: #8e8e93 !important;
+  margin: 0 !important;
+}
+
+/* Light Field Info List */
+.ios-settings-field-group {
+  background: #ffffff !important;
+  border-radius: 12px !important;
+  margin-bottom: 24px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+  overflow: hidden !important;
+}
+
+.ios-settings-field-row {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 14px 16px !important;
+  border-bottom: 0.5px solid #e5e5ea !important;
+  background: #ffffff !important;
+}
+
+.ios-settings-field-row:last-child {
+  border-bottom: none !important;
+}
+
+.ios-settings-field-row .field-label {
+  font-size: 1.05rem !important;
+  font-weight: 500 !important;
+  color: #1c1c1e !important;
+}
+
+.ios-settings-field-row .field-value {
+  font-size: 1rem !important;
+  color: #8e8e93 !important;
+}
+
+/* Redesigned iOS Modal Panel for values selection */
+.ios-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  z-index: 2000;
+  display: flex;
+  align-items: flex-end; /* Bottom sheet style on mobile */
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.ios-modal-overlay.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.ios-modal-card {
+  width: 100%;
+  max-width: 480px;
+  background: #ffffff;
+  border-radius: 20px 20px 0 0;
+  padding: 20px;
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.15);
+  box-sizing: border-box;
+  transform: translateY(100%);
+  transition: transform 0.3s ease;
+  direction: rtl;
+}
+
+.ios-modal-overlay.show .ios-modal-card {
+  transform: translateY(0);
+}
+
+.ios-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 0.5px solid #e5e5ea;
+  padding-bottom: 12px;
+}
+
+.ios-modal-title {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: #000000;
+}
+
+.ios-modal-close-btn {
+  background: none;
+  border: none;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #007aff;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.ios-modal-options-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.ios-modal-option {
+  width: 100%;
+  padding: 14px 16px;
+  background: #f2f2f7;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #1c1c1e;
+  cursor: pointer;
+  text-align: right;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background-color 0.15s ease;
+  font-family: inherit;
+}
+
+.ios-modal-option:hover {
+  background: #e5e5ea;
+}
+
+.ios-modal-option.selected {
+  background: #e8f3ff;
+  color: #007aff;
+}
+
+.ios-modal-option-check {
+  font-size: 1.1rem;
+  font-weight: bold;
 }
 
 
