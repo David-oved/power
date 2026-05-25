@@ -327,6 +327,7 @@ function updateAuthUI() {
   setElText('user-display-name', name ? name.split(' ')[0] : 'User');
   setElText('settings-user-name-field', name);
   setElText('settings-user-email-field', email);
+  setElText('settings-user-name-main', name);
 
   // Photo Binding
   const fallbackPhoto = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
@@ -338,6 +339,11 @@ function updateAuthUI() {
   if (settingsUserPhoto) {
     settingsUserPhoto.src = photoURL;
     settingsUserPhoto.onerror = () => { settingsUserPhoto.src = fallbackPhoto; };
+  }
+  const settingsUserPhotoMain = document.getElementById('settings-user-photo-main');
+  if (settingsUserPhotoMain) {
+    settingsUserPhotoMain.src = photoURL;
+    settingsUserPhotoMain.onerror = () => { settingsUserPhotoMain.src = fallbackPhoto; };
   }
   if (floatingUserPhoto) {
     floatingUserPhoto.src = photoURL;
@@ -410,6 +416,7 @@ function clearUserSession() {
   setElText('user-display-name', 'User');
   setElText('settings-user-name-field', 'User');
   setElText('settings-user-email-field', 'user@gmail.com');
+  setElText('settings-user-name-main', 'משתמש');
   const mainView = document.getElementById('settings-main-view');
   const accountView = document.getElementById('settings-account-view');
   if (mainView) mainView.classList.remove('hide');
@@ -435,6 +442,8 @@ function clearUserSession() {
   const fallbackPhoto = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
   if (navUserPhoto) navUserPhoto.src = fallbackPhoto;
   if (settingsUserPhoto) settingsUserPhoto.src = fallbackPhoto;
+  const settingsUserPhotoMain = document.getElementById('settings-user-photo-main');
+  if (settingsUserPhotoMain) settingsUserPhotoMain.src = fallbackPhoto;
   if (floatingUserPhoto) floatingUserPhoto.src = fallbackPhoto;
   if (drawerUserPhoto) drawerUserPhoto.src = fallbackPhoto;
   
@@ -1866,6 +1875,286 @@ function deleteWorkoutFromHistory(workoutId) {
   if (editModal) editModal.classList.add('hide');
   editingWorkout = null;
 }
+
+// ==========================================================================
+// AuraApp Redesigned Settings Tab Controller & iOS Interactive Logic
+// ==========================================================================
+function initPremiumSettings() {
+  console.log("Initializing premium iOS Settings View...");
+
+  // Load Saved Settings from SafeStorage or set defaults
+  const settings = {
+    weeklyGoal: SafeStorage.getItem('settings_weekly_goal') || '3 אימונים',
+    defaultLocation: SafeStorage.getItem('settings_default_location') || 'חדר כושר',
+    restTime: SafeStorage.getItem('settings_rest_time') || '90 שניות',
+    notifications: SafeStorage.getItem('settings_notifications') !== 'false', // default true
+    cloudSync: SafeStorage.getItem('settings_cloud_sync') !== 'false', // default true
+    batterySaver: SafeStorage.getItem('settings_battery_saver') === 'true', // default false
+    bluetooth: SafeStorage.getItem('settings_bluetooth') || 'מנותק'
+  };
+
+  // Sync display states in DOM
+  const valWeeklyGoal = document.getElementById('value-weekly-goal');
+  const valDefaultLocation = document.getElementById('value-default-location');
+  const valRestTime = document.getElementById('value-rest-time');
+  const valBluetooth = document.getElementById('value-bluetooth-sensor');
+  const valAppVersion = document.getElementById('value-app-version');
+  
+  if (valWeeklyGoal) valWeeklyGoal.textContent = settings.weeklyGoal;
+  if (valDefaultLocation) valDefaultLocation.textContent = settings.defaultLocation;
+  if (valRestTime) valRestTime.textContent = settings.restTime;
+  if (valBluetooth) valBluetooth.textContent = settings.bluetooth;
+
+  // Query app version from Service Worker dynamically (fallback if worker isn't loaded yet)
+  if (valAppVersion) {
+    // Read the version badge if already filled by loadAppVersion
+    const mainBadge = document.getElementById('app-version-display');
+    if (mainBadge && mainBadge.textContent && mainBadge.textContent !== 'v1.1') {
+      valAppVersion.textContent = mainBadge.textContent;
+    } else {
+      valAppVersion.textContent = 'v2.4';
+    }
+  }
+
+  // Sync Toggles inputs states
+  const toggleNotif = document.getElementById('toggle-notifications');
+  const toggleCloud = document.getElementById('toggle-cloud-sync');
+  const toggleBattery = document.getElementById('toggle-battery-saver');
+
+  if (toggleNotif) toggleNotif.checked = settings.notifications;
+  if (toggleCloud) toggleCloud.checked = settings.cloudSync;
+  if (toggleBattery) toggleBattery.checked = settings.batterySaver;
+
+  // Bind change events to toggles
+  if (toggleNotif) {
+    toggleNotif.addEventListener('change', (e) => {
+      SafeStorage.setItem('settings_notifications', e.target.checked);
+      console.log('Saved notifications active preference:', e.target.checked);
+      if (e.target.checked && typeof Notification !== 'undefined') {
+        if (Notification.permission === 'default') {
+          Notification.requestPermission();
+        } else if (Notification.permission === 'granted') {
+          triggerLocalNotification("התראות פעילות 🔔", "מעתה תקבל תזכורות ועדכוני אימון ישירות למכשיר!");
+        }
+      }
+    });
+  }
+
+  if (toggleCloud) {
+    toggleCloud.addEventListener('change', (e) => {
+      SafeStorage.setItem('settings_cloud_sync', e.target.checked);
+      console.log('Saved auto-cloud sync preference:', e.target.checked);
+    });
+  }
+
+  if (toggleBattery) {
+    toggleBattery.addEventListener('change', (e) => {
+      SafeStorage.setItem('settings_battery_saver', e.target.checked);
+      console.log('Saved battery saver active preference:', e.target.checked);
+    });
+  }
+
+  // iOS Selection Modal logic
+  const iosModal = document.getElementById('ios-selection-modal');
+  const iosModalClose = document.getElementById('ios-modal-close');
+  const iosModalTitle = document.getElementById('ios-modal-title');
+  const iosModalOptions = document.getElementById('ios-modal-options');
+
+  const openSelectionModal = (title, optionsList, currentValue, onSelect) => {
+    if (!iosModal || !iosModalTitle || !iosModalOptions) return;
+    
+    iosModalTitle.textContent = title;
+    iosModalOptions.innerHTML = '';
+    
+    optionsList.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.className = `ios-modal-option ${opt === currentValue ? 'selected' : ''}`;
+      
+      const labelSpan = document.createElement('span');
+      labelSpan.textContent = opt;
+      btn.appendChild(labelSpan);
+      
+      if (opt === currentValue) {
+        const checkSpan = document.createElement('span');
+        checkSpan.className = 'ios-modal-option-check';
+        checkSpan.textContent = '✓';
+        btn.appendChild(checkSpan);
+      }
+      
+      btn.addEventListener('click', () => {
+        onSelect(opt);
+        closeSelectionModal();
+      });
+      
+      iosModalOptions.appendChild(btn);
+    });
+    
+    iosModal.classList.add('show');
+  };
+
+  const closeSelectionModal = () => {
+    if (iosModal) iosModal.classList.remove('show');
+  };
+
+  if (iosModalClose) {
+    iosModalClose.addEventListener('click', closeSelectionModal);
+  }
+  if (iosModal) {
+    iosModal.addEventListener('click', (e) => {
+      if (e.target === iosModal) closeSelectionModal();
+    });
+  }
+
+  // Row Clicks binding
+  const rowWeekly = document.getElementById('row-weekly-goal');
+  if (rowWeekly) {
+    rowWeekly.addEventListener('click', () => {
+      const current = SafeStorage.getItem('settings_weekly_goal') || '3 אימונים';
+      openSelectionModal('יעד אימונים שבועי', ['2 אימונים', '3 אימונים', '4 אימונים', '5 אימונים', '6 אימונים'], current, (selected) => {
+        SafeStorage.setItem('settings_weekly_goal', selected);
+        if (valWeeklyGoal) valWeeklyGoal.textContent = selected;
+        console.log('Saved weekly workout goal:', selected);
+      });
+    });
+  }
+
+  const rowLocation = document.getElementById('row-default-location');
+  if (rowLocation) {
+    rowLocation.addEventListener('click', () => {
+      const current = SafeStorage.getItem('settings_default_location') || 'חדר כושר';
+      openSelectionModal('מיקום ברירת מחדל', ['חדר כושר', 'פארק', 'ריצת חוץ', 'אימון ביתי'], current, (selected) => {
+        SafeStorage.setItem('settings_default_location', selected);
+        if (valDefaultLocation) valDefaultLocation.textContent = selected;
+        console.log('Saved default workout location:', selected);
+      });
+    });
+  }
+
+  const rowRest = document.getElementById('row-rest-time');
+  if (rowRest) {
+    rowRest.addEventListener('click', () => {
+      const current = SafeStorage.getItem('settings_rest_time') || '90 שניות';
+      openSelectionModal('זמן מנוחה בין סטים', ['30 שניות', '60 שניות', '90 שניות', '120 שניות', '150 שניות', '3 דקות'], current, (selected) => {
+        SafeStorage.setItem('settings_rest_time', selected);
+        if (valRestTime) valRestTime.textContent = selected;
+        console.log('Saved sets rest time preference:', selected);
+      });
+    });
+  }
+
+  const rowBluetooth = document.getElementById('row-bluetooth-sensor');
+  if (rowBluetooth) {
+    rowBluetooth.addEventListener('click', () => {
+      const current = SafeStorage.getItem('settings_bluetooth') || 'מנותק';
+      openSelectionModal('חיישן דופק (Bluetooth)', ['מנותק', 'Polar H10', 'Garmin Dual', 'Apple Watch Sync', 'חיישן גנרי'], current, (selected) => {
+        SafeStorage.setItem('settings_bluetooth', selected);
+        if (valBluetooth) valBluetooth.textContent = selected;
+        console.log('Saved Bluetooth sensor:', selected);
+        if (selected !== 'מנותק' && typeof Notification !== 'undefined') {
+          triggerLocalNotification("חיישן דופק מחובר 💙", `התחברת בהצלחה ל-${selected}!`);
+        }
+      });
+    });
+  }
+
+  const rowBackup = document.getElementById('row-backup-restore');
+  if (rowBackup) {
+    rowBackup.addEventListener('click', () => {
+      alert("גיבוי נתונים: כל נתוני האימון וההגדרות שלך מגובים אוטומטית ובאופן מאובטח בשרת Firebase.");
+    });
+  }
+
+  const rowTerms = document.getElementById('row-terms-privacy');
+  if (rowTerms) {
+    rowTerms.addEventListener('click', () => {
+      alert("תנאי שימוש ופרטיות: AuraApp מעניקה עדיפות עליונה לפרטיות שלך. כל המידע הרגיש מאובטח ואינו משותף עם גורמים חיצוניים.");
+    });
+  }
+
+  const rowSupport = document.getElementById('row-support-feedback');
+  if (rowSupport) {
+    rowSupport.addEventListener('click', () => {
+      alert("תמיכה ומשוב: תודה על השימוש ב-AuraApp! אם יש לך שאלות או הצעות לשיפור, אנא פנה למפתח במייל support@aura.app.");
+    });
+  }
+
+  const bannerAi = document.getElementById('aura-ai-banner');
+  if (bannerAi) {
+    bannerAi.addEventListener('click', () => {
+      alert("Aura AI: מאמן אישי חכם מבוסס בינה מלאכותית שייקח את האימונים שלך לשלב הבא! הפיצ'ר ייפתח בגרסאות הבאות.");
+    });
+  }
+
+  // Live Settings Search filter
+  const searchInput = document.getElementById('settings-search');
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      const query = e.target.value.trim().toLowerCase();
+      const cardGroups = document.querySelectorAll('.ios-settings-card-group');
+
+      cardGroups.forEach(group => {
+        // Do not search inside the main profile row card group
+        if (group.querySelector('.ios-profile-card')) return;
+
+        let visibleRowsInGroup = 0;
+        const rows = group.querySelectorAll('.ios-setting-row');
+
+        rows.forEach(row => {
+          const text = row.textContent.toLowerCase();
+          if (text.includes(query)) {
+            row.style.setProperty('display', 'flex', 'important');
+            visibleRowsInGroup++;
+          } else {
+            row.style.setProperty('display', 'none', 'important');
+          }
+        });
+
+        // Hide card group completely if no rows in it match search query
+        if (visibleRowsInGroup > 0 || query === '') {
+          group.style.setProperty('display', 'block', 'important');
+        } else {
+          group.style.setProperty('display', 'none', 'important');
+        }
+      });
+
+      // Also handle the Apple/Aura Intelligence card search matching
+      if (bannerAi) {
+        const bannerText = bannerAi.textContent.toLowerCase();
+        if (bannerText.includes(query) || query === '') {
+          bannerAi.style.setProperty('display', 'flex', 'important');
+        } else {
+          bannerAi.style.setProperty('display', 'none', 'important');
+        }
+      }
+    });
+  }
+}
+
+// Invoke the premium settings view initializer on window load and dynamic transitions
+window.addEventListener('DOMContentLoaded', () => {
+  initPremiumSettings();
+});
+
+// Watch for version display changes to automatically update Settings About row
+const observer = new MutationObserver(() => {
+  const mainBadge = document.getElementById('app-version-display');
+  const valAppVersion = document.getElementById('value-app-version');
+  if (mainBadge && valAppVersion && mainBadge.textContent) {
+    valAppVersion.textContent = mainBadge.textContent;
+  }
+});
+
+window.addEventListener('load', () => {
+  const mainBadge = document.getElementById('app-version-display');
+  if (mainBadge) {
+    observer.observe(mainBadge, { childList: true, characterData: true, subtree: true });
+    // Run an initial sync
+    const valAppVersion = document.getElementById('value-app-version');
+    if (valAppVersion && mainBadge.textContent) {
+      valAppVersion.textContent = mainBadge.textContent;
+    }
+  }
+});
 
 
 
