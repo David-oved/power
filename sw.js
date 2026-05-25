@@ -13,7 +13,7 @@
 // these flows without the user's explicit OK in the chat!
 // =========================================================================================
 
-const CACHE_NAME = 'aura-app-v1.2';
+const CACHE_NAME = 'aura-app-v2.1';
 const ASSETS = [
   './',
   './index.html',
