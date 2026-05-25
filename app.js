@@ -1067,6 +1067,11 @@ let currentActiveCategoryFilter = 'הכל';
 let restTimerInterval = null;
 let restTimerSecondsLeft = 0;
 
+function saveActiveWorkoutState() {
+  if (currentUser && activeWorkout) {
+    SafeStorage.setItem(`aura-active-workout_${currentUser.uid}`, JSON.stringify(activeWorkout));
+  }
+}
 
 // Initialize workouts state on user auth
 function initWorkouts() {
@@ -1123,6 +1128,9 @@ function initWorkouts() {
     try {
       activeWorkout = JSON.parse(activeData);
       if (activeWorkout && activeWorkout.startTime) {
+        if (!activeWorkout.exercises || !Array.isArray(activeWorkout.exercises)) {
+          activeWorkout.exercises = [];
+        }
         console.log("Restored active workout from storage, resuming timer...");
         resumeWorkoutTimer();
       }
@@ -1352,6 +1360,16 @@ function renderExercisePickerFilters() {
   } else {
     categories = ['הכל', 'מותאם אישית'];
   }
+
+  const hasCustoms = customExercises.some(ex => {
+    if (activeWorkout.location === 'gym' || activeWorkout.location === 'park') {
+      return ex.locationType === activeWorkout.location;
+    }
+    return true;
+  });
+  if (hasCustoms && !categories.includes('מותאם אישית')) {
+    categories.push('מותאם אישית');
+  }
   
   categories.forEach(cat => {
     const btn = document.createElement('button');
@@ -1453,6 +1471,26 @@ onDOMReady(() => {
   const searchInput = document.getElementById('exercise-search-input');
   if (searchInput) {
     searchInput.addEventListener('input', renderExercisePickerList);
+  }
+  
+  // Backdrop click listeners for modals
+  const pickerModal = document.getElementById('exercise-picker-modal');
+  if (pickerModal) {
+    pickerModal.addEventListener('click', (e) => {
+      if (e.target === pickerModal) {
+        pickerModal.classList.add('hide');
+      }
+    });
+  }
+
+  const metricModal = document.getElementById('metric-selector-modal');
+  if (metricModal) {
+    metricModal.addEventListener('click', (e) => {
+      if (e.target === metricModal) {
+        metricModal.classList.add('hide');
+        selectedExerciseForAdding = null;
+      }
+    });
   }
   
   // Close exercise picker button
@@ -1733,7 +1771,8 @@ function renderExercises() {
     
     // Sets Header Row
     const setsHeader = document.createElement('div');
-    setsHeader.className = 'sets-header-row';
+    const colsClass = metricType === 'both' ? 'grid-4-cols' : 'grid-3-cols';
+    setsHeader.className = `sets-header-row ${colsClass}`;
     
     let headerHTML = '';
     if (metricType === 'both') {
@@ -1775,7 +1814,7 @@ function renderExercises() {
     visibleSets.forEach((set) => {
       const realSetIdx = ex.sets.indexOf(set);
       const setRow = document.createElement('div');
-      setRow.className = `set-row ${set.completed ? 'completed' : ''}`;
+      setRow.className = `set-row ${colsClass} ${set.completed ? 'completed' : ''}`;
       
       // Remove Set Button
       const removeSetBtn = document.createElement('button');
@@ -1959,6 +1998,8 @@ if (finishWorkoutBtn) {
       id: Date.now(),
       date: Date.now(),
       location: activeWorkout.location,
+      locationName: activeWorkout.locationName || (activeWorkout.location === 'gym' ? 'חדר כושר' : 'פארק'),
+      locationEmoji: activeWorkout.locationEmoji || (activeWorkout.location === 'gym' ? '🏋️‍♂️' : '🌳'),
       duration: durationSeconds,
       exercises: sanitizedExercises
     };
@@ -2016,6 +2057,8 @@ function cancelWorkoutSession() {
     SafeStorage.removeItem(`aura-active-workout_${currentUser.uid}`);
   }
   
+  const activeView = document.getElementById('workout-active-view');
+  const idleView = document.getElementById('workout-idle-view');
   if (activeView) activeView.classList.add('hide');
   if (idleView) {
     idleView.classList.add('active');
@@ -2085,10 +2128,13 @@ function renderWorkoutHistory() {
       year: 'numeric'
     });
     
+    const dispName = log.locationName || (log.location === 'gym' ? 'חדר כושר' : 'פארק');
+    const dispEmoji = log.locationEmoji || (log.location === 'gym' ? '🏋️‍♂️' : '🌳');
+    
     card.innerHTML = `
       <div class="history-card-header">
         <span class="history-card-badge ${log.location === 'gym' ? 'badge-gym' : 'badge-park'}">
-          ${log.location === 'gym' ? '🏋️‍♂️ חדר כושר' : '🌳 פארק'}
+          ${dispEmoji} ${dispName}
         </span>
         <div class="history-card-date">${dateFormatted}</div>
       </div>
@@ -2119,6 +2165,13 @@ if (closeEditModalBtn && editModal) {
     editModal.classList.add('hide');
     editingWorkout = null;
   });
+  
+  editModal.addEventListener('click', (e) => {
+    if (e.target === editModal) {
+      editModal.classList.add('hide');
+      editingWorkout = null;
+    }
+  });
 }
 
 function openEditModal(workoutId) {
@@ -2145,8 +2198,10 @@ function openEditModal(workoutId) {
       durationText = `${hrs} שעות ו-${mins} דק׳`;
     }
     
+    const dispName = editingWorkout.locationName || (editingWorkout.location === 'gym' ? 'חדר כושר' : 'פארק');
+    const dispEmoji = editingWorkout.locationEmoji || (editingWorkout.location === 'gym' ? '🏋️‍♂️' : '🌳');
     metaContainer.innerHTML = `
-      <div>📍 <strong>${editingWorkout.location === 'gym' ? 'חדר כושר' : 'פארק'}</strong></div>
+      <div>📍 <strong>${dispEmoji} ${dispName}</strong></div>
       <div>⏱️ משך: <strong>${durationText}</strong></div>
       <div>📅 תאריך: <strong>${dateText}</strong></div>
     `;
