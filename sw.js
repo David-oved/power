@@ -1,4 +1,4 @@
-const CACHE_NAME = 'aura-app-v1.3';
+const CACHE_NAME = 'aura-app-v1.4';
 const ASSETS = [
   './',
   './index.html',
@@ -7,7 +7,6 @@ const ASSETS = [
   './sw.js',
   './firebase-config.js',
   './manifest.json',
-  './icon-192.svg',
   './icon-512.svg',
   './icon-192.png',
   './icon-512.png'
