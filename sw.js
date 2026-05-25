@@ -13,23 +13,8 @@
 // these flows without the user's explicit OK in the chat!
 // =========================================================================================
 
-const CACHE_NAME = 'aura-app-v2.1';
-const ASSETS = [
-  './',
-  './index.html',
-  './style.css',
-  './app.js',
-  './sw.js',
-  './firebase-config.js',
-  './manifest.json',
-  './icon-512.svg',
-  './icon-192.png',
-  './icon-512.png'
-  // Firebase SDK files intentionally excluded: served from Google CDN with long cache-control headers.
-  // Caching opaque cross-origin responses risks serving corrupted/stale Firebase SDK.
-];
 
-const CACHE_NAME = 'aura-app-v1.9';
+const CACHE_NAME = 'aura-app-v2.1';
 const ASSETS = [
   './',
   './index.html',
