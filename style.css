@@ -2445,7 +2445,7 @@ body.authenticated .ios-bottom-nav {
 
 /* Scroll Container */
 .ios-settings-scroll-container {
-  padding: 1.5rem;
+  padding: calc(1.5rem + env(safe-area-inset-top, 24px)) 1.5rem 1.5rem 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 0px;
@@ -2749,7 +2749,7 @@ body.authenticated .ios-bottom-nav {
 #settings-account-view {
   background-color: #f2f2f7 !important;
   color: #1c1c1e !important;
-  padding: 1.5rem !important;
+  padding: calc(1.5rem + env(safe-area-inset-top, 24px)) 1.5rem 1.5rem 1.5rem !important;
   min-height: 100% !important;
   display: flex !important;
   flex-direction: column !important;
@@ -2963,5 +2963,112 @@ body.authenticated .ios-bottom-nav {
   font-size: 1.1rem;
   font-weight: bold;
 }
+
+/* ==========================================================================
+   AuraApp Redesigned Settings Tab - iOS Dark Mode overrides
+   ========================================================================== */
+#tab-settings.dark-theme {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+#tab-settings.dark-theme .settings-main-title {
+  color: #ffffff !important;
+}
+
+#tab-settings.dark-theme .ios-settings-card-group {
+  background: #1c1c1e !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+}
+
+#tab-settings.dark-theme .ios-setting-row {
+  background: #1c1c1e !important;
+  border-bottom: 0.5px solid #2c2c2e !important;
+}
+
+#tab-settings.dark-theme .ios-setting-row:hover:not(.no-hover) {
+  background-color: #2c2c2e !important;
+}
+
+#tab-settings.dark-theme .ios-row-label,
+#tab-settings.dark-theme .ios-profile-name {
+  color: #ffffff !important;
+}
+
+#tab-settings.dark-theme .ios-row-detail-text,
+#tab-settings.dark-theme .ios-profile-subtext {
+  color: #8e8e93 !important;
+}
+
+#tab-settings.dark-theme .ios-toggle-slider {
+  background-color: #3a3a3c !important;
+}
+
+#tab-settings.dark-theme .ios-toggle-switch input:checked + .ios-toggle-slider {
+  background-color: #30d158 !important; /* iOS Native Dark Green status toggle */
+}
+
+/* Sub-view 2: Account Details Screen (Dark Theme overrides) */
+#tab-settings.dark-theme #settings-account-view {
+  background-color: #000000 !important;
+  color: #ffffff !important;
+}
+
+#tab-settings.dark-theme #settings-account-view .settings-sub-title,
+#tab-settings.dark-theme #settings-account-view .welcome-text {
+  color: #ffffff !important;
+}
+
+#tab-settings.dark-theme #settings-account-view .ios-back-btn {
+  color: #0a84ff !important; /* iOS Native Dark Mode Active Link Blue */
+}
+
+#tab-settings.dark-theme .ios-settings-field-group {
+  background: #1c1c1e !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+}
+
+#tab-settings.dark-theme .ios-settings-field-row {
+  background: #1c1c1e !important;
+  border-bottom: 0.5px solid #2c2c2e !important;
+}
+
+#tab-settings.dark-theme .ios-settings-field-row .field-label {
+  color: #ffffff !important;
+}
+
+#tab-settings.dark-theme .ios-settings-field-row .field-value {
+  color: #8e8e93 !important;
+}
+
+/* Selection modal sheets inside dark settings */
+#tab-settings.dark-theme .ios-modal-card {
+  background: #1c1c1e !important;
+  border-top: 0.5px solid #2c2c2e !important;
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.3) !important;
+}
+
+#tab-settings.dark-theme .ios-modal-title {
+  color: #ffffff !important;
+}
+
+#tab-settings.dark-theme .ios-modal-close-btn {
+  color: #0a84ff !important;
+}
+
+#tab-settings.dark-theme .ios-modal-option {
+  background: #2c2c2e !important;
+  color: #ffffff !important;
+}
+
+#tab-settings.dark-theme .ios-modal-option:hover {
+  background: #3a3a3c !important;
+}
+
+#tab-settings.dark-theme .ios-modal-option.selected {
+  background: #1a3b5c !important;
+  color: #0a84ff !important;
+}
+
 
 
