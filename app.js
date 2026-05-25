@@ -1594,7 +1594,14 @@ if (addExerciseBtn) {
   addExerciseBtn.addEventListener('click', () => {
     if (!activeWorkout) return;
     
-    // Guard: Can't add if there is any active exercise not completed
+    // Automatically filter out and discard any draft exercises that have 0 completed sets
+    activeWorkout.exercises = activeWorkout.exercises.filter(ex => {
+      return ex.sets.some(s => s.completed);
+    });
+    saveActiveWorkoutState();
+    renderExercises();
+    
+    // Guard: Can't add if there is any active exercise that has completed sets but is not finalized
     const hasActive = activeWorkout.exercises.some(ex => !ex.completed);
     if (hasActive) {
       alert('נא לסיים את התרגיל הנוכחי לפני הוספת תרגיל חדש.');
@@ -1619,7 +1626,8 @@ function renderExercises() {
   
   container.innerHTML = '';
   
-  const hasUncompleted = activeWorkout.exercises.some(ex => !ex.completed);
+  // An exercise only counts as uncompleted if it has at least one completed set but isn't finalized
+  const hasUncompleted = activeWorkout.exercises.some(ex => !ex.completed && ex.sets.some(s => s.completed));
   
   // Disable / Enable Add Exercise Button styles
   if (addExerciseBtn) {
