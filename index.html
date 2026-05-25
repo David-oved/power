@@ -268,23 +268,101 @@
 
         </div>
 
-        <!-- Tab 2: Workouts (Coming Soon) -->
+        <!-- Tab 2: Workouts -->
         <div id="tab-workouts" class="tab-pane">
-          <div class="coming-soon-card">
-            <span class="coming-soon-emoji">🏋️‍♂️</span>
-            <h3 class="coming-soon-title">מערכת האימונים</h3>
-            <p class="coming-soon-desc">בקרוב מאוד - תכנון ומעקב אחר אימוני הכושר שלך בעיצוב iOS 26 יוקרתי.</p>
-            <span class="badge-soon">COMING SOON</span>
+          
+          <!-- Idle View (Start Workout / Select Location) -->
+          <div id="workout-idle-view" class="workout-dashboard-card active" style="width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 2rem;">
+            <h2 class="settings-main-title" style="margin-bottom: 2rem; width: 100%; text-align: center;">אימונים</h2>
+            
+            <div class="workout-start-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; max-width: 320px;">
+              <!-- Initial Start Button -->
+              <button id="start-workout-btn" class="btn btn-primary start-main-btn" style="width: 100%; padding: 16px; font-size: 1.1rem; box-shadow: 0 4px 20px var(--electric-blue-glow);">
+                <span>🏋️‍♂️</span> התחל אימון חדש
+              </button>
+
+              <!-- Inline Location Selector (Hidden by default) -->
+              <div id="location-selector-grid" class="location-selector-grid hide" style="width: 100%; text-align: center;">
+                <h3 class="location-select-title" style="font-family: var(--font-display); font-size: 1.25rem; font-weight: 700; color: #ffffff; margin-bottom: 1.2rem;">איפה מתאמנים היום?</h3>
+                <div class="location-tiles" style="display: flex; gap: 15px; width: 100%; margin-bottom: 1.5rem;">
+                  <button id="select-gym-btn" class="location-tile">
+                    <span class="tile-icon">🏋️‍♂️</span>
+                    <span class="tile-label">חדר כושר</span>
+                  </button>
+                  <button id="select-park-btn" class="location-tile">
+                    <span class="tile-icon">🌳</span>
+                    <span class="tile-label">פארק</span>
+                  </button>
+                </div>
+                <button id="cancel-location-btn" class="btn-cancel-link" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 0.95rem; font-weight: 600;">ביטול</button>
+              </div>
+            </div>
           </div>
+
+          <!-- Active Workout View (Live Tracking Console) -->
+          <div id="workout-active-view" class="workout-active-view hide" style="width: 100%; height: 100%; display: flex; flex-direction: column;">
+            <div class="active-workout-header-bar">
+              <div class="active-location-badge">
+                <span id="active-location-icon">🏋️‍♂️</span>&nbsp;
+                <span id="active-location-text">חדר כושר</span>
+              </div>
+              <div class="active-timer-box">
+                ⏱️ <span id="active-timer">00:00:00</span>
+              </div>
+            </div>
+
+            <!-- Exercises dynamic list container -->
+            <div id="exercises-container" class="exercises-list-container">
+              <!-- Injected dynamically in app.js -->
+            </div>
+
+            <!-- Active Workout Control Buttons -->
+            <div class="active-workout-controls">
+              <button id="add-exercise-btn" class="btn btn-secondary add-ex-btn" style="flex: 1;">
+                <span>➕</span> הוספת תרגיל
+              </button>
+              <button id="finish-workout-btn" class="btn btn-primary finish-workout-btn" style="flex: 1; background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%) !important; box-shadow: 0 4px 15px rgba(22, 163, 74, 0.3) !important;">
+                <span>✓</span> סיום אימון
+              </button>
+            </div>
+          </div>
+
         </div>
 
-        <!-- Tab 3: Analytics (Coming Soon) -->
-        <div id="tab-analytics" class="tab-pane">
-          <div class="coming-soon-card">
-            <span class="coming-soon-emoji">📈</span>
-            <h3 class="coming-soon-title">מדדי התקדמות</h3>
-            <p class="coming-soon-desc">בקרוב מאוד - גרפים מתקדמים ודוחות ביצועים מותאמים אישית.</p>
-            <span class="badge-soon">COMING SOON</span>
+        <!-- Tab 3: Analytics (Data Tab) -->
+        <div id="tab-analytics" class="tab-pane" style="padding: 0 !important; align-items: stretch; justify-content: flex-start; height: 100%;">
+          <div class="ios-settings-card" style="width: 100%; max-width: none; height: 100%; padding: 0;">
+            <h2 class="settings-main-title">נתונים והיסטוריה</h2>
+            
+            <!-- Organized History List -->
+            <div id="workout-history-list" class="workout-history-list">
+              <!-- Injected dynamically in app.js -->
+            </div>
+          </div>
+
+          <!-- Workout Edit Modal Panel (Floating glassmorphic dialog, hidden by default) -->
+          <div id="workout-edit-modal" class="workout-modal-overlay hide">
+            <div class="workout-modal-card">
+              <div class="modal-header">
+                <button id="close-edit-modal-btn" class="btn-cancel-link" style="margin: 0; background: none; border: none; font-size: 0.95rem; font-weight: 700; color: var(--text-muted); cursor: pointer;">ביטול</button>
+                <h3 class="modal-title">עריכת אימון</h3>
+                <button id="save-edited-workout-btn" class="btn toast-refresh-btn" style="padding: 6px 14px !important; margin: 0; background: var(--electric-blue-light) !important; color: #ffffff !important; font-size: 0.85rem !important;">שמור</button>
+              </div>
+
+              <div id="modal-workout-meta" class="modal-workout-meta">
+                <!-- Location, Duration, and Date -->
+              </div>
+
+              <div id="modal-exercises-container" class="modal-exercises-container">
+                <!-- Editable Exercises list injected dynamically -->
+              </div>
+
+              <div class="modal-footer">
+                <button id="delete-workout-btn" class="btn btn-logout" style="width: 100%; background: var(--color-danger); box-shadow: 0 4px 15px var(--color-danger-glow);">
+                  🗑️ מחק אימון מההיסטוריה
+                </button>
+              </div>
+            </div>
           </div>
         </div>
 
