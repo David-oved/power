@@ -344,9 +344,14 @@
               </div>
 
               <!-- Custom Exercise Creator -->
-              <div class="custom-exercise-creator" style="padding: 15px 1.5rem; border-top: 1px solid rgba(255, 255, 255, 0.05); display: flex; gap: 10px; align-items: center; background: rgba(0,0,0,0.2);">
-                <input type="text" id="custom-exercise-name-input" placeholder="➕ שם תרגיל מותאם אישית..." style="flex: 1; padding: 10px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; color: #ffffff; text-align: right; direction: rtl;">
-                <button id="add-custom-exercise-btn" class="btn btn-primary" style="padding: 10px 16px; font-size: 0.9rem; font-weight: bold;">הוסף</button>
+              <div class="custom-exercise-creator" style="padding: 15px 1.5rem; border-top: 1px solid rgba(255, 255, 255, 0.05); display: flex; flex-direction: column; gap: 10px; background: rgba(0,0,0,0.2);">
+                <div style="display: flex; gap: 10px; width: 100%;">
+                  <input type="text" id="custom-exercise-name-input" placeholder="➕ שם תרגיל מותאם אישית..." style="flex: 1; padding: 10px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; color: #ffffff; text-align: right; direction: rtl;">
+                </div>
+                <div style="display: flex; gap: 10px; width: 100%;">
+                  <input type="text" id="custom-exercise-category-input" placeholder="🏷️ קטגוריה (חזה, גב, מתח, רגליים...)" style="flex: 1; padding: 10px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; color: #ffffff; text-align: right; direction: rtl;">
+                  <button id="add-custom-exercise-btn" class="btn btn-primary" style="padding: 10px 16px; font-size: 0.9rem; font-weight: bold; white-space: nowrap;">הוסף תרגיל</button>
+                </div>
               </div>
             </div>
           </div>
