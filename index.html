@@ -618,9 +618,14 @@
                       <span style="font-size: 1.5rem; margin-bottom: 4px;">🧘</span>
                       <span style="font-size: 0.85rem; font-weight: 700;">ליבה</span>
                     </button>
-                    <button class="muscle-card" data-category="מותאם אישית" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); color: #fff; cursor: pointer; transition: all 0.2s;">
+                  <button class="muscle-card" data-category="מותאם אישית" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); color: #fff; cursor: pointer; transition: all 0.2s;">
                       <span style="font-size: 1.5rem; margin-bottom: 4px;">✨</span>
-<div class="custom-ex-field-group">
+                      <span style="font-size: 0.85rem; font-weight: 700;">מותאם אישית</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="custom-ex-field-group">
                   <label class="custom-ex-field-label">אייקון (אופציונלי)</label>
                   <div id="custom-ex-emoji-selector" class="custom-ex-emoji-row">
                     <button class="emoji-pick-btn active" data-emoji="">ללא</button>
@@ -643,101 +648,97 @@
 
         <!-- Tab 3: Analytics (Data Tab) -->
         <div id="tab-analytics" class="tab-pane" style="padding: 0 !important; align-items: stretch; justify-content: flex-start; height: 100%;">
-          <div class="ios-analytics-scroll-container">
-            <h2 class="settings-main-title" style="margin-bottom: 1.2rem; padding: 0 1.5rem;">📈 מדדים ונתונים</h2>
-            
-            <!-- Premium iOS Segmented Control -->
-            <div class="segmented-control" data-active="overview">
-              <button class="segment-btn active" data-segment="overview">📊 במבט על</button>
-              <button class="segment-btn" data-segment="logs">📅 יומן אימונים</button>
-              <button class="segment-btn" data-segment="exercise">📈 ניתוח תרגיל</button>
-              <div class="segmented-indicator"></div>
-            </div>
+          
+          <!-- Sub-Tab 1: Workouts Log -->
+          <div id="sub-tab-workouts" class="sub-tab-pane active" style="width: 100%; height: 100%; display: flex; flex-direction: column; overflow: hidden;">
+            <div class="ios-analytics-scroll-container" style="flex: 1; overflow-y: auto; padding: 1.5rem 1.5rem calc(100px + env(safe-area-inset-bottom)) 1.5rem;">
+              <h2 class="settings-main-title" style="margin-bottom: 1.2rem; padding: 0;">📋 יומן אימונים</h2>
+              
+              <!-- Collapsible Advanced Filters Trigger Button -->
+              <button id="toggle-filters-btn" class="toggle-filters-btn" style="margin-left: 0; margin-right: 0; width: 100%;">
+                <span>🔍 סינון ומיון מתקדם</span>
+                <span class="arrow-icon">▼</span>
+              </button>
 
-            <!-- Collapsible Filters Trigger Button -->
-            <button id="toggle-filters-btn" class="toggle-filters-btn">
-              <span>🔍 סינון נתונים מתקדם</span>
-              <span class="arrow-icon">▼</span>
-            </button>
+              <!-- Collapsible Advanced Filters Container -->
+              <div id="collapsible-filters-container" class="collapsible-filters-container">
+                <div class="filters-panel-card" style="background: rgba(20,20,24,0.6); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 1.2rem; display: flex; flex-direction: column; gap: 12px; direction: rtl; text-align: right; margin: 0 0 1rem 0 !important;">
+                  
+                  <!-- Filter Location -->
+                  <div class="filter-field">
+                    <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px;">📍 מיקום האימון</label>
+                    <select id="filter-location-select" class="premium-filter-select" style="width: 100%;">
+                      <option value="all">כל המיקומים 📍</option>
+                      <option value="gym">🏋️‍♂️ חדר כושר</option>
+                      <option value="park">🌳 פארק</option>
+                    </select>
+                  </div>
+                  
+                  <!-- Filter Date Range -->
+                  <div class="filter-field">
+                    <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px;">📅 טווח תאריכים</label>
+                    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
+                      <button class="filter-chip active" data-time="all">הכל</button>
+                      <button class="filter-chip" data-time="7">7 ימים אחרונים</button>
+                      <button class="filter-chip" data-time="30">30 ימים אחרונים</button>
+                      <button class="filter-chip" data-time="custom">מותאם 📅</button>
+                    </div>
+                    <div id="custom-date-inputs" style="display: none; gap: 10px; align-items: center; margin-top: 8px;">
+                      <input type="date" id="filter-start-date" class="date-picker-input" style="flex: 1;">
+                      <span style="color: var(--text-muted); font-size: 0.85rem;">עד</span>
+                      <input type="date" id="filter-end-date" class="date-picker-input" style="flex: 1;">
+                    </div>
+                  </div>
 
-            <!-- Collapsible Filters Container -->
-            <div id="collapsible-filters-container" class="collapsible-filters-container">
-              <!-- Multi-Filter Control Panel -->
-              <div class="filters-panel-card" style="background: rgba(20,20,24,0.6); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 1.2rem;">
-                <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
-                  <span>🔍 מסננים פעילים</span>
-                </div>
-                
-                <!-- Quick Date Chips & Custom Range -->
-                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">
-                  <button class="filter-chip active" data-time="all">הכל</button>
-                  <button class="filter-chip" data-time="7">7 ימים אחרונים</button>
-                  <button class="filter-chip" data-time="30">30 ימים אחרונים</button>
-                  <button class="filter-chip" data-time="custom">מותאם 📅</button>
-                </div>
-                
-                <!-- Custom Date Range Inputs (collapsible, display:none by default unless custom clicked) -->
-                <div id="custom-date-inputs" style="display: none; gap: 10px; margin-bottom: 12px; align-items: center;">
-                  <input type="date" id="filter-start-date" class="date-picker-input">
-                  <span style="color: var(--text-muted); font-size: 0.85rem;">עד</span>
-                  <input type="date" id="filter-end-date" class="date-picker-input">
-                </div>
+                  <!-- Filter Muscle Group -->
+                  <div class="filter-field">
+                    <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px;">💪 קבוצת שריר מטרה</label>
+                    <select id="filter-muscle-select" class="premium-filter-select" style="width: 100%;">
+                      <option value="all">כל השרירים 💪</option>
+                      <option value="חזה">חזה</option>
+                      <option value="גב">גב</option>
+                      <option value="כתפיים">כתפיים</option>
+                      <option value="רגליים">רגליים</option>
+                      <option value="ידיים">ידיים</option>
+                      <option value="בטן">בטן</option>
+                      <option value="אירובי">אירובי</option>
+                      <option value="ליבה">ליבה</option>
+                      <option value="אחר">אחר</option>
+                    </select>
+                  </div>
 
-                <!-- Location & Target Muscle Dropdowns -->
-                <div style="display: flex; gap: 10px; width: 100%;">
-                  <select id="filter-location-select" class="premium-filter-select" style="flex: 1;">
-                    <option value="all">כל המיקומים 📍</option>
-                    <option value="gym">🏋️‍♂️ חדר כושר</option>
-                    <option value="park">🌳 פארק</option>
-                  </select>
-                  <select id="filter-muscle-select" class="premium-filter-select" style="flex: 1;">
-                    <option value="all">כל השרירים 💪</option>
-                    <option value="חזה">חזה</option>
-                    <option value="גב">גב</option>
-                    <option value="כתפיים">כתפיים</option>
-                    <option value="רגליים">רגליים</option>
-                    <option value="ידיים">ידיים</option>
-                    <option value="בטן">בטן</option>
-                  </select>
+                  <!-- Sort / Progress Preference -->
+                  <div class="filter-field">
+                    <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px;">💪 מיון לפי התקדמות ונפח</label>
+                    <select id="filter-sort-select" class="premium-filter-select" style="width: 100%;">
+                      <option value="date-desc">⏱️ כרונולוגי (חדש תחילה)</option>
+                      <option value="prs-first">🏆 שיאים אישיים (PRs) תחילה</option>
+                      <option value="volume-desc">📊 נפח עבודה גבוה תחילה</option>
+                    </select>
+                  </div>
+
                 </div>
+              </div>
+
+              <!-- Chronological Workouts List Container -->
+              <div id="workouts-log-container" style="display: flex; flex-direction: column; gap: 12px; margin-top: 0.5rem;">
+                <!-- Dynamically loaded workouts list -->
               </div>
             </div>
+          </div>
 
-            <!-- Segment Panes -->
-            
-            <!-- 1. OVERVIEW PANE -->
-            <div id="segment-overview-pane" class="analytics-segment-pane active">
-              <!-- 2. Consistency Heatmap View -->
-              <div id="analytics-heatmap-view" class="analytics-sub-view" style="background: rgba(20,20,24,0.6); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 1.2rem;">
-                <h3 style="margin: 0 0 10px 0; font-size: 1rem; font-weight: 800; color: #ffffff; direction: rtl; text-align: right;">🔥 התמדה שנתית (Heatmap)</h3>
-                <p style="color: var(--text-muted); font-size: 0.78rem; margin-bottom: 12px; direction: rtl; text-align: right;">עצימות האימונים שלך במהלך 52 השבועות האחרונים:</p>
-                <div class="heatmap-panel" style="width: 100%; overflow-x: auto; padding-bottom: 8px;">
-                  <svg id="heatmap-svg" class="heatmap-svg" style="width: 530px; height: 90px; overflow: visible; display: block; margin: 0 auto;"></svg>
-                </div>
-              </div>
+          <!-- Sub-Tab 2: Calendar & Planner -->
+          <div id="sub-tab-calendar" class="sub-tab-pane" style="width: 100%; height: 100%; display: none; flex-direction: column; overflow: hidden;">
+            <div class="ios-analytics-scroll-container" style="flex: 1; overflow-y: auto; padding: 1.5rem 1.5rem calc(100px + env(safe-area-inset-bottom)) 1.5rem;">
+              <h2 class="settings-main-title" style="margin-bottom: 1.2rem; padding: 0;">📅 לוח שנה ומתזמן</h2>
+              
+              <!-- Schedule Workout Trigger Button -->
+              <button id="schedule-workout-trigger-btn" class="btn btn-primary schedule-trigger-btn" style="width: 100%; margin-bottom: 1.5rem; padding: 14px; font-weight: 800; border-radius: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 1rem; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border: none; box-shadow: 0 4px 15px rgba(249, 115, 22, 0.35); cursor: pointer; color: #fff;">
+                <span>➕</span> קבע אימון עתידי
+              </button>
 
-              <!-- 3. Muscle volume distribution split -->
-              <div id="analytics-muscle-split-view" class="analytics-sub-view" style="background: rgba(20,20,24,0.6); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 1.2rem;">
-                <h3 style="margin: 0 0 12px 0; font-size: 1rem; font-weight: 800; color: #ffffff; direction: rtl; text-align: right;">🍗 חלוקת נפח עבודה שבועי</h3>
-                <div id="muscle-splits-container" style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 16px;">
-                  <!-- Generated dynamically -->
-                </div>
-                <div class="muscle-recommendation-box" id="muscle-recommendation-box" style="padding: 12px; background: rgba(220,38,38,0.08); border: 1px solid rgba(220,38,38,0.2); border-radius: 12px; font-size: 0.82rem; color: #fca5a5; text-align: right; direction: rtl;">
-                  <!-- Generated dynamically -->
-                </div>
-              </div>
-            </div>
-
-            <!-- 2. LOGS PANE -->
-            <div id="segment-logs-pane" class="analytics-segment-pane">
-              <!-- Logs Compact Switcher -->
-              <div class="logs-compact-switcher" style="display: flex; gap: 8px; background: rgba(255, 255, 255, 0.04); padding: 4px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.06); margin-bottom: 1rem;">
-                <button class="logs-switch-btn active" data-subview="calendar" style="flex: 1; padding: 10px; font-weight: 700; border-radius: 9px; border: none; cursor: pointer; transition: all 0.2s; font-family: var(--font-sans); background: var(--electric-blue-light); color: #fff;">לוח שנה 📅</button>
-                <button class="logs-switch-btn" data-subview="list" style="flex: 1; padding: 10px; font-weight: 700; border-radius: 9px; border: none; cursor: pointer; transition: all 0.2s; font-family: var(--font-sans); background: transparent; color: var(--text-muted);">רשימה 📋</button>
-              </div>
-
-              <!-- 1. Monthly Calendar View -->
-              <div id="analytics-calendar-view" class="analytics-sub-view" style="background: rgba(20,20,24,0.6); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 1.2rem;">
+              <!-- Monthly Calendar View -->
+              <div id="analytics-calendar-view" class="analytics-sub-view" style="background: rgba(20,20,24,0.6); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 1.2rem; margin-bottom: 1.5rem;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; direction: rtl;">
                   <button id="calendar-prev-month" class="calendar-nav-arrow" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); width: 34px; height: 34px; border-radius: 50%; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;">→</button>
                   <h3 id="calendar-month-label" style="margin: 0; font-size: 1.05rem; font-weight: 800; color: #ffffff;">מאי 2026</h3>
@@ -751,74 +752,205 @@
                 </div>
               </div>
 
-              <!-- 4. Accordion History list -->
-              <div id="analytics-history-list-view" class="analytics-sub-view hide" style="background: rgba(20,20,24,0.6); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 1.2rem;">
-                <h3 style="margin: 0 0 12px 0; font-size: 1rem; font-weight: 800; color: #ffffff; direction: rtl; text-align: right;">📋 היסטוריית אימונים מורחבת</h3>
-                <div id="accordion-history-container">
+              <!-- Consistency Heatmap View -->
+              <div id="analytics-heatmap-view" class="analytics-sub-view" style="background: rgba(20,20,24,0.6); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 1.2rem; margin-bottom: 1.5rem;">
+                <h3 style="margin: 0 0 10px 0; font-size: 1rem; font-weight: 800; color: #ffffff; direction: rtl; text-align: right;">🔥 התמדה שנתית (Heatmap)</h3>
+                <p style="color: var(--text-muted); font-size: 0.78rem; margin-bottom: 12px; direction: rtl; text-align: right;">עצימות האימונים שלך במהלך 52 השבועות האחרונים:</p>
+                <div class="heatmap-panel" style="width: 100%; overflow-x: auto; padding-bottom: 8px;">
+                  <svg id="heatmap-svg" class="heatmap-svg" style="width: 530px; height: 90px; overflow: visible; display: block; margin: 0 auto;"></svg>
+                </div>
+              </div>
+
+              <!-- Muscle volume distribution split -->
+              <div id="analytics-muscle-split-view" class="analytics-sub-view" style="background: rgba(20,20,24,0.6); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 1.2rem;">
+                <h3 style="margin: 0 0 12px 0; font-size: 1rem; font-weight: 800; color: #ffffff; direction: rtl; text-align: right;">🍗 חלוקת נפח עבודה שבועי</h3>
+                <div id="muscle-splits-container" style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 16px;">
+                  <!-- Generated dynamically -->
+                </div>
+                <div class="muscle-recommendation-box" id="muscle-recommendation-box" style="padding: 12px; background: rgba(220,38,38,0.08); border: 1px solid rgba(220,38,38,0.2); border-radius: 12px; font-size: 0.82rem; color: #fca5a5; text-align: right; direction: rtl;">
                   <!-- Generated dynamically -->
                 </div>
               </div>
             </div>
+          </div>
 
-            <!-- 3. EXERCISE PANE -->
-            <div id="segment-exercise-pane" class="analytics-segment-pane">
-              <!-- Searchable Exercise Dropdown Picker -->
-              <div style="position: relative; margin-bottom: 1.5rem;">
-                <input type="text" id="analytics-exercise-search" class="analytics-search-input" placeholder="🔍 חפש תרגיל לניתוח..." autocomplete="off">
-                <div id="analytics-suggestions-dropdown" class="suggestions-dropdown hide"></div>
+          <!-- Sub-Tab 3: Exercises Manager -->
+          <div id="sub-tab-exercises" class="sub-tab-pane" style="width: 100%; height: 100%; display: none; flex-direction: column; overflow: hidden;">
+            <div class="ios-analytics-scroll-container" style="flex: 1; overflow-y: auto; padding: 1.5rem 1.5rem calc(100px + env(safe-area-inset-bottom)) 1.5rem;">
+              <h2 class="settings-main-title" style="margin-bottom: 1.2rem; padding: 0;">ניהול ומעקב תרגילים</h2>
+              
+              <!-- Add New Exercise Button -->
+              <button id="add-new-global-exercise-btn" class="btn btn-primary" style="width: 100%; margin-bottom: 1.5rem; padding: 14px; font-weight: 800; border-radius: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 1rem; background: linear-gradient(135deg, var(--electric-blue) 0%, var(--electric-blue-light) 100%); border: none; box-shadow: 0 4px 15px var(--electric-blue-glow-subtle); cursor: pointer; color: #fff;">
+                <span>➕ הוסף תרגיל חדש לנצח</span>
+              </button>
+
+              <!-- Advanced Filters Card -->
+              <div class="analytics-sub-view" style="background: rgba(20,20,24,0.6); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 1.2rem; margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 10px; direction: rtl;">
+                <div class="filter-field">
+                  <input type="text" id="exercises-search-input-tab3" class="analytics-search-input" placeholder="🔍 חפש תרגיל..." autocomplete="off" style="width: 100%; margin-bottom: 0;">
+                </div>
+                <div class="filter-field">
+                  <select id="exercises-muscle-filter-tab3" class="premium-filter-select" style="width: 100%;">
+                    <option value="all">💪 כל קבוצות השרירים</option>
+                    <option value="חזה">🍒 חזה</option>
+                    <option value="גב">🦅 גב</option>
+                    <option value="כתפיים">🛡️ כתפיים</option>
+                    <option value="רגליים">🦵 רגליים</option>
+                    <option value="ידיים">💪 ידיים</option>
+                    <option value="בטן">🍫 בטן</option>
+                    <option value="אירובי">🏃‍♂️ אירובי</option>
+                    <option value="ליבה">🧘‍♂️ ליבה</option>
+                    <option value="אחר">🧩 אחר</option>
+                  </select>
+                </div>
+                <div class="filter-field">
+                  <select id="exercises-type-filter-tab3" class="premium-filter-select" style="width: 100%;">
+                    <option value="all">🧩 כל סוגי התרגילים</option>
+                    <option value="standard">🏛️ תרגילים סטנדרטיים</option>
+                    <option value="custom">✨ תרגילים מותאמים אישית</option>
+                  </select>
+                </div>
               </div>
 
-              <!-- Single Exercise Progression Dashboard (collapsible, active when exercise selected) -->
-              <div id="analytics-exercise-dashboard" class="analytics-exercise-dashboard hide" style="background: rgba(20,20,24,0.7); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; padding: 1.2rem; margin-bottom: 1.5rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; direction: rtl;">
-                  <h3 id="dashboard-exercise-name" style="margin: 0; font-size: 1.1rem; font-weight: 800; color: #ffffff;">לחיצת חזה</h3>
-                  <button id="clear-dashboard-btn" class="btn-cancel-link" style="background: none; border: none; font-size: 0.85rem; font-weight: 700; color: #f87171; cursor: pointer; margin-top: 0;">✕ נקה</button>
-                </div>
+              <!-- Dynamic Exercises Grid Container -->
+              <div id="exercises-list-grid-tab3" class="exercises-list-grid-tab3" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 1.5rem;">
+                <!-- Generated dynamically in app.js -->
+              </div>
+            </div>
 
-                <!-- Chart Switcher Tabs -->
-                <div style="display: flex; gap: 8px; margin-bottom: 16px;">
-                  <button class="chart-tab active" data-chart="1rm">1RM משוער 🏆</button>
-                  <button class="chart-tab" data-chart="weight">משקל שיא 🏋️‍♂️</button>
-                  <button class="chart-tab" data-chart="volume">נפח כולל 📊</button>
+            <!-- Detailed Exercise Inspector Panel / Overlay modal (glassmorphic style) -->
+            <div id="exercise-inspector-modal" class="workout-modal-overlay hide" style="z-index: 1550;">
+              <div class="workout-modal-card glass-modal-card" style="max-width: 440px; width: 95%; display: flex; flex-direction: column; height: 90vh; max-height: 90vh; overflow: hidden; border-radius: 28px 28px 0 0; position: absolute; bottom: 0; animation: slide-up-sheet 0.4s cubic-bezier(0.16, 1, 0.3, 1);">
+                <div class="modal-header" style="padding: 18px 1.5rem 12px 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.06);">
+                  <button id="close-exercise-inspector-btn" class="btn-cancel-link" style="background: none; border: none; font-size: 0.95rem; font-weight: 700; color: var(--text-muted); cursor: pointer;">סגור</button>
+                  <div style="text-align: right; direction: rtl; display: flex; flex-direction: column; align-items: flex-end;">
+                    <h3 id="inspector-exercise-name" style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #ffffff;">שם התרגיל</h3>
+                    <span id="inspector-exercise-category" class="ex-category-badge" style="margin-top: 4px; display: inline-block;">קטגוריה</span>
+                  </div>
+                  <span style="width: 40px;"></span>
                 </div>
+                
+                <div class="modal-body" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; flex: 1; direction: rtl; text-align: right;">
+                  
+                  <!-- Progression Chart Tabs -->
+                  <div class="chart-tabs-tab3" style="display: flex; gap: 8px; margin-bottom: 8px;">
+                    <button class="chart-tab active" data-chart-tab3="1rm" style="flex: 1; padding: 10px 6px; font-size: 0.82rem; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.2s; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); color: var(--text-muted);">1RM משוער 🏆</button>
+                    <button class="chart-tab" data-chart-tab3="weight" style="flex: 1; padding: 10px 6px; font-size: 0.82rem; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.2s; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); color: var(--text-muted);">משקל שיא 🏋️‍♂️</button>
+                    <button class="chart-tab" data-chart-tab3="volume" style="flex: 1; padding: 10px 6px; font-size: 0.82rem; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.2s; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); color: var(--text-muted);">נפח כולל 📊</button>
+                  </div>
 
-                <!-- Bezier Chart Container -->
-                <div style="width: 100%; height: 160px; background: rgba(0,0,0,0.25); border-radius: 14px; margin-bottom: 16px; position: relative;">
-                  <svg id="bezier-chart-svg" style="width: 100%; height: 100%; overflow: visible; padding: 10px 0;">
-                    <!-- Gradient definitions -->
-                    <defs>
-                      <linearGradient id="chart-gradient-fill" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stop-color="var(--electric-blue-light)" stop-opacity="0.4"></stop>
-                        <stop offset="100%" stop-color="var(--electric-blue)" stop-opacity="0.0"></stop>
-                      </linearGradient>
-                    </defs>
-                    <g id="chart-gridlines"></g>
-                    <path id="chart-area-path" class="bezier-chart-area" d=""></path>
-                    <path id="chart-line-path" class="bezier-chart-path" d=""></path>
-                    <g id="chart-points-group"></g>
-                  </svg>
-                  <div id="chart-no-data" style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.85rem; direction: rtl;">אין מספיק נתונים להצגת תרשים</div>
-                </div>
+                  <!-- Bezier SVG Chart Container -->
+                  <div style="width: 100%; height: 180px; background: rgba(0,0,0,0.25); border-radius: 16px; margin-bottom: 8px; position: relative; border: 1px solid rgba(255,255,255,0.03);">
+                    <svg id="bezier-chart-svg-tab3" style="width: 100%; height: 100%; overflow: visible; padding: 10px 0;">
+                      <defs>
+                        <linearGradient id="chart-gradient-fill-tab3" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stop-color="var(--electric-blue-light)" stop-opacity="0.4"></stop>
+                          <stop offset="100%" stop-color="var(--electric-blue)" stop-opacity="0.0"></stop>
+                        </linearGradient>
+                      </defs>
+                      <g id="chart-gridlines-tab3"></g>
+                      <path id="chart-area-path-tab3" class="bezier-chart-area" d="" fill="url(#chart-gradient-fill-tab3)"></path>
+                      <path id="chart-line-path-tab3" class="bezier-chart-path" d="" stroke="var(--electric-blue)" stroke-width="3.5" fill="none"></path>
+                      <g id="chart-points-group-tab3"></g>
+                    </svg>
+                    <div id="chart-no-data-tab3" style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.85rem; direction: rtl;">אין מספיק נתונים להצגת תרשים</div>
+                  </div>
 
-                <!-- Mini Stats Grid -->
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
-                  <div class="stat-mini-card">
-                    <span class="stat-label">שיא אישי (PR)</span>
-                    <span class="stat-value" id="dashboard-pr-value">--</span>
+                  <!-- Mini Statistics Cards -->
+                  <div class="stats-grid-tab3" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+                    <div class="stat-mini-card">
+                      <span class="stat-label">שיא אישי (PR) 🏋️‍♂️</span>
+                      <span class="stat-value" id="inspector-pr-val">--</span>
+                    </div>
+                    <div class="stat-mini-card">
+                      <span class="stat-label">1RM משוער 🏆</span>
+                      <span class="stat-value" id="inspector-1rm-val">--</span>
+                    </div>
+                    <div class="stat-mini-card">
+                      <span class="stat-label">נפח אימון שיא 📊</span>
+                      <span class="stat-value" id="inspector-vol-val">--</span>
+                    </div>
+                    <div class="stat-mini-card">
+                      <span class="stat-label">בוצע • סטים 🔄</span>
+                      <span class="stat-value" id="inspector-performed-val">--</span>
+                    </div>
                   </div>
-                  <div class="stat-mini-card">
-                    <span class="stat-label">1RM מוערך</span>
-                    <span class="stat-value" id="dashboard-1rm-value">--</span>
+
+                  <!-- PR History Timeline -->
+                  <h4 style="margin: 10px 0 0 0; font-size: 1rem; font-weight: 800; color: #ffffff;">היסטוריית שיאים אישיים 🏆</h4>
+                  <div id="pr-history-timeline-tab3" class="pr-history-timeline" style="display: flex; flex-direction: column; gap: 10px; max-height: 160px; overflow-y: auto; padding-right: 4px;">
+                    <!-- Dynamically populated in app.js -->
                   </div>
-                  <div class="stat-mini-card">
-                    <span class="stat-label">סך הכל נפח</span>
-                    <span class="stat-value" id="dashboard-vol-value">--</span>
-                  </div>
+
+                  <!-- Delete Global Exercise Button -->
+                  <button id="delete-global-exercise-btn" class="btn btn-logout" style="width: 100%; background: var(--color-danger); box-shadow: 0 4px 15px var(--color-danger-glow); margin-top: 15px; border: none; font-weight: 700; color: white;">
+                    🗑️ מחק תרגיל זה לנצח
+                  </button>
+
                 </div>
               </div>
             </div>
 
-          </div><!-- end .ios-analytics-scroll-container -->
+            <!-- Simple Add New Exercise Modal -->
+            <div id="add-global-exercise-modal" class="workout-modal-overlay hide" style="z-index: 1600; align-items: center; justify-content: center;">
+              <div class="workout-modal-card glass-modal-card" style="max-width: 400px; width: 92%; border-radius: 28px; padding: 1.5rem; border: 1px solid rgba(255, 255, 255, 0.1);">
+                <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; direction: rtl;">
+                  <h3 style="font-size: 1.25rem; font-weight: 800; color: #ffffff; margin: 0;">הוספת תרגיל לנצח ✨</h3>
+                  <button id="close-add-global-exercise-modal-btn" class="btn-cancel-link" style="background: none; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; padding: 0 4px; line-height: 1;">&times;</button>
+                </div>
+                
+                <div style="display: flex; flex-direction: column; gap: 1.2rem; direction: rtl; text-align: right;">
+                  <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+                    <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">שם התרגיל</label>
+                    <input type="text" id="new-global-exercise-name" placeholder="למשל: כפיפות ברכיים בשכיבה" class="analytics-search-input" style="width: 100%; margin: 0; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; padding: 12px; text-align: right;" required>
+                  </div>
+                  
+                  <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+                    <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">קבוצת שריר</label>
+                    <select id="new-global-exercise-muscle" class="premium-filter-select" style="width: 100%;">
+                      <option value="חזה">🍒 חזה</option>
+                      <option value="גב">🦅 גב</option>
+                      <option value="כתפיים">🛡️ כתפיים</option>
+                      <option value="רגליים">🦵 רגליים</option>
+                      <option value="ידיים">💪 ידיים</option>
+                      <option value="בטן">🍫 בטן</option>
+                      <option value="אירובי">🏃‍♂️ אירובי</option>
+                      <option value="ליבה">🧘‍♂️ ליבה</option>
+                      <option value="אחר" selected>🧩 אחר</option>
+                    </select>
+                  </div>
+
+                  <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+                    <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">אייקון (emoji)</label>
+                    <input type="text" id="new-global-exercise-emoji" placeholder="למשל: 🦵" class="analytics-search-input" style="width: 100%; margin: 0; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; padding: 12px; text-align: right;">
+                  </div>
+
+                  <button id="save-new-global-exercise-btn" class="btn btn-primary" style="width: 100%; padding: 14px; font-weight: bold; border-radius: 14px; margin-top: 0.5rem; background: linear-gradient(135deg, var(--electric-blue) 0%, var(--electric-blue-light) 100%); border: none;">
+                    💾 שמור תרגיל לנצח
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sub-Tab 4: AI Coach -->
+          <div id="sub-tab-ai" class="sub-tab-pane" style="width: 100%; height: 100%; display: none; flex-direction: column; overflow: hidden; align-items: center; justify-content: center; padding: 1.5rem; box-sizing: border-box;">
+            <div class="aura-ai-card glassmorphic-card" style="margin: auto; max-width: 360px; width: 100%; text-align: center; cursor: pointer; position: relative;">
+              <div class="aura-ai-orb animate-orb"></div>
+              <div class="aura-ai-content" style="position: relative; z-index: 2; padding: 2.5rem 1.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px;">
+                <div class="coming-soon-badge-container" style="margin-bottom: 0.5rem;">
+                  <span class="coming-soon-badge-glow animated-pulse-badge">בקרוב • COMING SOON</span>
+                </div>
+                <div class="aura-ai-avatar-container" style="position: relative; margin-bottom: 1rem;">
+                  <span class="aura-ai-emoji" style="font-size: 3.5rem; display: inline-block; position: relative; z-index: 2;">🤖</span>
+                </div>
+                <h3 class="aura-ai-title" style="color: #fff; font-size: 1.7rem; font-weight: 900; letter-spacing: 1px; margin: 0; background: linear-gradient(135deg, #ffffff 30%, #fca5a5 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">AURA AI COACH</h3>
+                <p class="aura-ai-desc" style="color: rgba(255, 255, 255, 0.7); font-size: 0.95rem; line-height: 1.6; direction: rtl; text-align: center; margin: 0.5rem 0 0 0;">
+                  בקרוב מאוד - מאמן ה-AI האישי שלך שמנתח את האימונים שלך, מזהה חולשות, ומציע המלצות תזונה ואימון מותאמות אישית בזמן אמת!
+                </p>
+              </div>
+            </div>
+          </div>
 
           <!-- Workout Edit Modal Panel (Floating glassmorphic dialog, hidden by default) -->
           <div id="workout-edit-modal" class="workout-modal-overlay hide" style="z-index: 1400;">
@@ -902,6 +1034,53 @@
         </button>
       </div>
     </nav>
+
+    <!-- Dedicated Metrics Sub-Navigation Bar -->
+    <nav id="metrics-sub-nav" class="ios-bottom-nav nav-hidden" style="z-index: 1200;">
+      <div class="nav-container sub-nav-container" style="display: flex; width: 100%; justify-content: space-between; align-items: center;">
+        
+        <!-- Styled Back Button (Leftmost in RTL / rightmost visually but first logically for RTL structure) -->
+        <button id="sub-nav-back-btn" class="nav-tab sub-nav-back" aria-label="Back to Main Menu" style="flex: 0 0 auto;">
+          <div class="tab-icon-wrapper" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <span class="tab-icon" style="font-size: 1.3rem; opacity: 1; filter: none; color: var(--electric-blue-light); margin-bottom: 2px;">←</span>
+            <span class="tab-label" style="opacity: 1; color: var(--electric-blue-light); font-size: 0.72rem; font-weight: 700;">חזרה</span>
+          </div>
+        </button>
+
+        <!-- Sub Tab 1: Workouts Log -->
+        <button class="nav-tab active" data-sub-tab="workouts" aria-label="Workouts Log" style="flex: 1;">
+          <div class="tab-icon-wrapper" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <span class="tab-icon" style="font-size: 1.3rem; margin-bottom: 2px;">📋</span>
+            <span class="tab-label" style="font-size: 0.72rem; font-weight: 700;">אימונים</span>
+          </div>
+        </button>
+
+        <!-- Sub Tab 2: Calendar -->
+        <button class="nav-tab" data-sub-tab="calendar" aria-label="Calendar" style="flex: 1;">
+          <div class="tab-icon-wrapper" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <span class="tab-icon" style="font-size: 1.3rem; margin-bottom: 2px;">📅</span>
+            <span class="tab-label" style="font-size: 0.72rem; font-weight: 700;">לוח שנה</span>
+          </div>
+        </button>
+
+        <!-- Sub Tab 3: Exercises -->
+        <button class="nav-tab" data-sub-tab="exercises" aria-label="Exercises" style="flex: 1;">
+          <div class="tab-icon-wrapper" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <span class="tab-icon" style="font-size: 1.3rem; margin-bottom: 2px;">💪</span>
+            <span class="tab-label" style="font-size: 0.72rem; font-weight: 700;">תרגילים</span>
+          </div>
+        </button>
+
+        <!-- Sub Tab 4: AI -->
+        <button class="nav-tab" data-sub-tab="ai" aria-label="AI Coach" style="flex: 1;">
+          <div class="tab-icon-wrapper" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
+            <span class="tab-icon" style="font-size: 1.3rem; margin-bottom: 2px;">🤖</span>
+            <span class="tab-label" style="font-size: 0.72rem; font-weight: 700;">AI</span>
+          </div>
+        </button>
+
+      </div>
+    </nav>
   </div>
 
   <!-- Premium Floating Glassmorphic Rest Timer -->
@@ -971,6 +1150,53 @@
           <!-- Injected dynamically like: <span class="plate-chip">20 ק״ג x 1</span> -->
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- Schedule Future Workout Modal -->
+  <div id="schedule-workout-modal" class="workout-modal-overlay hide" style="z-index: 1550; align-items: center; justify-content: center;">
+    <div class="workout-modal-card glass-modal-card" style="max-width: 400px; width: 92%; border-radius: 24px; padding: 1.5rem; border: 1px solid rgba(255, 255, 255, 0.1);">
+      <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; direction: rtl;">
+        <h3 style="font-size: 1.25rem; font-weight: 800; color: #ffffff; margin: 0; display: flex; align-items: center; gap: 8px;">📅 קביעת אימון עתידי</h3>
+        <button id="close-schedule-workout-btn" class="btn-cancel-link" style="background: none; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; padding: 0 4px; line-height: 1;">&times;</button>
+      </div>
+      
+      <form id="schedule-workout-form" style="display: flex; flex-direction: column; gap: 1rem; direction: rtl; text-align: right;">
+        
+        <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+          <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">מיקום / סוג אימון</label>
+          <select id="schedule-location-select" class="premium-filter-select" style="width: 100%; text-align: right;">
+            <option value="gym">🏋️‍♂️ חדר כושר</option>
+            <option value="park">🌳 פארק</option>
+            <option value="custom">✍️ סוג אימון מותאם אישית...</option>
+          </select>
+          <input type="text" id="schedule-custom-location" placeholder="שם סוג האימון (למשל: אימון ביתי)" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; color: #ffffff; text-align: right; direction: rtl; outline: none; display: none;">
+        </div>
+
+        <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+          <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">תאריך</label>
+          <input type="date" id="schedule-date" class="date-picker-input" style="width: 100%; text-align: center;" required>
+        </div>
+
+        <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+          <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">שעה מדויקת</label>
+          <input type="time" id="schedule-time" class="date-picker-input" style="width: 100%; text-align: center;" required>
+        </div>
+
+        <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+          <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">זמן תזכורת</label>
+          <select id="schedule-reminder-select" class="premium-filter-select" style="width: 100%; text-align: right;">
+            <option value="0">בדיוק בזמן ⏱️</option>
+            <option value="15">15 דקות לפני 🔔</option>
+            <option value="60">שעה לפני ⏰</option>
+            <option value="180">3 שעות לפני 📢</option>
+          </select>
+        </div>
+
+        <button type="submit" id="save-scheduled-workout-btn" class="btn btn-primary" style="width: 100%; padding: 14px; font-weight: bold; border-radius: 14px; margin-top: 1rem; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border: none; box-shadow: 0 4px 15px rgba(249, 115, 22, 0.3);">
+          💾 שמור ותזמן
+        </button>
+      </form>
     </div>
   </div>
 
