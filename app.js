@@ -497,6 +497,24 @@ if (firebaseEnabled) {
       if (typeof initWorkouts === 'function') initWorkouts();
       switchScreen(true);
 
+      // Check for pending email link to Google auth
+      const pendingLinkEmail = sessionStorage.getItem('pending_link_email');
+      const pendingLinkPassword = sessionStorage.getItem('pending_link_password');
+      if (pendingLinkEmail && pendingLinkPassword && user.email === pendingLinkEmail) {
+        sessionStorage.removeItem('pending_link_email');
+        sessionStorage.removeItem('pending_link_password');
+        const credential = EmailAuthProvider.credential(user.email, pendingLinkPassword);
+        linkWithCredential(user, credential)
+          .then(() => {
+            alert("החשבון קושר בהצלחה! מעתה תוכל להתחבר הן עם Google והן עם אימייל וסיסמה. ✨");
+            updateAuthUI();
+          })
+          .catch((linkErr) => {
+            console.error("Failed to automatically link pending email/password credentials:", linkErr);
+            alert("קישור החשבון האוטומטי נכשל. תוכל לקשר את החשבון ידנית דרך מסך ההגדרות.");
+          });
+      }
+
       // Trigger notification if it's a real-time transition, and we haven't welcomed them in this session
       const hasBeenWelcomed = sessionStorage.getItem('aura_session_welcomed');
       if (isLoginTransition && !hasBeenWelcomed && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
@@ -927,6 +945,18 @@ if (emailAuthForm) {
       if (authError.code === 'auth/invalid-credential' || authError.code === 'auth/user-not-found' || authError.code === 'auth/wrong-password') {
         userFriendlyMessage = "אימייל או סיסמה לא נכונים.";
       } else if (authError.code === 'auth/email-already-in-use') {
+        if (emailAuthMode === "signup") {
+          const wantToLink = confirm("נראה שהאימייל הזה כבר מחובר דרך Google. האם ברצונך להתחבר עם Google כעת ולקשר את הסיסמה לחשבונך כדי שתוכל להתחבר בשתי הדרכים בעתיד?");
+          if (wantToLink) {
+            sessionStorage.setItem('pending_link_email', email);
+            sessionStorage.setItem('pending_link_password', password);
+            const loginBtn = document.getElementById('google-login-btn');
+            if (loginBtn) {
+              loginBtn.click();
+            }
+            return;
+          }
+        }
         userFriendlyMessage = "כתובת האימייל הזו כבר נמצאת בשימוש במערכת. נסה להתחבר.";
       } else if (authError.code === 'auth/invalid-email') {
         userFriendlyMessage = "כתובת אימייל לא תקינה.";
@@ -4409,20 +4439,35 @@ function renderCalendarView() {
     const sessions = workoutsByDay[day] || [];
     const futures = futureWorkoutsByDay[day] || [];
 
+    const dotsContainer = document.createElement('div');
+    dotsContainer.style.cssText = 'display: flex; gap: 3px; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); justify-content: center; width: 100%;';
+    dayCell.appendChild(dotsContainer);
+
     if (sessions.length > 0) {
       dayCell.classList.add('has-workout');
-
-      const dot = document.createElement('span');
-      dot.className = 'calendar-workout-dot';
-      dayCell.appendChild(dot);
+      sessions.forEach(w => {
+        const dot = document.createElement('span');
+        const loc = (w.location || '').toLowerCase();
+        let dotClass = 'workout-dot gym';
+        if (loc === 'park') dotClass = 'workout-dot park';
+        else if (loc === 'home') dotClass = 'workout-dot home';
+        dot.className = dotClass;
+        dotsContainer.appendChild(dot);
+      });
     }
 
     if (futures.length > 0) {
       dayCell.classList.add('has-future-workout');
-
-      const fDot = document.createElement('span');
-      fDot.className = 'future-workout-dot-indicator';
-      dayCell.appendChild(fDot);
+      futures.forEach(f => {
+        const dot = document.createElement('span');
+        const loc = (f.location || '').toLowerCase();
+        let dotClass = 'workout-dot gym';
+        if (loc === 'park') dotClass = 'workout-dot park';
+        else if (loc === 'home') dotClass = 'workout-dot home';
+        dot.className = dotClass;
+        dot.style.border = '1px solid rgba(255, 255, 255, 0.4)';
+        dotsContainer.appendChild(dot);
+      });
     }
 
     if (sessions.length > 0 || futures.length > 0) {
@@ -5116,8 +5161,79 @@ function getExerciseStats(exerciseName) {
   return { timesPerformed, totalSets, maxWeight, max1RM, peakVolume };
 }
 
+// Dynamic Leading Exercises Leaderboard Widget Generator
+function renderExercisesLeaderboard() {
+  const container = document.getElementById('exercises-leaderboard-container');
+  if (!container) return;
+
+  const allExs = getAllExercises();
+  const listWithStats = allExs.map(ex => {
+    const stats = getExerciseStats(ex.name);
+    return { ex, stats };
+  }).filter(item => item.stats.timesPerformed > 0);
+
+  // Sort by timesPerformed desc, then totalSets desc
+  listWithStats.sort((a, b) => {
+    if (b.stats.timesPerformed !== a.stats.timesPerformed) {
+      return b.stats.timesPerformed - a.stats.timesPerformed;
+    }
+    return b.stats.totalSets - a.stats.totalSets;
+  });
+
+  if (listWithStats.length === 0) {
+    container.style.display = 'none';
+    return;
+  }
+
+  container.style.display = 'block';
+
+  // Get top 3
+  const top3 = listWithStats.slice(0, 3);
+  const maxPerformed = top3[0].stats.timesPerformed || 1;
+
+  const ranks = ['🥇', '🥈', '🥉'];
+  const gradientClasses = ['gold-gradient', 'silver-gradient', 'bronze-gradient'];
+  const tierClasses = ['gold-tier', 'silver-tier', 'bronze-tier'];
+
+  let html = `
+    <div class="leaderboard-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; direction: rtl;">
+      <h3 class="leaderboard-title" style="margin: 0; font-size: 1.1rem; font-weight: 800; color: #fff;">🏆 תרגילים מובילים שלי</h3>
+      <span class="leaderboard-badge" style="font-size: 0.72rem; background: rgba(0, 240, 255, 0.1); color: #00F0FF; padding: 4px 10px; border-radius: 12px; border: 1px solid rgba(0, 240, 255, 0.2); font-weight: 700;">התמדה מירבית</span>
+    </div>
+    <div class="leaderboard-list" style="display: flex; flex-direction: column; gap: 12px; direction: rtl; text-align: right;">
+  `;
+
+  top3.forEach((item, idx) => {
+    const pct = Math.round((item.stats.timesPerformed / maxPerformed) * 100);
+    const emojiStr = item.ex.emoji ? `<span style="font-size: 1.2rem; margin-left: 6px;">${item.ex.emoji}</span>` : '💪';
+    
+    html += `
+      <div class="leader-item ${tierClasses[idx]}" style="display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 14px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.03); transition: all 0.3s ease; cursor: pointer;" onclick="openExerciseInspector('${item.ex.name.replace(/'/g, "\\'")}')">
+        <div class="leader-rank" style="font-size: 1.4rem;">${ranks[idx]}</div>
+        <div class="leader-info" style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
+          <span class="leader-name" style="font-size: 0.95rem; font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 4px;">
+            ${emojiStr} ${item.ex.name}
+          </span>
+          <span class="leader-sub" style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">
+            בוצע ${item.stats.timesPerformed} פעמים | ${item.stats.totalSets} סטים | שיא: ${item.stats.maxWeight > 0 ? item.stats.maxWeight + ' ק״ג' : '--'}
+          </span>
+          <div class="progress-bar-container" style="width: 100%; height: 6px; background: rgba(255, 255, 255, 0.06); border-radius: 3px; overflow: hidden; margin-top: 4px;">
+            <div class="progress-bar-fill ${gradientClasses[idx]}" style="width: ${pct}%; height: 100%; border-radius: 3px; transition: width 1s ease-in-out;"></div>
+          </div>
+        </div>
+      </div>
+    `;
+  });
+
+  html += `</div>`;
+  container.innerHTML = html;
+}
+
 // Render dynamic Exercises Grid in Tab 3 (Exercises Manager)
 function renderExercisesManager() {
+  // Proactively update the leaderboard
+  renderExercisesLeaderboard();
+
   const gridContainer = document.getElementById('exercises-list-grid-tab3');
   if (!gridContainer) return;
   gridContainer.innerHTML = '';
@@ -5125,10 +5241,12 @@ function renderExercisesManager() {
   const searchInput = document.getElementById('exercises-search-input-tab3');
   const muscleFilter = document.getElementById('exercises-muscle-filter-tab3');
   const typeFilter = document.getElementById('exercises-type-filter-tab3');
+  const usageFilter = document.getElementById('exercises-usage-filter-tab3');
 
   const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
   const selectedMuscle = muscleFilter ? muscleFilter.value : 'all';
   const selectedType = typeFilter ? typeFilter.value : 'all';
+  const selectedUsage = usageFilter ? usageFilter.value : 'all';
 
   let allExs = getAllExercises();
 
@@ -5146,7 +5264,38 @@ function renderExercisesManager() {
     } else if (selectedType === 'custom') {
       allExs = allExs.filter(ex => !standardNames.has(ex.name.trim().toLowerCase()));
     }
-  }  if (allExs.length === 0) {
+  }
+
+  // New Usage Filter (Used / Recently Used / Unused)
+  if (selectedUsage !== 'all') {
+    if (selectedUsage === 'used') {
+      allExs = allExs.filter(ex => {
+        const stats = getExerciseStats(ex.name);
+        return stats.timesPerformed > 0;
+      });
+    } else if (selectedUsage === 'unused') {
+      allExs = allExs.filter(ex => {
+        const stats = getExerciseStats(ex.name);
+        return stats.timesPerformed === 0;
+      });
+    } else if (selectedUsage === 'recent') {
+      const limitDate = new Date();
+      limitDate.setDate(limitDate.getDate() - 30);
+      
+      allExs = allExs.filter(ex => {
+        return workoutHistory.some(w => {
+          if (new Date(w.date) < limitDate) return false;
+          if (!w.exercises) return false;
+          return w.exercises.some(e => {
+            if (e.name !== ex.name) return false;
+            return e.sets && e.sets.some(s => s.completed);
+          });
+        });
+      });
+    }
+  }
+
+  if (allExs.length === 0) {
     gridContainer.innerHTML = '<div style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 20px; direction: rtl;">אין תרגילים העונים על סינון זה</div>';
     return;
   }
@@ -5281,13 +5430,17 @@ function openExerciseInspector(exerciseName) {
 }
 
 // Render Inspector Bezier SVG Curve Line Chart
+// Render Inspector Semi-Circle Gauge Progress Meter
 function renderExerciseInspectorChart() {
   const exerciseName = currentInspectorExercise;
   if (!exerciseName) return;
 
-  const chartSvg = document.getElementById('bezier-chart-svg-tab3');
   const noDataEl = document.getElementById('chart-no-data-tab3');
-  if (!chartSvg) return;
+  const fillPath = document.getElementById('gauge-fill');
+  const valueDisplay = document.getElementById('gauge-value-display');
+  const subtextDisplay = document.getElementById('gauge-subtext-display');
+  const limitLeft = document.getElementById('gauge-limit-left');
+  const limitRight = document.getElementById('gauge-limit-right');
 
   const exerciseSessions = [];
   const chronological = [...workoutHistory]
@@ -5307,21 +5460,17 @@ function renderExerciseInspectorChart() {
 
   if (exerciseSessions.length === 0) {
     if (noDataEl) noDataEl.style.display = 'flex';
-    
-    const areaPath = document.getElementById('chart-area-path-tab3');
-    const linePath = document.getElementById('chart-line-path-tab3');
-    const pointsGroup = document.getElementById('chart-points-group-tab3');
-    const gridlines = document.getElementById('chart-gridlines-tab3');
-    if (areaPath) areaPath.setAttribute('d', '');
-    if (linePath) linePath.setAttribute('d', '');
-    if (pointsGroup) pointsGroup.innerHTML = '';
-    if (gridlines) gridlines.innerHTML = '';
+    if (fillPath) fillPath.setAttribute('stroke-dashoffset', '251.3');
+    if (valueDisplay) valueDisplay.textContent = '--';
+    if (subtextDisplay) subtextDisplay.textContent = 'אין נתונים';
+    if (limitLeft) limitLeft.textContent = 'בסיס: --';
+    if (limitRight) limitRight.textContent = 'שיא: --';
     return;
   }
 
   if (noDataEl) noDataEl.style.display = 'none';
 
-  const points = [];
+  const values = [];
   exerciseSessions.forEach(session => {
     let sessionMaxWeight = 0;
     let sessionMax1RM = 0;
@@ -5345,100 +5494,45 @@ function renderExerciseInspectorChart() {
     } else {
       yValue = sessionVolume;
     }
-
-    points.push({
-      date: session.date,
-      value: yValue
-    });
+    values.push(yValue);
   });
 
-  const width = chartSvg.clientWidth || 320;
-  const height = chartSvg.clientHeight || 180;
+  const baseVal = Math.round(values[0]);
+  const maxVal = Math.round(Math.max(...values));
+  const currentVal = Math.round(values[values.length - 1]);
 
-  const paddingX = 35;
-  const paddingY = 25;
+  // Gauge Percentage logic
+  // Progress is relative to their peak (maxVal)
+  const percentage = maxVal > 0 ? (currentVal / maxVal) : 0;
+  // Arc length is 251.3 (Math.PI * 80)
+  const strokeDashoffset = 251.3 * (1 - percentage);
 
-  const values = points.map(p => p.value);
-  const minVal = Math.min(...values) * 0.9;
-  const maxVal = Math.max(...values) * 1.1 || 100;
-  const valRange = (maxVal - minVal) || 1;
-
-  const svgCoords = points.map((p, idx) => {
-    const x = points.length > 1 
-      ? paddingX + (idx / (points.length - 1)) * (width - 2 * paddingX)
-      : width / 2;
-    const y = height - paddingY - ((p.value - minVal) / valRange) * (height - 2 * paddingY);
-    return { x, y, val: p.value, date: p.date };
-  });
-
-  let dLine = '';
-  let dArea = '';
-
-  if (svgCoords.length === 1) {
-    const c = svgCoords[0];
-    dLine = `M ${c.x - 15} ${c.y} L ${c.x + 15} ${c.y}`;
-    dArea = `M ${c.x - 15} ${c.y} L ${c.x + 15} ${c.y} L ${c.x + 15} ${height} L ${c.x - 15} ${height} Z`;
-  } else {
-    dLine = `M ${svgCoords[0].x} ${svgCoords[0].y}`;
-    for (let i = 0; i < svgCoords.length - 1; i++) {
-      const curr = svgCoords[i];
-      const next = svgCoords[i + 1];
-      const cpX1 = curr.x + (next.x - curr.x) / 3;
-      const cpY1 = curr.y;
-      const cpX2 = curr.x + 2 * (next.x - curr.x) / 3;
-      const cpY2 = next.y;
-      dLine += ` C ${cpX1} ${cpY1}, ${cpX2} ${cpY2}, ${next.x} ${next.y}`;
-    }
-    dArea = dLine + ` L ${svgCoords[svgCoords.length - 1].x} ${height} L ${svgCoords[0].x} ${height} Z`;
+  if (fillPath) {
+    fillPath.setAttribute('stroke-dashoffset', strokeDashoffset.toFixed(1));
   }
 
-  const areaPath = document.getElementById('chart-area-path-tab3');
-  const linePath = document.getElementById('chart-line-path-tab3');
-  const pointsGroup = document.getElementById('chart-points-group-tab3');
-  const gridlines = document.getElementById('chart-gridlines-tab3');
-
-  if (areaPath) areaPath.setAttribute('d', dArea);
-  if (linePath) {
-    linePath.setAttribute('d', dLine);
-    linePath.style.stroke = 'var(--electric-blue-light)';
-    linePath.style.strokeWidth = '3.5';
-    linePath.style.fill = 'none';
+  const unit = activeChartTypeTab3 === 'volume' ? ' ק״ג' : ' ק״ג';
+  if (valueDisplay) {
+    valueDisplay.textContent = `${currentVal}${unit}`;
   }
 
-  if (gridlines) {
-    gridlines.innerHTML = '';
-    for (let i = 0; i < 3; i++) {
-      const y = paddingY + (i / 2) * (height - 2 * paddingY);
-      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-      line.setAttribute('x1', '0');
-      line.setAttribute('y1', y);
-      line.setAttribute('x2', width);
-      line.setAttribute('y2', y);
-      line.setAttribute('stroke', 'rgba(255, 255, 255, 0.05)');
-      line.setAttribute('stroke-dasharray', '4, 4');
-      gridlines.appendChild(line);
+  if (subtextDisplay) {
+    const diffVal = currentVal - baseVal;
+    const diffPct = baseVal > 0 ? ((diffVal / baseVal) * 100) : 0;
+    if (diffVal >= 0) {
+      subtextDisplay.textContent = `+${diffPct.toFixed(1)}% מתחילת הדרך 📈`;
+      subtextDisplay.style.color = '#00ff87'; // Neon green
+    } else {
+      subtextDisplay.textContent = `${diffPct.toFixed(1)}% מתחילת הדרך 📉`;
+      subtextDisplay.style.color = '#ea580c'; // Neon orange
     }
   }
 
-  if (pointsGroup) {
-    pointsGroup.innerHTML = '';
-    svgCoords.forEach(c => {
-      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      circle.setAttribute('cx', c.x);
-      circle.setAttribute('cy', c.y);
-      circle.setAttribute('r', '5');
-      circle.setAttribute('class', 'bezier-chart-point-tab3');
-
-      circle.addEventListener('mouseover', () => {
-        circle.setAttribute('r', '7');
-        const dateStr = c.date.toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric' });
-        circle.title = `${dateStr}: ${Math.round(c.val)} ק״ג`;
-      });
-      circle.addEventListener('mouseout', () => {
-        circle.setAttribute('r', '5');
-      });
-      pointsGroup.appendChild(circle);
-    });
+  if (limitLeft) {
+    limitLeft.textContent = `בסיס: ${baseVal} ק״ג`;
+  }
+  if (limitRight) {
+    limitRight.textContent = `שיא אישי: ${maxVal} ק״ג`;
   }
 }
 
@@ -5594,6 +5688,14 @@ onDOMReady(() => {
   const typeFilterTab3 = document.getElementById('exercises-type-filter-tab3');
   if (typeFilterTab3) {
     typeFilterTab3.addEventListener('change', () => {
+      renderExercisesManager();
+    });
+  }
+
+  // Premium Usage filter select changes
+  const usageFilterTab3 = document.getElementById('exercises-usage-filter-tab3');
+  if (usageFilterTab3) {
+    usageFilterTab3.addEventListener('change', () => {
       renderExercisesManager();
     });
   }
