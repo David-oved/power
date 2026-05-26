@@ -26,12 +26,7 @@ import {
   getRedirectResult, 
   GoogleAuthProvider, 
   signOut, 
-  onAuthStateChanged,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  sendPasswordResetEmail,
-  linkWithCredential,
-  EmailAuthProvider
+  onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 // ==========================================================================
@@ -117,31 +112,14 @@ if (window.firebaseConfig && window.firebaseConfig.apiKey && window.firebaseConf
 const authScreen = document.getElementById('auth-screen');
 const appScreen = document.getElementById('app-screen');
 const loginBtn = document.getElementById('google-login-btn');
-const logoutBtn = document.getElementById('app-logout-btn') || document.getElementById('drawer-logout-btn');
+const logoutBtn = document.getElementById('app-logout-btn');
 const appLogoutBtn = document.getElementById('app-logout-btn');
-const profilePicBtn = document.getElementById('profile-pic-btn');
 
 const userDisplayName = document.getElementById('user-display-name');
 const navUserPhoto = document.getElementById('nav-user-photo');
 const settingsUserPhoto = document.getElementById('settings-user-photo');
 const appUserPhoto = settingsUserPhoto; // Mapping compatibility for dormant code
 const floatingUserPhoto = document.getElementById('floating-user-photo');
-
-const drawerUserPhoto = document.getElementById('drawer-user-photo');
-const drawerUserFullName = document.getElementById('drawer-user-full-name');
-const drawerUserEmail = document.getElementById('drawer-user-email');
-const drawerUserUid = document.getElementById('drawer-user-uid');
-const drawerUserVerifiedBadge = document.getElementById('drawer-user-verified-badge');
-const drawerUserProvider = document.getElementById('drawer-user-provider');
-const drawerUserCreated = document.getElementById('drawer-user-created');
-const drawerUserLastLogin = document.getElementById('drawer-user-last-login');
-const drawerUserJsonCode = document.getElementById('drawer-user-json-code');
-
-const settingsDrawer = document.getElementById('settings-drawer');
-const drawerOverlay = document.getElementById('drawer-overlay');
-const floatingAvatarBtn = document.getElementById('floating-avatar-btn');
-const drawerCloseBtn = document.getElementById('drawer-close-btn');
-const toggleSensitiveBtn = document.getElementById('drawer-toggle-sensitive-btn');
 
 // Standalone mode detection (PWA Installed)
 const isStandalone = window.navigator.standalone === true || 
@@ -234,16 +212,7 @@ function safeFormatDateTime(value) {
   return isNaN(d.getTime()) ? 'N/A' : d.toLocaleString();
 }
 
-// Settings Drawer Open / Close Interactive Logic
-function openDrawer() {
-  if (settingsDrawer) settingsDrawer.classList.add('open');
-  if (drawerOverlay) drawerOverlay.classList.add('open');
-}
 
-function closeDrawer() {
-  if (settingsDrawer) settingsDrawer.classList.remove('open');
-  if (drawerOverlay) drawerOverlay.classList.remove('open');
-}
 
 // Helper to hide splash screen overlay
 function hideSplashScreen() {
@@ -314,23 +283,63 @@ const setElText = (id, text) => {
   if (el) el.textContent = text;
 };
 
-// ==========================================================================
-// 2. Security Presenter: Mask credentials to prevent shoulder-surfing
-// ==========================================================================
-function maskString(str, visibleCount = 4) {
-  if (!str) return '--';
-  if (str.length <= visibleCount * 2) return '***';
-  return str.substring(0, visibleCount) + '...' + str.substring(str.length - visibleCount);
+// Initials Avatar generator
+function getInitialsAvatar(name) {
+  const cleanName = (name || 'User').trim();
+  const parts = cleanName.split(' ');
+  let initials = '';
+  if (parts.length > 1) {
+    initials = parts[0][0] + parts[1][0];
+  } else if (parts[0].length > 0) {
+    initials = parts[0].substring(0, 2);
+  } else {
+    initials = 'U';
+  }
+  initials = initials.toUpperCase();
+
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+    <defs>
+      <linearGradient id="avatar-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#dc2626"/>
+        <stop offset="100%" stop-color="#f43f5e"/>
+      </linearGradient>
+    </defs>
+    <circle cx="50" cy="50" r="50" fill="url(#avatar-grad)"/>
+    <text x="50" y="55" font-family="'Outfit', 'Inter', sans-serif" font-weight="800" font-size="36" fill="#ffffff" text-anchor="middle" dominant-baseline="middle" letter-spacing="1">${initials}</text>
+  </svg>`;
+
+  return 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
 }
 
-function maskEmail(email) {
-  if (!email) return '--';
-  const parts = email.split('@');
-  if (parts.length !== 2) return '***';
-  const name = parts[0];
-  const domain = parts[1];
-  if (name.length <= 2) return '*@' + domain;
-  return name.substring(0, 2) + '***' + '@' + domain;
+// Sleek glassmorphic Toast notification system
+function showPremiumToast(message, type = 'info') {
+  let toastContainer = document.getElementById('premium-toast-container');
+  if (!toastContainer) {
+    toastContainer = document.createElement('div');
+    toastContainer.id = 'premium-toast-container';
+    toastContainer.className = 'premium-toast-container';
+    document.body.appendChild(toastContainer);
+  }
+  
+  const toast = document.createElement('div');
+  toast.className = `premium-toast toast-${type}`;
+  
+  let icon = '✨';
+  if (type === 'error') icon = '⚠️';
+  else if (type === 'success') icon = '✓';
+  
+  toast.innerHTML = `
+    <span class="toast-icon">${icon}</span>
+    <span class="toast-text">${message}</span>
+  `;
+  
+  toastContainer.appendChild(toast);
+  setTimeout(() => toast.classList.add('show'), 50);
+  
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 400);
+  }, 4000);
 }
 
 function updateAuthUI() {
@@ -338,11 +347,6 @@ function updateAuthUI() {
 
   const name = currentUser.displayName || 'Unknown User';
   const email = currentUser.email || '--';
-  const uid = currentUser.uid;
-  const provider = currentUser.providerData?.[0]?.providerId || 'google.com';
-
-  const createdTime = currentUser.metadata?.createdAt || currentUser.metadata?.creationTime;
-  const loginTime = currentUser.metadata?.lastLoginAt || currentUser.metadata?.lastSignInTime;
 
   // Header Display Name
   setElText('user-display-name', name ? name.split(' ')[0] : 'User');
@@ -351,78 +355,25 @@ function updateAuthUI() {
   setElText('settings-user-name-main', name);
 
   // Photo Binding
-  const fallbackPhoto = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
-  const photoURL = currentUser.photoURL || fallbackPhoto;
+  const initialsFallback = getInitialsAvatar(name);
+  const photoURL = currentUser.photoURL || initialsFallback;
+
   if (navUserPhoto) {
     navUserPhoto.src = photoURL;
-    navUserPhoto.onerror = () => { navUserPhoto.src = fallbackPhoto; };
+    navUserPhoto.onerror = () => { navUserPhoto.src = initialsFallback; };
   }
   if (settingsUserPhoto) {
     settingsUserPhoto.src = photoURL;
-    settingsUserPhoto.onerror = () => { settingsUserPhoto.src = fallbackPhoto; };
+    settingsUserPhoto.onerror = () => { settingsUserPhoto.src = initialsFallback; };
   }
   const settingsUserPhotoMain = document.getElementById('settings-user-photo-main');
   if (settingsUserPhotoMain) {
     settingsUserPhotoMain.src = photoURL;
-    settingsUserPhotoMain.onerror = () => { settingsUserPhotoMain.src = fallbackPhoto; };
+    settingsUserPhotoMain.onerror = () => { settingsUserPhotoMain.src = initialsFallback; };
   }
   if (floatingUserPhoto) {
     floatingUserPhoto.src = photoURL;
-    floatingUserPhoto.onerror = () => { floatingUserPhoto.src = fallbackPhoto; };
-  }
-  if (drawerUserPhoto) {
-    drawerUserPhoto.src = photoURL;
-    drawerUserPhoto.onerror = () => { drawerUserPhoto.src = fallbackPhoto; };
-  }
-
-  // Drawer Fields
-  setElText('drawer-user-full-name', name);
-
-  if (isSensitiveDataVisible) {
-    setElText('drawer-user-email', email);
-    setElText('drawer-user-uid', uid);
-  } else {
-    setElText('drawer-user-email', maskEmail(email));
-    setElText('drawer-user-uid', maskString(uid, 5));
-  }
-
-  setElText('drawer-user-provider', provider);
-  setElText('drawer-user-created', safeFormatDate(createdTime));
-  setElText('drawer-user-last-login', safeFormatDateTime(loginTime));
-
-  const badgeVerified = document.getElementById('drawer-user-verified-badge');
-  if (badgeVerified) {
-    if (currentUser.emailVerified) {
-      badgeVerified.textContent = 'Verified';
-      badgeVerified.className = 'badge-mini badge-verified';
-    } else {
-      badgeVerified.textContent = 'Unverified';
-      badgeVerified.className = 'badge-mini badge-unverified';
-    }
-  }
-
-  // Raw Profile JSON compilation
-  const cleanUser = {
-    uid: isSensitiveDataVisible ? uid : maskString(uid, 5),
-    displayName: name,
-    email: isSensitiveDataVisible ? email : maskEmail(email),
-    emailVerified: currentUser.emailVerified || false,
-    photoURL: currentUser.photoURL ? (isSensitiveDataVisible ? currentUser.photoURL : maskString(currentUser.photoURL, 15)) : null,
-    metadata: {
-      createdAt: createdTime,
-      lastLoginAt: loginTime
-    },
-    providerData: currentUser.providerData ? currentUser.providerData.map(p => ({
-      providerId: p.providerId,
-      uid: isSensitiveDataVisible ? p.uid : maskString(p.uid, 5),
-      displayName: p.displayName,
-      email: isSensitiveDataVisible ? p.email : maskEmail(p.email),
-      photoURL: p.photoURL ? (isSensitiveDataVisible ? p.photoURL : maskString(p.photoURL, 15)) : null
-    })) : []
-  };
-
-  if (drawerUserJsonCode) {
-    drawerUserJsonCode.textContent = JSON.stringify(cleanUser, null, 2);
+    floatingUserPhoto.onerror = () => { floatingUserPhoto.src = initialsFallback; };
   }
 }
 
@@ -432,51 +383,31 @@ function clearUserSession() {
   SafeStorage._fallbackMem = {};
   SafeStorage._failedKeys = {};
 
-  closeDrawer();
+  // Close drawer if it was defined, otherwise ignore safely
+  const closeDrawerBtn = document.getElementById('drawer-close-btn');
+  if (closeDrawerBtn) closeDrawerBtn.click();
 
   setElText('user-display-name', 'User');
   setElText('settings-user-name-field', 'User');
   setElText('settings-user-email-field', 'user@gmail.com');
   setElText('settings-user-name-main', 'משתמש');
+  
   const mainView = document.getElementById('settings-main-view');
   const accountView = document.getElementById('settings-account-view');
   if (mainView) mainView.classList.remove('hide');
   if (accountView) accountView.classList.add('hide');
 
-  setElText('drawer-user-full-name', 'User Name');
-  setElText('drawer-user-email', 'user@gmail.com');
-  setElText('drawer-user-uid', '--');
-  setElText('drawer-user-provider', '--');
-  setElText('drawer-user-created', '--');
-  setElText('drawer-user-last-login', '--');
-
-  const badgeVerified = document.getElementById('drawer-user-verified-badge');
-  if (badgeVerified) {
-    badgeVerified.textContent = '--';
-    badgeVerified.className = 'badge-mini';
-  }
-
-  if (drawerUserJsonCode) {
-    drawerUserJsonCode.textContent = 'No user session active.';
-  }
-
-  const fallbackPhoto = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
-  if (navUserPhoto) navUserPhoto.src = fallbackPhoto;
-  if (settingsUserPhoto) settingsUserPhoto.src = fallbackPhoto;
+  const initialsFallback = getInitialsAvatar('User');
+  if (navUserPhoto) navUserPhoto.src = initialsFallback;
+  if (settingsUserPhoto) settingsUserPhoto.src = initialsFallback;
   const settingsUserPhotoMain = document.getElementById('settings-user-photo-main');
-  if (settingsUserPhotoMain) settingsUserPhotoMain.src = fallbackPhoto;
-  if (floatingUserPhoto) floatingUserPhoto.src = fallbackPhoto;
-  if (drawerUserPhoto) drawerUserPhoto.src = fallbackPhoto;
+  if (settingsUserPhotoMain) settingsUserPhotoMain.src = initialsFallback;
+  if (floatingUserPhoto) floatingUserPhoto.src = initialsFallback;
   
   // Reset tabs to default Settings tab upon logout
   resetTabs();
 
   if (typeof clearWorkoutSession === 'function') clearWorkoutSession();
-
-  isSensitiveDataVisible = false;
-  if (toggleSensitiveBtn) {
-    toggleSensitiveBtn.innerHTML = '👁️ הצג פרטים מזהים';
-  }
 }
 
 
@@ -496,24 +427,6 @@ if (firebaseEnabled) {
       updateAuthUI();
       if (typeof initWorkouts === 'function') initWorkouts();
       switchScreen(true);
-
-      // Check for pending email link to Google auth
-      const pendingLinkEmail = sessionStorage.getItem('pending_link_email');
-      const pendingLinkPassword = sessionStorage.getItem('pending_link_password');
-      if (pendingLinkEmail && pendingLinkPassword && user.email === pendingLinkEmail) {
-        sessionStorage.removeItem('pending_link_email');
-        sessionStorage.removeItem('pending_link_password');
-        const credential = EmailAuthProvider.credential(user.email, pendingLinkPassword);
-        linkWithCredential(user, credential)
-          .then(() => {
-            alert("החשבון קושר בהצלחה! מעתה תוכל להתחבר הן עם Google והן עם אימייל וסיסמה. ✨");
-            updateAuthUI();
-          })
-          .catch((linkErr) => {
-            console.error("Failed to automatically link pending email/password credentials:", linkErr);
-            alert("קישור החשבון האוטומטי נכשל. תוכל לקשר את החשבון ידנית דרך מסך ההגדרות.");
-          });
-      }
 
       // Trigger notification if it's a real-time transition, and we haven't welcomed them in this session
       const hasBeenWelcomed = sessionStorage.getItem('aura_session_welcomed');
@@ -566,15 +479,15 @@ if (firebaseEnabled) {
     .catch((error) => {
       console.error("Error resolving redirect result:", error.code, error.message);
       if (error.code === 'auth/account-exists-with-different-credential') {
-        handleAccountExistsWithDifferentCredential(error);
+        showPremiumToast("קיים כבר חשבון רשום עם כתובת אימייל זו במערכת. אנא פנה לתמיכה לצורך מיזוג חשבונות.", "error");
         return;
       }
       if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
         console.log("Sign-in process was cancelled by the user.");
       } else if (error.code === 'auth/web-storage-unsupported') {
-        alert("שים לב: הדפדפן הנוכחי שלך חוסם עוגיות או פועל במצב גלישה בסתר. אנא פתח את האפליקציה בדפדפן הרגיל כדי להתחבר בהצלחה.");
+        showPremiumToast("שים לב: הדפדפן הנוכחי שלך חוסם עוגיות או פועל במצב גלישה בסתר. אנא פתח את האפליקציה בדפדפן הרגיל כדי להתחבר בהצלחה.", "error");
       } else {
-        alert(`שגיאת התחברות: ${error.message || 'נא לפתוח בדפדפן Chrome/Safari הרגיל'}`);
+        showPremiumToast(`שגיאת התחברות: ${error.message || 'נא לפתוח בדפדפן Chrome/Safari הרגיל'}`, "error");
       }
     });
 
@@ -606,7 +519,7 @@ onDOMReady(detectEnvironmentAndWarn);
 if (loginBtn) {
   loginBtn.addEventListener('click', async () => {
     if (!firebaseEnabled) {
-      alert("Authentication features are currently unavailable because Firebase is not configured properly. Please check your config.");
+      showPremiumToast("שירותי ההתחברות אינם זמינים כעת עקב בעיית תצורה ב-Firebase.", "error");
       return;
     }
 
@@ -637,7 +550,7 @@ if (loginBtn) {
       console.warn("Popup authentication failed/blocked. Code:", popupError.code, popupError.message);
       
       if (popupError.code === 'auth/account-exists-with-different-credential') {
-        handleAccountExistsWithDifferentCredential(popupError);
+        showPremiumToast("קיים כבר חשבון רשום עם כתובת אימייל זו במערכת. אנא פנה לתמיכה לצורך מיזוג חשבונות.", "error");
         loginBtn.disabled = false;
         if (btnTextEl) btnTextEl.textContent = originalText;
         return;
@@ -659,7 +572,7 @@ if (loginBtn) {
       } catch (redirectError) {
         console.error("Redirect fallback authentication error:", redirectError);
         if (redirectError.code === 'auth/account-exists-with-different-credential') {
-          handleAccountExistsWithDifferentCredential(redirectError);
+          showPremiumToast("קיים כבר חשבון רשום עם כתובת אימייל זו במערכת. אנא פנה לתמיכה לצורך מיזוג חשבונות.", "error");
           loginBtn.disabled = false;
           if (btnTextEl) btnTextEl.textContent = originalText;
         } else {
@@ -750,7 +663,7 @@ function handleAuthError(error, btn, originalText) {
   } else {
     userFriendlyMessage = `שגיאת התחברות (${error.code || 'unknown'}): אנא ודא שהקישור פתוח בדפדפן Chrome/Safari הרגיל, ולא דרך חלון פנימי של WhatsApp/Telegram.`;
   }
-  alert(userFriendlyMessage);
+  showPremiumToast(userFriendlyMessage, "error");
 }
 
 // Trigger Log Out Flow cleanly supporting Firebase Auth
@@ -766,7 +679,7 @@ if (logoutBtn) {
     }
 
     if (!firebaseEnabled) {
-      alert("Sign out is unavailable in offline/demo mode.");
+      showPremiumToast("התנתקות אינה זמינה במצב לא מקוון/דמו.", "error");
       return;
     }
 
@@ -779,286 +692,7 @@ if (logoutBtn) {
   });
 }
 
-// Support profilePicBtn clicking to toggle the visibility of appLogoutBtn
-if (profilePicBtn) {
-  profilePicBtn.addEventListener('click', () => {
-    if (appLogoutBtn) {
-      appLogoutBtn.classList.toggle('hide');
-    }
-  });
-}
 
-// ==========================================================================
-// AuraApp - Email & Password Authentication & Account Linking Flow Handlers
-// ==========================================================================
-
-// Global state variables for Account Linking
-let pendingGoogleCredential = null;
-let pendingEmailForLinking = null;
-
-// Helper to prompt for existing password and securely link accounts
-window.handleAccountExistsWithDifferentCredential = function(error) {
-  console.log("Caught account-exists-with-different-credential. Prompting password for linking...");
-  pendingGoogleCredential = GoogleAuthProvider.credentialFromError(error);
-  pendingEmailForLinking = error.customData?.email || error.email;
-  
-  const linkingModal = document.getElementById('account-linking-modal');
-  if (linkingModal) {
-    linkingModal.classList.remove('hide');
-  }
-};
-
-// Wire up Account Linking Modal & Form
-const accountLinkingForm = document.getElementById('account-linking-form');
-const closeAccountLinkingBtn = document.getElementById('close-account-linking-btn');
-const accountLinkingModal = document.getElementById('account-linking-modal');
-
-if (closeAccountLinkingBtn && accountLinkingModal) {
-  closeAccountLinkingBtn.addEventListener('click', () => {
-    accountLinkingModal.classList.add('hide');
-    pendingGoogleCredential = null;
-    pendingEmailForLinking = null;
-  });
-}
-
-if (accountLinkingForm) {
-  accountLinkingForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if (!pendingGoogleCredential || !pendingEmailForLinking) {
-      alert("שגיאת תהליך קישור. אנא נסה להתחבר מחדש.");
-      return;
-    }
-
-    const passwordInput = document.getElementById('link-password-input');
-    const password = passwordInput ? passwordInput.value : '';
-    
-    const submitBtn = accountLinkingForm.querySelector('button[type="submit"]');
-    if (submitBtn) {
-      submitBtn.disabled = true;
-      submitBtn.textContent = "מקשר חשבונות... ⏳";
-    }
-
-    try {
-      // 1. Sign in with the existing email and password
-      const userCredential = await signInWithEmailAndPassword(auth, pendingEmailForLinking, password);
-      // 2. Link the google credential to the signed in user
-      await linkWithCredential(userCredential.user, pendingGoogleCredential);
-      
-      alert("החשבונות קושרו בהצלחה! מעתה תוכל להתחבר בשתי הדרכים.");
-      if (accountLinkingModal) accountLinkingModal.classList.add('hide');
-      if (passwordInput) passwordInput.value = '';
-      pendingGoogleCredential = null;
-      pendingEmailForLinking = null;
-    } catch (linkError) {
-      console.error("Account linking failed:", linkError);
-      alert("קישור החשבון נכשל. אנא ודא שהסיסמה שהזנת נכונה.");
-    } finally {
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = "אמת וקשר חשבון";
-      }
-    }
-  });
-}
-
-// Wire up Tab Segment Controls for Login Card
-const authTabGoogle = document.getElementById('auth-tab-google');
-const authTabEmail = document.getElementById('auth-tab-email');
-const googleAuthSection = document.getElementById('google-auth-section');
-const emailAuthSection = document.getElementById('email-auth-section');
-
-if (authTabGoogle && authTabEmail && googleAuthSection && emailAuthSection) {
-  authTabGoogle.addEventListener('click', () => {
-    authTabGoogle.classList.add('active');
-    authTabEmail.classList.remove('active');
-    googleAuthSection.classList.remove('hide');
-    emailAuthSection.classList.add('hide');
-  });
-
-  authTabEmail.addEventListener('click', () => {
-    authTabEmail.classList.add('active');
-    authTabGoogle.classList.remove('active');
-    emailAuthSection.classList.remove('hide');
-    googleAuthSection.classList.add('hide');
-  });
-}
-
-// Wire up Email & Password Sign-in / Sign-up Mode toggler
-const toggleAuthModeBtn = document.getElementById('toggle-auth-mode-btn');
-const emailFormTitle = document.getElementById('email-form-title');
-const emailSubmitBtn = document.getElementById('email-submit-btn');
-
-let emailAuthMode = "signin"; // default is sign-in
-
-if (toggleAuthModeBtn && emailFormTitle && emailSubmitBtn) {
-  toggleAuthModeBtn.addEventListener('click', () => {
-    if (emailAuthMode === "signin") {
-      emailAuthMode = "signup";
-      emailFormTitle.textContent = "הרשמה לחשבון חדש";
-      emailSubmitBtn.textContent = "הרשם כעת";
-      toggleAuthModeBtn.textContent = "כבר יש לך חשבון? להתחברות ✨";
-    } else {
-      emailAuthMode = "signin";
-      emailFormTitle.textContent = "התחברות לחשבון";
-      emailSubmitBtn.textContent = "התחבר כעת";
-      toggleAuthModeBtn.textContent = "אין לך חשבון? להרשמה חדשה ✨";
-    }
-  });
-}
-
-// Wire up Email Form Submission
-const emailAuthForm = document.getElementById('email-auth-form');
-if (emailAuthForm) {
-  emailAuthForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if (!firebaseEnabled) {
-      alert("Authentication features are currently unavailable because Firebase is not configured properly.");
-      return;
-    }
-
-    const email = document.getElementById('auth-email-input').value;
-    const password = document.getElementById('auth-password-input').value;
-    
-    if (password.length < 6) {
-      alert("הסיסמה חייבת להכיל לפחות 6 תווים.");
-      return;
-    }
-    
-    const submitBtn = document.getElementById('email-submit-btn');
-    if (submitBtn) {
-      submitBtn.disabled = true;
-      submitBtn.textContent = emailAuthMode === "signin" ? "מתחבר... ⏳" : "נרשם... ⏳";
-    }
-    
-    try {
-      if (emailAuthMode === "signin") {
-        console.log("Signing in with email & password...");
-        await signInWithEmailAndPassword(auth, email, password);
-      } else {
-        console.log("Registering with email & password...");
-        await createUserWithEmailAndPassword(auth, email, password);
-        alert("נרשמת בהצלחה! ברוך הבא ל-AuraApp.");
-      }
-    } catch (authError) {
-      console.error("Email auth error:", authError.code, authError.message);
-      let userFriendlyMessage = "שגיאת הזדהות. אנא נסה שוב.";
-      if (authError.code === 'auth/invalid-credential' || authError.code === 'auth/user-not-found' || authError.code === 'auth/wrong-password') {
-        userFriendlyMessage = "אימייל או סיסמה לא נכונים.";
-      } else if (authError.code === 'auth/email-already-in-use') {
-        if (emailAuthMode === "signup") {
-          const wantToLink = confirm("נראה שהאימייל הזה כבר מחובר דרך Google. האם ברצונך להתחבר עם Google כעת ולקשר את הסיסמה לחשבונך כדי שתוכל להתחבר בשתי הדרכים בעתיד?");
-          if (wantToLink) {
-            sessionStorage.setItem('pending_link_email', email);
-            sessionStorage.setItem('pending_link_password', password);
-            const loginBtn = document.getElementById('google-login-btn');
-            if (loginBtn) {
-              loginBtn.click();
-            }
-            return;
-          }
-        }
-        userFriendlyMessage = "כתובת האימייל הזו כבר נמצאת בשימוש במערכת. נסה להתחבר.";
-      } else if (authError.code === 'auth/invalid-email') {
-        userFriendlyMessage = "כתובת אימייל לא תקינה.";
-      } else if (authError.code === 'auth/weak-password') {
-        userFriendlyMessage = "הסיסמה חלשה מדי. אנא בחר סיסמה עם לפחות 6 תווים.";
-      }
-      alert(userFriendlyMessage);
-    } finally {
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.textContent = emailAuthMode === "signin" ? "התחבר כעת" : "הרשם כעת";
-      }
-    }
-  });
-}
-
-// Wire up Forgot Password Modal Toggles
-const forgotPasswordLink = document.getElementById('forgot-password-link');
-const forgotPasswordModal = document.getElementById('forgot-password-modal');
-const closeForgotPasswordBtn = document.getElementById('close-forgot-password-btn');
-
-if (forgotPasswordLink && forgotPasswordModal) {
-  forgotPasswordLink.addEventListener('click', () => {
-    forgotPasswordModal.classList.remove('hide');
-  });
-}
-
-if (closeForgotPasswordBtn && forgotPasswordModal) {
-  closeForgotPasswordBtn.addEventListener('click', () => {
-    forgotPasswordModal.classList.add('hide');
-  });
-}
-
-// Wire up Forgot Password Submission
-const forgotPasswordForm = document.getElementById('forgot-password-form');
-if (forgotPasswordForm) {
-  forgotPasswordForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if (!firebaseEnabled) {
-      alert("שירותי אימות אינם זמינים כעת.");
-      return;
-    }
-
-    const email = document.getElementById('reset-email-input').value;
-    
-    try {
-      await sendPasswordResetEmail(auth, email);
-      alert("קישור לאיפוס הסיסמה נשלח לתיבת המייל שלך!");
-      if (forgotPasswordModal) forgotPasswordModal.classList.add('hide');
-      document.getElementById('reset-email-input').value = '';
-    } catch (resetError) {
-      console.error("Password reset error:", resetError);
-      alert("שליחת קישור האיפוס נכשלה. אנא ודא שהאימייל שהזנת תקין.");
-    }
-  });
-}
-
-// Wire up Settings Pane Add/Change Password
-const settingsPasswordForm = document.getElementById('settings-password-form');
-if (settingsPasswordForm) {
-  settingsPasswordForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    if (!firebaseEnabled || !currentUser) {
-      alert("אין משתמש מחובר במצב אימות פעיל.");
-      return;
-    }
-    
-    const passwordInput = document.getElementById('settings-password-input');
-    const password = passwordInput ? passwordInput.value : '';
-    if (password.length < 6) {
-      alert("הסיסמה חייבת להכיל לפחות 6 תווים.");
-      return;
-    }
-    
-    const saveBtn = document.getElementById('save-settings-password-btn');
-    if (saveBtn) {
-      saveBtn.disabled = true;
-      saveBtn.textContent = "...שומר סיסמה ⏳";
-    }
-    
-    try {
-      const credential = EmailAuthProvider.credential(currentUser.email, password);
-      await linkWithCredential(currentUser, credential);
-      alert("הסיסמה נשמרה בהצלחה! מעתה תוכל להתחבר גם באמצעות אימייל וסיסמה.");
-      if (passwordInput) passwordInput.value = '';
-    } catch (saveError) {
-      console.error("Failed to link email credential from settings:", saveError.code, saveError.message);
-      let userFriendlyMessage = "שמירת הסיסמה נכשלה. אנא נסה שוב.";
-      if (saveError.code === 'auth/credential-already-in-use') {
-        userFriendlyMessage = "האימייל הזה כבר מקושר לחשבון אחר במערכת.";
-      } else if (saveError.code === 'auth/requires-recent-login') {
-        userFriendlyMessage = "פעולה זו דורשת התחברות מחדש מטעמי אבטחה.";
-      }
-      alert(userFriendlyMessage);
-    } finally {
-      if (saveBtn) {
-        saveBtn.disabled = false;
-        saveBtn.textContent = "שמור סיסמה";
-      }
-    }
-  });
-}
 
 // Register PWA Service Worker
 const isLocalhost = window.location.hostname === 'localhost' || 
@@ -1164,7 +798,7 @@ if ('serviceWorker' in navigator) {
           refreshBtn.style.cursor = 'pointer';
           refreshBtn.textContent = 'רענן כעת';
         }
-        alert('הורדת העדכון נכשלה. אנא ודא שיש לך חיבור רשת תקין ונסה שוב.');
+        showPremiumToast('הורדת העדכון נכשלה. אנא ודא שיש לך חיבור רשת תקין ונסה שוב.', 'error');
       }
     });
   }
@@ -1215,39 +849,7 @@ function showUpdateStateInSettings(waitingWorker) {
   }
 }
 
-// Settings Drawer Open / Close Trigger Listeners
-if (floatingAvatarBtn) floatingAvatarBtn.addEventListener('click', openDrawer);
-const navSettingsBtn = document.getElementById('nav-settings-btn');
-if (navSettingsBtn) navSettingsBtn.addEventListener('click', openDrawer);
-if (drawerCloseBtn) drawerCloseBtn.addEventListener('click', closeDrawer);
-if (drawerOverlay) drawerOverlay.addEventListener('click', closeDrawer);
 
-// Collapsible JSON Terminal Toggle (Settings Drawer)
-const drawerJsonToggle = document.getElementById('drawer-json-toggle');
-const drawerJsonContainer = document.getElementById('drawer-json-terminal-container');
-const drawerToggleArrow = document.getElementById('drawer-toggle-arrow');
-
-if (drawerJsonToggle) {
-  drawerJsonToggle.addEventListener('click', () => {
-    let isExpanded = false;
-    if (drawerJsonContainer) {
-      isExpanded = drawerJsonContainer.classList.toggle('expanded');
-    }
-    if (drawerToggleArrow) {
-      drawerToggleArrow.textContent = isExpanded ? '▲' : '▼';
-    }
-    drawerJsonToggle.classList.toggle('active');
-  });
-}
-
-// Sensitive Information Toggle Button Listener
-if (toggleSensitiveBtn) {
-  toggleSensitiveBtn.addEventListener('click', () => {
-    isSensitiveDataVisible = !isSensitiveDataVisible;
-    toggleSensitiveBtn.innerHTML = isSensitiveDataVisible ? '🙈 הסתר פרטים מזהים' : '👁️ הצג פרטים מזהים';
-    updateAuthUI();
-  });
-}
 
 // Premium iOS PWA Installation Banner Prompt Logic
 window.addEventListener('load', () => {
@@ -1524,7 +1126,6 @@ let restTimerSecondsLeft = 0;
 
 // Set Logging State Variables
 let currentLoggingExercise = null;
-let currentLoggingExerciseIndex = -1;
 let currentLoggingSetIndex = -1;
 
 function saveActiveWorkoutState() {
@@ -2553,7 +2154,7 @@ function renderExercises() {
       
       enterSetBtn.textContent = `➕ רישום סט ${activeSetIdx + 1}`;
       enterSetBtn.addEventListener('click', () => {
-        openSetLoggingModal(ex, exIdx);
+        openSetLoggingModal(ex);
       });
       setsArea.appendChild(enterSetBtn);
     }
@@ -3178,6 +2779,7 @@ onDOMReady(() => {
   if (plus30Btn) {
     plus30Btn.addEventListener('click', () => {
       restTimerSecondsLeft += 30;
+      restTimerTotalDuration = Math.max(restTimerTotalDuration, restTimerSecondsLeft);
       // If it was expired or stopped, revive it
       if (restTimerSecondsLeft > 0 && !restTimerInterval) {
         const bubble = document.getElementById('rest-timer-bubble');
@@ -3242,6 +2844,7 @@ onDOMReady(() => {
     weightMinusBtn.addEventListener('click', () => {
       let val = parseFloat(weightSlider.value) || 0;
       val = Math.max(0, val - 2.5);
+      val = parseFloat(val.toFixed(1));
       weightSlider.value = val;
       weightValueText.textContent = val;
     });
@@ -3250,6 +2853,7 @@ onDOMReady(() => {
     weightPlusBtn.addEventListener('click', () => {
       let val = parseFloat(weightSlider.value) || 0;
       val = Math.min(250, val + 2.5);
+      val = parseFloat(val.toFixed(1));
       weightSlider.value = val;
       weightValueText.textContent = val;
     });
@@ -3347,9 +2951,8 @@ onDOMReady(() => {
 });
 
 // Helper function to launch the Set Logging modal
-function openSetLoggingModal(ex, exIdx) {
+function openSetLoggingModal(ex) {
   currentLoggingExercise = ex;
-  currentLoggingExerciseIndex = exIdx;
 
   const nextIncompleteIdx = ex.sets.findIndex(s => !s.completed);
   currentLoggingSetIndex = nextIncompleteIdx !== -1 ? nextIncompleteIdx : ex.sets.length;
@@ -3429,8 +3032,6 @@ let filterLocation = 'all';
 let filterMuscleGroup = 'all';
 let selectedAnalyticsExercise = null;
 let activeChartType = '1rm'; // '1rm', 'weight', 'volume'
-let activeAnalyticsView = 'calendar'; // 'calendar', 'heatmap', 'split', 'list'
-let activeAnalyticsSegment = 'overview';
 let activeLogsSubView = 'calendar';
 let currentCalendarDate = new Date();
 
@@ -3508,23 +3109,6 @@ updateRestTimerUI = function() {
   }
 };
 
-// Adjust rest timer control bindings
-onDOMReady(() => {
-  const plus30 = document.getElementById('rest-timer-plus-30');
-  const minus30 = document.getElementById('rest-timer-minus-30');
-
-  if (plus30) {
-    plus30.addEventListener('click', (e) => {
-      restTimerTotalDuration = Math.max(restTimerTotalDuration, restTimerSecondsLeft);
-      updateRestTimerUI();
-    });
-  }
-  if (minus30) {
-    minus30.addEventListener('click', (e) => {
-      updateRestTimerUI();
-    });
-  }
-});
 
 // A. Previous Workout Performance Alert popup
 function checkAndShowPreviousPerformance(exerciseName) {
@@ -4102,11 +3686,6 @@ function getFilteredHistory() {
   return result.sort((a, b) => b.date - a.date);
 }
 
-// Switch between views
-function renderActiveVariationView() {
-  // Bypassed in favor of premium lazy rendering
-  renderAnalytics();
-}
 
 // D. Single Exercise progression Bezier SVG Chart Dashboard
 function renderExerciseAnalyticsDashboard() {
@@ -4489,7 +4068,7 @@ function renderCalendarView() {
                   <span>${w.locationEmoji || '🏋️'} ${w.locationName || 'אימון'}</span>
                   <span style="font-size: 0.8rem; color: var(--text-muted);">${timeStr} • ${duration} דק׳</span>
                 </div>
-                <button onclick="openEditModal(${w.id}); this.closest('.custom-calendar-alert-overlay').remove();" class="btn btn-secondary" style="width: 100%; margin-top: 8px; padding: 6px !important; font-size: 0.75rem !important;">🛠️ ערוך אימון</button>
+                <button class="btn btn-secondary edit-past-workout-btn" data-id="${w.id}" style="width: 100%; margin-top: 8px; padding: 6px !important; font-size: 0.75rem !important;">🛠️ ערוך אימון</button>
               </div>
             `;
           }).join('');
@@ -4533,6 +4112,18 @@ function renderCalendarView() {
 
         summaryAlert.querySelector('.close-calendar-alert').addEventListener('click', () => {
           summaryAlert.remove();
+        });
+
+        // Edit past workout button action
+        summaryAlert.querySelectorAll('.edit-past-workout-btn').forEach(btn => {
+          btn.addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            const wId = Number(btn.dataset.id);
+            if (typeof openEditModal === 'function') {
+              openEditModal(wId);
+            }
+            summaryAlert.remove();
+          });
         });
 
         // Cancel button action
@@ -5186,6 +4777,7 @@ function renderExercisesLeaderboard() {
   }
 
   container.style.display = 'block';
+  container.innerHTML = ''; // Clear previous content
 
   // Get top 3
   const top3 = listWithStats.slice(0, 3);
@@ -5195,39 +4787,57 @@ function renderExercisesLeaderboard() {
   const gradientClasses = ['gold-gradient', 'silver-gradient', 'bronze-gradient'];
   const tierClasses = ['gold-tier', 'silver-tier', 'bronze-tier'];
 
-  let html = `
-    <div class="leaderboard-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; direction: rtl;">
-      <h3 class="leaderboard-title" style="margin: 0; font-size: 1.1rem; font-weight: 800; color: #fff;">🏆 תרגילים מובילים שלי</h3>
-      <span class="leaderboard-badge" style="font-size: 0.72rem; background: rgba(0, 240, 255, 0.1); color: #00F0FF; padding: 4px 10px; border-radius: 12px; border: 1px solid rgba(0, 240, 255, 0.2); font-weight: 700;">התמדה מירבית</span>
-    </div>
-    <div class="leaderboard-list" style="display: flex; flex-direction: column; gap: 12px; direction: rtl; text-align: right;">
+  // Create Header
+  const header = document.createElement('div');
+  header.className = 'leaderboard-header';
+  header.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; direction: rtl;';
+  header.innerHTML = `
+    <h3 class="leaderboard-title" style="margin: 0; font-size: 1.1rem; font-weight: 800; color: #fff;">🏆 תרגילים מובילים שלי</h3>
+    <span class="leaderboard-badge" style="font-size: 0.72rem; background: rgba(0, 240, 255, 0.1); color: #00F0FF; padding: 4px 10px; border-radius: 12px; border: 1px solid rgba(0, 240, 255, 0.2); font-weight: 700;">התמדה מירבית</span>
   `;
+  container.appendChild(header);
 
+  // Create List Container
+  const listContainer = document.createElement('div');
+  listContainer.className = 'leaderboard-list';
+  listContainer.style.cssText = 'display: flex; flex-direction: column; gap: 12px; direction: rtl; text-align: right;';
+  
   top3.forEach((item, idx) => {
     const pct = Math.round((item.stats.timesPerformed / maxPerformed) * 100);
     const emojiStr = item.ex.emoji ? `<span style="font-size: 1.2rem; margin-left: 6px;">${item.ex.emoji}</span>` : '💪';
     
-    html += `
-      <div class="leader-item ${tierClasses[idx]}" style="display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 14px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.03); transition: all 0.3s ease; cursor: pointer;" onclick="openExerciseInspector('${item.ex.name.replace(/'/g, "\\'")}')">
-        <div class="leader-rank" style="font-size: 1.4rem;">${ranks[idx]}</div>
-        <div class="leader-info" style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
-          <span class="leader-name" style="font-size: 0.95rem; font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 4px;">
-            ${emojiStr} ${item.ex.name}
-          </span>
-          <span class="leader-sub" style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">
-            בוצע ${item.stats.timesPerformed} פעמים | ${item.stats.totalSets} סטים | שיא: ${item.stats.maxWeight > 0 ? item.stats.maxWeight + ' ק״ג' : '--'}
-          </span>
-          <div class="progress-bar-container" style="width: 100%; height: 6px; background: rgba(255, 255, 255, 0.06); border-radius: 3px; overflow: hidden; margin-top: 4px;">
-            <div class="progress-bar-fill ${gradientClasses[idx]}" style="width: ${pct}%; height: 100%; border-radius: 3px; transition: width 1s ease-in-out;"></div>
-          </div>
+    const leaderItem = document.createElement('div');
+    leaderItem.className = `leader-item ${tierClasses[idx]}`;
+    leaderItem.style.cssText = 'display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 14px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.03); transition: all 0.3s ease; cursor: pointer;';
+    
+    leaderItem.innerHTML = `
+      <div class="leader-rank" style="font-size: 1.4rem;">${ranks[idx]}</div>
+      <div class="leader-info" style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
+        <span class="leader-name" style="font-size: 0.95rem; font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 4px;">
+          ${emojiStr} ${item.ex.name}
+        </span>
+        <span class="leader-sub" style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">
+          בוצע ${item.stats.timesPerformed} פעמים | ${item.stats.totalSets} סטים | שיא: ${item.stats.maxWeight > 0 ? item.stats.maxWeight + ' ק״ג' : '--'}
+        </span>
+        <div class="progress-bar-container" style="width: 100%; height: 6px; background: rgba(255, 255, 255, 0.06); border-radius: 3px; overflow: hidden; margin-top: 4px;">
+          <div class="progress-bar-fill ${gradientClasses[idx]}" style="width: ${pct}%; height: 100%; border-radius: 3px; transition: width 1s ease-in-out;"></div>
         </div>
       </div>
     `;
+
+    leaderItem.addEventListener('click', () => {
+      if (typeof openExerciseInspector === 'function') {
+        openExerciseInspector(item.ex.name);
+      }
+    });
+
+    listContainer.appendChild(leaderItem);
   });
 
-  html += `</div>`;
-  container.innerHTML = html;
+  container.appendChild(listContainer);
 }
+
+
 
 // Render dynamic Exercises Grid in Tab 3 (Exercises Manager)
 function renderExercisesManager() {
