@@ -345,9 +345,8 @@
 
               <!-- Add Custom Exercise Button -->
               <div class="picker-add-custom-wrapper" style="padding: 12px 1.5rem 18px 1.5rem; border-top: 1px solid rgba(255, 255, 255, 0.05); background: rgba(0,0,0,0.15);">
-                <button id="open-custom-exercise-modal-btn" class="btn-add-custom-exercise-trigger">
-                  <span class="add-custom-ex-icon">✨</span>
-                  <span>הוסף תרגיל חדש</span>
+                <button id="open-custom-exercise-modal-btn" class="btn-add-custom-exercise-trigger" style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; padding: 14px; border-radius: 14px; background: linear-gradient(135deg, #dc2626 0%, #f43f5e 100%); border: none; color: #ffffff; font-weight: bold; font-size: 1rem; cursor: pointer; box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);">
+                  <span>➕ צור תרגיל מותאם אישית חדש</span>
                 </button>
               </div>
             </div>
@@ -376,6 +375,18 @@
                     <span style="font-weight: 600;">🏋️‍♂️ משקל בלבד</span>
                     <span>←</span>
                   </button>
+                </div>
+
+                <div class="divider" style="margin: 1.5rem 0 1rem 0; border-top: 1px solid rgba(255, 255, 255, 0.08);"></div>
+
+                <!-- Premium Rest Time Selection Section -->
+                <h4 style="font-size: 1.05rem; margin-bottom: 1rem; color: #ffffff; text-align: right; direction: rtl;">⏱️ זמן מנוחה לתרגיל</h4>
+                <div id="rest-time-chips-container" class="rest-time-chips-container" style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; direction: ltr; margin-top: 10px;">
+                  <button type="button" class="rest-option-chip" data-rest="30" style="padding: 8px 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: all 0.2s;">30s</button>
+                  <button type="button" class="rest-option-chip" data-rest="60" style="padding: 8px 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: all 0.2s;">60s</button>
+                  <button type="button" class="rest-option-chip active" data-rest="90" style="padding: 8px 16px; border-radius: 20px; border: 1px solid var(--electric-blue); background: var(--electric-blue-light); color: #fff; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: all 0.2s;">90s ⭐️</button>
+                  <button type="button" class="rest-option-chip" data-rest="120" style="padding: 8px 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: all 0.2s;">120s</button>
+                  <button type="button" class="rest-option-chip" data-rest="180" style="padding: 8px 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: all 0.2s;">180s</button>
                 </div>
               </div>
             </div>
@@ -421,45 +432,53 @@
             </div>
           </div>
 
-          <!-- Per-Set Entry Modal (full-screen drum-roll picker, z-index 1450) -->
-          <div id="set-entry-modal" class="workout-modal-overlay hide" style="z-index: 1450; align-items: flex-end;">
-            <div class="set-entry-modal-card">
+          <!-- Set Logging Modal (#set-log-modal) -->
+          <div id="set-log-modal" class="workout-modal-overlay hide" style="z-index: 1450; align-items: center; justify-content: center;">
+            <div class="workout-modal-card set-log-modal-card" style="max-width: 400px; width: 95%; border-radius: 28px; padding: 1.5rem;">
               <!-- Header -->
-              <div class="set-entry-header">
-                <div class="set-entry-exercise-name" id="set-entry-exercise-name">לחיצת חזה</div>
-                <div class="set-entry-set-number" id="set-entry-set-number">סט 1</div>
+              <div class="set-log-header" style="text-align: center; margin-bottom: 1.5rem;">
+                <div class="set-log-exercise-name" id="set-log-exercise-name" style="font-size: 1.3rem; font-weight: 800; color: #ffffff;">לחיצת חזה</div>
+                <div class="set-log-set-number" id="set-log-set-number" style="font-size: 1rem; color: var(--electric-blue); font-weight: 600; margin-top: 4px;">סט 1</div>
               </div>
 
-              <!-- Drum-Roll Pickers Area -->
-              <div class="set-entry-pickers-area" id="set-entry-pickers-area">
-                <!-- Weight picker (shown based on metricType) -->
-                <div class="drum-picker-column" id="set-entry-weight-col">
-                  <div class="drum-picker-label">משקל (ק״ג)</div>
-                  <div class="drum-picker-container" id="weight-picker">
-                    <div class="drum-picker-track" id="weight-picker-track"></div>
-                    <div class="drum-picker-selected-line drum-picker-selected-line-top"></div>
-                    <div class="drum-picker-selected-line drum-picker-selected-line-bottom"></div>
+              <!-- Premium Sliders Area -->
+              <div class="set-log-sliders-area" style="display: flex; flex-direction: column; gap: 1.5rem;">
+                
+                <!-- Weight Slider Row -->
+                <div class="slider-group-container" id="set-log-weight-group" style="display: flex; flex-direction: column; gap: 8px;">
+                  <div class="slider-header" style="display: flex; justify-content: space-between; align-items: center; direction: rtl;">
+                    <span style="font-size: 0.95rem; font-weight: 700; color: var(--text-muted);">משקל (ק״ג)</span>
+                    <span class="slider-display-value" style="font-size: 1.3rem; font-weight: 800; color: #ffffff;"><span id="weight-slider-value">60</span> ק״ג</span>
+                  </div>
+                  <div class="slider-control-row" style="display: flex; align-items: center; gap: 10px; direction: ltr;">
+                    <button type="button" id="weight-minus-btn" class="slider-adjust-btn" style="width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.3rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center;">-</button>
+                    <input type="range" id="weight-range-slider" class="premium-range-slider" min="0" max="250" step="2.5" value="60" style="flex: 1; height: 6px; border-radius: 3px; outline: none; background: rgba(255,255,255,0.1);">
+                    <button type="button" id="weight-plus-btn" class="slider-adjust-btn" style="width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.3rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center;">+</button>
                   </div>
                 </div>
 
-                <!-- Reps picker (shown based on metricType) -->
-                <div class="drum-picker-column" id="set-entry-reps-col">
-                  <div class="drum-picker-label">חזרות</div>
-                  <div class="drum-picker-container" id="reps-picker">
-                    <div class="drum-picker-track" id="reps-picker-track"></div>
-                    <div class="drum-picker-selected-line drum-picker-selected-line-top"></div>
-                    <div class="drum-picker-selected-line drum-picker-selected-line-bottom"></div>
+                <!-- Reps Slider Row -->
+                <div class="slider-group-container" id="set-log-reps-group" style="display: flex; flex-direction: column; gap: 8px;">
+                  <div class="slider-header" style="display: flex; justify-content: space-between; align-items: center; direction: rtl;">
+                    <span style="font-size: 0.95rem; font-weight: 700; color: var(--text-muted);">חזרות</span>
+                    <span class="slider-display-value" style="font-size: 1.3rem; font-weight: 800; color: #ffffff;"><span id="reps-slider-value">10</span> חזרות</span>
+                  </div>
+                  <div class="slider-control-row" style="display: flex; align-items: center; gap: 10px; direction: ltr;">
+                    <button type="button" id="reps-minus-btn" class="slider-adjust-btn" style="width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.3rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center;">-</button>
+                    <input type="range" id="reps-range-slider" class="premium-range-slider" min="0" max="50" step="1" value="10" style="flex: 1; height: 6px; border-radius: 3px; outline: none; background: rgba(255,255,255,0.1);">
+                    <button type="button" id="reps-plus-btn" class="slider-adjust-btn" style="width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.3rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center;">+</button>
                   </div>
                 </div>
+
               </div>
 
               <!-- Action Buttons -->
-              <div class="set-entry-actions">
-                <button id="set-entry-confirm-btn" class="set-entry-confirm-btn">
+              <div class="set-log-actions" style="display: flex; gap: 12px; margin-top: 2rem; direction: rtl;">
+                <button id="set-log-confirm-btn" class="btn btn-primary" style="flex: 1; padding: 14px; font-weight: bold; border-radius: 14px;">
                   ✓ סיימתי סט
                 </button>
-                <button id="set-entry-cancel-btn" class="set-entry-cancel-btn">
-                  ✕ ביטול
+                <button id="set-log-cancel-btn" class="btn btn-secondary" style="flex: 1; padding: 14px; font-weight: bold; border-radius: 14px;">
+                  ✕ ביטול סט
                 </button>
               </div>
             </div>
@@ -508,19 +527,46 @@
                   >
                 </div>
 
-                <!-- Category Selector -->
+                <!-- Category Selector (Muscle Group Cards Grid) -->
                 <div class="custom-ex-field-group">
-                  <label class="custom-ex-field-label">קטגוריה</label>
-                  <div id="custom-ex-category-selector" class="custom-ex-category-pills">
-                    <button class="category-pill-btn active" data-category="מותאם אישית">מותאם אישית</button>
-                    <button class="category-pill-btn" data-category="חזה">חזה</button>
-                    <button class="category-pill-btn" data-category="גב">גב</button>
-                    <button class="category-pill-btn" data-category="כתפיים">כתפיים</button>
-                    <button class="category-pill-btn" data-category="רגליים">רגליים</button>
-                    <button class="category-pill-btn" data-category="ידיים">ידיים</button>
-                    <button class="category-pill-btn" data-category="בטן">בטן</button>
-                    <button class="category-pill-btn" data-category="אירובי">אירובי</button>
-                    <button class="category-pill-btn" data-category="ליבה">ליבה</button>
+                  <label class="custom-ex-field-label">קטגוריה (בחר קבוצת שריר)</label>
+                  <div id="custom-ex-category-selector" class="custom-ex-category-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 8px;">
+                    <button class="muscle-card active" data-category="חזה" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); color: #fff; cursor: pointer; transition: all 0.2s;">
+                      <span style="font-size: 1.5rem; margin-bottom: 4px;">🍒</span>
+                      <span style="font-size: 0.85rem; font-weight: 700;">חזה</span>
+                    </button>
+                    <button class="muscle-card" data-category="גב" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); color: #fff; cursor: pointer; transition: all 0.2s;">
+                      <span style="font-size: 1.5rem; margin-bottom: 4px;">🦅</span>
+                      <span style="font-size: 0.85rem; font-weight: 700;">גב</span>
+                    </button>
+                    <button class="muscle-card" data-category="כתפיים" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); color: #fff; cursor: pointer; transition: all 0.2s;">
+                      <span style="font-size: 1.5rem; margin-bottom: 4px;">🛡️</span>
+                      <span style="font-size: 0.85rem; font-weight: 700;">כתפיים</span>
+                    </button>
+                    <button class="muscle-card" data-category="רגליים" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); color: #fff; cursor: pointer; transition: all 0.2s;">
+                      <span style="font-size: 1.5rem; margin-bottom: 4px;">🦵</span>
+                      <span style="font-size: 0.85rem; font-weight: 700;">רגליים</span>
+                    </button>
+                    <button class="muscle-card" data-category="ידיים" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); color: #fff; cursor: pointer; transition: all 0.2s;">
+                      <span style="font-size: 1.5rem; margin-bottom: 4px;">💪</span>
+                      <span style="font-size: 0.85rem; font-weight: 700;">ידיים</span>
+                    </button>
+                    <button class="muscle-card" data-category="בטן" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); color: #fff; cursor: pointer; transition: all 0.2s;">
+                      <span style="font-size: 1.5rem; margin-bottom: 4px;">🍫</span>
+                      <span style="font-size: 0.85rem; font-weight: 700;">בטן</span>
+                    </button>
+                    <button class="muscle-card" data-category="אירובי" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); color: #fff; cursor: pointer; transition: all 0.2s;">
+                      <span style="font-size: 1.5rem; margin-bottom: 4px;">🏃</span>
+                      <span style="font-size: 0.85rem; font-weight: 700;">אירובי</span>
+                    </button>
+                    <button class="muscle-card" data-category="ליבה" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); color: #fff; cursor: pointer; transition: all 0.2s;">
+                      <span style="font-size: 1.5rem; margin-bottom: 4px;">🧘</span>
+                      <span style="font-size: 0.85rem; font-weight: 700;">ליבה</span>
+                    </button>
+                    <button class="muscle-card" data-category="מותאם אישית" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); color: #fff; cursor: pointer; transition: all 0.2s;">
+                      <span style="font-size: 1.5rem; margin-bottom: 4px;">✨</span>
+                      <span style="font-size: 0.85rem; font-weight: 700;">אחר</span>
+                    </button>
                   </div>
                 </div>
 
