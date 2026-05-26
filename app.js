@@ -1017,12 +1017,29 @@ navTabs.forEach((tab) => {
     
     console.log(`Switched to tab: ${targetTab}`);
 
-    // UX auto-collapse: clear the 5s idle collapse timer and collapse after 400ms delay
+    // NEW BEHAVIOR: Expand nav on tab switch, let it stay open until user interacts with the tab content
+    // The nav collapses only when user scrolls or takes an action inside the tab
     if (autoCollapseTimeout) {
       clearTimeout(autoCollapseTimeout);
       autoCollapseTimeout = null;
     }
-    setTimeout(collapseNav, 400);
+    expandNav();
+  });
+});
+
+// Attach scroll listeners to all tab panes — collapse nav when user scrolls inside a tab
+onDOMReady(() => {
+  const allPanes = document.querySelectorAll('.tab-content-container .tab-pane');
+  allPanes.forEach(pane => {
+    let scrollThreshold = false;
+    pane.addEventListener('scroll', () => {
+      if (!scrollThreshold) {
+        scrollThreshold = true;
+        collapseNav();
+        // Reset threshold after 1s so it can collapse again on next scroll burst
+        setTimeout(() => { scrollThreshold = false; }, 1000);
+      }
+    }, { passive: true });
   });
 });
 
@@ -1139,6 +1156,7 @@ let editingWorkout = null;
 // Custom Locations & Exercises State
 let customLocations = [];
 let customExercises = [];
+let favoriteExercises = []; // ⭐ Names of exercises marked as favorites
 let selectedExerciseForAdding = null;
 let currentActiveCategoryFilter = 'הכל';
 
@@ -1198,6 +1216,19 @@ function initWorkouts() {
     }
   } else {
     customExercises = [];
+  }
+  
+  // Load Favorite Exercises
+  const favsData = SafeStorage.getItem(`aura-favorite-exercises_${currentUser.uid}`);
+  if (favsData) {
+    try {
+      favoriteExercises = JSON.parse(favsData);
+    } catch (e) {
+      console.error("Failed to parse favorite exercises:", e);
+      favoriteExercises = [];
+    }
+  } else {
+    favoriteExercises = [];
   }
   
   // Render Tab 3 History Logs
@@ -1385,6 +1416,9 @@ function startNewWorkout(location, name = '', emoji = '') {
   
   // Render exercises list (empty)
   renderExercises();
+  
+  // Collapse nav — user has taken action inside the tab
+  if (typeof collapseNav === 'function') collapseNav();
 }
 
 function resumeWorkoutTimer() {
@@ -1443,6 +1477,11 @@ function renderExercisePickerFilters() {
     categories = ['הכל', 'מתח', 'דחיפה', 'רגליים', 'ליבה ואירובי'];
   } else {
     categories = ['הכל', 'מותאם אישית'];
+  }
+
+  // Add מועדפים at beginning if there are any
+  if (favoriteExercises.length > 0 && !categories.includes('מועדפים')) {
+    categories.splice(1, 0, '⭐ מועדפים');
   }
 
   const hasCustoms = customExercises.some(ex => {
@@ -1505,8 +1544,10 @@ function renderExercisePickerList() {
     return true;
   });
   
-  // Filter by category
-  if (currentActiveCategoryFilter !== 'הכל') {
+  // Filter by category (or favorites)
+  if (currentActiveCategoryFilter === '⭐ מועדפים') {
+    fullList = fullList.filter(ex => favoriteExercises.includes(ex.name));
+  } else if (currentActiveCategoryFilter !== 'הכל') {
     fullList = fullList.filter(ex => ex.category === currentActiveCategoryFilter);
   }
   
@@ -1540,11 +1581,17 @@ function renderExercisePickerList() {
   };
   
   fullList.forEach(ex => {
+    const itemWrapper = document.createElement('div');
+    itemWrapper.className = 'exercise-list-item-wrapper';
+    itemWrapper.style.cssText = 'position: relative; display: flex; align-items: center; gap: 8px; direction: rtl;';
+
     const item = document.createElement('button');
     item.className = 'exercise-list-item';
+    item.style.flex = '1';
     
     const catStyle = categoryColors[ex.category] || { bg: 'rgba(255,255,255,0.06)', color: 'var(--text-muted)' };
     const emoji = ex.emoji ? `<span class="ex-list-emoji">${ex.emoji}</span>` : '';
+    const isFav = favoriteExercises.includes(ex.name);
     
     item.innerHTML = `
       <div class="ex-list-info">
@@ -1567,7 +1614,39 @@ function renderExercisePickerList() {
       const metricModal = document.getElementById('metric-selector-modal');
       if (metricModal) metricModal.classList.remove('hide');
     });
-    container.appendChild(item);
+
+    // ⭐ Favorite Star Button
+    const starBtn = document.createElement('button');
+    starBtn.className = `ex-fav-star-btn ${isFav ? 'active' : ''}`;
+    starBtn.title = isFav ? 'הסר ממועדפים' : 'הוסף למועדפים';
+    starBtn.innerHTML = isFav ? '⭐' : '☆';
+    starBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const idx = favoriteExercises.indexOf(ex.name);
+      if (idx > -1) {
+        favoriteExercises.splice(idx, 1);
+        starBtn.innerHTML = '☆';
+        starBtn.classList.remove('active');
+        starBtn.title = 'הוסף למועדפים';
+      } else {
+        favoriteExercises.push(ex.name);
+        starBtn.innerHTML = '⭐';
+        starBtn.classList.add('active');
+        starBtn.title = 'הסר ממועדפים';
+      }
+      if (currentUser) {
+        SafeStorage.setItem(`aura-favorite-exercises_${currentUser.uid}`, JSON.stringify(favoriteExercises));
+      }
+      // Re-render filters to update מועדפים category visibility
+      renderExercisePickerFilters();
+      if (currentActiveCategoryFilter === '⭐ מועדפים') {
+        renderExercisePickerList();
+      }
+    });
+
+    itemWrapper.appendChild(starBtn);
+    itemWrapper.appendChild(item);
+    container.appendChild(itemWrapper);
   });
 }
 
