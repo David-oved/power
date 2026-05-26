@@ -3029,6 +3029,8 @@ body.authenticated .ios-bottom-nav {
   flex-direction: column;
   gap: 10px;
   margin-bottom: 20px;
+  max-height: 50vh;
+  overflow-y: auto;
 }
 
 .ios-modal-option {
@@ -4649,6 +4651,8 @@ body.authenticated .ios-bottom-nav {
   direction: rtl !important;
   max-width: 400px !important;
   width: 95% !important;
+  max-height: 90vh !important;
+  overflow-y: auto !important;
 }
 
 .set-log-header {
@@ -5746,7 +5750,8 @@ body.authenticated .ios-bottom-nav {
 }
 
 .collapsible-filters-container.expanded {
-  max-height: 280px; /* high enough to display filters */
+  max-height: 480px; /* high enough to display filters */
+  overflow-y: auto;
 }
 
 .collapsible-filters-container .filters-panel-card {
