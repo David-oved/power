@@ -251,6 +251,17 @@
                   <span class="ios-row-label">התראות פעילות</span>
                 </div>
               </div>
+
+              <!-- Row 3: Search for Updates -->
+              <div class="ios-setting-row" id="row-settings-check-update">
+                <div class="ios-row-left">
+                  <span id="settings-update-status" class="ios-row-detail-text">בדוק</span>
+                </div>
+                <div class="ios-row-right">
+                  <span class="ios-row-icon-badge bg-ios-green">🔄</span>
+                  <span class="ios-row-label">חיפוש עדכונים</span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -633,153 +644,177 @@
         <!-- Tab 3: Analytics (Data Tab) -->
         <div id="tab-analytics" class="tab-pane" style="padding: 0 !important; align-items: stretch; justify-content: flex-start; height: 100%;">
           <div class="ios-analytics-scroll-container">
-            <h2 class="settings-main-title" style="margin-bottom: 1.2rem;">📈 מדדים ונתונים</h2>
+            <h2 class="settings-main-title" style="margin-bottom: 1.2rem; padding: 0 1.5rem;">📈 מדדים ונתונים</h2>
             
-            <!-- Multi-Filter Control Panel -->
-            <div class="filters-panel-card">
-              <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
-                <span>🔍 מסננים מתקדמים</span>
-              </div>
-              
-              <!-- Quick Date Chips & Custom Range -->
-              <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">
-                <button class="filter-chip active" data-time="all">הכל</button>
-                <button class="filter-chip" data-time="7">7 ימים אחרונים</button>
-                <button class="filter-chip" data-time="30">30 ימים אחרונים</button>
-                <button class="filter-chip" data-time="custom">מותאם 📅</button>
-              </div>
-              
-              <!-- Custom Date Range Inputs (collapsible, display:none by default unless custom clicked) -->
-              <div id="custom-date-inputs" style="display: none; gap: 10px; margin-bottom: 12px; align-items: center;">
-                <input type="date" id="filter-start-date" class="date-picker-input">
-                <span style="color: var(--text-muted); font-size: 0.85rem;">עד</span>
-                <input type="date" id="filter-end-date" class="date-picker-input">
-              </div>
-
-              <!-- Location & Target Muscle Dropdowns -->
-              <div style="display: flex; gap: 10px; width: 100%;">
-                <select id="filter-location-select" class="premium-filter-select" style="flex: 1;">
-                  <option value="all">כל המיקומים 📍</option>
-                  <option value="gym">🏋️‍♂️ חדר כושר</option>
-                  <option value="park">🌳 פארק</option>
-                </select>
-                <select id="filter-muscle-select" class="premium-filter-select" style="flex: 1;">
-                  <option value="all">כל השרירים 💪</option>
-                  <option value="חזה">חזה</option>
-                  <option value="גב">גב</option>
-                  <option value="כתפיים">כתפיים</option>
-                  <option value="רגליים">רגליים</option>
-                  <option value="ידיים">ידיים</option>
-                  <option value="בטן">בטן</option>
-                </select>
-              </div>
+            <!-- Premium iOS Segmented Control -->
+            <div class="segmented-control" data-active="overview">
+              <button class="segment-btn active" data-segment="overview">📊 במבט על</button>
+              <button class="segment-btn" data-segment="logs">📅 יומן אימונים</button>
+              <button class="segment-btn" data-segment="exercise">📈 ניתוח תרגיל</button>
+              <div class="segmented-indicator"></div>
             </div>
 
-            <!-- Searchable Exercise Dropdown Picker -->
-            <div style="position: relative; margin-bottom: 1.5rem;">
-              <input type="text" id="analytics-exercise-search" class="analytics-search-input" placeholder="🔍 חפש תרגיל לניתוח..." autocomplete="off">
-              <div id="analytics-suggestions-dropdown" class="suggestions-dropdown hide"></div>
-            </div>
+            <!-- Collapsible Filters Trigger Button -->
+            <button id="toggle-filters-btn" class="toggle-filters-btn">
+              <span>🔍 סינון נתונים מתקדם</span>
+              <span class="arrow-icon">▼</span>
+            </button>
 
-            <!-- Single Exercise Progression Dashboard (collapsible, active when exercise selected) -->
-            <div id="analytics-exercise-dashboard" class="analytics-exercise-dashboard hide" style="background: rgba(20,20,24,0.7); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; padding: 1.2rem; margin-bottom: 1.5rem;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; direction: rtl;">
-                <h3 id="dashboard-exercise-name" style="margin: 0; font-size: 1.1rem; font-weight: 800; color: #ffffff;">לחיצת חזה</h3>
-                <button id="clear-dashboard-btn" class="btn-cancel-link" style="background: none; border: none; font-size: 0.85rem; font-weight: 700; color: #f87171; cursor: pointer;">✕ נקה</button>
-              </div>
-
-              <!-- Chart Switcher Tabs -->
-              <div style="display: flex; gap: 8px; margin-bottom: 16px;">
-                <button class="chart-tab active" data-chart="1rm">1RM משוער 🏆</button>
-                <button class="chart-tab" data-chart="weight">משקל שיא 🏋️‍♂️</button>
-                <button class="chart-tab" data-chart="volume">נפח כולל 📊</button>
-              </div>
-
-              <!-- Bezier Chart Container -->
-              <div style="width: 100%; height: 160px; background: rgba(0,0,0,0.25); border-radius: 14px; margin-bottom: 16px; position: relative;">
-                <svg id="bezier-chart-svg" style="width: 100%; height: 100%; overflow: visible; padding: 10px 0;">
-                  <!-- Gradient definitions -->
-                  <defs>
-                    <linearGradient id="chart-gradient-fill" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stop-color="var(--electric-blue-light)" stop-opacity="0.4"></stop>
-                      <stop offset="100%" stop-color="var(--electric-blue)" stop-opacity="0.0"></stop>
-                    </linearGradient>
-                  </defs>
-                  <g id="chart-gridlines"></g>
-                  <path id="chart-area-path" class="bezier-chart-area" d=""></path>
-                  <path id="chart-line-path" class="bezier-chart-path" d=""></path>
-                  <g id="chart-points-group"></g>
-                </svg>
-                <div id="chart-no-data" style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.85rem; direction: rtl;">אין מספיק נתונים להצגת תרשים</div>
-              </div>
-
-              <!-- Mini Stats Grid -->
-              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
-                <div class="stat-mini-card">
-                  <span class="stat-label">שיא אישי (PR)</span>
-                  <span class="stat-value" id="dashboard-pr-value">--</span>
+            <!-- Collapsible Filters Container -->
+            <div id="collapsible-filters-container" class="collapsible-filters-container">
+              <!-- Multi-Filter Control Panel -->
+              <div class="filters-panel-card" style="background: rgba(20,20,24,0.6); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 1.2rem;">
+                <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                  <span>🔍 מסננים פעילים</span>
                 </div>
-                <div class="stat-mini-card">
-                  <span class="stat-label">1RM מוערך</span>
-                  <span class="stat-value" id="dashboard-1rm-value">--</span>
+                
+                <!-- Quick Date Chips & Custom Range -->
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">
+                  <button class="filter-chip active" data-time="all">הכל</button>
+                  <button class="filter-chip" data-time="7">7 ימים אחרונים</button>
+                  <button class="filter-chip" data-time="30">30 ימים אחרונים</button>
+                  <button class="filter-chip" data-time="custom">מותאם 📅</button>
                 </div>
-                <div class="stat-mini-card">
-                  <span class="stat-label">סך הכל נפח</span>
-                  <span class="stat-value" id="dashboard-vol-value">--</span>
+                
+                <!-- Custom Date Range Inputs (collapsible, display:none by default unless custom clicked) -->
+                <div id="custom-date-inputs" style="display: none; gap: 10px; margin-bottom: 12px; align-items: center;">
+                  <input type="date" id="filter-start-date" class="date-picker-input">
+                  <span style="color: var(--text-muted); font-size: 0.85rem;">עד</span>
+                  <input type="date" id="filter-end-date" class="date-picker-input">
+                </div>
+
+                <!-- Location & Target Muscle Dropdowns -->
+                <div style="display: flex; gap: 10px; width: 100%;">
+                  <select id="filter-location-select" class="premium-filter-select" style="flex: 1;">
+                    <option value="all">כל המיקומים 📍</option>
+                    <option value="gym">🏋️‍♂️ חדר כושר</option>
+                    <option value="park">🌳 פארק</option>
+                  </select>
+                  <select id="filter-muscle-select" class="premium-filter-select" style="flex: 1;">
+                    <option value="all">כל השרירים 💪</option>
+                    <option value="חזה">חזה</option>
+                    <option value="גב">גב</option>
+                    <option value="כתפיים">כתפיים</option>
+                    <option value="רגליים">רגליים</option>
+                    <option value="ידיים">ידיים</option>
+                    <option value="בטן">בטן</option>
+                  </select>
                 </div>
               </div>
             </div>
 
-            <!-- View Toggles Switcher -->
-            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 1.5rem;">
-              <button class="view-toggle-btn active" data-view="calendar">לוח שנה 📅</button>
-              <button class="view-toggle-btn" data-view="heatmap">התמדה ⬜</button>
-              <button class="view-toggle-btn" data-view="split">שרירים 🍗</button>
-              <button class="view-toggle-btn" data-view="list">רשימה 📋</button>
-            </div>
-
-            <!-- Variation Containers -->
+            <!-- Segment Panes -->
             
-            <!-- 1. Monthly Calendar View -->
-            <div id="analytics-calendar-view" class="analytics-sub-view" style="background: rgba(20,20,24,0.6); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 1.2rem;">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; direction: rtl;">
-                <button id="calendar-prev-month" class="calendar-nav-arrow" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); width: 34px; height: 34px; border-radius: 50%; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;">→</button>
-                <h3 id="calendar-month-label" style="margin: 0; font-size: 1.05rem; font-weight: 800; color: #ffffff;">מאי 2026</h3>
-                <button id="calendar-next-month" class="calendar-nav-arrow" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); width: 34px; height: 34px; border-radius: 50%; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;">←</button>
+            <!-- 1. OVERVIEW PANE -->
+            <div id="segment-overview-pane" class="analytics-segment-pane active">
+              <!-- 2. Consistency Heatmap View -->
+              <div id="analytics-heatmap-view" class="analytics-sub-view" style="background: rgba(20,20,24,0.6); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 1.2rem;">
+                <h3 style="margin: 0 0 10px 0; font-size: 1rem; font-weight: 800; color: #ffffff; direction: rtl; text-align: right;">🔥 התמדה שנתית (Heatmap)</h3>
+                <p style="color: var(--text-muted); font-size: 0.78rem; margin-bottom: 12px; direction: rtl; text-align: right;">עצימות האימונים שלך במהלך 52 השבועות האחרונים:</p>
+                <div class="heatmap-panel" style="width: 100%; overflow-x: auto; padding-bottom: 8px;">
+                  <svg id="heatmap-svg" class="heatmap-svg" style="width: 530px; height: 90px; overflow: visible; display: block; margin: 0 auto;"></svg>
+                </div>
               </div>
-              <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; font-size: 0.72rem; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; direction: rtl;">
-                <div>א׳</div><div>ב׳</div><div>ג׳</div><div>ד׳</div><div>ה׳</div><div>ו׳</div><div>ש׳</div>
-              </div>
-              <div id="calendar-days-grid" class="calendar-days-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; direction: rtl;">
-                <!-- Generated dynamically in app.js -->
+
+              <!-- 3. Muscle volume distribution split -->
+              <div id="analytics-muscle-split-view" class="analytics-sub-view" style="background: rgba(20,20,24,0.6); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 1.2rem;">
+                <h3 style="margin: 0 0 12px 0; font-size: 1rem; font-weight: 800; color: #ffffff; direction: rtl; text-align: right;">🍗 חלוקת נפח עבודה שבועי</h3>
+                <div id="muscle-splits-container" style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 16px;">
+                  <!-- Generated dynamically -->
+                </div>
+                <div class="muscle-recommendation-box" id="muscle-recommendation-box" style="padding: 12px; background: rgba(220,38,38,0.08); border: 1px solid rgba(220,38,38,0.2); border-radius: 12px; font-size: 0.82rem; color: #fca5a5; text-align: right; direction: rtl;">
+                  <!-- Generated dynamically -->
+                </div>
               </div>
             </div>
 
-            <!-- 2. Consistency Heatmap View -->
-            <div id="analytics-heatmap-view" class="analytics-sub-view hide" style="background: rgba(20,20,24,0.6); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 1.2rem;">
-              <h3 style="margin: 0 0 10px 0; font-size: 1rem; font-weight: 800; color: #ffffff; direction: rtl; text-align: right;">🔥 התמדה שנתית (Heatmap)</h3>
-              <p style="color: var(--text-muted); font-size: 0.78rem; margin-bottom: 12px; direction: rtl; text-align: right;">עצימות האימונים שלך במהלך 52 השבועות האחרונים:</p>
-              <div class="heatmap-panel" style="width: 100%; overflow-x: auto; padding-bottom: 8px;">
-                <svg id="heatmap-svg" class="heatmap-svg" style="width: 530px; height: 90px; overflow: visible; display: block; margin: 0 auto;"></svg>
+            <!-- 2. LOGS PANE -->
+            <div id="segment-logs-pane" class="analytics-segment-pane">
+              <!-- Logs Compact Switcher -->
+              <div class="logs-compact-switcher" style="display: flex; gap: 8px; background: rgba(255, 255, 255, 0.04); padding: 4px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.06); margin-bottom: 1rem;">
+                <button class="logs-switch-btn active" data-subview="calendar" style="flex: 1; padding: 10px; font-weight: 700; border-radius: 9px; border: none; cursor: pointer; transition: all 0.2s; font-family: var(--font-sans); background: var(--electric-blue-light); color: #fff;">לוח שנה 📅</button>
+                <button class="logs-switch-btn" data-subview="list" style="flex: 1; padding: 10px; font-weight: 700; border-radius: 9px; border: none; cursor: pointer; transition: all 0.2s; font-family: var(--font-sans); background: transparent; color: var(--text-muted);">רשימה 📋</button>
+              </div>
+
+              <!-- 1. Monthly Calendar View -->
+              <div id="analytics-calendar-view" class="analytics-sub-view" style="background: rgba(20,20,24,0.6); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 1.2rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; direction: rtl;">
+                  <button id="calendar-prev-month" class="calendar-nav-arrow" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); width: 34px; height: 34px; border-radius: 50%; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;">→</button>
+                  <h3 id="calendar-month-label" style="margin: 0; font-size: 1.05rem; font-weight: 800; color: #ffffff;">מאי 2026</h3>
+                  <button id="calendar-next-month" class="calendar-nav-arrow" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); width: 34px; height: 34px; border-radius: 50%; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;">←</button>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; font-size: 0.72rem; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; direction: rtl;">
+                  <div>א׳</div><div>ב׳</div><div>ג׳</div><div>ד׳</div><div>ה׳</div><div>ו׳</div><div>ש׳</div>
+                </div>
+                <div id="calendar-days-grid" class="calendar-days-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; direction: rtl;">
+                  <!-- Generated dynamically in app.js -->
+                </div>
+              </div>
+
+              <!-- 4. Accordion History list -->
+              <div id="analytics-history-list-view" class="analytics-sub-view hide" style="background: rgba(20,20,24,0.6); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 1.2rem;">
+                <h3 style="margin: 0 0 12px 0; font-size: 1rem; font-weight: 800; color: #ffffff; direction: rtl; text-align: right;">📋 היסטוריית אימונים מורחבת</h3>
+                <div id="accordion-history-container">
+                  <!-- Generated dynamically -->
+                </div>
               </div>
             </div>
 
-            <!-- 3. Muscle volume distribution split -->
-            <div id="analytics-muscle-split-view" class="analytics-sub-view hide" style="background: rgba(20,20,24,0.6); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 1.2rem;">
-              <h3 style="margin: 0 0 12px 0; font-size: 1rem; font-weight: 800; color: #ffffff; direction: rtl; text-align: right;">🍗 חלוקת נפח עבודה שבועי</h3>
-              <div id="muscle-splits-container" style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 16px;">
-                <!-- Generated dynamically -->
+            <!-- 3. EXERCISE PANE -->
+            <div id="segment-exercise-pane" class="analytics-segment-pane">
+              <!-- Searchable Exercise Dropdown Picker -->
+              <div style="position: relative; margin-bottom: 1.5rem;">
+                <input type="text" id="analytics-exercise-search" class="analytics-search-input" placeholder="🔍 חפש תרגיל לניתוח..." autocomplete="off">
+                <div id="analytics-suggestions-dropdown" class="suggestions-dropdown hide"></div>
               </div>
-              <div class="muscle-recommendation-box" id="muscle-recommendation-box" style="padding: 12px; background: rgba(220,38,38,0.08); border: 1px solid rgba(220,38,38,0.2); border-radius: 12px; font-size: 0.82rem; color: #fca5a5; text-align: right; direction: rtl;">
-                <!-- Generated dynamically -->
-              </div>
-            </div>
 
-            <!-- 4. Accordion History list -->
-            <div id="analytics-history-list-view" class="analytics-sub-view hide">
-              <h3 style="margin: 0 0 12px 0; font-size: 1rem; font-weight: 800; color: #ffffff; direction: rtl; text-align: right;">📋 היסטוריית אימונים מורחבת</h3>
-              <div id="accordion-history-container">
-                <!-- Generated dynamically -->
+              <!-- Single Exercise Progression Dashboard (collapsible, active when exercise selected) -->
+              <div id="analytics-exercise-dashboard" class="analytics-exercise-dashboard hide" style="background: rgba(20,20,24,0.7); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; padding: 1.2rem; margin-bottom: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; direction: rtl;">
+                  <h3 id="dashboard-exercise-name" style="margin: 0; font-size: 1.1rem; font-weight: 800; color: #ffffff;">לחיצת חזה</h3>
+                  <button id="clear-dashboard-btn" class="btn-cancel-link" style="background: none; border: none; font-size: 0.85rem; font-weight: 700; color: #f87171; cursor: pointer; margin-top: 0;">✕ נקה</button>
+                </div>
+
+                <!-- Chart Switcher Tabs -->
+                <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+                  <button class="chart-tab active" data-chart="1rm">1RM משוער 🏆</button>
+                  <button class="chart-tab" data-chart="weight">משקל שיא 🏋️‍♂️</button>
+                  <button class="chart-tab" data-chart="volume">נפח כולל 📊</button>
+                </div>
+
+                <!-- Bezier Chart Container -->
+                <div style="width: 100%; height: 160px; background: rgba(0,0,0,0.25); border-radius: 14px; margin-bottom: 16px; position: relative;">
+                  <svg id="bezier-chart-svg" style="width: 100%; height: 100%; overflow: visible; padding: 10px 0;">
+                    <!-- Gradient definitions -->
+                    <defs>
+                      <linearGradient id="chart-gradient-fill" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="var(--electric-blue-light)" stop-opacity="0.4"></stop>
+                        <stop offset="100%" stop-color="var(--electric-blue)" stop-opacity="0.0"></stop>
+                      </linearGradient>
+                    </defs>
+                    <g id="chart-gridlines"></g>
+                    <path id="chart-area-path" class="bezier-chart-area" d=""></path>
+                    <path id="chart-line-path" class="bezier-chart-path" d=""></path>
+                    <g id="chart-points-group"></g>
+                  </svg>
+                  <div id="chart-no-data" style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.85rem; direction: rtl;">אין מספיק נתונים להצגת תרשים</div>
+                </div>
+
+                <!-- Mini Stats Grid -->
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                  <div class="stat-mini-card">
+                    <span class="stat-label">שיא אישי (PR)</span>
+                    <span class="stat-value" id="dashboard-pr-value">--</span>
+                  </div>
+                  <div class="stat-mini-card">
+                    <span class="stat-label">1RM מוערך</span>
+                    <span class="stat-value" id="dashboard-1rm-value">--</span>
+                  </div>
+                  <div class="stat-mini-card">
+                    <span class="stat-label">סך הכל נפח</span>
+                    <span class="stat-value" id="dashboard-vol-value">--</span>
+                  </div>
+                </div>
               </div>
             </div>
 
