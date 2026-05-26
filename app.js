@@ -146,7 +146,15 @@ function escapeHTML(str) {
 }
 
 // Robust helper to trigger native-like local notifications
-async function triggerLocalNotification(title, body) {
+async function triggerLocalNotification(title, body, isSystemUpdate = false) {
+  if (!isSystemUpdate) {
+    const notifEnabled = SafeStorage.getItem('settings_notifications_enabled') !== 'false';
+    if (!notifEnabled) {
+      console.log("Notifications are disabled by user settings. Skipping non-system notification.");
+      return;
+    }
+  }
+
   if (!('Notification' in window) || typeof Notification === 'undefined') {
     console.warn("Notifications are not supported in this browser environment.");
     return;
@@ -769,6 +777,10 @@ if ('serviceWorker' in navigator) {
           if (badge) {
             badge.textContent = `v${event.data.version}`;
           }
+          const settingsVer = document.getElementById('settings-system-version');
+          if (settingsVer) {
+            settingsVer.textContent = `v${event.data.version}`;
+          }
         }
       };
       activeWorker.postMessage({ action: 'getVersion' }, [messageChannel.port2]);
@@ -783,7 +795,8 @@ if ('serviceWorker' in navigator) {
           if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
             triggerLocalNotification(
               "העדכון הותקן בהצלחה! ✨",
-              "האפליקציה עודכנה לגרסה האחרונה. תהנה מהשיפורים והעיצוב החדש!"
+              "האפליקציה עודכנה לגרסה האחרונה. תהנה מהשיפורים והעיצוב החדש!",
+              true
             );
           }
         }, 1500);
@@ -2550,8 +2563,11 @@ function initPremiumSettings() {
 
   const allTabs = document.querySelectorAll('.tab-content-container .tab-pane');
   const toggleDarkMode = document.getElementById('toggle-settings-dark-mode');
+  const toggleNotifications = document.getElementById('toggle-settings-notifications');
+  const settingsVer = document.getElementById('settings-system-version');
   
   const isDarkMode = SafeStorage.getItem('settings_dark_mode') === 'true';
+  const isNotificationsEnabled = SafeStorage.getItem('settings_notifications_enabled') !== 'false';
 
   allTabs.forEach(tab => {
     if (isDarkMode) {
@@ -2574,6 +2590,24 @@ function initPremiumSettings() {
         }
       });
     });
+  }
+
+  if (toggleNotifications) {
+    toggleNotifications.checked = isNotificationsEnabled;
+    toggleNotifications.addEventListener('change', (e) => {
+      SafeStorage.setItem('settings_notifications_enabled', e.target.checked);
+      console.log('Saved notifications active preference:', e.target.checked);
+    });
+  }
+
+  // Initialize version row value to match current badge version
+  if (settingsVer) {
+    const mainBadge = document.getElementById('app-version-display');
+    if (mainBadge && mainBadge.textContent) {
+      settingsVer.textContent = mainBadge.textContent;
+    } else {
+      settingsVer.textContent = 'v1.2';
+    }
   }
 }
 
