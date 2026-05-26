@@ -186,8 +186,8 @@
           <div id="settings-main-view" class="ios-settings-scroll-container">
             <h2 class="settings-main-title">הגדרות</h2>
 
-            <!-- iOS Settings Card Group -->
-            <div class="ios-settings-card-group">
+            <!-- Pinned Sticky Profile Card Group -->
+            <div class="ios-settings-card-group sticky-profile-container">
               <!-- Row 1: Account Settings (Clickable Profile Row) -->
               <button id="go-to-account-btn" class="ios-setting-row ios-profile-card">
                 <div class="ios-row-left">
@@ -204,7 +204,10 @@
                   </div>
                 </div>
               </button>
+            </div>
 
+            <!-- iOS Settings Card Group: Appearance -->
+            <div class="ios-settings-card-group">
               <!-- Row 2: Dark Mode Toggle Switch -->
               <div class="ios-setting-row no-hover" id="row-settings-dark-mode">
                 <div class="ios-row-left">
@@ -216,6 +219,36 @@
                 <div class="ios-row-right">
                   <span class="ios-row-icon-badge bg-ios-gray">🌙</span>
                   <span class="ios-row-label">מצב כהה</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- iOS Settings Card Group: System (מערכת) -->
+            <div class="ios-settings-card-group">
+              <div class="ios-settings-group-title">מערכת</div>
+
+              <!-- Row 1: System Version -->
+              <div class="ios-setting-row no-hover">
+                <div class="ios-row-left">
+                  <span id="settings-system-version" class="ios-row-detail-text">v1.2</span>
+                </div>
+                <div class="ios-row-right">
+                  <span class="ios-row-icon-badge bg-ios-blue">ℹ️</span>
+                  <span class="ios-row-label">גרסת המערכת</span>
+                </div>
+              </div>
+
+              <!-- Row 2: Notifications Switch -->
+              <div class="ios-setting-row no-hover">
+                <div class="ios-row-left">
+                  <label class="ios-toggle-switch">
+                    <input type="checkbox" id="toggle-settings-notifications" checked>
+                    <span class="ios-toggle-slider"></span>
+                  </label>
+                </div>
+                <div class="ios-row-right">
+                  <span class="ios-row-icon-badge bg-ios-red">🔔</span>
+                  <span class="ios-row-label">התראות פעילות</span>
                 </div>
               </div>
             </div>
