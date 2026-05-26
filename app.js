@@ -17,9 +17,8 @@
 // these flows without the user's explicit OK in the chat!
 // =========================================================================================
 
-// AuraApp - Core PWA Logic & Firebase Authentication Gateway
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, signOut, onAuthStateChanged, RecaptchaVerifier, signInWithPhoneNumber, PhoneAuthProvider, linkWithCredential, linkWithPopup } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 // ==========================================================================
 // 1. SafeStorage Adapter to handle Private Browsing & Quota Limits safely
@@ -83,6 +82,13 @@ let firebaseAuthResolved = false;
 let currentUser = null;
 let isSensitiveDataVisible = false;
 
+// Phone Auth & Account Linking State variables
+let confirmationResult = null;
+let recaptchaVerifier = null;
+let linkingMode = false; // true if linking phone to active Google user
+let linkingSessionOffered = false; // session-level offer guard
+let resendTimerInterval = null;
+
 
 // Initialize Firebase App robustly using credentials from firebase-config.js
 if (window.firebaseConfig && window.firebaseConfig.apiKey && window.firebaseConfig.apiKey !== "YOUR_API_KEY") {
@@ -129,6 +135,33 @@ const drawerOverlay = document.getElementById('drawer-overlay');
 const floatingAvatarBtn = document.getElementById('floating-avatar-btn');
 const drawerCloseBtn = document.getElementById('drawer-close-btn');
 const toggleSensitiveBtn = document.getElementById('drawer-toggle-sensitive-btn');
+
+// Phone Auth & Account Linking DOM Elements
+const phoneLoginTriggerBtn = document.getElementById('phone-login-trigger-btn');
+const phoneAuthModal = document.getElementById('phone-auth-modal');
+const closePhoneAuthBtn = document.getElementById('close-phone-auth-btn');
+const phoneNumberInput = document.getElementById('phone-number-input');
+const sendOtpBtn = document.getElementById('send-otp-btn');
+const otpCodeInput = document.getElementById('otp-code-input');
+const verifyOtpBtn = document.getElementById('verify-otp-btn');
+const backToInputBtn = document.getElementById('back-to-input-btn');
+const resendOtpBtn = document.getElementById('resend-otp-btn');
+const countdownSeconds = document.getElementById('countdown-seconds');
+const resendCountdown = document.getElementById('resend-countdown');
+const displayPhoneNumber = document.getElementById('display-phone-number');
+
+const accountLinkingPromptModal = document.getElementById('account-linking-prompt-modal');
+const linkingPromptTitle = document.getElementById('linking-prompt-title');
+const linkingPromptBody = document.getElementById('linking-prompt-body');
+const confirmLinkBtn = document.getElementById('confirm-link-btn');
+const dismissLinkBtn = document.getElementById('dismiss-link-btn');
+
+const settingsUserPhoneRow = document.getElementById('settings-user-phone-row');
+const settingsUserPhoneField = document.getElementById('settings-user-phone-field');
+const settingsLinkGoogleRow = document.getElementById('settings-link-google-row');
+const settingsLinkPhoneRow = document.getElementById('settings-link-phone-row');
+const linkGoogleBadge = document.getElementById('link-google-badge');
+const linkPhoneBadge = document.getElementById('link-phone-badge');
 
 // Standalone mode detection (PWA Installed)
 const isStandalone = window.navigator.standalone === true || 
@@ -320,13 +353,29 @@ function maskEmail(email) {
   return name.substring(0, 2) + '***' + '@' + domain;
 }
 
+function maskPhone(phone) {
+  if (!phone) return '--';
+  if (phone.length <= 8) return '***';
+  return phone.substring(0, 4) + '*****' + phone.substring(phone.length - 4);
+}
+
 function updateAuthUI() {
   if (!currentUser) return;
 
-  const name = currentUser.displayName || 'Unknown User';
+  const name = currentUser.displayName || (currentUser.phoneNumber ? maskPhone(currentUser.phoneNumber) : 'Unknown User');
   const email = currentUser.email || '--';
+  const phone = currentUser.phoneNumber || '--';
   const uid = currentUser.uid;
-  const provider = currentUser.providerData?.[0]?.providerId || 'google.com';
+
+  // Determine linked providers
+  const linkedProviders = currentUser.providerData ? currentUser.providerData.map(p => p.providerId) : [];
+  const hasGoogle = linkedProviders.includes('google.com');
+  const hasPhone = linkedProviders.includes('phone') || !!currentUser.phoneNumber; // fail-safe
+
+  const providerList = [];
+  if (hasGoogle) providerList.push('Google');
+  if (hasPhone) providerList.push('Phone');
+  const providerText = providerList.join(' + ') || 'google.com';
 
   const createdTime = currentUser.metadata?.createdAt || currentUser.metadata?.creationTime;
   const loginTime = currentUser.metadata?.lastLoginAt || currentUser.metadata?.lastSignInTime;
@@ -336,6 +385,27 @@ function updateAuthUI() {
   setElText('settings-user-name-field', name);
   setElText('settings-user-email-field', email);
   setElText('settings-user-name-main', name);
+
+  // Phone row binding in account settings
+  if (hasPhone && phone !== '--') {
+    if (settingsUserPhoneRow) settingsUserPhoneRow.classList.remove('hide');
+    setElText('settings-user-phone-field', isSensitiveDataVisible ? phone : maskPhone(phone));
+  } else {
+    if (settingsUserPhoneRow) settingsUserPhoneRow.classList.add('hide');
+  }
+
+  // Account Linking rows visibility
+  if (hasGoogle) {
+    if (settingsLinkGoogleRow) settingsLinkGoogleRow.classList.add('hide');
+  } else {
+    if (settingsLinkGoogleRow) settingsLinkGoogleRow.classList.remove('hide');
+  }
+
+  if (hasPhone) {
+    if (settingsLinkPhoneRow) settingsLinkPhoneRow.classList.add('hide');
+  } else {
+    if (settingsLinkPhoneRow) settingsLinkPhoneRow.classList.remove('hide');
+  }
 
   // Photo Binding
   const fallbackPhoto = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
@@ -373,13 +443,13 @@ function updateAuthUI() {
     setElText('drawer-user-uid', maskString(uid, 5));
   }
 
-  setElText('drawer-user-provider', provider);
+  setElText('drawer-user-provider', providerText);
   setElText('drawer-user-created', safeFormatDate(createdTime));
   setElText('drawer-user-last-login', safeFormatDateTime(loginTime));
 
   const badgeVerified = document.getElementById('drawer-user-verified-badge');
   if (badgeVerified) {
-    if (currentUser.emailVerified) {
+    if (currentUser.emailVerified || hasPhone) {
       badgeVerified.textContent = 'Verified';
       badgeVerified.className = 'badge-mini badge-verified';
     } else {
@@ -393,6 +463,7 @@ function updateAuthUI() {
     uid: isSensitiveDataVisible ? uid : maskString(uid, 5),
     displayName: name,
     email: isSensitiveDataVisible ? email : maskEmail(email),
+    phoneNumber: isSensitiveDataVisible ? phone : maskPhone(phone),
     emailVerified: currentUser.emailVerified || false,
     photoURL: currentUser.photoURL ? (isSensitiveDataVisible ? currentUser.photoURL : maskString(currentUser.photoURL, 15)) : null,
     metadata: {
@@ -425,6 +496,12 @@ function clearUserSession() {
   setElText('settings-user-name-field', 'User');
   setElText('settings-user-email-field', 'user@gmail.com');
   setElText('settings-user-name-main', 'משתמש');
+  
+  if (settingsUserPhoneRow) settingsUserPhoneRow.classList.add('hide');
+  if (settingsUserPhoneField) settingsUserPhoneField.textContent = '--';
+  if (settingsLinkGoogleRow) settingsLinkGoogleRow.classList.add('hide');
+  if (settingsLinkPhoneRow) settingsLinkPhoneRow.classList.add('hide');
+
   const mainView = document.getElementById('settings-main-view');
   const accountView = document.getElementById('settings-account-view');
   if (mainView) mainView.classList.remove('hide');
@@ -483,6 +560,9 @@ if (firebaseEnabled) {
       updateAuthUI();
       if (typeof initWorkouts === 'function') initWorkouts();
       switchScreen(true);
+      
+      // Proactively check for and offer account linking (Google <-> Phone)
+      checkAndOfferAccountLinking();
 
       // Trigger notification if it's a real-time transition, and we haven't welcomed them in this session
       const hasBeenWelcomed = sessionStorage.getItem('aura_session_welcomed');
@@ -1126,6 +1206,347 @@ if (backToSettingsBtn && settingsMainView && settingsAccountView) {
     console.log("Navigated back to Main Settings View.");
   });
 }
+
+// ==========================================================================
+// Phone Authentication & Account Linking Logic
+// ==========================================================================
+
+function initRecaptcha() {
+  if (recaptchaVerifier) return;
+  try {
+    recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+      'size': 'invisible',
+      'callback': (response) => {
+        // reCAPTCHA solved, ready to proceed with OTP
+      }
+    });
+    console.log("Invisible reCAPTCHA initialized successfully.");
+  } catch (error) {
+    console.error("Failed to initialize RecaptchaVerifier:", error);
+  }
+}
+
+function openPhoneAuthModal(isLinking = false) {
+  linkingMode = isLinking;
+  
+  if (phoneAuthModalTitle) {
+    phoneAuthModalTitle.textContent = isLinking ? 'קשר מספר טלפון' : 'התחברות עם טלפון';
+  }
+  
+  // Transition stages
+  const inputStage = document.getElementById('phone-auth-stage-input');
+  const otpStage = document.getElementById('phone-auth-stage-otp');
+  if (inputStage) inputStage.classList.remove('hide');
+  if (otpStage) otpStage.classList.add('hide');
+  
+  // Clear fields
+  if (phoneNumberInput) {
+    phoneNumberInput.value = '';
+    phoneNumberInput.disabled = false;
+  }
+  if (sendOtpBtn) {
+    sendOtpBtn.disabled = false;
+    sendOtpBtn.textContent = isLinking ? 'שלח קוד קישור' : 'שלח קוד אימות';
+  }
+  if (otpCodeInput) {
+    otpCodeInput.value = '';
+    otpCodeInput.disabled = false;
+  }
+  if (verifyOtpBtn) {
+    verifyOtpBtn.disabled = false;
+    verifyOtpBtn.textContent = isLinking ? 'אמת וקשר חשבון' : 'אמת והתחבר';
+  }
+  
+  // Show modal
+  if (phoneAuthModal) {
+    phoneAuthModal.classList.remove('hide');
+    setTimeout(() => {
+      if (phoneNumberInput) phoneNumberInput.focus();
+    }, 100);
+  }
+}
+
+function closePhoneAuthModalFunc() {
+  if (phoneAuthModal) phoneAuthModal.classList.add('hide');
+  if (resendTimerInterval) {
+    clearInterval(resendTimerInterval);
+    resendTimerInterval = null;
+  }
+  // Reset recaptcha widget if active
+  if (recaptchaVerifier) {
+    try {
+      recaptchaVerifier.clear();
+      recaptchaVerifier = null;
+    } catch (e) {
+      console.warn("Error resetting recaptcha verifier:", e);
+    }
+  }
+}
+
+function formatPhoneNumber(num) {
+  let clean = num.replace(/\D/g, '');
+  if (clean.startsWith('05')) {
+    return '+972' + clean.substring(1);
+  }
+  if (clean.startsWith('5') && clean.length === 9) {
+    return '+972' + clean;
+  }
+  if (clean.startsWith('972')) {
+    return '+' + clean;
+  }
+  if (num.startsWith('+')) {
+    return num;
+  }
+  return clean;
+}
+
+async function sendOTPFlow() {
+  if (!firebaseEnabled) {
+    alert("שירותי התחברות אינם זמינים כעת במצב לא מקוון.");
+    return;
+  }
+  if (!phoneNumberInput) return;
+  const rawNum = phoneNumberInput.value.trim();
+  if (!rawNum) {
+    alert("אנא הזן מספר טלפון תקין.");
+    return;
+  }
+  
+  const formattedNum = formatPhoneNumber(rawNum);
+  if (!formattedNum || formattedNum.length < 10) {
+    alert("מספר טלפון לא תקין או קצר מדי.");
+    return;
+  }
+  
+  if (sendOtpBtn) {
+    sendOtpBtn.disabled = true;
+    sendOtpBtn.textContent = 'שולח SMS... ⏳';
+  }
+  
+  initRecaptcha();
+  
+  try {
+    console.log(`Attempting to send OTP to ${formattedNum}...`);
+    confirmationResult = await signInWithPhoneNumber(auth, formattedNum, recaptchaVerifier);
+    console.log("OTP sent successfully!");
+    
+    if (displayPhoneNumber) displayPhoneNumber.textContent = formattedNum;
+    const inputStage = document.getElementById('phone-auth-stage-input');
+    const otpStage = document.getElementById('phone-auth-stage-otp');
+    if (inputStage) inputStage.classList.add('hide');
+    if (otpStage) otpStage.classList.remove('hide');
+    
+    if (otpCodeInput) {
+      otpCodeInput.value = '';
+      otpCodeInput.focus();
+    }
+    
+    startResendTimer();
+  } catch (error) {
+    console.error("Error sending SMS:", error);
+    let msg = "שגיאה בשליחת ה-SMS. אנא ודא שהמספר תקין.";
+    if (error.code === 'auth/invalid-phone-number') {
+      msg = "מספר הטלפון שהוזן אינו תקין. יש להזין מספר מקומי מלא (למשל: 0541234567).";
+    } else if (error.code === 'auth/too-many-requests') {
+      msg = "נחסמו בקשות נוספות עקב פעילות חריגה. אנא נסה שוב מאוחר יותר.";
+    }
+    alert(msg);
+    if (sendOtpBtn) {
+      sendOtpBtn.disabled = false;
+      sendOtpBtn.textContent = linkingMode ? 'שלח קוד קישור' : 'שלח קוד אימות';
+    }
+  }
+}
+
+function startResendTimer() {
+  if (resendTimerInterval) clearInterval(resendTimerInterval);
+  
+  let secondsLeft = 30;
+  if (resendCountdown) resendCountdown.classList.remove('hide');
+  if (resendOtpBtn) resendOtpBtn.classList.add('hide');
+  if (countdownSeconds) countdownSeconds.textContent = secondsLeft;
+  
+  resendTimerInterval = setInterval(() => {
+    secondsLeft--;
+    if (countdownSeconds) countdownSeconds.textContent = secondsLeft;
+    
+    if (secondsLeft <= 0) {
+      clearInterval(resendTimerInterval);
+      if (resendCountdown) resendCountdown.classList.add('hide');
+      if (resendOtpBtn) resendOtpBtn.classList.remove('hide');
+    }
+  }, 1000);
+}
+
+async function verifyOTPFlow() {
+  if (!otpCodeInput) return;
+  const code = otpCodeInput.value.trim();
+  if (code.length !== 6 || isNaN(Number(code))) {
+    alert("אנא הזן קוד אימות תקין בן 6 ספרות.");
+    return;
+  }
+  
+  if (verifyOtpBtn) {
+    verifyOtpBtn.disabled = true;
+    verifyOtpBtn.textContent = 'מאמת קוד... ⏳';
+  }
+  
+  try {
+    if (linkingMode) {
+      console.log("Linking phone credential to Google user...");
+      const credential = PhoneAuthProvider.credential(confirmationResult.verificationId, code);
+      await linkWithCredential(auth.currentUser, credential);
+      console.log("Phone linked successfully!");
+      alert("מספר הטלפון קושר לחשבונך בהצלחה! 🎉");
+      closePhoneAuthModalFunc();
+      updateAuthUI();
+    } else {
+      console.log("Signing in using Phone confirmation code...");
+      await confirmationResult.confirm(code);
+      console.log("Logged in with phone successfully!");
+      closePhoneAuthModalFunc();
+    }
+  } catch (error) {
+    console.error("Error during OTP confirmation:", error);
+    let msg = `שגיאת אימות (${error.code || 'unknown'}): נא לנסות שנית.`;
+    if (error.code === 'auth/credential-already-in-use') {
+      msg = "שגיאה: מספר טלפון זה כבר מקושר לחשבון משתמש אחר במערכת.";
+    } else if (error.code === 'auth/invalid-verification-code') {
+      msg = "קוד האימות שהזנת שגוי. אנא בדוק את ההודעה ונסה שוב.";
+    } else if (error.code === 'auth/code-expired') {
+      msg = "פג תוקפו של קוד האימות. אנא לחץ על 'שלח שוב' כדי לקבל קוד חדש.";
+    }
+    alert(msg);
+    if (verifyOtpBtn) {
+      verifyOtpBtn.disabled = false;
+      verifyOtpBtn.textContent = linkingMode ? 'אמת וקשר חשבון' : 'אמת והתחבר';
+    }
+  }
+}
+
+async function linkGoogleAccountFlow() {
+  if (!firebaseEnabled || !currentUser) return;
+  try {
+    console.log("Attempting to link Google account via popup...");
+    await linkWithPopup(currentUser, googleProvider);
+    console.log("Google linked successfully!");
+    alert("חשבון Google קושר לחשבונך בהצלחה! 🎉");
+    updateAuthUI();
+  } catch (error) {
+    console.error("Error linking Google account:", error);
+    let msg = `שגיאת קישור חשבון: ${error.message || 'אנא נסה שנית.'}`;
+    if (error.code === 'auth/credential-already-in-use') {
+      msg = "שגיאה: חשבון Google זה כבר מקושר למשתמש אחר במערכת.";
+    } else if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
+      console.log("Linking process was cancelled by the user.");
+      return;
+    }
+    alert(msg);
+  }
+}
+
+function showLinkingModal(type) {
+  if (!accountLinkingPromptModal) return;
+  
+  if (type === 'phone') {
+    if (linkingPromptTitle) linkingPromptTitle.textContent = 'אבטח את החשבון שלך! 🛡️';
+    if (linkingPromptBody) linkingPromptBody.textContent = 'חשבון ה-Aura שלך מקושר כעת רק ל-Google. רוצה להוסיף התחברות טלפונית מהירה ומאובטחת ב-SMS למקרה חירום?';
+    if (confirmLinkBtn) confirmLinkBtn.textContent = 'קשר מספר טלפון 📞';
+    confirmLinkBtn.onclick = () => {
+      accountLinkingPromptModal.classList.add('hide');
+      openPhoneAuthModal(true);
+    };
+  } else if (type === 'google') {
+    if (linkingPromptTitle) linkingPromptTitle.textContent = 'קשר את חשבון ה-Google שלך! 📧';
+    if (linkingPromptBody) linkingPromptBody.textContent = 'חשבון ה-Aura שלך מקושר כעת רק למספר טלפון. רוצה לקשר את חשבון הגוגל שלך כדי שתוכל להתחבר בקלות מכל דפדפן ומכשיר?';
+    if (confirmLinkBtn) confirmLinkBtn.textContent = 'קשר חשבון Google 📧';
+    confirmLinkBtn.onclick = async () => {
+      accountLinkingPromptModal.classList.add('hide');
+      await linkGoogleAccountFlow();
+    };
+  }
+  
+  accountLinkingPromptModal.classList.remove('hide');
+}
+
+function checkAndOfferAccountLinking() {
+  if (!currentUser) return;
+  if (linkingSessionOffered) return; // Only prompt once per login session
+  
+  const linkedProviders = currentUser.providerData ? currentUser.providerData.map(p => p.providerId) : [];
+  const hasGoogle = linkedProviders.includes('google.com');
+  const hasPhone = linkedProviders.includes('phone') || !!currentUser.phoneNumber;
+  
+  if (hasGoogle && !hasPhone) {
+    linkingSessionOffered = true;
+    setTimeout(() => {
+      showLinkingModal('phone');
+    }, 1500); // Friendly delayed pop-in
+  } else if (hasPhone && !hasGoogle) {
+    linkingSessionOffered = true;
+    setTimeout(() => {
+      showLinkingModal('google');
+    }, 1500);
+  }
+}
+
+// Bind Phone Auth & Account Linking Event Listeners
+if (phoneLoginTriggerBtn) {
+  phoneLoginTriggerBtn.addEventListener('click', () => {
+    openPhoneAuthModal(false);
+  });
+}
+if (closePhoneAuthBtn) {
+  closePhoneAuthBtn.addEventListener('click', () => {
+    closePhoneAuthModalFunc();
+  });
+}
+if (sendOtpBtn) {
+  sendOtpBtn.addEventListener('click', () => {
+    sendOTPFlow();
+  });
+}
+if (verifyOtpBtn) {
+  verifyOtpBtn.addEventListener('click', () => {
+    verifyOTPFlow();
+  });
+}
+if (backToInputBtn) {
+  backToInputBtn.addEventListener('click', () => {
+    const inputStage = document.getElementById('phone-auth-stage-input');
+    const otpStage = document.getElementById('phone-auth-stage-otp');
+    if (inputStage) inputStage.classList.remove('hide');
+    if (otpStage) otpStage.classList.add('hide');
+    if (sendOtpBtn) {
+      sendOtpBtn.disabled = false;
+      sendOtpBtn.textContent = linkingMode ? 'שלח קוד קישור' : 'שלח קוד אימות';
+    }
+  });
+}
+if (resendOtpBtn) {
+  resendOtpBtn.addEventListener('click', () => {
+    sendOTPFlow();
+  });
+}
+if (settingsLinkPhoneRow) {
+  settingsLinkPhoneRow.addEventListener('click', () => {
+    openPhoneAuthModal(true);
+  });
+}
+if (settingsLinkGoogleRow) {
+  settingsLinkGoogleRow.addEventListener('click', () => {
+    linkGoogleAccountFlow();
+  });
+}
+if (dismissLinkBtn) {
+  dismissLinkBtn.addEventListener('click', () => {
+    if (accountLinkingPromptModal) accountLinkingPromptModal.classList.add('hide');
+  });
+}
+
+// Global reference for reCAPTCHA container
+const phoneAuthModalTitle = document.getElementById('phone-auth-modal-title');
+
 
 // ==========================================================================
 // 18. CYBER WORKOUT STATE MACHINE & HISTORY MANAGER
