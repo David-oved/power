@@ -541,7 +541,7 @@
 
           <!-- Custom Exercise Creation Modal -->
           <div id="custom-exercise-modal" class="workout-modal-overlay hide" style="z-index: 1500; align-items: center;">
-            <div class="workout-modal-card custom-ex-modal-card" style="max-width: 420px; width: 95%; border-radius: 28px; overflow: hidden; animation: slide-up-sheet 0.4s cubic-bezier(0.16, 1, 0.3, 1);">
+            <div class="workout-modal-card custom-ex-modal-card" style="max-width: 420px; width: 95%; border-radius: 28px; animation: slide-up-sheet 0.4s cubic-bezier(0.16, 1, 0.3, 1);">
               <!-- Modal Header -->
               <div class="modal-header" style="padding: 18px 1.5rem 14px 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.06);">
                 <button id="close-custom-exercise-modal-btn" class="btn-cancel-link" style="background: none; border: none; font-size: 0.95rem; font-weight: 700; color: var(--text-muted); cursor: pointer;">ביטול</button>
@@ -550,7 +550,10 @@
               </div>
 
               <!-- Modal Body -->
-              <div class="modal-body" style="padding: 1.25rem 1.5rem 1.5rem 1.5rem; display: flex; flex-direction: column; gap: 18px; direction: rtl;">
+              <div class="modal-body" style="padding: 1.25rem 1.5rem 1.5rem 1.5rem; display: flex; flex-direction: column; gap: 18px; direction: rtl; overflow-y: auto; max-height: calc(82vh - 60px);">
+
+                <!-- Save Button (top for visibility) -->
+                <button id="save-custom-exercise-btn" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 1.05rem; font-weight: 800; border-radius: 14px; background: linear-gradient(135deg,#dc2626 0%,#b91c1c 100%); box-shadow: 0 4px 18px rgba(220,38,38,0.35); border: none; color:#fff;">✓ שמור תרגיל</button>
 
                 <!-- Exercise Name Input -->
                 <div class="custom-ex-field-group">
@@ -624,11 +627,9 @@
                   </div>
                 </div>
 
-                <!-- Save Button -->
-                <button id="save-custom-exercise-btn" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 1.05rem; font-weight: 800; border-radius: 14px; margin-top: 4px;">שמור תרגיל</button>
-              </div>
-            </div>
-          </div>
+              </div><!-- end .modal-body -->
+            </div><!-- end .custom-ex-modal-card -->
+          </div><!-- end #custom-exercise-modal -->
 
         </div>
 
