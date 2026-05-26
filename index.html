@@ -485,7 +485,10 @@
                 <!-- Weight Slider Row -->
                 <div class="slider-group-container" id="set-log-weight-group" style="display: flex; flex-direction: column; gap: 8px;">
                   <div class="slider-header" style="display: flex; justify-content: space-between; align-items: center; direction: rtl;">
-                    <span style="font-size: 0.95rem; font-weight: 700; color: var(--text-muted);">משקל (ק״ג)</span>
+                    <span style="font-size: 0.95rem; font-weight: 700; color: var(--text-muted); display: flex; align-items: center; gap: 6px;">
+                      משקל (ק״ג)
+                      <button type="button" id="trigger-plate-calc-btn" style="background: none; border: none; font-size: 1.1rem; cursor: pointer; padding: 2px 6px; border-radius: 6px; background-color: rgba(255,255,255,0.06); display: inline-flex; align-items: center; justify-content: center;">🧮</button>
+                    </span>
                     <span class="slider-display-value" style="font-size: 1.3rem; font-weight: 800; color: #ffffff;"><span id="weight-slider-value">60</span> ק״ג</span>
                   </div>
                   <div class="slider-control-row" style="display: flex; align-items: center; gap: 10px; direction: ltr;">
@@ -606,13 +609,7 @@
                     </button>
                     <button class="muscle-card" data-category="מותאם אישית" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); color: #fff; cursor: pointer; transition: all 0.2s;">
                       <span style="font-size: 1.5rem; margin-bottom: 4px;">✨</span>
-                      <span style="font-size: 0.85rem; font-weight: 700;">אחר</span>
-                    </button>
-                  </div>
-                </div>
-
-                <!-- Emoji Selector -->
-                <div class="custom-ex-field-group">
+<div class="custom-ex-field-group">
                   <label class="custom-ex-field-label">אייקון (אופציונלי)</label>
                   <div id="custom-ex-emoji-selector" class="custom-ex-emoji-row">
                     <button class="emoji-pick-btn active" data-emoji="">ללא</button>
@@ -635,25 +632,169 @@
 
         <!-- Tab 3: Analytics (Data Tab) -->
         <div id="tab-analytics" class="tab-pane" style="padding: 0 !important; align-items: stretch; justify-content: flex-start; height: 100%;">
-          <div class="ios-settings-card" style="width: 100%; max-width: none; height: 100%; padding: 0;">
-            <h2 class="settings-main-title">נתונים והיסטוריה</h2>
+          <div class="ios-analytics-scroll-container">
+            <h2 class="settings-main-title" style="margin-bottom: 1.2rem;">📈 מדדים ונתונים</h2>
             
-            <!-- Organized History List -->
-            <div id="workout-history-list" class="workout-history-list">
-              <!-- Injected dynamically in app.js -->
+            <!-- Multi-Filter Control Panel -->
+            <div class="filters-panel-card">
+              <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); margin-bottom: 10px; display: flex; align-items: center; gap: 6px;">
+                <span>🔍 מסננים מתקדמים</span>
+              </div>
+              
+              <!-- Quick Date Chips & Custom Range -->
+              <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;">
+                <button class="filter-chip active" data-time="all">הכל</button>
+                <button class="filter-chip" data-time="7">7 ימים אחרונים</button>
+                <button class="filter-chip" data-time="30">30 ימים אחרונים</button>
+                <button class="filter-chip" data-time="custom">מותאם 📅</button>
+              </div>
+              
+              <!-- Custom Date Range Inputs (collapsible, display:none by default unless custom clicked) -->
+              <div id="custom-date-inputs" style="display: none; gap: 10px; margin-bottom: 12px; align-items: center;">
+                <input type="date" id="filter-start-date" class="date-picker-input">
+                <span style="color: var(--text-muted); font-size: 0.85rem;">עד</span>
+                <input type="date" id="filter-end-date" class="date-picker-input">
+              </div>
+
+              <!-- Location & Target Muscle Dropdowns -->
+              <div style="display: flex; gap: 10px; width: 100%;">
+                <select id="filter-location-select" class="premium-filter-select" style="flex: 1;">
+                  <option value="all">כל המיקומים 📍</option>
+                  <option value="gym">🏋️‍♂️ חדר כושר</option>
+                  <option value="park">🌳 פארק</option>
+                </select>
+                <select id="filter-muscle-select" class="premium-filter-select" style="flex: 1;">
+                  <option value="all">כל השרירים 💪</option>
+                  <option value="חזה">חזה</option>
+                  <option value="גב">גב</option>
+                  <option value="כתפיים">כתפיים</option>
+                  <option value="רגליים">רגליים</option>
+                  <option value="ידיים">ידיים</option>
+                  <option value="בטן">בטן</option>
+                </select>
+              </div>
             </div>
-          </div>
+
+            <!-- Searchable Exercise Dropdown Picker -->
+            <div style="position: relative; margin-bottom: 1.5rem;">
+              <input type="text" id="analytics-exercise-search" class="analytics-search-input" placeholder="🔍 חפש תרגיל לניתוח..." autocomplete="off">
+              <div id="analytics-suggestions-dropdown" class="suggestions-dropdown hide"></div>
+            </div>
+
+            <!-- Single Exercise Progression Dashboard (collapsible, active when exercise selected) -->
+            <div id="analytics-exercise-dashboard" class="analytics-exercise-dashboard hide" style="background: rgba(20,20,24,0.7); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; padding: 1.2rem; margin-bottom: 1.5rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; direction: rtl;">
+                <h3 id="dashboard-exercise-name" style="margin: 0; font-size: 1.1rem; font-weight: 800; color: #ffffff;">לחיצת חזה</h3>
+                <button id="clear-dashboard-btn" class="btn-cancel-link" style="background: none; border: none; font-size: 0.85rem; font-weight: 700; color: #f87171; cursor: pointer;">✕ נקה</button>
+              </div>
+
+              <!-- Chart Switcher Tabs -->
+              <div style="display: flex; gap: 8px; margin-bottom: 16px;">
+                <button class="chart-tab active" data-chart="1rm">1RM משוער 🏆</button>
+                <button class="chart-tab" data-chart="weight">משקל שיא 🏋️‍♂️</button>
+                <button class="chart-tab" data-chart="volume">נפח כולל 📊</button>
+              </div>
+
+              <!-- Bezier Chart Container -->
+              <div style="width: 100%; height: 160px; background: rgba(0,0,0,0.25); border-radius: 14px; margin-bottom: 16px; position: relative;">
+                <svg id="bezier-chart-svg" style="width: 100%; height: 100%; overflow: visible; padding: 10px 0;">
+                  <!-- Gradient definitions -->
+                  <defs>
+                    <linearGradient id="chart-gradient-fill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="var(--electric-blue-light)" stop-opacity="0.4"></stop>
+                      <stop offset="100%" stop-color="var(--electric-blue)" stop-opacity="0.0"></stop>
+                    </linearGradient>
+                  </defs>
+                  <g id="chart-gridlines"></g>
+                  <path id="chart-area-path" class="bezier-chart-area" d=""></path>
+                  <path id="chart-line-path" class="bezier-chart-path" d=""></path>
+                  <g id="chart-points-group"></g>
+                </svg>
+                <div id="chart-no-data" style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--text-muted); font-size: 0.85rem; direction: rtl;">אין מספיק נתונים להצגת תרשים</div>
+              </div>
+
+              <!-- Mini Stats Grid -->
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                <div class="stat-mini-card">
+                  <span class="stat-label">שיא אישי (PR)</span>
+                  <span class="stat-value" id="dashboard-pr-value">--</span>
+                </div>
+                <div class="stat-mini-card">
+                  <span class="stat-label">1RM מוערך</span>
+                  <span class="stat-value" id="dashboard-1rm-value">--</span>
+                </div>
+                <div class="stat-mini-card">
+                  <span class="stat-label">סך הכל נפח</span>
+                  <span class="stat-value" id="dashboard-vol-value">--</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- View Toggles Switcher -->
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 1.5rem;">
+              <button class="view-toggle-btn active" data-view="calendar">לוח שנה 📅</button>
+              <button class="view-toggle-btn" data-view="heatmap">התמדה ⬜</button>
+              <button class="view-toggle-btn" data-view="split">שרירים 🍗</button>
+              <button class="view-toggle-btn" data-view="list">רשימה 📋</button>
+            </div>
+
+            <!-- Variation Containers -->
+            
+            <!-- 1. Monthly Calendar View -->
+            <div id="analytics-calendar-view" class="analytics-sub-view" style="background: rgba(20,20,24,0.6); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 1.2rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; direction: rtl;">
+                <button id="calendar-prev-month" class="calendar-nav-arrow" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); width: 34px; height: 34px; border-radius: 50%; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;">→</button>
+                <h3 id="calendar-month-label" style="margin: 0; font-size: 1.05rem; font-weight: 800; color: #ffffff;">מאי 2026</h3>
+                <button id="calendar-next-month" class="calendar-nav-arrow" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); width: 34px; height: 34px; border-radius: 50%; color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center;">←</button>
+              </div>
+              <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; font-size: 0.72rem; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; direction: rtl;">
+                <div>א׳</div><div>ב׳</div><div>ג׳</div><div>ד׳</div><div>ה׳</div><div>ו׳</div><div>ש׳</div>
+              </div>
+              <div id="calendar-days-grid" class="calendar-days-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; direction: rtl;">
+                <!-- Generated dynamically in app.js -->
+              </div>
+            </div>
+
+            <!-- 2. Consistency Heatmap View -->
+            <div id="analytics-heatmap-view" class="analytics-sub-view hide" style="background: rgba(20,20,24,0.6); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 1.2rem;">
+              <h3 style="margin: 0 0 10px 0; font-size: 1rem; font-weight: 800; color: #ffffff; direction: rtl; text-align: right;">🔥 התמדה שנתית (Heatmap)</h3>
+              <p style="color: var(--text-muted); font-size: 0.78rem; margin-bottom: 12px; direction: rtl; text-align: right;">עצימות האימונים שלך במהלך 52 השבועות האחרונים:</p>
+              <div class="heatmap-panel" style="width: 100%; overflow-x: auto; padding-bottom: 8px;">
+                <svg id="heatmap-svg" class="heatmap-svg" style="width: 530px; height: 90px; overflow: visible; display: block; margin: 0 auto;"></svg>
+              </div>
+            </div>
+
+            <!-- 3. Muscle volume distribution split -->
+            <div id="analytics-muscle-split-view" class="analytics-sub-view hide" style="background: rgba(20,20,24,0.6); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 1.2rem;">
+              <h3 style="margin: 0 0 12px 0; font-size: 1rem; font-weight: 800; color: #ffffff; direction: rtl; text-align: right;">🍗 חלוקת נפח עבודה שבועי</h3>
+              <div id="muscle-splits-container" style="display: flex; flex-direction: column; gap: 15px; margin-bottom: 16px;">
+                <!-- Generated dynamically -->
+              </div>
+              <div class="muscle-recommendation-box" id="muscle-recommendation-box" style="padding: 12px; background: rgba(220,38,38,0.08); border: 1px solid rgba(220,38,38,0.2); border-radius: 12px; font-size: 0.82rem; color: #fca5a5; text-align: right; direction: rtl;">
+                <!-- Generated dynamically -->
+              </div>
+            </div>
+
+            <!-- 4. Accordion History list -->
+            <div id="analytics-history-list-view" class="analytics-sub-view hide">
+              <h3 style="margin: 0 0 12px 0; font-size: 1rem; font-weight: 800; color: #ffffff; direction: rtl; text-align: right;">📋 היסטוריית אימונים מורחבת</h3>
+              <div id="accordion-history-container">
+                <!-- Generated dynamically -->
+              </div>
+            </div>
+
+          </div><!-- end .ios-analytics-scroll-container -->
 
           <!-- Workout Edit Modal Panel (Floating glassmorphic dialog, hidden by default) -->
-          <div id="workout-edit-modal" class="workout-modal-overlay hide">
-            <div class="workout-modal-card">
+          <div id="workout-edit-modal" class="workout-modal-overlay hide" style="z-index: 1400;">
+            <div class="workout-modal-card glass-modal-card" style="max-width: 440px; width: 95%;">
               <div class="modal-header">
-                <button id="close-edit-modal-btn" class="btn-cancel-link" style="margin: 0; background: none; border: none; font-size: 0.95rem; font-weight: 700; color: var(--text-muted); cursor: pointer;">ביטול</button>
-                <h3 class="modal-title">עריכת אימון</h3>
+                <button id="close-edit-modal-btn" class="btn-cancel-link" style="margin: 0; background: none; border: none; font-size: 0.95rem; font-weight: 700; color: var(--text-muted); cursor: pointer;">סגור</button>
+                <h3 class="modal-title" style="direction: rtl;">עריכת אימון</h3>
                 <button id="save-edited-workout-btn" class="btn toast-refresh-btn" style="padding: 6px 14px !important; margin: 0; background: var(--electric-blue-light) !important; color: #ffffff !important; font-size: 0.85rem !important;">שמור</button>
               </div>
 
-              <div id="modal-workout-meta" class="modal-workout-meta">
+              <div id="modal-workout-meta" class="modal-workout-meta" style="direction: rtl; text-align: right;">
                 <!-- Location, Duration, and Date -->
               </div>
 
@@ -735,10 +876,65 @@
       <button id="close-rest-timer-btn" class="rest-timer-close-btn" aria-label="Close Rest Timer">&times;</button>
     </div>
     <div class="rest-timer-body">
-      <div class="rest-timer-countdown" id="rest-timer-countdown">01:30</div>
+      <!-- SVG Circular Progress Indicator -->
+      <div class="rest-timer-circle-container">
+        <svg class="rest-timer-svg" viewBox="0 0 100 100">
+          <circle class="rest-timer-bg-circle" cx="50" cy="50" r="45"></circle>
+          <circle id="rest-timer-progress-circle" class="rest-timer-progress-circle" cx="50" cy="50" r="45" stroke-dasharray="283" stroke-dashoffset="0"></circle>
+        </svg>
+        <div class="rest-timer-countdown" id="rest-timer-countdown">01:30</div>
+      </div>
+      <!-- Hebrew Motivational Quote -->
+      <div id="rest-timer-quote" class="rest-timer-quote">"כל סט מקרב אותך לגרסה הטובה ביותר שלך!"</div>
       <div class="rest-timer-controls">
         <button id="rest-timer-minus-30" class="rest-btn">-30s</button>
         <button id="rest-timer-plus-30" class="rest-btn">+30s</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Previous Performance Alert Modal -->
+  <div id="prev-workout-alert-modal" class="workout-modal-overlay hide" style="z-index: 1550; align-items: center; justify-content: center;">
+    <div class="workout-modal-card glass-modal-card" style="max-width: 380px; width: 92%; border-radius: 24px; padding: 1.5rem; text-align: center; border: 1px solid rgba(255, 255, 255, 0.1);">
+      <div class="alert-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; direction: rtl;">
+        <span style="font-size: 1.2rem; font-weight: 800; color: #dc2626; display: flex; align-items: center; gap: 8px;">🔥 הישג אחרון!</span>
+        <button id="close-prev-workout-alert-btn" class="btn-cancel-link" style="background: none; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; padding: 0 4px;">&times;</button>
+      </div>
+      <h3 id="prev-workout-alert-title" style="font-size: 1.15rem; font-weight: 700; color: #ffffff; margin-bottom: 0.5rem; direction: rtl; text-align: right;">לחיצת חזה</h3>
+      <div id="prev-workout-alert-date" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; text-align: right; direction: rtl;">אימון אחרון: --</div>
+      <div id="prev-workout-alert-sets" style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto; direction: rtl;">
+        <!-- Injected dynamically: list of sets with weight and reps -->
+      </div>
+      <button id="prev-workout-alert-ok-btn" class="btn btn-primary" style="width: 100%; margin-top: 1.2rem; padding: 12px; font-weight: bold; border-radius: 12px;">קדימה, בוא נשבור את זה! 💪</button>
+    </div>
+  </div>
+
+  <!-- Barbell Plate Calculator Modal -->
+  <div id="plate-calculator-modal" class="workout-modal-overlay hide" style="z-index: 1520;">
+    <div class="workout-modal-card plate-calculator-card" style="max-width: 420px; width: 100%; border-radius: 28px 28px 0 0; position: absolute; bottom: 0; padding: 1.5rem; animation: slide-up-sheet 0.3s cubic-bezier(0.16, 1, 0.3, 1);">
+      <div class="modal-header" style="padding-bottom: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: space-between; align-items: center;">
+        <button id="close-plate-calc-btn" class="btn-cancel-link" style="background: none; border: none; font-size: 0.95rem; font-weight: 700; color: var(--text-muted); cursor: pointer;">סגור</button>
+        <h3 class="modal-title" style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #ffffff; direction: rtl;">🧮 מחשב פלטות</h3>
+        <span style="width: 40px;"></span>
+      </div>
+      <div class="modal-body" style="padding: 1.5rem 0; text-align: center;">
+        <div style="font-size: 1rem; color: var(--text-muted); margin-bottom: 1rem; direction: rtl;">משקל יעד: <strong id="plate-calc-target-weight" style="color: #ffffff; font-size: 1.2rem;">60</strong> ק״ג (כולל מוט 20 ק״ג)</div>
+        
+        <!-- Barbell Visualization -->
+        <div class="barbell-viz-container" style="position: relative; height: 120px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); border-radius: 16px; margin-bottom: 1.5rem; overflow: hidden;">
+          <!-- Barbell rod -->
+          <div class="barbell-sleeve-right" style="position: absolute; width: 90%; height: 10px; background: linear-gradient(180deg, #94a3b8, #475569); left: 5%; border-radius: 4px; box-shadow: inset 0 2px 4px rgba(255,255,255,0.2);"></div>
+          <div class="barbell-collar" style="position: absolute; left: 20%; width: 12px; height: 32px; background: #64748b; border-radius: 3px;"></div>
+          <!-- Plates container (side representation, left sleeve gets the plates stack) -->
+          <div id="plates-stack-left" style="position: absolute; left: 25%; display: flex; align-items: center; gap: 3px; height: 100%; direction: rtl;">
+            <!-- Plates will be generated dynamically here -->
+          </div>
+        </div>
+
+        <div style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1rem; direction: rtl;">פלטות נדרשות לכל צד של המוט:</div>
+        <div id="plates-list-needed" style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; direction: rtl;">
+          <!-- Injected dynamically like: <span class="plate-chip">20 ק״ג x 1</span> -->
+        </div>
       </div>
     </div>
   </div>
