@@ -1067,6 +1067,11 @@ let currentActiveCategoryFilter = 'הכל';
 let restTimerInterval = null;
 let restTimerSecondsLeft = 0;
 
+// Set Logging State Variables
+let currentLoggingExercise = null;
+let currentLoggingExerciseIndex = -1;
+let currentLoggingSetIndex = -1;
+
 function saveActiveWorkoutState() {
   if (currentUser && activeWorkout) {
     SafeStorage.setItem(`aura-active-workout_${currentUser.uid}`, JSON.stringify(activeWorkout));
@@ -1587,9 +1592,9 @@ onDOMReady(() => {
         if (nameInput) nameInput.value = '';
         
         // Reset category pills to default
-        document.querySelectorAll('#custom-ex-category-selector .category-pill-btn').forEach(btn => {
+        document.querySelectorAll('#custom-ex-category-selector .muscle-card').forEach(btn => {
           btn.classList.remove('active');
-          if (btn.dataset.category === 'מותאם אישית') btn.classList.add('active');
+          if (btn.dataset.category === 'חזה') btn.classList.add('active');
         });
         
         // Reset emoji to none
@@ -1608,9 +1613,9 @@ onDOMReady(() => {
   const categoryPillContainer = document.getElementById('custom-ex-category-selector');
   if (categoryPillContainer) {
     categoryPillContainer.addEventListener('click', (e) => {
-      const pill = e.target.closest('.category-pill-btn');
+      const pill = e.target.closest('.muscle-card');
       if (!pill) return;
-      categoryPillContainer.querySelectorAll('.category-pill-btn').forEach(b => b.classList.remove('active'));
+      categoryPillContainer.querySelectorAll('.muscle-card').forEach(b => b.classList.remove('active'));
       pill.classList.add('active');
     });
   }
@@ -1657,7 +1662,7 @@ onDOMReady(() => {
       const exName = nameInput.value.trim();
       
       // Get selected category
-      const activeCatPill = document.querySelector('#custom-ex-category-selector .category-pill-btn.active');
+      const activeCatPill = document.querySelector('#custom-ex-category-selector .muscle-card.active');
       const selectedCategory = activeCatPill ? activeCatPill.dataset.category : 'מותאם אישית';
       
       // Get selected emoji
@@ -1701,7 +1706,7 @@ onDOMReady(() => {
     legacyAddCustomExBtn.style.display = 'none'; // Hidden fallback
   }
 
-  // Bind Metric Selector Tiles click — now opens rest-config modal FIRST
+  // Bind Metric Selector Tiles click — saves metric type and chosen rest time, then adds exercise
   document.querySelectorAll('.metric-tile').forEach(tile => {
     tile.addEventListener('click', () => {
       const metricType = tile.getAttribute('data-metric');
@@ -1718,15 +1723,43 @@ onDOMReady(() => {
         return;
       }
       
-      // Store pending metricType; hide metric modal and open rest-config modal
-      pendingMetricType = metricType;
+      // Get selected rest time from chips inside the metric modal
+      const activeRestChip = document.querySelector('#rest-time-chips-container .rest-option-chip.active');
+      const seconds = activeRestChip ? parseInt(activeRestChip.getAttribute('data-rest'), 10) : 90;
+
+      // Create new exercise object
+      const newExercise = {
+        name: selectedExerciseForAdding,
+        metricType: metricType,
+        restTime: seconds,
+        completed: false,
+        sets: []
+      };
+
+      activeWorkout.exercises.push(newExercise);
+      saveActiveWorkoutState();
+      
+      // Hide metric modal
       const metricModal = document.getElementById('metric-selector-modal');
       if (metricModal) metricModal.classList.add('hide');
       
-      // Open rest config modal
-      openRestConfigModal();
+      // Clear selected exercise
+      selectedExerciseForAdding = null;
+      
+      renderExercises();
     });
   });
+
+  // Bind Metric Selector Modal Rest Option Chips active status toggling
+  const restChipsContainer = document.getElementById('rest-time-chips-container');
+  if (restChipsContainer) {
+    restChipsContainer.addEventListener('click', (e) => {
+      const chip = e.target.closest('.rest-option-chip');
+      if (!chip) return;
+      restChipsContainer.querySelectorAll('.rest-option-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+    });
+  }
 });
 
 // Add Exercise Button Listener
@@ -1868,119 +1901,86 @@ function renderExercises() {
     const setsArea = document.createElement('div');
     setsArea.className = 'sets-area';
     
-    // ---- NEW BEHAVIOR: compact completed sets + enter-set button ----
-    
-    // Show all completed sets as compact read-only rows
+    // ---- NEW BEHAVIOR: horizontal pills for completed sets ----
     const completedSets = ex.sets.filter(s => s.completed);
     if (completedSets.length > 0) {
-      const compactList = document.createElement('div');
-      compactList.className = 'compact-sets-list';
+      const chipsContainer = document.createElement('div');
+      chipsContainer.className = 'completed-sets-chips-container';
+      chipsContainer.style.display = 'flex';
+      chipsContainer.style.flexWrap = 'wrap';
+      chipsContainer.style.gap = '8px';
+      chipsContainer.style.marginTop = '10px';
+      chipsContainer.style.direction = 'rtl';
+      
       completedSets.forEach((set, idx) => {
-        const row = document.createElement('div');
-        row.className = 'compact-set-row';
+        const chip = document.createElement('div');
+        chip.className = 'completed-set-chip';
+        chip.style.display = 'inline-flex';
+        chip.style.alignItems = 'center';
+        chip.style.background = 'rgba(255,255,255,0.06)';
+        chip.style.border = '1px solid rgba(255,255,255,0.08)';
+        chip.style.padding = '6px 12px';
+        chip.style.borderRadius = '12px';
+        chip.style.fontSize = '0.88rem';
+        chip.style.color = '#ffffff';
+        chip.style.gap = '6px';
+        
         let valueStr = '';
         if (metricType === 'both') {
-          valueStr = `${set.weight || 0} ק״ג × ${set.reps || 0} חזרות`;
+          valueStr = `${set.weight || 0} ק״ג × ${set.reps || 0}`;
         } else if (metricType === 'weight') {
           valueStr = `${set.weight || 0} ק״ג`;
         } else {
           valueStr = `${set.reps || 0} חזרות`;
         }
+        
         const realIdx = ex.sets.indexOf(set);
-        row.innerHTML = `
-          <span class="compact-set-values">${valueStr}</span>
-          <span class="compact-set-num">סט ${realIdx + 1}</span>
+        chip.innerHTML = `
+          <span style="font-weight: 700; color: var(--electric-blue);">סט ${realIdx + 1}:</span>
+          <span>${valueStr}</span>
         `;
+        
         // Click on completed set to undo it (toggle off)
         if (!ex.completed) {
-          row.style.cursor = 'pointer';
-          row.title = 'לחץ לביטול הסט';
-          row.addEventListener('click', () => {
-            set.completed = false;
-            set.reps = set.reps || '';
-            set.weight = set.weight || '';
-            saveActiveWorkoutState();
-            renderExercises();
+          chip.style.cursor = 'pointer';
+          chip.title = 'לחץ לביטול הסט';
+          chip.addEventListener('click', () => {
+            if (confirm(`האם ברצונך לבטל את סט ${realIdx + 1}?`)) {
+              set.completed = false;
+              saveActiveWorkoutState();
+              renderExercises();
+            }
           });
         }
-        compactList.appendChild(row);
+        chipsContainer.appendChild(chip);
       });
-      setsArea.appendChild(compactList);
+      setsArea.appendChild(chipsContainer);
     }
     
-    // If exercise not yet completed, show the "enter set data" button for the next active set
+    // If exercise not yet completed, show the broad "➕ רישום סט" button
     if (!ex.completed) {
+      const enterSetBtn = document.createElement('button');
+      enterSetBtn.className = 'enter-set-data-btn';
+      enterSetBtn.style.width = '100%';
+      enterSetBtn.style.padding = '12px';
+      enterSetBtn.style.borderRadius = '14px';
+      enterSetBtn.style.background = 'var(--electric-blue, #4f46e5)';
+      enterSetBtn.style.color = '#ffffff';
+      enterSetBtn.style.border = 'none';
+      enterSetBtn.style.fontWeight = '700';
+      enterSetBtn.style.fontSize = '0.95rem';
+      enterSetBtn.style.cursor = 'pointer';
+      enterSetBtn.style.marginTop = '12px';
+      enterSetBtn.style.display = 'block';
+      
       const nextIncompleteIdx = ex.sets.findIndex(s => !s.completed);
       const activeSetIdx = nextIncompleteIdx !== -1 ? nextIncompleteIdx : ex.sets.length;
       
-      const enterSetBtn = document.createElement('button');
-      enterSetBtn.className = 'enter-set-data-btn';
-      enterSetBtn.textContent = `▶ הזן נתוני סט ${activeSetIdx + 1}`;
+      enterSetBtn.textContent = `➕ רישום סט ${activeSetIdx + 1}`;
       enterSetBtn.addEventListener('click', () => {
-        openSetEntryModal(ex, activeSetIdx, exIdx);
+        openSetLoggingModal(ex, exIdx);
       });
       setsArea.appendChild(enterSetBtn);
-    }
-    
-    card.appendChild(setsArea);
-    container.appendChild(card);
-  });
-          // Validate according to metric configuration
-          let hasReps = true;
-          let hasWeight = true;
-          
-          if (metricType === 'both' || metricType === 'reps') {
-            hasReps = repsInput && repsInput.value.trim() !== '' && Number(repsInput.value) > 0;
-          }
-          if (metricType === 'both' || metricType === 'weight') {
-            hasWeight = weightInput && weightInput.value.trim() !== '' && Number(weightInput.value) >= 0;
-          }
-          
-          if (!hasReps && (metricType === 'both' || metricType === 'reps')) {
-            alert('אנา הזן מספר חזרות תקין.');
-            if (repsInput) repsInput.focus();
-            return;
-          }
-          if (!hasWeight && (metricType === 'both' || metricType === 'weight')) {
-            alert('אנא הזן משקל תקין.');
-            if (weightInput) weightInput.focus();
-            return;
-          }
-          
-          if (repsInput) set.reps = repsInput.value;
-          if (weightInput) set.weight = weightInput.value;
-          set.completed = true;
-          saveActiveWorkoutState();
-          renderExercises();
- 
-          // Trigger premium Rest Timer countdown
-          if (typeof startRestTimer === 'function') startRestTimer(90);
-        }
-      });
-      checkWrapper.appendChild(checkBtn);
-      setRow.appendChild(checkWrapper);
-      
-      setsArea.appendChild(setRow);
-    });
-    
-    // Add Set Button - Only show if exercise is not completed AND the last set is completed!
-    if (!ex.completed) {
-      const lastSet = ex.sets[ex.sets.length - 1];
-      if (lastSet && lastSet.completed) {
-        const addSetBtn = document.createElement('button');
-        addSetBtn.className = 'add-set-btn';
-        addSetBtn.textContent = '➕ הוסף סט חדש';
-        addSetBtn.addEventListener('click', () => {
-          ex.sets.push({
-            reps: lastSet.reps || '',
-            weight: lastSet.weight || '',
-            completed: false
-          });
-          saveActiveWorkoutState();
-          renderExercises();
-        });
-        setsArea.appendChild(addSetBtn);
-      }
     }
     
     card.appendChild(setsArea);
@@ -2630,6 +2630,203 @@ onDOMReady(() => {
     });
   }
 });
+
+// Bind Set Logging Modal controls & Micro-adjustments
+onDOMReady(() => {
+  const setLogModal = document.getElementById('set-log-modal');
+  const weightSlider = document.getElementById('weight-range-slider');
+  const weightValueText = document.getElementById('weight-slider-value');
+  const repsSlider = document.getElementById('reps-range-slider');
+  const repsValueText = document.getElementById('reps-slider-value');
+
+  const weightMinusBtn = document.getElementById('weight-minus-btn');
+  const weightPlusBtn = document.getElementById('weight-plus-btn');
+  const repsMinusBtn = document.getElementById('reps-minus-btn');
+  const repsPlusBtn = document.getElementById('reps-plus-btn');
+
+  const confirmSetBtn = document.getElementById('set-log-confirm-btn');
+  const cancelSetBtn = document.getElementById('set-log-cancel-btn');
+
+  // Slider change listeners
+  if (weightSlider && weightValueText) {
+    weightSlider.addEventListener('input', () => {
+      weightValueText.textContent = weightSlider.value;
+    });
+  }
+  if (repsSlider && repsValueText) {
+    repsSlider.addEventListener('input', () => {
+      repsValueText.textContent = repsSlider.value;
+    });
+  }
+
+  // Weight micro-adjustments (- / + 2.5 kg)
+  if (weightMinusBtn && weightSlider && weightValueText) {
+    weightMinusBtn.addEventListener('click', () => {
+      let val = parseFloat(weightSlider.value) || 0;
+      val = Math.max(0, val - 2.5);
+      weightSlider.value = val;
+      weightValueText.textContent = val;
+    });
+  }
+  if (weightPlusBtn && weightSlider && weightValueText) {
+    weightPlusBtn.addEventListener('click', () => {
+      let val = parseFloat(weightSlider.value) || 0;
+      val = Math.min(250, val + 2.5);
+      weightSlider.value = val;
+      weightValueText.textContent = val;
+    });
+  }
+
+  // Reps micro-adjustments (- / + 1 rep)
+  if (repsMinusBtn && repsSlider && repsValueText) {
+    repsMinusBtn.addEventListener('click', () => {
+      let val = parseInt(repsSlider.value, 10) || 0;
+      val = Math.max(0, val - 1);
+      repsSlider.value = val;
+      repsValueText.textContent = val;
+    });
+  }
+  if (repsPlusBtn && repsSlider && repsValueText) {
+    repsPlusBtn.addEventListener('click', () => {
+      let val = parseInt(repsSlider.value, 10) || 0;
+      val = Math.min(50, val + 1);
+      repsSlider.value = val;
+      repsValueText.textContent = val;
+    });
+  }
+
+  // Backdrop click close for Set Logging Modal
+  if (setLogModal) {
+    setLogModal.addEventListener('click', (e) => {
+      if (e.target === setLogModal) {
+        setLogModal.classList.add('hide');
+        currentLoggingExercise = null;
+        currentLoggingSetIndex = -1;
+      }
+    });
+  }
+
+  // Save/Confirm action
+  if (confirmSetBtn) {
+    confirmSetBtn.addEventListener('click', () => {
+      if (!currentLoggingExercise) return;
+
+      const metricType = currentLoggingExercise.metricType || 'both';
+      let repsVal = '';
+      let weightVal = '';
+
+      if (metricType === 'both' || metricType === 'reps') {
+        repsVal = repsSlider ? repsSlider.value : '10';
+      }
+      if (metricType === 'both' || metricType === 'weight') {
+        weightVal = weightSlider ? weightSlider.value : '60';
+      }
+
+      const loggedSet = {
+        reps: repsVal,
+        weight: weightVal,
+        completed: true
+      };
+
+      if (!currentLoggingExercise.sets) {
+        currentLoggingExercise.sets = [];
+      }
+
+      // Filter out any incomplete draft sets to avoid trailing blank set rows
+      currentLoggingExercise.sets = currentLoggingExercise.sets.filter(s => s.completed);
+
+      // Insert new completed set
+      currentLoggingExercise.sets.push(loggedSet);
+
+      saveActiveWorkoutState();
+
+      // Close modal
+      if (setLogModal) setLogModal.classList.add('hide');
+
+      // Trigger dynamic rest timer
+      const restSeconds = currentLoggingExercise.restTime || 90;
+      if (typeof startRestTimer === 'function') {
+        startRestTimer(restSeconds);
+      }
+
+      // Reset references
+      currentLoggingExercise = null;
+      currentLoggingSetIndex = -1;
+
+      // Re-render
+      renderExercises();
+    });
+  }
+
+  // Cancel action
+  if (cancelSetBtn) {
+    cancelSetBtn.addEventListener('click', () => {
+      if (setLogModal) setLogModal.classList.add('hide');
+      currentLoggingExercise = null;
+      currentLoggingSetIndex = -1;
+    });
+  }
+});
+
+// Helper function to launch the Set Logging modal
+function openSetLoggingModal(ex, exIdx) {
+  currentLoggingExercise = ex;
+  currentLoggingExerciseIndex = exIdx;
+
+  const nextIncompleteIdx = ex.sets.findIndex(s => !s.completed);
+  currentLoggingSetIndex = nextIncompleteIdx !== -1 ? nextIncompleteIdx : ex.sets.length;
+
+  // Set header details
+  const nameDisplay = document.getElementById('set-log-exercise-name');
+  const setNumDisplay = document.getElementById('set-log-set-number');
+  if (nameDisplay) nameDisplay.textContent = ex.name;
+  if (setNumDisplay) setNumDisplay.textContent = `סט ${currentLoggingSetIndex + 1}`;
+
+  // Toggle visible slider rows based on metricType
+  const weightGroup = document.getElementById('set-log-weight-group');
+  const repsGroup = document.getElementById('set-log-reps-group');
+  const metricType = ex.metricType || 'both';
+
+  if (weightGroup) {
+    weightGroup.style.display = (metricType === 'reps') ? 'none' : 'flex';
+  }
+  if (repsGroup) {
+    repsGroup.style.display = (metricType === 'weight') ? 'none' : 'flex';
+  }
+
+  // Determine standard baseline values based on last completed set or sensible defaults
+  const completedSets = ex.sets.filter(s => s.completed);
+  const previousSet = completedSets[completedSets.length - 1];
+
+  let initialWeight = 60;
+  let initialReps = 10;
+
+  if (previousSet) {
+    initialWeight = parseFloat(previousSet.weight) || 60;
+    initialReps = parseInt(previousSet.reps, 10) || 10;
+  }
+
+  // Apply inputs and update display texts
+  const weightSlider = document.getElementById('weight-range-slider');
+  const weightValueText = document.getElementById('weight-slider-value');
+  const repsSlider = document.getElementById('reps-range-slider');
+  const repsValueText = document.getElementById('reps-slider-value');
+
+  if (weightSlider) {
+    weightSlider.value = initialWeight;
+    if (weightValueText) weightValueText.textContent = initialWeight;
+  }
+  if (repsSlider) {
+    repsSlider.value = initialReps;
+    if (repsValueText) repsValueText.textContent = initialReps;
+  }
+
+  // Open modal view
+  const setLogModal = document.getElementById('set-log-modal');
+  if (setLogModal) {
+    setLogModal.classList.remove('hide');
+  }
+}
 
 
 
