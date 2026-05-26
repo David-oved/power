@@ -2500,7 +2500,7 @@ body.authenticated .ios-bottom-nav {
   overflow: hidden !important;
 }
 
-#tab-settings, #tab-workouts, #tab-analytics, #tab-community {
+#tab-settings, #tab-workouts, #tab-analytics, #tab-meals {
   position: absolute !important;
   top: calc(-1rem - env(safe-area-inset-top)) !important;
   left: -1.5rem !important;
@@ -2524,11 +2524,11 @@ body.authenticated .ios-bottom-nav {
   overflow-y: auto !important;
 }
 
-#tab-workouts, #tab-analytics, #tab-community {
+#tab-workouts, #tab-analytics, #tab-meals {
   overflow: hidden !important;
 }
 
-#tab-settings.active, #tab-workouts.active, #tab-analytics.active, #tab-community.active {
+#tab-settings.active, #tab-workouts.active, #tab-analytics.active, #tab-meals.active {
   display: flex !important;
   pointer-events: auto !important; /* Full interaction when active */
 }
@@ -3456,6 +3456,201 @@ body.authenticated .ios-bottom-nav {
   padding: calc(1.5rem + env(safe-area-inset-top, 24px)) 1.5rem 1rem 1.5rem !important;
 }
 
+  flex: 1;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+  padding: 8px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  outline: none;
+}
+
+.rest-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--electric-blue-light);
+  box-shadow: 0 0 10px var(--electric-blue-glow-subtle);
+}
+
+/* Premium Glassmorphic Toast Notifications */
+.premium-toast-container {
+  position: fixed;
+  top: calc(20px + env(safe-area-inset-top, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 90%;
+  max-width: 400px;
+  pointer-events: none;
+  direction: rtl;
+}
+
+.premium-toast {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(15, 17, 26, 0.7);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 14px 18px;
+  border-radius: 18px;
+  color: #ffffff;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  opacity: 0;
+  transform: translateY(-20px) scale(0.95);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: auto;
+  text-align: right;
+  font-family: var(--font-sans);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.premium-toast.show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.premium-toast.toast-error {
+  border-color: rgba(239, 68, 68, 0.3);
+  box-shadow: 0 12px 30px rgba(239, 68, 68, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.premium-toast.toast-success {
+  border-color: rgba(34, 197, 94, 0.3);
+  box-shadow: 0 12px 30px rgba(34, 197, 94, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.premium-toast.toast-info {
+  border-color: rgba(0, 240, 255, 0.3);
+  box-shadow: 0 12px 30px rgba(0, 240, 255, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.toast-icon {
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.toast-text {
+  flex: 1;
+  line-height: 1.4;
+}
+
+/* Premium Dynamic Initials Avatar Fallback */
+.initials-avatar-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  color: #ffffff;
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Pulsing red fire glow when rest timer is expired */
+.rest-timer-bubble.expired {
+  animation: pulse-danger-glow 1s infinite alternate;
+  border-color: rgba(220, 38, 38, 0.4);
+}
+
+@keyframes pulse-danger-glow {
+  0% {
+    box-shadow: 
+      0 20px 45px rgba(0, 0, 0, 0.7),
+      0 0 15px rgba(220, 38, 38, 0.2);
+  }
+  100% {
+    box-shadow: 
+      0 20px 45px rgba(0, 0, 0, 0.7),
+      0 0 30px rgba(220, 38, 38, 0.6);
+    background: rgba(30, 10, 10, 0.95);
+  }
+}
+
+/* Premium Completed Exercises satisfying visuals */
+.exercise-card.saved {
+  background: linear-gradient(135deg, rgba(16, 16, 20, 0.95) 0%, rgba(8, 8, 10, 0.98) 100%) !important;
+  border: 1px solid rgba(34, 197, 94, 0.25) !important;
+  box-shadow: 
+    0 10px 30px rgba(0, 0, 0, 0.55),
+    0 0 15px rgba(34, 197, 94, 0.06) !important;
+  transform: translateY(0);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.exercise-card.saved:hover {
+  transform: translateY(-2px);
+  border-color: rgba(34, 197, 94, 0.35) !important;
+  box-shadow: 
+    0 15px 40px rgba(0, 0, 0, 0.6),
+    0 0 22px rgba(34, 197, 94, 0.12) !important;
+}
+
+/* Smooth pop transition when exercise is saved */
+.exercise-card {
+  will-change: transform, opacity, border-color, box-shadow;
+  animation: card-slide-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes card-slide-in {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Satisfying green completed set row glow */
+.set-row.completed {
+  background: rgba(34, 197, 94, 0.025) !important;
+  border-color: rgba(34, 197, 94, 0.22) !important;
+  box-shadow: inset 0 0 8px rgba(34, 197, 94, 0.01);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.set-row {
+  transition: all 0.25s ease;
+}
+
+/* ==========================================================================
+   AuraApp Redesigned Multi-Tab Theme System - Dark & Light Mode Overrides
+   ========================================================================== */
+
+/* 1. Global Tab Titles styling (Aligned large bold top-right RTL, exactly like settings) */
+.tab-pane .settings-main-title {
+  color: #000000 !important;
+  font-family: var(--font-display) !important;
+  font-size: 2.1rem !important;
+  font-weight: 800 !important;
+  margin-bottom: 1.5rem !important;
+  margin-top: 0.5rem !important;
+  text-align: right !important;
+  text-shadow: none !important;
+  letter-spacing: -0.5px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  padding: calc(1.5rem + env(safe-area-inset-top, 24px)) 1.5rem 1rem 1.5rem !important;
+}
+
 .tab-pane.dark-theme .settings-main-title {
   color: #ffffff !important;
 }
@@ -3464,12 +3659,12 @@ body.authenticated .ios-bottom-nav {
 #tab-settings.dark-theme,
 #tab-workouts.dark-theme,
 #tab-analytics.dark-theme,
-#tab-community.dark-theme {
+#tab-meals.dark-theme {
   background-color: #000000 !important;
   color: #ffffff !important;
 }
 
-/* 3. CLASSIC iOS LIGHT THEME OVERRIDES FOR WORKOUTS, HISTORY & COMMUNITY TABS */
+/* 3. CLASSIC iOS LIGHT THEME OVERRIDES FOR WORKOUTS, HISTORY & MEALS TABS */
 
 /* General background & text in light mode */
 .tab-pane:not(.dark-theme) {
@@ -6332,4 +6527,140 @@ html, body {
 .workout-dot.home {
   background: #FFA500 !important; /* Warm Orange */
   box-shadow: 0 0 6px #FFA500;
+}
+
+/* Meals & Nutrition Carousel & Card Styles */
+.meals-dashboard-scroll {
+  -webkit-overflow-scrolling: touch;
+}
+.recommended-meals-carousel::-webkit-scrollbar {
+  display: none; /* Hide scrollbars for a clean iOS horizontal swipe feel */
+}
+.recommended-meals-carousel {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+.rec-meal-card {
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.rec-meal-card:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  transform: translateY(-2px);
+}
+.quick-log-meal-btn {
+  transition: all 0.2s ease;
+}
+.quick-log-meal-btn:hover {
+  background: var(--electric-blue-light) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 10px var(--electric-blue-glow-subtle);
+}
+.quick-log-meal-btn:active {
+  transform: scale(0.97);
+}
+
+/* Logged Meal Row Styles */
+.logged-meal-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 16px;
+  direction: rtl;
+  text-align: right;
+  transition: all 0.2s ease;
+}
+.logged-meal-row:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+.logged-meal-type-badge {
+  font-size: 0.72rem;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-weight: 700;
+  margin-right: 6px;
+}
+.type-badge-breakfast { background: rgba(52, 199, 89, 0.12); color: #34c759; border: 1px solid rgba(52, 199, 89, 0.2); }
+.type-badge-lunch { background: rgba(255, 149, 0, 0.12); color: #ff9500; border: 1px solid rgba(255, 149, 0, 0.2); }
+.type-badge-dinner { background: rgba(175, 82, 222, 0.12); color: #af52de; border: 1px solid rgba(175, 82, 222, 0.2); }
+.type-badge-snack { background: rgba(0, 122, 255, 0.12); color: #007aff; border: 1px solid rgba(0, 122, 255, 0.2); }
+
+.delete-meal-btn {
+  background: transparent;
+  border: none;
+  color: var(--color-danger);
+  font-size: 1.1rem;
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.6;
+  transition: all 0.2s ease;
+}
+.delete-meal-btn:hover {
+  opacity: 1;
+  transform: scale(1.1);
+}
+
+/* Light theme overrides for meals */
+.tab-pane:not(.dark-theme) .nutrition-summary-card {
+  background: #ffffff !important;
+  border-color: rgba(0, 0, 0, 0.06) !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02) !important;
+}
+.tab-pane:not(.dark-theme) .nutrition-summary-card h3 {
+  color: #000000 !important;
+}
+.tab-pane:not(.dark-theme) .nutrition-summary-card span {
+  color: #1c1c1e !important;
+}
+.tab-pane:not(.dark-theme) .nutrition-summary-card #calories-current {
+  color: #34c759 !important;
+}
+.tab-pane:not(.dark-theme) .nutrition-summary-card .progress-bar-bg {
+  background: rgba(0, 0, 0, 0.05) !important;
+}
+.tab-pane:not(.dark-theme) .nutrition-summary-card div[style*="background: rgba(255, 255, 255, 0.02)"] {
+  background: #f2f2f7 !important;
+  border-color: rgba(0, 0, 0, 0.04) !important;
+}
+.tab-pane:not(.dark-theme) .nutrition-summary-card div[style*="background: rgba(255, 255, 255, 0.02)"] span {
+  color: #000000 !important;
+}
+.tab-pane:not(.dark-theme) .rec-meal-card {
+  background: #ffffff !important;
+  border-color: rgba(0, 0, 0, 0.06) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important;
+}
+.tab-pane:not(.dark-theme) .rec-meal-card h4 {
+  color: #000000 !important;
+}
+.tab-pane:not(.dark-theme) .rec-meal-card p {
+  color: #555559 !important;
+}
+.tab-pane:not(.dark-theme) .rec-meal-card div[style*="border-top"] {
+  border-top-color: rgba(0, 0, 0, 0.06) !important;
+}
+.tab-pane:not(.dark-theme) .rec-meal-card div[style*="border-top"] span {
+  color: #1c1c1e !important;
+}
+.tab-pane:not(.dark-theme) .rec-meal-card button {
+  background: #f2f2f7 !important;
+  color: #000000 !important;
+}
+.tab-pane:not(.dark-theme) .logged-meal-row {
+  background: #ffffff !important;
+  border-color: rgba(0, 0, 0, 0.05) !important;
+}
+.tab-pane:not(.dark-theme) .logged-meal-row span {
+  color: #1c1c1e !important;
+}
+.tab-pane:not(.dark-theme) .meals-empty-state {
+  background: #ffffff !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
 }
