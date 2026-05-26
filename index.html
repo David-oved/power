@@ -1011,14 +1011,154 @@
           </div>
         </div>
 
-        <!-- Tab 4: Community (Coming Soon) -->
-        <div id="tab-community" class="tab-pane">
-          <h2 class="settings-main-title">קהילה</h2>
-          <div class="coming-soon-card">
-            <span class="coming-soon-emoji">👥</span>
-            <h3 class="coming-soon-title">קהילה ושיתוף</h3>
-            <p class="coming-soon-desc">בקרוב מאוד - שיתוף הישגים עם חברים ואתגרים קבוצתיים.</p>
-            <span class="badge-soon">COMING SOON</span>
+        <!-- Tab 4: Meals (ארוחות ותזונה) -->
+        <div id="tab-meals" class="tab-pane">
+          <h2 class="settings-main-title">ארוחות ותזונה</h2>
+          
+          <div class="meals-dashboard-scroll" style="width: 100%; height: 100%; overflow-y: auto; padding: 0 1.5rem 120px 1.5rem; box-sizing: border-box; display: flex; flex-direction: column; gap: 20px;">
+            
+            <!-- Nutrition Summary Glassmorphic Card -->
+            <div class="ios-settings-card-group nutrition-summary-card" style="padding: 20px; background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%); border: 1px solid rgba(255, 255, 255, 0.05); position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 15px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; direction: rtl;">
+                <h3 style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #ffffff;">סיכום תזונה יומי 📊</h3>
+                <span id="meals-date-display" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">היום</span>
+              </div>
+              
+              <!-- Calories progress gauge -->
+              <div style="display: flex; flex-direction: column; gap: 6px; direction: rtl; text-align: right;">
+                <div style="display: flex; justify-content: space-between; font-size: 0.95rem; font-weight: 700; color: #ffffff;">
+                  <span>קלוריות</span>
+                  <span><span id="calories-current" style="color: #34c759; font-size: 1.1rem; font-weight: 800;">0</span> / <span id="calories-target">2,200</span> קק"ל</span>
+                </div>
+                <div class="progress-bar-bg" style="width: 100%; height: 8px; background: rgba(255, 255, 255, 0.08); border-radius: 4px; overflow: hidden;">
+                  <div id="calories-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, #30db5b, #34c759); border-radius: 4px; transition: width 0.4s cubic-bezier(0.1, 0.8, 0.25, 1);"></div>
+                </div>
+              </div>
+
+              <!-- Macros row -->
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; direction: rtl; text-align: center;">
+                <!-- Protein -->
+                <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.03); padding: 10px; border-radius: 12px; display: flex; flex-direction: column; gap: 4px;">
+                  <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">חלבון 🥩</span>
+                  <span style="font-size: 0.95rem; font-weight: 800; color: #ffffff;"><span id="protein-current">0</span>g / <span id="protein-target">150</span>g</span>
+                  <div style="width: 100%; height: 4px; background: rgba(255, 255, 255, 0.08); border-radius: 2px; overflow: hidden; margin-top: 4px;">
+                    <div id="protein-progress-bar" style="width: 0%; height: 100%; background: #ff3b30; border-radius: 2px; transition: width 0.4s;"></div>
+                  </div>
+                </div>
+                <!-- Carbs -->
+                <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.03); padding: 10px; border-radius: 12px; display: flex; flex-direction: column; gap: 4px;">
+                  <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">פחמימות 🌾</span>
+                  <span style="font-size: 0.95rem; font-weight: 800; color: #ffffff;"><span id="carbs-current">0</span>g / <span id="carbs-target">220</span>g</span>
+                  <div style="width: 100%; height: 4px; background: rgba(255, 255, 255, 0.08); border-radius: 2px; overflow: hidden; margin-top: 4px;">
+                    <div id="carbs-progress-bar" style="width: 0%; height: 100%; background: #ff9500; border-radius: 2px; transition: width 0.4s;"></div>
+                  </div>
+                </div>
+                <!-- Fat -->
+                <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.03); padding: 10px; border-radius: 12px; display: flex; flex-direction: column; gap: 4px;">
+                  <span style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted);">שומן 🥑</span>
+                  <span style="font-size: 0.95rem; font-weight: 800; color: #ffffff;"><span id="fat-current">0</span>g / <span id="fat-target">70</span>g</span>
+                  <div style="width: 100%; height: 4px; background: rgba(255, 255, 255, 0.08); border-radius: 2px; overflow: hidden; margin-top: 4px;">
+                    <div id="fat-progress-bar" style="width: 0%; height: 100%; background: #af52de; border-radius: 2px; transition: width 0.4s;"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Logged Meals Section -->
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; direction: rtl;">
+                <h3 style="margin: 0; font-size: 1.1rem; font-weight: 800; color: #ffffff;">ארוחות שנרשמו היום 🍽️</h3>
+                <button id="add-meal-trigger-btn" class="btn btn-primary" style="padding: 6px 12px; font-size: 0.85rem; font-weight: 700; border-radius: 10px; background: linear-gradient(135deg, var(--electric-blue) 0%, var(--electric-blue-light) 100%); box-shadow: 0 2px 8px var(--electric-blue-glow-subtle); border: none;">
+                  ➕ הוסף ארוחה
+                </button>
+              </div>
+
+              <!-- Logged Meals List -->
+              <div id="logged-meals-list" style="display: flex; flex-direction: column; gap: 10px;">
+                <!-- Dynamically populated or empty state -->
+                <div class="meals-empty-state" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem 1rem; border: 1px dashed rgba(255, 255, 255, 0.08); border-radius: 18px; text-align: center; gap: 8px;">
+                  <span style="font-size: 2.2rem;">🥗</span>
+                  <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted); direction: rtl;">לא נרשמו ארוחות היום. התחל להוסיף ארוחות כדי לעקוב אחר התזונה שלך!</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Recommended Premium Healthy Meals -->
+            <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+              <h3 style="margin: 0; font-size: 1.1rem; font-weight: 800; color: #ffffff; text-align: right; direction: rtl;">הצעות לארוחות בריאות 💡</h3>
+              <div class="recommended-meals-carousel" style="display: flex; gap: 12px; overflow-x: auto; padding-bottom: 10px; direction: rtl; -webkit-overflow-scrolling: touch;">
+                
+                <!-- Rec 1: Oatmeal -->
+                <div class="rec-meal-card" style="flex: 0 0 220px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 12px; display: flex; flex-direction: column; gap: 8px; direction: rtl; text-align: right; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 1.5rem;">🥣</span>
+                    <span style="font-size: 0.72rem; padding: 2px 8px; background: rgba(52, 199, 89, 0.15); color: #34c759; border-radius: 6px; font-weight: 700;">בוקר</span>
+                  </div>
+                  <h4 style="margin: 0; font-size: 0.95rem; font-weight: 800; color: #ffffff;">דייסת שיבולת שועל</h4>
+                  <p style="margin: 0; font-size: 0.78rem; color: var(--text-muted);">שיבולת שועל, בננה, חלבון, חמאת בוטנים ופירות יער.</p>
+                  <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; color: #ffffff; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 8px; margin-top: 4px;">
+                    <span>🔥 420 קק"ל</span>
+                    <span>🥩 25g חלבון</span>
+                  </div>
+                  <button type="button" class="quick-log-meal-btn btn" data-name="דייסת שיבולת שועל" data-calories="420" data-protein="25" data-carbs="55" data-fat="10" style="width: 100%; border: none; font-size: 0.78rem; padding: 6px; border-radius: 8px; font-weight: 700; background: rgba(255,255,255,0.05); color: #ffffff; cursor: pointer; transition: all 0.2s;">
+                    ⚡ רישום מהיר
+                  </button>
+                </div>
+
+                <!-- Rec 2: Chicken Breast -->
+                <div class="rec-meal-card" style="flex: 0 0 220px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 12px; display: flex; flex-direction: column; gap: 8px; direction: rtl; text-align: right; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 1.5rem;">🍗</span>
+                    <span style="font-size: 0.72rem; padding: 2px 8px; background: rgba(255, 149, 0, 0.15); color: #ff9500; border-radius: 6px; font-weight: 700;">צהריים</span>
+                  </div>
+                  <h4 style="margin: 0; font-size: 0.95rem; font-weight: 800; color: #ffffff;">חזה עוף מבושל עם אורז</h4>
+                  <p style="margin: 0; font-size: 0.78rem; color: var(--text-muted);">חזה עוף צרוב, אורז בסמטי וירקות ירוקים מאודים.</p>
+                  <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; color: #ffffff; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 8px; margin-top: 4px;">
+                    <span>🔥 580 קק"ל</span>
+                    <span>🥩 48g חלבון</span>
+                  </div>
+                  <button type="button" class="quick-log-meal-btn btn" data-name="חזה עוף עם אורז" data-calories="580" data-protein="48" data-carbs="60" data-fat="8" style="width: 100%; border: none; font-size: 0.78rem; padding: 6px; border-radius: 8px; font-weight: 700; background: rgba(255,255,255,0.05); color: #ffffff; cursor: pointer; transition: all 0.2s;">
+                    ⚡ רישום מהיר
+                  </button>
+                </div>
+
+                <!-- Rec 3: Salmon Salad -->
+                <div class="rec-meal-card" style="flex: 0 0 220px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 12px; display: flex; flex-direction: column; gap: 8px; direction: rtl; text-align: right; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 1.5rem;">🐟</span>
+                    <span style="font-size: 0.72rem; padding: 2px 8px; background: rgba(175, 82, 222, 0.15); color: #af52de; border-radius: 6px; font-weight: 700;">ערב</span>
+                  </div>
+                  <h4 style="margin: 0; font-size: 0.95rem; font-weight: 800; color: #ffffff;">סלט סלמון ואבוקדו</h4>
+                  <p style="margin: 0; font-size: 0.78rem; color: var(--text-muted);">פילה סלמון אפוי, עלים ירוקים, אבוקדו, מלפפון ושמן זית.</p>
+                  <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; color: #ffffff; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 8px; margin-top: 4px;">
+                    <span>🔥 490 קק"ל</span>
+                    <span>🥩 32g חלבון</span>
+                  </div>
+                  <button type="button" class="quick-log-meal-btn btn" data-name="סלט סלמון ואבוקדו" data-calories="490" data-protein="32" data-carbs="12" data-fat="35" style="width: 100%; border: none; font-size: 0.78rem; padding: 6px; border-radius: 8px; font-weight: 700; background: rgba(255,255,255,0.05); color: #ffffff; cursor: pointer; transition: all 0.2s;">
+                    ⚡ רישום מהיר
+                  </button>
+                </div>
+
+                <!-- Rec 4: Protein Shake -->
+                <div class="rec-meal-card" style="flex: 0 0 220px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 12px; display: flex; flex-direction: column; gap: 8px; direction: rtl; text-align: right; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 1.5rem;">🥛</span>
+                    <span style="font-size: 0.72rem; padding: 2px 8px; background: rgba(0, 122, 255, 0.15); color: #007aff; border-radius: 6px; font-weight: 700;">חטיף</span>
+                  </div>
+                  <h4 style="margin: 0; font-size: 0.95rem; font-weight: 800; color: #ffffff;">שייק חלבון פרימיום</h4>
+                  <p style="margin: 0; font-size: 0.78rem; color: var(--text-muted);">מנת חלבון מי גבינה, חלב שקדים, בננה וכפית זרעי צ'יה.</p>
+                  <div style="display: flex; justify-content: space-between; font-size: 0.75rem; font-weight: 700; color: #ffffff; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 8px; margin-top: 4px;">
+                    <span>🔥 260 קק"ל</span>
+                    <span>🥩 30g חלבון</span>
+                  </div>
+                  <button type="button" class="quick-log-meal-btn btn" data-name="שייק חלבון פרימיום" data-calories="260" data-protein="30" data-carbs="24" data-fat="3" style="width: 100%; border: none; font-size: 0.78rem; padding: 6px; border-radius: 8px; font-weight: 700; background: rgba(255,255,255,0.05); color: #ffffff; cursor: pointer; transition: all 0.2s;">
+                    ⚡ רישום מהיר
+                  </button>
+                </div>
+
+              </div>
+            </div>
+            
           </div>
         </div>
 
@@ -1049,11 +1189,11 @@
           <span class="coming-soon-dot"></span>
         </button>
 
-        <!-- Tab 3: Community -->
-        <button class="nav-tab" data-tab="community" aria-label="Community Tab">
+        <!-- Tab 3: Meals -->
+        <button class="nav-tab" data-tab="meals" aria-label="Meals Tab">
           <div class="tab-icon-wrapper">
-            <span class="tab-icon">👥</span>
-            <span class="tab-label">קהילה</span>
+            <span class="tab-icon">🍳</span>
+            <span class="tab-label">ארוחות</span>
           </div>
           <span class="coming-soon-dot"></span>
         </button>
@@ -1228,6 +1368,69 @@
 
         <button type="submit" id="save-scheduled-workout-btn" class="btn btn-primary" style="width: 100%; padding: 14px; font-weight: bold; border-radius: 14px; margin-top: 1rem; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border: none; box-shadow: 0 4px 15px rgba(249, 115, 22, 0.3);">
           💾 שמור ותזמן
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Add Meal Modal Bottom Sheet -->
+  <div id="add-meal-modal" class="workout-modal-overlay hide" style="z-index: 1450;">
+    <div class="workout-modal-card" style="max-width: 400px; width: 95%; height: auto; max-height: 90vh; border-radius: 28px 28px 0 0; position: absolute; bottom: 0; padding: 1.5rem; animation: slide-up-sheet 0.35s cubic-bezier(0.16, 1, 0.3, 1);">
+      <div class="modal-header" style="padding-bottom: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: space-between; align-items: center;">
+        <button id="close-add-meal-modal-btn" class="btn-cancel-link" style="background: none; border: none; font-size: 0.95rem; font-weight: 700; color: var(--text-muted); cursor: pointer;">ביטול</button>
+        <h3 class="modal-title" style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #ffffff; direction: rtl;">🍳 הוספת ארוחה חדשה</h3>
+        <span style="width: 40px;"></span>
+      </div>
+      
+      <form id="add-meal-form" style="display: flex; flex-direction: column; gap: 15px; direction: rtl; text-align: right; margin-top: 15px;">
+        <!-- Meal Name -->
+        <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+          <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">שם הארוחה</label>
+          <input type="text" id="new-meal-name" placeholder="למשל: סלט חלבון עם חזה עוף" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; color: #ffffff; text-align: right; direction: rtl; outline: none;" required autocomplete="off">
+        </div>
+
+        <!-- Meal Type Selector -->
+        <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+          <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">סוג הארוחה</label>
+          <select id="new-meal-type" class="premium-filter-select" style="width: 100%; text-align: right;">
+            <option value="בוקר">🍳 ארוחת בוקר</option>
+            <option value="צהריים" selected>🍗 ארוחת צהריים</option>
+            <option value="ערב">🥩 ארוחת ערב</option>
+            <option value="חטיף">🍌 חטיף / ביניים</option>
+          </select>
+        </div>
+
+        <!-- Nutritional Info (Calories & Protein side-by-side) -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <!-- Calories -->
+          <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+            <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">קלוריות (קק"ל)</label>
+            <input type="number" id="new-meal-calories" placeholder="350" min="0" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; color: #ffffff; text-align: center; outline: none;" required>
+          </div>
+          <!-- Protein -->
+          <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+            <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">חלבון (גרם)</label>
+            <input type="number" id="new-meal-protein" placeholder="25" min="0" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; color: #ffffff; text-align: center; outline: none;" required>
+          </div>
+        </div>
+
+        <!-- Carbs and Fats (Macros) -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <!-- Carbs -->
+          <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+            <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">פחמימות (גרם) - אופציונלי</label>
+            <input type="number" id="new-meal-carbs" placeholder="40" min="0" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; color: #ffffff; text-align: center; outline: none;">
+          </div>
+          <!-- Fat -->
+          <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+            <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">שומן (גרם) - אופציונלי</label>
+            <input type="number" id="new-meal-fat" placeholder="10" min="0" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; color: #ffffff; text-align: center; outline: none;">
+          </div>
+        </div>
+
+        <!-- Save Button -->
+        <button type="submit" id="save-meal-btn" class="btn btn-primary" style="width: 100%; padding: 14px; font-weight: bold; border-radius: 14px; margin-top: 10px; background: linear-gradient(135deg, #34c759 0%, #30db5b 100%); border: none; box-shadow: 0 4px 15px rgba(52, 199, 89, 0.3);">
+          💾 שמור ורשום ארוחה
         </button>
       </form>
     </div>
