@@ -1348,6 +1348,7 @@ body.authenticated .workout-summary-modal.active {
 
 /* Subtle Sleek Version Badge */
 .app-version-badge {
+  display: none !important;
   position: absolute;
   bottom: calc(12px + env(safe-area-inset-bottom));
   left: 12px;
@@ -4620,4 +4621,39 @@ body.authenticated .ios-bottom-nav {
 .tab-pane:not(.dark-theme) .muscle-card.active {
   background: rgba(220, 38, 38, 0.08) !important;
 }
+
+/* Sticky iOS Settings Profile Header */
+.sticky-profile-container {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 100 !important;
+  background-color: #f2f2f7 !important; /* Matches light settings background */
+  margin-top: -10px !important;
+  margin-bottom: 24px !important;
+  padding-top: 10px !important;
+  padding-bottom: 10px !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02) !important;
+}
+
+#tab-settings.dark-theme .sticky-profile-container {
+  background-color: #000000 !important; /* Matches dark settings background */
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+}
+
+/* iOS Group Title (System Label) */
+.ios-settings-group-title {
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  color: #8e8e93 !important;
+  text-transform: uppercase !important;
+  margin-right: 6px !important;
+  margin-bottom: 8px !important;
+  letter-spacing: 0.5px !important;
+  display: block !important;
+  text-align: right !important;
+  direction: rtl !important;
+}
+
 
