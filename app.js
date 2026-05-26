@@ -1009,12 +1009,18 @@ function resetTabs() {
 const navTabs = document.querySelectorAll('.ios-bottom-nav .nav-tab');
 const tabPanes = document.querySelectorAll('.tab-content-container .tab-pane');
 
+let lastActiveMainTab = 'settings';
+
 navTabs.forEach((tab) => {
   tab.addEventListener('click', (e) => {
     e.stopPropagation(); // prevent triggering expandNav on the nav itself
 
     const targetTab = tab.dataset.tab;
     if (!targetTab) return;
+
+    if (targetTab !== 'analytics') {
+      lastActiveMainTab = targetTab;
+    }
 
     // Update active class on tab buttons
     navTabs.forEach(t => t.classList.remove('active'));
@@ -1030,8 +1036,22 @@ navTabs.forEach((tab) => {
     
     console.log(`Switched to tab: ${targetTab}`);
     if (targetTab === 'analytics') {
-      if (typeof renderAnalytics === 'function') {
-        renderAnalytics();
+      const mainNav = document.querySelector('.ios-bottom-nav');
+      const subNav = document.getElementById('metrics-sub-nav');
+      if (mainNav) mainNav.classList.add('nav-hidden');
+      if (subNav) subNav.classList.remove('nav-hidden');
+
+      // Expand sub-nav if collapsed
+      if (subNav && subNav.classList.contains('collapsed')) {
+        subNav.classList.remove('collapsed');
+      }
+
+      // Automatically activate default workouts sub-tab
+      const defaultSubTab = document.querySelector('#metrics-sub-nav .nav-tab[data-sub-tab="workouts"]');
+      if (defaultSubTab) {
+        defaultSubTab.click();
+      } else {
+        renderWorkoutsLog();
       }
     }
 
@@ -1193,9 +1213,64 @@ function saveActiveWorkoutState() {
   }
 }
 
+// Unified Exercises LocalStorage Helpers
+function getAllExercises() {
+  if (!currentUser) {
+    return [...GYM_EXERCISES, ...PARK_EXERCISES];
+  }
+  const key = `aura-all-exercises_${currentUser.uid}`;
+  let list = SafeStorage.getItem(key);
+  if (!list) {
+    const combined = [];
+    const names = new Set();
+    [...GYM_EXERCISES, ...PARK_EXERCISES].forEach(item => {
+      if (!names.has(item.name)) {
+        names.add(item.name);
+        combined.push(item);
+      }
+    });
+    SafeStorage.setItem(key, JSON.stringify(combined));
+    return combined;
+  }
+  try {
+    return JSON.parse(list);
+  } catch (e) {
+    console.error("Failed to parse aura-all-exercises from storage:", e);
+    return [...GYM_EXERCISES, ...PARK_EXERCISES];
+  }
+}
+
+function saveAllExercises(list) {
+  if (!currentUser) return;
+  const key = `aura-all-exercises_${currentUser.uid}`;
+  SafeStorage.setItem(key, JSON.stringify(list));
+}
+
+// Global Exercises Getter to maintain absolute compatibility with existing files & code
+Object.defineProperty(window, 'exercisesList', {
+  get: function() {
+    return getAllExercises();
+  },
+  configurable: true
+});
+
 // Initialize workouts state on user auth
 function initWorkouts() {
   if (!currentUser) return;
+
+  // Initialize unified exercises list in LocalStorage if not already present
+  const key = `aura-all-exercises_${currentUser.uid}`;
+  if (!SafeStorage.getItem(key)) {
+    const combined = [];
+    const names = new Set();
+    [...GYM_EXERCISES, ...PARK_EXERCISES].forEach(item => {
+      if (!names.has(item.name)) {
+        names.add(item.name);
+        combined.push(item);
+      }
+    });
+    SafeStorage.setItem(key, JSON.stringify(combined));
+  }
   
   // Load History
   const historyData = SafeStorage.getItem(`aura-workout-history_${currentUser.uid}`);
@@ -1533,30 +1608,23 @@ function renderExercisePickerList() {
   const searchInput = document.getElementById('exercise-search-input');
   const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
   
-  // Get base exercises
-  let baseList = [];
-  if (activeWorkout.location === 'gym') {
-    baseList = [...GYM_EXERCISES];
-  } else if (activeWorkout.location === 'park') {
-    baseList = [...PARK_EXERCISES];
-  } else {
-    baseList = [...GYM_EXERCISES, ...PARK_EXERCISES];
+  // Read exclusively from getAllExercises() as single source of truth
+  let fullList = getAllExercises();
+  
+  // Filter by workout location type if defined
+  if (activeWorkout.location === 'gym' || activeWorkout.location === 'park') {
+    fullList = fullList.filter(ex => {
+      if (ex.locationType && ex.locationType !== activeWorkout.location) {
+        return false;
+      }
+      return true;
+    });
   }
   
-  // Add custom user-created exercises
-  const userCustoms = customExercises.filter(ex => {
-    if (activeWorkout.location === 'gym' || activeWorkout.location === 'park') {
-      return ex.locationType === activeWorkout.location;
-    }
-    return true;
-  });
-  
-  let fullList = [...baseList, ...userCustoms];
-  
-  // Remove duplicates by name
+  // Remove duplicates by name (precautionary)
   const seen = new Set();
   fullList = fullList.filter(ex => {
-    const k = ex.name.trim();
+    const k = ex.name.trim().toLowerCase();
     if (seen.has(k)) return false;
     seen.add(k);
     return true;
@@ -1860,6 +1928,12 @@ onDOMReady(() => {
       customExercises.push(newEx);
       if (currentUser) {
         SafeStorage.setItem(`aura-custom-exercises_${currentUser.uid}`, JSON.stringify(customExercises));
+        // Add to unified exercises database if not already present
+        let allExs = getAllExercises();
+        if (!allExs.some(ex => ex.name.trim().toLowerCase() === exName.trim().toLowerCase())) {
+          allExs.push(newEx);
+          saveAllExercises(allExs);
+        }
       }
       
       // Close custom exercise modal
@@ -3536,25 +3610,128 @@ function initAnalyticsTab() {
       renderCalendarView();
     });
   }
+
+  // Future Workout Scheduling Controls
+  const scheduleTriggerBtn = document.getElementById('schedule-workout-trigger-btn');
+  const scheduleModal = document.getElementById('schedule-workout-modal');
+  const closeScheduleBtn = document.getElementById('close-schedule-workout-btn');
+  const scheduleForm = document.getElementById('schedule-workout-form');
+  const scheduleLocationSelect = document.getElementById('schedule-location-select');
+  const scheduleCustomLocation = document.getElementById('schedule-custom-location');
+
+  if (scheduleTriggerBtn && scheduleModal) {
+    scheduleTriggerBtn.addEventListener('click', () => {
+      // Safely request permission
+      requestNotificationPermissionSafely();
+      
+      scheduleModal.classList.remove('hide');
+      scheduleModal.style.display = 'flex';
+      
+      // Auto fill today's date
+      const todayStr = new Date().toISOString().split('T')[0];
+      const dateInput = document.getElementById('schedule-date');
+      if (dateInput) dateInput.value = todayStr;
+    });
+  }
+
+  if (closeScheduleBtn && scheduleModal) {
+    closeScheduleBtn.addEventListener('click', () => {
+      scheduleModal.classList.add('hide');
+      scheduleModal.style.display = 'none';
+    });
+  }
+
+  if (scheduleLocationSelect && scheduleCustomLocation) {
+    scheduleLocationSelect.addEventListener('change', () => {
+      if (scheduleLocationSelect.value === 'custom') {
+        scheduleCustomLocation.style.display = 'block';
+        scheduleCustomLocation.setAttribute('required', 'true');
+      } else {
+        scheduleCustomLocation.style.display = 'none';
+        scheduleCustomLocation.removeAttribute('required');
+      }
+    });
+  }
+
+  if (scheduleForm && scheduleModal) {
+    scheduleForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      const locVal = scheduleLocationSelect.value;
+      let finalLoc = '';
+      let emoji = '🏋️‍♂️';
+
+      if (locVal === 'custom') {
+        finalLoc = scheduleCustomLocation.value.trim();
+        emoji = '✨';
+      } else if (locVal === 'gym') {
+        finalLoc = 'חדר כושר';
+        emoji = '🏋️‍♂️';
+      } else if (locVal === 'park') {
+        finalLoc = 'פארק';
+        emoji = '🌳';
+      }
+
+      const dateVal = document.getElementById('schedule-date').value;
+      const timeVal = document.getElementById('schedule-time').value;
+      const reminderSelect = document.getElementById('schedule-reminder-select');
+      const reminderMinutes = parseInt(reminderSelect.value, 10);
+
+      if (!finalLoc || !dateVal || !timeVal) {
+        alert("נא למלא את כל השדות החיוניים");
+        return;
+      }
+
+      const newFutureWorkout = {
+        id: `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        location: finalLoc,
+        locationEmoji: emoji,
+        date: dateVal,
+        time: timeVal,
+        reminderMinutes: reminderMinutes,
+        reminderSent: false
+      };
+
+      const currentFutures = getFutureWorkouts();
+      currentFutures.push(newFutureWorkout);
+      saveFutureWorkouts(currentFutures);
+
+      // Close modal
+      scheduleModal.classList.add('hide');
+      scheduleModal.style.display = 'none';
+
+      // Reset form
+      scheduleForm.reset();
+      if (scheduleCustomLocation) {
+        scheduleCustomLocation.style.display = 'none';
+        scheduleCustomLocation.removeAttribute('required');
+      }
+
+      // Proactively request permission again to ensure it is granted
+      requestNotificationPermissionSafely();
+
+      // Refresh Calendar
+      renderCalendarView();
+
+      alert(`אימון עתידי מסוג "${finalLoc}" מתוזמן בהצלחה! 🏋️‍♂️`);
+    });
+  }
 }
+
 
 // Orchestrator for tab refresh
 function renderAnalytics() {
-  console.log("Refreshing Analytics view with active filters...", activeAnalyticsSegment);
+  console.log("Refreshing Analytics view with active filters...", activeSubTab);
   
-  if (activeAnalyticsSegment === 'overview') {
-    renderHeatmapView();
-    renderMuscleSplitView();
-  } else if (activeAnalyticsSegment === 'logs') {
-    if (activeLogsSubView === 'calendar') {
-      renderCalendarView();
-    } else if (activeLogsSubView === 'list') {
-      renderAccordionHistoryView();
-    }
-  } else if (activeAnalyticsSegment === 'exercise') {
-    if (selectedAnalyticsExercise) {
-      renderExerciseAnalyticsDashboard();
-    }
+  if (activeSubTab === 'workouts') {
+    renderWorkoutsLog();
+  } else if (activeSubTab === 'calendar') {
+    if (typeof renderCalendarView === 'function') renderCalendarView();
+    if (typeof renderMuscleSplitView === 'function') renderMuscleSplitView();
+  } else if (activeSubTab === 'exercises') {
+    if (typeof renderExercisesManager === 'function') renderExercisesManager();
+  } else if (activeSubTab === 'ai') {
+    console.log("Aura AI Coach segment active.");
   }
 }
 
@@ -3794,6 +3971,87 @@ function renderExerciseAnalyticsDashboard() {
 }
 
 // E. Monthly Calendar layout renderer
+// Helper for Notification Permission
+async function requestNotificationPermissionSafely() {
+  if ('Notification' in window && typeof Notification !== 'undefined') {
+    if (Notification.permission === 'default') {
+      try {
+        const permission = await Notification.requestPermission();
+        console.log("Notification permission state:", permission);
+      } catch (err) {
+        console.warn("Could not request notification permission:", err);
+      }
+    }
+  }
+}
+
+// Helpers for LocalStorage and Future Workouts
+function getFutureWorkouts() {
+  if (!currentUser) return [];
+  const key = `aura-future-workouts_${currentUser.uid}`;
+  try {
+    const data = SafeStorage.getItem(key);
+    return data ? JSON.parse(data) : [];
+  } catch (e) {
+    console.error("Error reading future workouts", e);
+    return [];
+  }
+}
+
+function saveFutureWorkouts(workouts) {
+  if (!currentUser) return;
+  const key = `aura-future-workouts_${currentUser.uid}`;
+  try {
+    SafeStorage.setItem(key, JSON.stringify(workouts));
+  } catch (e) {
+    console.error("Error saving future workouts", e);
+  }
+}
+
+// Start background checker for future workouts reminder
+function startFutureWorkoutReminderChecker() {
+  console.log("Starting high-precision periodic background checker for scheduled workouts...");
+  setInterval(() => {
+    if (!currentUser) return;
+    const futureWorkouts = getFutureWorkouts();
+    let updated = false;
+
+    futureWorkouts.forEach(workout => {
+      if (workout.reminderSent) return;
+
+      const targetDateTimeStr = `${workout.date}T${workout.time}:00`;
+      const targetTimeMs = new Date(targetDateTimeStr).getTime();
+      if (isNaN(targetTimeMs)) return;
+
+      const thresholdTimeMs = targetTimeMs - (workout.reminderMinutes * 60 * 1000);
+      const nowMs = Date.now();
+
+      if (nowMs >= thresholdTimeMs && nowMs < targetTimeMs + 60 * 60 * 1000) {
+        workout.reminderSent = true;
+        updated = true;
+
+        const displayLoc = workout.location === 'gym' ? 'חדר כושר' : (workout.location === 'park' ? 'פארק' : workout.location);
+        const title = `תזכורת לאימון: אימון ${displayLoc} מתוזמן לשעה ${workout.time}! 🏋️‍♂️`;
+        const body = "אימון עתידי בפתח! 🏋️‍♂️";
+
+        triggerLocalNotification(title, body, true);
+        console.log(`Notification sent for future workout ${workout.id}`);
+      } else if (nowMs >= targetTimeMs + 60 * 60 * 1000) {
+        // Mark as sent if it's already in the past by 1 hour, to avoid sending alerts next time we load
+        workout.reminderSent = true;
+        updated = true;
+      }
+    });
+
+    if (updated) {
+      saveFutureWorkouts(futureWorkouts);
+      if (activeSubTab === 'calendar') {
+        renderCalendarView();
+      }
+    }
+  }, 15000); // Checks every 15 seconds
+}
+
 function renderCalendarView() {
   const container = document.getElementById('calendar-days-grid');
   const monthLabel = document.getElementById('calendar-month-label');
@@ -3825,6 +4083,23 @@ function renderCalendarView() {
     }
   });
 
+  const futureWorkouts = getFutureWorkouts();
+  const futureWorkoutsByDay = {};
+
+  futureWorkouts.forEach(w => {
+    const parts = w.date.split('-');
+    if (parts.length === 3) {
+      const wYear = parseInt(parts[0], 10);
+      const wMonth = parseInt(parts[1], 10) - 1; // 0-indexed
+      const wDay = parseInt(parts[2], 10);
+
+      if (wYear === year && wMonth === month) {
+        if (!futureWorkoutsByDay[wDay]) futureWorkoutsByDay[wDay] = [];
+        futureWorkoutsByDay[wDay].push(w);
+      }
+    }
+  });
+
   for (let i = 0; i < firstDayIndex; i++) {
     const empty = document.createElement('div');
     empty.className = 'calendar-day-empty';
@@ -3841,36 +4116,82 @@ function renderCalendarView() {
       dayCell.classList.add('today');
     }
 
-    const sessions = workoutsByDay[day];
-    if (sessions && sessions.length > 0) {
+    const sessions = workoutsByDay[day] || [];
+    const futures = futureWorkoutsByDay[day] || [];
+
+    if (sessions.length > 0) {
       dayCell.classList.add('has-workout');
 
       const dot = document.createElement('span');
       dot.className = 'calendar-workout-dot';
       dayCell.appendChild(dot);
+    }
 
+    if (futures.length > 0) {
+      dayCell.classList.add('has-future-workout');
+
+      const fDot = document.createElement('span');
+      fDot.className = 'future-workout-dot-indicator';
+      dayCell.appendChild(fDot);
+    }
+
+    if (sessions.length > 0 || futures.length > 0) {
       dayCell.addEventListener('click', (e) => {
         e.stopPropagation();
         
-        let detailsHtml = sessions.map(w => {
-          const duration = w.duration ? Math.round(w.duration / 60) : 0;
-          return `
-            <div style="padding: 10px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; margin-bottom: 8px; direction: rtl; text-align: right;">
-              <div style="display: flex; justify-content: space-between; font-weight: 700; color: #fff;">
-                <span>${w.locationEmoji || '🏋️'} ${w.locationName || 'אימון'}</span>
-                <span style="font-size: 0.8rem; color: var(--text-muted);">${duration} דק׳</span>
+        let detailsHtml = '';
+
+        if (sessions.length > 0) {
+          sessions.sort((a, b) => new Date(a.date) - new Date(b.date));
+          detailsHtml += `<h5 style="color: #fca5a5; text-align: right; margin: 4px 0 8px 0; font-size: 0.9rem; font-weight: 700;">אימוני עבר:</h5>`;
+          detailsHtml += sessions.map(w => {
+            const duration = w.duration ? Math.round(w.duration / 60) : 0;
+            const wDate = new Date(w.date);
+            const timeStr = wDate.toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' });
+            return `
+              <div style="padding: 10px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; margin-bottom: 8px; direction: rtl; text-align: right;">
+                <div style="display: flex; justify-content: space-between; font-weight: 700; color: #fff;">
+                  <span>${w.locationEmoji || '🏋️'} ${w.locationName || 'אימון'}</span>
+                  <span style="font-size: 0.8rem; color: var(--text-muted);">${timeStr} • ${duration} דק׳</span>
+                </div>
+                <button onclick="openEditModal(${w.id}); this.closest('.custom-calendar-alert-overlay').remove();" class="btn btn-secondary" style="width: 100%; margin-top: 8px; padding: 6px !important; font-size: 0.75rem !important;">🛠️ ערוך אימון</button>
               </div>
-              <button onclick="openEditModal(${w.id})" class="btn btn-secondary" style="width: 100%; margin-top: 8px; padding: 6px !important; font-size: 0.75rem !important;">🛠️ ערוך אימון</button>
-            </div>
-          `;
-        }).join('');
+            `;
+          }).join('');
+        }
+
+        if (futures.length > 0) {
+          futures.sort((a, b) => a.time.localeCompare(b.time));
+          detailsHtml += `<h5 style="color: #fdba74; text-align: right; margin: 12px 0 8px 0; font-size: 0.9rem; font-weight: 700;">אימונים עתידיים מתוכננים:</h5>`;
+          detailsHtml += futures.map(f => {
+            const displayLoc = f.location === 'gym' ? 'חדר כושר 🏋️‍♂️' : (f.location === 'park' ? 'פארק 🌳' : f.location);
+            return `
+              <div class="future-workout-card">
+                <div class="future-header">
+                  <span>📅 אימון עתידי</span>
+                  <span class="future-badge">${f.time}</span>
+                </div>
+                <div style="color: #e2e8f0; font-size: 0.85rem; margin-top: 4px;">
+                  מיקום: <strong>${displayLoc}</strong>
+                </div>
+                <div style="color: var(--text-muted); font-size: 0.78rem; margin-top: 2px;">
+                  תזכורת: ${f.reminderMinutes === 0 ? 'בדיוק בזמן' : (f.reminderMinutes === 60 ? 'שעה לפני' : (f.reminderMinutes === 180 ? '3 שעות לפני' : f.reminderMinutes + ' דקות לפני'))}
+                </div>
+                <button class="btn btn-secondary cancel-future-btn" data-id="${f.id}" style="width: 100%; margin-top: 8px; padding: 6px !important; font-size: 0.75rem !important; background: rgba(220,38,38,0.1) !important; border-color: rgba(220,38,38,0.2) !important; color: #fca5a5 !important;">❌ ביטול אימון</button>
+              </div>
+            `;
+          }).join('');
+        }
 
         const summaryAlert = document.createElement('div');
+        summaryAlert.className = 'custom-calendar-alert-overlay';
         summaryAlert.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 1600;';
         summaryAlert.innerHTML = `
           <div class="workout-modal-card glass-modal-card" style="max-width: 320px; width: 90%; border-radius: 20px; padding: 1.2rem; text-align: center; border: 1px solid rgba(255,255,255,0.08);">
             <h4 style="margin: 0 0 12px 0; font-size: 1.1rem; color: #fff; direction: rtl;">אימונים ב-${day}/${month + 1}/${year}</h4>
-            ${detailsHtml}
+            <div style="max-height: 280px; overflow-y: auto; padding-right: 4px;">
+              ${detailsHtml}
+            </div>
             <button class="btn btn-primary close-calendar-alert" style="width: 100%; padding: 10px; margin-top: 10px; border-radius: 10px;">סגור</button>
           </div>
         `;
@@ -3879,12 +4200,26 @@ function renderCalendarView() {
           summaryAlert.remove();
         });
 
+        // Cancel button action
+        summaryAlert.querySelectorAll('.cancel-future-btn').forEach(btn => {
+          btn.addEventListener('click', (ev) => {
+            ev.stopPropagation();
+            const fId = btn.dataset.id;
+            let currentFutures = getFutureWorkouts();
+            currentFutures = currentFutures.filter(x => x.id !== fId);
+            saveFutureWorkouts(currentFutures);
+            summaryAlert.remove();
+            renderCalendarView();
+          });
+        });
+
         document.body.appendChild(summaryAlert);
       });
     }
     container.appendChild(dayCell);
   }
 }
+
 
 // F. Annual Github-style Heatmap renderer
 function renderHeatmapView() {
@@ -4132,6 +4467,871 @@ function renderAccordionHistoryView() {
 
 // Hook Analytics Initialization on Window Load and PWA startup
 onDOMReady(initAnalyticsTab);
+
+// ==========================================================================
+// DYNAMIC SUB-NAVIGATION BAR & TAB 1 WORKOUTS LOG IMPLEMENTATION
+// ==========================================================================
+let activeSubTab = 'workouts';
+let filterSortSelection = 'date-desc';
+
+// Bind click listeners for sub-tabs in metrics-sub-nav & Back Button
+onDOMReady(() => {
+  const subTabs = document.querySelectorAll('#metrics-sub-nav .nav-tab[data-sub-tab]');
+  const subPanes = document.querySelectorAll('#tab-analytics .sub-tab-pane');
+  const subNav = document.getElementById('metrics-sub-nav');
+  const mainNav = document.querySelector('.ios-bottom-nav');
+  const subNavBackBtn = document.getElementById('sub-nav-back-btn');
+
+  // Sub-tabs switching
+  subTabs.forEach(tab => {
+    tab.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const targetSubTab = tab.dataset.subTab;
+      if (!targetSubTab) return;
+
+      activeSubTab = targetSubTab;
+
+      // Update active class on sub-nav tab buttons
+      subTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+
+      // Update active class on sub-tab panes
+      subPanes.forEach(pane => {
+        pane.classList.remove('active');
+        pane.style.display = 'none';
+        if (pane.id === `sub-tab-${targetSubTab}`) {
+          pane.style.display = 'flex';
+          setTimeout(() => {
+            pane.classList.add('active');
+          }, 10);
+        }
+      });
+
+      console.log(`Switched to sub-tab: ${targetSubTab}`);
+      renderAnalytics();
+    });
+  });
+
+  // Back button restores main bottom nav
+  if (subNavBackBtn) {
+    subNavBackBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (subNav) subNav.classList.add('nav-hidden');
+      if (mainNav) mainNav.classList.remove('nav-hidden');
+
+      // Switch active tab in main-nav back to lastActiveMainTab
+      const prevTabBtn = document.querySelector(`.ios-bottom-nav .nav-tab[data-tab="${lastActiveMainTab}"]`);
+      if (prevTabBtn) {
+        prevTabBtn.click();
+      }
+    });
+  }
+
+  // Hook sort selection change listener
+  const sortSelect = document.getElementById('filter-sort-select');
+  if (sortSelect) {
+    sortSelect.addEventListener('change', () => {
+      filterSortSelection = sortSelect.value;
+      renderWorkoutsLog();
+    });
+  }
+
+  // Start high-precision background timer for future workouts
+  startFutureWorkoutReminderChecker();
+
+  // Initialize premium AURA AI Coach card interactions and micro-animations
+  initAICoach();
+});
+
+// AI Coach interactive click handlers and digital ripple effects
+function initAICoach() {
+  const card = document.querySelector('#sub-tab-ai .aura-ai-card');
+  if (!card) return;
+
+  card.addEventListener('click', (e) => {
+    e.preventDefault();
+
+    // Create dynamic digital ripple element
+    const ripple = document.createElement('span');
+    ripple.className = 'ai-ripple';
+
+    const rect = card.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    ripple.style.left = `${x}px`;
+    ripple.style.top = `${y}px`;
+
+    card.appendChild(ripple);
+
+    // Subtle vibration for tactile feel (if supported)
+    if (navigator.vibrate) {
+      navigator.vibrate(15);
+    }
+
+    // Show dynamic toast
+    showAuraToast("המאמן האישי שלך בהכנה... 🤖🔥");
+
+    // Remove ripple node after animation finishes
+    setTimeout(() => {
+      ripple.remove();
+    }, 800);
+  });
+}
+
+// Reusable elegant glassmorphic status toast notifications
+function showAuraToast(message) {
+  const existing = document.getElementById('aura-premium-toast');
+  if (existing) existing.remove();
+
+  const toast = document.createElement('div');
+  toast.id = 'aura-premium-toast';
+  toast.style.cssText = `
+    position: fixed;
+    bottom: calc(90px + env(safe-area-inset-bottom));
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: rgba(15, 15, 20, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(220, 38, 38, 0.4);
+    box-shadow: 0 10px 30px rgba(220, 38, 38, 0.15), 0 0 15px rgba(220, 38, 38, 0.25);
+    padding: 14px 24px;
+    border-radius: 16px;
+    color: #ffffff;
+    font-size: 0.95rem;
+    font-weight: 700;
+    z-index: 99999;
+    pointer-events: none;
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    direction: rtl;
+    text-align: center;
+    white-space: nowrap;
+    font-family: var(--font-sans);
+  `;
+  toast.innerHTML = `<span>🤖🔥</span> ${message}`;
+  document.body.appendChild(toast);
+
+  // Force a reflow
+  toast.offsetHeight;
+
+  // Fade and slide in
+  toast.style.opacity = '1';
+  toast.style.transform = 'translateX(-50%) translateY(0)';
+
+  // Remove toast
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(-50%) translateY(-20px)';
+    setTimeout(() => {
+      toast.remove();
+    }, 400);
+  }, 2500);
+}
+
+// Tab 1: Chronological Workouts Log Renderer
+function renderWorkoutsLog() {
+  const container = document.getElementById('workouts-log-container');
+  if (!container) return;
+
+  container.innerHTML = '';
+
+  // 1. Get filtered history using existing getFilteredHistory() function
+  let filtered = getFilteredHistory();
+
+  // 2. Compute PRs dynamically for the PRs sorting or display badge
+  const maxWeights = {};
+  workoutHistory.forEach(w => {
+    if (!w.exercises) return;
+    w.exercises.forEach(ex => {
+      if (!ex.sets) return;
+      ex.sets.forEach(s => {
+        if (s.completed) {
+          const weight = parseFloat(s.weight) || 0;
+          if (!maxWeights[ex.name] || weight > maxWeights[ex.name]) {
+            maxWeights[ex.name] = weight;
+          }
+        }
+      });
+    });
+  });
+
+  // Compute stats for sorting & badges
+  const workoutMetrics = filtered.map(w => {
+    let totalVolume = 0;
+    let totalSets = 0;
+    let prCount = 0;
+
+    if (w.exercises) {
+      w.exercises.forEach(ex => {
+        const maxW = maxWeights[ex.name] || 0;
+        let exerciseHasPR = false;
+
+        ex.sets.forEach(s => {
+          if (s.completed) {
+            totalSets++;
+            const wVal = parseFloat(s.weight) || 0;
+            totalVolume += wVal * (parseInt(s.reps, 10) || 0);
+
+            if (maxW > 0 && wVal === maxW) {
+              exerciseHasPR = true;
+            }
+          }
+        });
+        if (exerciseHasPR) prCount++;
+      });
+    }
+
+    return {
+      workout: w,
+      totalVolume,
+      totalSets,
+      prCount
+    };
+  });
+
+  // 3. Apply custom sort selection
+  if (filterSortSelection === 'volume-desc') {
+    workoutMetrics.sort((a, b) => {
+      if (b.totalVolume !== a.totalVolume) {
+        return b.totalVolume - a.totalVolume;
+      }
+      return b.workout.date - a.workout.date;
+    });
+  } else if (filterSortSelection === 'prs-first') {
+    workoutMetrics.sort((a, b) => {
+      if (b.prCount !== a.prCount) {
+        return b.prCount - a.prCount;
+      }
+      return b.workout.date - a.workout.date;
+    });
+  } else {
+    // Default chronological (date-desc)
+    workoutMetrics.sort((a, b) => b.workout.date - a.workout.date);
+  }
+
+  if (workoutMetrics.length === 0) {
+    container.innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: 30px; font-size: 0.95rem; direction: rtl;">לא נמצאו אימונים התואמים את סינוני החיפוש.</div>';
+    return;
+  }
+
+  // 4. Render workout cards
+  workoutMetrics.forEach(item => {
+    const w = item.workout;
+    const duration = w.duration ? Math.round(w.duration / 60) : 0;
+    const dateObj = new Date(w.date);
+    const dateStr = dateObj.toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric', year: 'numeric' });
+
+    const card = document.createElement('div');
+    card.className = 'workout-log-card';
+
+    const prBadgeHtml = item.prCount > 0 ? `<span class="workout-log-pr-badge">🏆 שיא אישי x${item.prCount}</span>` : '';
+    const dispName = w.locationName || (w.location === 'gym' ? 'חדר כושר' : 'פארק');
+    const dispEmoji = w.locationEmoji || (w.location === 'gym' ? '🏋️‍♂️' : '🌳');
+
+    card.innerHTML = `
+      <div class="workout-log-header">
+        <div class="workout-log-location">
+          <span class="workout-log-emoji">${dispEmoji}</span>
+          <div>
+            <h4 class="workout-log-name">${dispName}</h4>
+            <span class="workout-log-date">${dateStr} • ${duration} דק׳</span>
+          </div>
+        </div>
+        <div class="workout-log-stats">
+          <span class="workout-log-volume">${item.totalVolume.toLocaleString()} ק״ג</span>
+          ${prBadgeHtml}
+        </div>
+      </div>
+      <div class="workout-log-exercises">
+        ${w.exercises.map(ex => {
+          const exSetsText = ex.sets.map(s => `${s.weight}ק״ג×${s.reps}`).join(', ');
+          return `
+            <div class="workout-log-exercise-item">
+              <span class="workout-log-exercise-name">• ${ex.name}</span>
+              <span class="workout-log-exercise-sets">[${exSetsText}]</span>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+
+    // Connect click listener to openEditModal
+    card.addEventListener('click', () => {
+      openEditModal(w.id);
+    });
+
+    container.appendChild(card);
+  });
+}
+
+
+// ==========================================================================
+// TAB 3: EXERCISES MANAGER & DETAILED INSPECTOR PROGRESSION DASHBOARD
+// ==========================================================================
+
+let activeChartTypeTab3 = '1rm';
+let currentInspectorExercise = null;
+
+// Category colors helper mapping (for consistent badges in Tab 3)
+const categoryColorsTab3 = {
+  'חזה':      { bg: 'rgba(239,68,68,0.15)',   color: '#f87171' },
+  'גב':       { bg: 'rgba(59,130,246,0.15)',  color: '#60a5fa' },
+  'כתפיים':    { bg: 'rgba(168,85,247,0.15)',  color: '#c084fc' },
+  'רגליים':    { bg: 'rgba(34,197,94,0.15)',   color: '#4ade80' },
+  'ידיים':    { bg: 'rgba(251,146,60,0.15)',  color: '#fb923c' },
+  'בטן':      { bg: 'rgba(234,179,8,0.15)',   color: '#facc15' },
+  'אירובי':    { bg: 'rgba(20,184,166,0.15)',  color: '#2dd4bf' },
+  'ליבה':      { bg: 'rgba(100,116,139,0.15)', color: '#94a3b8' },
+  'מתח':      { bg: 'rgba(100,116,139,0.15)', color: '#94a3b8' },
+  'דחיפה':    { bg: 'rgba(239,68,68,0.15)',   color: '#f87171' },
+  'ליבה ואירובי': { bg: 'rgba(20,184,166,0.15)', color: '#2dd4bf' },
+  'מותאם אישית': { bg: 'rgba(56,189,248,0.15)',  color: '#38bdf8' }
+};
+
+// Compute completed stats for a specific exercise in workout history
+function getExerciseStats(exerciseName) {
+  let timesPerformed = 0;
+  let totalSets = 0;
+  let maxWeight = 0;
+  let max1RM = 0;
+  let peakVolume = 0;
+
+  workoutHistory.forEach(w => {
+    if (!w.exercises) return;
+    const ex = w.exercises.find(e => e.name === exerciseName);
+    if (ex && ex.sets) {
+      const completedSets = ex.sets.filter(s => s.completed);
+      if (completedSets.length > 0) {
+        timesPerformed++;
+        totalSets += completedSets.length;
+        
+        let sessionVolume = 0;
+        completedSets.forEach(s => {
+          const wVal = parseFloat(s.weight) || 0;
+          const rVal = parseInt(s.reps, 10) || 0;
+
+          if (wVal > maxWeight) maxWeight = wVal;
+          const oneRM = rVal === 1 ? wVal : wVal * (1 + rVal / 30);
+          if (oneRM > max1RM) max1RM = oneRM;
+          sessionVolume += (wVal * rVal);
+        });
+
+        if (sessionVolume > peakVolume) peakVolume = sessionVolume;
+      }
+    }
+  });
+
+  return { timesPerformed, totalSets, maxWeight, max1RM, peakVolume };
+}
+
+// Render dynamic Exercises Grid in Tab 3 (Exercises Manager)
+function renderExercisesManager() {
+  const gridContainer = document.getElementById('exercises-list-grid-tab3');
+  if (!gridContainer) return;
+  gridContainer.innerHTML = '';
+
+  const searchInput = document.getElementById('exercises-search-input-tab3');
+  const muscleFilter = document.getElementById('exercises-muscle-filter-tab3');
+  const typeFilter = document.getElementById('exercises-type-filter-tab3');
+
+  const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
+  const selectedMuscle = muscleFilter ? muscleFilter.value : 'all';
+  const selectedType = typeFilter ? typeFilter.value : 'all';
+
+  let allExs = getAllExercises();
+
+  // Advanced Filters: Search + Muscle Group + Type
+  if (query) {
+    allExs = allExs.filter(ex => ex.name.toLowerCase().includes(query));
+  }
+  if (selectedMuscle !== 'all') {
+    allExs = allExs.filter(ex => ex.category === selectedMuscle);
+  }
+  if (selectedType !== 'all') {
+    const standardNames = new Set([...GYM_EXERCISES, ...PARK_EXERCISES].map(e => e.name.trim().toLowerCase()));
+    if (selectedType === 'standard') {
+      allExs = allExs.filter(ex => standardNames.has(ex.name.trim().toLowerCase()));
+    } else if (selectedType === 'custom') {
+      allExs = allExs.filter(ex => !standardNames.has(ex.name.trim().toLowerCase()));
+    }
+  }  if (allExs.length === 0) {
+    gridContainer.innerHTML = '<div style="color: var(--text-muted); font-size: 0.9rem; text-align: center; padding: 20px; direction: rtl;">אין תרגילים העונים על סינון זה</div>';
+    return;
+  }
+
+  allExs.forEach(ex => {
+    const stats = getExerciseStats(ex.name);
+    
+    const card = document.createElement('div');
+    card.className = 'exercise-manage-card-tab3';
+    
+    const catStyle = categoryColorsTab3[ex.category] || { bg: 'rgba(255,255,255,0.06)', color: 'var(--text-muted)' };
+    const emojiStr = ex.emoji ? `<span class="ex-card-emoji-tab3">${ex.emoji}</span>` : '💪';
+    
+    card.innerHTML = `
+      <div class="ex-card-info-tab3" style="text-align: right; direction: rtl;">
+        <div class="ex-card-title-row">
+          ${emojiStr}
+          <span class="ex-card-name-tab3">${ex.name}</span>
+        </div>
+        <div class="ex-card-stats-tab3" style="margin-top: 4px;">
+          בוצע ${stats.timesPerformed} פעמים • ${stats.totalSets} סטים
+        </div>
+      </div>
+      <div>
+        <span class="ex-card-badge-tab3" style="background: ${catStyle.bg}; color: ${catStyle.color};">${ex.category || 'אחר'}</span>
+      </div>
+    `;
+
+    // Click card opens Inspector modal
+    card.addEventListener('click', () => {
+      openExerciseInspector(ex.name);
+    });
+
+    gridContainer.appendChild(card);
+  });
+}
+
+// Open exercise progression detailed panel (Inspector)
+function openExerciseInspector(exerciseName) {
+  currentInspectorExercise = exerciseName;
+  
+  const allExs = getAllExercises();
+  const exDetails = allExs.find(ex => ex.name === exerciseName) || { name: exerciseName, category: 'אחר', emoji: '💪' };
+
+  const nameEl = document.getElementById('inspector-exercise-name');
+  const catBadge = document.getElementById('inspector-exercise-category');
+  
+  if (nameEl) {
+    nameEl.textContent = (exDetails.emoji ? `${exDetails.emoji} ` : '') + exDetails.name;
+  }
+  
+  if (catBadge) {
+    catBadge.textContent = exDetails.category || 'אחר';
+    const catStyle = categoryColorsTab3[exDetails.category] || { bg: 'rgba(255,255,255,0.06)', color: 'var(--text-muted)' };
+    catBadge.style.cssText = `background: ${catStyle.bg}; color: ${catStyle.color}; margin-top: 4px; display: inline-block;`;
+  }
+
+  // Populate Statistics
+  const stats = getExerciseStats(exerciseName);
+  
+  const prVal = document.getElementById('inspector-pr-val');
+  const rmVal = document.getElementById('inspector-1rm-val');
+  const volVal = document.getElementById('inspector-vol-val');
+  const performedVal = document.getElementById('inspector-performed-val');
+
+  if (prVal) prVal.textContent = stats.maxWeight > 0 ? `${stats.maxWeight} ק״ג` : '--';
+  if (rmVal) rmVal.textContent = stats.max1RM > 0 ? `${Math.round(stats.max1RM)} ק״ג` : '--';
+  if (volVal) volVal.textContent = stats.peakVolume > 0 ? `${stats.peakVolume} ק״ג` : '--';
+  if (performedVal) performedVal.textContent = `${stats.timesPerformed} פעמים • ${stats.totalSets} סטים`;
+
+  // Compute Broken PRs Timeline
+  const timelineContainer = document.getElementById('pr-history-timeline-tab3');
+  if (timelineContainer) {
+    timelineContainer.innerHTML = '';
+    
+    const chronological = [...workoutHistory]
+      .filter(w => w.date)
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
+    let runningMaxWeight = 0;
+    const brokenPRs = [];
+
+    chronological.forEach(w => {
+      if (!w.exercises) return;
+      const ex = w.exercises.find(e => e.name === exerciseName);
+      if (ex && ex.sets) {
+        const completedSets = ex.sets.filter(s => s.completed);
+        if (completedSets.length > 0) {
+          const sessionMaxWeight = Math.max(...completedSets.map(s => parseFloat(s.weight) || 0));
+          if (sessionMaxWeight > runningMaxWeight) {
+            runningMaxWeight = sessionMaxWeight;
+            brokenPRs.push({
+              date: new Date(w.date),
+              weight: sessionMaxWeight
+            });
+          }
+        }
+      }
+    });
+
+    if (brokenPRs.length === 0) {
+      timelineContainer.innerHTML = '<div style="color: var(--text-muted); font-size: 0.82rem; text-align: center; padding: 10px;">לא נרשמו שיאים אישיים עדיין</div>';
+    } else {
+      [...brokenPRs].reverse().forEach(pr => {
+        const item = document.createElement('div');
+        item.className = 'pr-timeline-item';
+        const dateStr = pr.date.toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric', year: '2-digit' });
+        item.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="pr-timeline-badge">PR שבור!</span>
+            <span class="pr-timeline-val">${pr.weight} ק״ג</span>
+          </div>
+          <span class="pr-timeline-date">${dateStr}</span>
+        `;
+        timelineContainer.appendChild(item);
+      });
+    }
+  }
+
+  // Reset to 1RM Tab and draw
+  activeChartTypeTab3 = '1rm';
+  const tabs = document.querySelectorAll('[data-chart-tab3]');
+  tabs.forEach(t => {
+    t.classList.remove('active');
+    if (t.dataset.chartTab3 === '1rm') t.classList.add('active');
+  });
+
+  renderExerciseInspectorChart();
+
+  // Open Modal
+  const modal = document.getElementById('exercise-inspector-modal');
+  if (modal) modal.classList.remove('hide');
+}
+
+// Render Inspector Bezier SVG Curve Line Chart
+function renderExerciseInspectorChart() {
+  const exerciseName = currentInspectorExercise;
+  if (!exerciseName) return;
+
+  const chartSvg = document.getElementById('bezier-chart-svg-tab3');
+  const noDataEl = document.getElementById('chart-no-data-tab3');
+  if (!chartSvg) return;
+
+  const exerciseSessions = [];
+  const chronological = [...workoutHistory]
+    .filter(w => w.date)
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  chronological.forEach(w => {
+    if (!w.exercises) return;
+    const ex = w.exercises.find(e => e.name === exerciseName);
+    if (ex && ex.sets && ex.sets.some(s => s.completed)) {
+      exerciseSessions.push({
+        date: new Date(w.date),
+        sets: ex.sets.filter(s => s.completed)
+      });
+    }
+  });
+
+  if (exerciseSessions.length === 0) {
+    if (noDataEl) noDataEl.style.display = 'flex';
+    
+    const areaPath = document.getElementById('chart-area-path-tab3');
+    const linePath = document.getElementById('chart-line-path-tab3');
+    const pointsGroup = document.getElementById('chart-points-group-tab3');
+    const gridlines = document.getElementById('chart-gridlines-tab3');
+    if (areaPath) areaPath.setAttribute('d', '');
+    if (linePath) linePath.setAttribute('d', '');
+    if (pointsGroup) pointsGroup.innerHTML = '';
+    if (gridlines) gridlines.innerHTML = '';
+    return;
+  }
+
+  if (noDataEl) noDataEl.style.display = 'none';
+
+  const points = [];
+  exerciseSessions.forEach(session => {
+    let sessionMaxWeight = 0;
+    let sessionMax1RM = 0;
+    let sessionVolume = 0;
+
+    session.sets.forEach(s => {
+      const w = parseFloat(s.weight) || 0;
+      const r = parseInt(s.reps, 10) || 0;
+
+      if (w > sessionMaxWeight) sessionMaxWeight = w;
+      const oneRM = r === 1 ? w : w * (1 + r / 30);
+      if (oneRM > sessionMax1RM) sessionMax1RM = oneRM;
+      sessionVolume += (w * r);
+    });
+
+    let yValue = 0;
+    if (activeChartTypeTab3 === '1rm') {
+      yValue = sessionMax1RM;
+    } else if (activeChartTypeTab3 === 'weight') {
+      yValue = sessionMaxWeight;
+    } else {
+      yValue = sessionVolume;
+    }
+
+    points.push({
+      date: session.date,
+      value: yValue
+    });
+  });
+
+  const width = chartSvg.clientWidth || 320;
+  const height = chartSvg.clientHeight || 180;
+
+  const paddingX = 35;
+  const paddingY = 25;
+
+  const values = points.map(p => p.value);
+  const minVal = Math.min(...values) * 0.9;
+  const maxVal = Math.max(...values) * 1.1 || 100;
+  const valRange = (maxVal - minVal) || 1;
+
+  const svgCoords = points.map((p, idx) => {
+    const x = points.length > 1 
+      ? paddingX + (idx / (points.length - 1)) * (width - 2 * paddingX)
+      : width / 2;
+    const y = height - paddingY - ((p.value - minVal) / valRange) * (height - 2 * paddingY);
+    return { x, y, val: p.value, date: p.date };
+  });
+
+  let dLine = '';
+  let dArea = '';
+
+  if (svgCoords.length === 1) {
+    const c = svgCoords[0];
+    dLine = `M ${c.x - 15} ${c.y} L ${c.x + 15} ${c.y}`;
+    dArea = `M ${c.x - 15} ${c.y} L ${c.x + 15} ${c.y} L ${c.x + 15} ${height} L ${c.x - 15} ${height} Z`;
+  } else {
+    dLine = `M ${svgCoords[0].x} ${svgCoords[0].y}`;
+    for (let i = 0; i < svgCoords.length - 1; i++) {
+      const curr = svgCoords[i];
+      const next = svgCoords[i + 1];
+      const cpX1 = curr.x + (next.x - curr.x) / 3;
+      const cpY1 = curr.y;
+      const cpX2 = curr.x + 2 * (next.x - curr.x) / 3;
+      const cpY2 = next.y;
+      dLine += ` C ${cpX1} ${cpY1}, ${cpX2} ${cpY2}, ${next.x} ${next.y}`;
+    }
+    dArea = dLine + ` L ${svgCoords[svgCoords.length - 1].x} ${height} L ${svgCoords[0].x} ${height} Z`;
+  }
+
+  const areaPath = document.getElementById('chart-area-path-tab3');
+  const linePath = document.getElementById('chart-line-path-tab3');
+  const pointsGroup = document.getElementById('chart-points-group-tab3');
+  const gridlines = document.getElementById('chart-gridlines-tab3');
+
+  if (areaPath) areaPath.setAttribute('d', dArea);
+  if (linePath) {
+    linePath.setAttribute('d', dLine);
+    linePath.style.stroke = 'var(--electric-blue-light)';
+    linePath.style.strokeWidth = '3.5';
+    linePath.style.fill = 'none';
+  }
+
+  if (gridlines) {
+    gridlines.innerHTML = '';
+    for (let i = 0; i < 3; i++) {
+      const y = paddingY + (i / 2) * (height - 2 * paddingY);
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', '0');
+      line.setAttribute('y1', y);
+      line.setAttribute('x2', width);
+      line.setAttribute('y2', y);
+      line.setAttribute('stroke', 'rgba(255, 255, 255, 0.05)');
+      line.setAttribute('stroke-dasharray', '4, 4');
+      gridlines.appendChild(line);
+    }
+  }
+
+  if (pointsGroup) {
+    pointsGroup.innerHTML = '';
+    svgCoords.forEach(c => {
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('cx', c.x);
+      circle.setAttribute('cy', c.y);
+      circle.setAttribute('r', '5');
+      circle.setAttribute('class', 'bezier-chart-point-tab3');
+
+      circle.addEventListener('mouseover', () => {
+        circle.setAttribute('r', '7');
+        const dateStr = c.date.toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric' });
+        circle.title = `${dateStr}: ${Math.round(c.val)} ק״ג`;
+      });
+      circle.addEventListener('mouseout', () => {
+        circle.setAttribute('r', '5');
+      });
+      pointsGroup.appendChild(circle);
+    });
+  }
+}
+
+// Delete global exercise completely from single source of truth (aura-all-exercises)
+function deleteGlobalExercise(exerciseName) {
+  if (!confirm(`האם אתה בטוח שברצונך למחוק את "${exerciseName}" לצמיתות?\nפעולה זו תסיר את התרגיל מרשימות הבחירה בעתיד, אך תשמור אותו בהיסטוריית האימונים הישנים שלך כדי לשמור על הסטטיסטיקות.`)) {
+    return;
+  }
+
+  let allExs = getAllExercises();
+  allExs = allExs.filter(ex => ex.name.trim().toLowerCase() !== exerciseName.trim().toLowerCase());
+  saveAllExercises(allExs);
+
+  // Close inspector modal
+  const modal = document.getElementById('exercise-inspector-modal');
+  if (modal) modal.classList.add('hide');
+
+  // Re-render views
+  renderExercisesManager();
+  if (typeof renderExercisePickerList === 'function') renderExercisePickerList();
+  
+  alert(`התרגיל "${exerciseName}" נמחק לנצח! 🗑️`);
+}
+
+// Add new global exercise completely to single source of truth
+function addGlobalExercise() {
+  const nameInput = document.getElementById('new-global-exercise-name');
+  const muscleSelect = document.getElementById('new-global-exercise-muscle');
+  const emojiInput = document.getElementById('new-global-exercise-emoji');
+
+  if (!nameInput || !nameInput.value.trim()) {
+    alert('אנא הזן שם לתרגיל החדש.');
+    if (nameInput) nameInput.focus();
+    return;
+  }
+
+  const name = nameInput.value.trim();
+  const category = muscleSelect ? muscleSelect.value : 'אחר';
+  const emoji = emojiInput ? emojiInput.value.trim() : '';
+
+  let allExs = getAllExercises();
+
+  // Validate Duplicate
+  if (allExs.some(ex => ex.name.trim().toLowerCase() === name.toLowerCase())) {
+    alert('תרגיל בשם זה כבר קיים במערכת!');
+    return;
+  }
+
+  const newEx = {
+    name,
+    category,
+    emoji: emoji || '💪'
+  };
+
+  allExs.push(newEx);
+  saveAllExercises(allExs);
+
+  // Clear inputs
+  nameInput.value = '';
+  if (emojiInput) emojiInput.value = '';
+
+  // Close modal
+  const modal = document.getElementById('add-global-exercise-modal');
+  if (modal) modal.classList.add('hide');
+
+  // Re-render views
+  renderExercisesManager();
+  if (typeof renderExercisePickerList === 'function') renderExercisePickerList();
+
+  alert(`התרגיל "${name}" נוסף לנצח בהצלחה! ✨`);
+}
+
+// Register all Tab 3 (Exercises Manager) DOM interactive events
+onDOMReady(() => {
+  // Opening the Add Global Exercise Modal
+  const addBtn = document.getElementById('add-new-global-exercise-btn');
+  const addModal = document.getElementById('add-global-exercise-modal');
+  const closeAddModalBtn = document.getElementById('close-add-global-exercise-modal-btn');
+  
+  if (addBtn && addModal) {
+    addBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      addModal.classList.remove('hide');
+    });
+  }
+
+  if (closeAddModalBtn && addModal) {
+    closeAddModalBtn.addEventListener('click', () => {
+      addModal.classList.add('hide');
+    });
+    
+    // Close modal on background click
+    addModal.addEventListener('click', (e) => {
+      if (e.target === addModal) {
+        addModal.classList.add('hide');
+      }
+    });
+  }
+
+  // Save new exercise
+  const saveBtn = document.getElementById('save-new-global-exercise-btn');
+  if (saveBtn) {
+    saveBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      addGlobalExercise();
+    });
+  }
+
+  // Close Detailed Exercise Inspector Overlay
+  const closeInspectorBtn = document.getElementById('close-exercise-inspector-btn');
+  const inspectorModal = document.getElementById('exercise-inspector-modal');
+  
+  if (closeInspectorBtn && inspectorModal) {
+    closeInspectorBtn.addEventListener('click', () => {
+      inspectorModal.classList.add('hide');
+    });
+
+    inspectorModal.addEventListener('click', (e) => {
+      if (e.target === inspectorModal) {
+        inspectorModal.classList.add('hide');
+      }
+    });
+  }
+
+  // Delete exercise click
+  const deleteBtn = document.getElementById('delete-global-exercise-btn');
+  if (deleteBtn) {
+    deleteBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (currentInspectorExercise) {
+        deleteGlobalExercise(currentInspectorExercise);
+      }
+    });
+  }
+
+  // Advanced search input keypress/typing
+  const searchInputTab3 = document.getElementById('exercises-search-input-tab3');
+  if (searchInputTab3) {
+    searchInputTab3.addEventListener('input', () => {
+      renderExercisesManager();
+    });
+  }
+
+  // Muscle filter select changes
+  const muscleFilterTab3 = document.getElementById('exercises-muscle-filter-tab3');
+  if (muscleFilterTab3) {
+    muscleFilterTab3.addEventListener('change', () => {
+      renderExercisesManager();
+    });
+  }
+
+  // Type filter select changes
+  const typeFilterTab3 = document.getElementById('exercises-type-filter-tab3');
+  if (typeFilterTab3) {
+    typeFilterTab3.addEventListener('change', () => {
+      renderExercisesManager();
+    });
+  }
+
+  // Chart tabs switcher within inspector modal
+  const chartTabsTab3 = document.querySelectorAll('[data-chart-tab3]');
+  chartTabsTab3.forEach(tab => {
+    tab.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const targetChartType = tab.getAttribute('data-chart-tab3');
+      if (!targetChartType) return;
+
+      activeChartTypeTab3 = targetChartType;
+
+      chartTabsTab3.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+
+      renderExerciseInspectorChart();
+    });
+  });
+
+  // Re-draw chart on window resize to ensure fluid responsive layout
+  window.addEventListener('resize', () => {
+    if (inspectorModal && !inspectorModal.classList.contains('hide')) {
+      renderExerciseInspectorChart();
+    }
+  });
+});
 
 
 
