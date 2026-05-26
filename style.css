@@ -4209,6 +4209,10 @@ body.authenticated .ios-bottom-nav {
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85) !important;
   border-radius: 28px !important;
   direction: rtl !important;
+  overflow: hidden !important;
+  max-height: 88vh !important;
+  display: flex !important;
+  flex-direction: column !important;
 }
 
 /* Field styling */
@@ -4403,6 +4407,11 @@ body.authenticated .ios-bottom-nav {
   display: flex !important;
   flex-direction: column !important;
   gap: 12px !important;
+}
+
+/* Utility: hides a slider-group-container when metric type doesn't need it */
+.slider-group-container.slider-group-hidden {
+  display: none !important;
 }
 
 .slider-header {
