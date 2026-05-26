@@ -5285,5 +5285,220 @@ body.authenticated .ios-bottom-nav {
   100% { opacity: 1; transform: translateY(0); }
 }
 
+/* ==========================================================================
+   AuraApp Redesigned Settings Tab - Manual Update Button & Spinner
+   ========================================================================== */
+.ios-update-badge-btn {
+  background: #34c759 !important; /* iOS Green */
+  color: #ffffff !important;
+  border: none !important;
+  padding: 4px 12px !important;
+  border-radius: 12px !important;
+  font-size: 0.8rem !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  font-family: inherit !important;
+  transition: all 0.2s ease !important;
+  box-shadow: 0 2px 6px rgba(52, 199, 89, 0.2) !important;
+  outline: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.ios-update-badge-btn:hover {
+  background: #30d158 !important;
+  transform: scale(1.05);
+}
+
+.ios-update-badge-btn:disabled {
+  opacity: 0.7 !important;
+  cursor: not-allowed !important;
+}
+
+#tab-settings.dark-theme .ios-update-badge-btn {
+  background: #30d158 !important;
+}
+
+#tab-settings.dark-theme .ios-update-badge-btn:hover {
+  background: #34c759 !important;
+}
+
+/* Premium iOS Mini Spinner */
+@keyframes ios-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.ios-spinner {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border: 2px solid rgba(0, 122, 255, 0.2);
+  border-top-color: #007aff;
+  border-radius: 50%;
+  animation: ios-spin 0.8s linear infinite;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+
+#tab-settings.dark-theme .ios-spinner {
+  border-color: rgba(10, 132, 255, 0.2);
+  border-top-color: #0a84ff;
+}
+
+/* ==========================================================================
+   AuraApp Redesigned Analytics Tab: Segmented Controls & Drawer Styling
+   ========================================================================== */
+
+/* Premium iOS Segmented Control Selector */
+.segmented-control {
+  position: relative;
+  display: flex;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  padding: 4px;
+  margin: 0 1.5rem 1.2rem 1.5rem;
+  direction: rtl;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.segment-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  font-weight: 700;
+  padding: 10px 0;
+  cursor: pointer;
+  z-index: 2;
+  transition: color 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: var(--font-sans);
+  text-align: center;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.segment-btn.active {
+  color: #ffffff;
+}
+
+.segmented-indicator {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc(33.333% - 5.333px);
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 11px;
+  z-index: 1;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* RTL translations for Segmented Control Active Slide */
+.segmented-control[data-active="overview"] .segmented-indicator {
+  transform: translateX(0);
+}
+.segmented-control[data-active="logs"] .segmented-indicator {
+  transform: translateX(calc(-100% - 6px));
+}
+.segmented-control[data-active="exercise"] .segmented-indicator {
+  transform: translateX(calc(-200% - 12px));
+}
+
+/* Collapsible Filters drawer */
+.toggle-filters-btn {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin: 0 1.5rem 10px 1.5rem;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  outline: none;
+  font-family: var(--font-sans);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  direction: rtl;
+}
+
+.toggle-filters-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.toggle-filters-btn .arrow-icon {
+  font-size: 0.75rem;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-block;
+}
+
+.toggle-filters-btn.expanded {
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.toggle-filters-btn.expanded .arrow-icon {
+  transform: rotate(-180deg);
+}
+
+.collapsible-filters-container {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.collapsible-filters-container.expanded {
+  max-height: 280px; /* high enough to display filters */
+}
+
+.collapsible-filters-container .filters-panel-card {
+  margin-top: 0 !important;
+  margin-bottom: 12px !important;
+}
+
+/* Adjust filters-panel-card margin for proper collapsability */
+.filters-panel-card {
+  margin: 0 1.5rem 1.5rem 1.5rem !important;
+}
+
+/* Segment Panes */
+.analytics-segment-pane {
+  display: none;
+  flex-direction: column;
+  padding: 0 1.5rem calc(120px + env(safe-area-inset-bottom, 24px)) 1.5rem;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.analytics-segment-pane.active {
+  display: flex;
+  animation: fade-in-up 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Logs Compact Switcher style override */
+.logs-compact-switcher {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.logs-switch-btn {
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+
 
 
