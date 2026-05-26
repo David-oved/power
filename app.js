@@ -870,6 +870,29 @@ function showUpdateToast(waitingWorker) {
       waitingWorker.postMessage({ action: 'downloadAndActivate' });
     });
   }
+
+  // Also show update button in settings tab dynamically
+  showUpdateStateInSettings(waitingWorker);
+}
+
+// Display "עדכן 🚀" button inside settings check update row
+function showUpdateStateInSettings(waitingWorker) {
+  const updateStatus = document.getElementById('settings-update-status');
+  const checkUpdateRow = document.getElementById('row-settings-check-update');
+  if (updateStatus && checkUpdateRow) {
+    updateStatus.innerHTML = '<button id="settings-update-now-btn" class="ios-update-badge-btn">עדכן 🚀</button>';
+    checkUpdateRow.classList.remove('checking');
+    
+    const updateNowBtn = document.getElementById('settings-update-now-btn');
+    if (updateNowBtn) {
+      updateNowBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); // Prevent triggering check update row click
+        updateNowBtn.disabled = true;
+        updateNowBtn.innerHTML = 'מוריד... ⏳';
+        waitingWorker.postMessage({ action: 'downloadAndActivate' });
+      });
+    }
+  }
 }
 
 // Settings Drawer Open / Close Trigger Listeners
@@ -2563,6 +2586,8 @@ function initPremiumSettings() {
   const toggleDarkMode = document.getElementById('toggle-settings-dark-mode');
   const toggleNotifications = document.getElementById('toggle-settings-notifications');
   const settingsVer = document.getElementById('settings-system-version');
+  const checkUpdateRow = document.getElementById('row-settings-check-update');
+  const updateStatus = document.getElementById('settings-update-status');
   
   const isDarkMode = SafeStorage.getItem('settings_dark_mode') === 'true';
   const isNotificationsEnabled = SafeStorage.getItem('settings_notifications_enabled') !== 'false';
@@ -2606,6 +2631,67 @@ function initPremiumSettings() {
     } else {
       settingsVer.textContent = 'v1.2';
     }
+  }
+
+  // Manual update checking trigger row listener
+  if (checkUpdateRow && updateStatus) {
+    checkUpdateRow.addEventListener('click', async (e) => {
+      // Prevent running if we are currently clicking the dynamic update button
+      if (e.target.id === 'settings-update-now-btn') return;
+      if (checkUpdateRow.classList.contains('checking')) return;
+
+      checkUpdateRow.classList.add('checking');
+      updateStatus.innerHTML = 'בודק... <span class="ios-spinner"></span>';
+      
+      if ('serviceWorker' in navigator) {
+        try {
+          const reg = await navigator.serviceWorker.getRegistration();
+          if (reg) {
+            // Trigger Service Worker checking
+            await reg.update();
+            
+            // Wait a tiny bit (1.5 seconds) for any statechange / updatefound events to process
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            const newWorker = reg.waiting || reg.installing;
+            if (newWorker) {
+              showUpdateStateInSettings(newWorker);
+            } else {
+              // No update found
+              updateStatus.textContent = 'מעודכן ✓';
+              updateStatus.style.color = '#34c759'; // iOS Green
+              setTimeout(() => {
+                updateStatus.textContent = 'בדוק';
+                updateStatus.style.color = '';
+                checkUpdateRow.classList.remove('checking');
+              }, 3000);
+            }
+          } else {
+            updateStatus.textContent = 'לא נתמך';
+            checkUpdateRow.classList.remove('checking');
+          }
+        } catch (err) {
+          console.error('Manual PWA update check failed:', err);
+          updateStatus.textContent = 'שגיאה ⚠️';
+          setTimeout(() => {
+            updateStatus.textContent = 'בדוק';
+            checkUpdateRow.classList.remove('checking');
+          }, 3000);
+        }
+      } else {
+        updateStatus.textContent = 'לא נתמך';
+        checkUpdateRow.classList.remove('checking');
+      }
+    });
+  }
+
+  // Proactively check if there's already a waiting worker on load
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistration().then(reg => {
+      if (reg && reg.waiting) {
+        showUpdateStateInSettings(reg.waiting);
+      }
+    });
   }
 }
 
@@ -2950,6 +3036,8 @@ let filterMuscleGroup = 'all';
 let selectedAnalyticsExercise = null;
 let activeChartType = '1rm'; // '1rm', 'weight', 'volume'
 let activeAnalyticsView = 'calendar'; // 'calendar', 'heatmap', 'split', 'list'
+let activeAnalyticsSegment = 'overview';
+let activeLogsSubView = 'calendar';
 let currentCalendarDate = new Date();
 
 // Hebrew Quotes for Rest Timer Screen
@@ -3231,6 +3319,74 @@ onDOMReady(() => {
 function initAnalyticsTab() {
   console.log("Initializing premium Analytics Dashboard controllers...");
 
+  // 1. Collapsible Filters panel drawer toggle
+  const toggleFiltersBtn = document.getElementById('toggle-filters-btn');
+  const collapsibleFiltersContainer = document.getElementById('collapsible-filters-container');
+  if (toggleFiltersBtn && collapsibleFiltersContainer) {
+    toggleFiltersBtn.addEventListener('click', () => {
+      const isExpanded = collapsibleFiltersContainer.classList.toggle('expanded');
+      toggleFiltersBtn.classList.toggle('expanded', isExpanded);
+    });
+  }
+
+  // 2. iOS Segmented Control Selector Navigation
+  const segmentBtns = document.querySelectorAll('#tab-analytics .segment-btn');
+  const segmentedControl = document.querySelector('#tab-analytics .segmented-control');
+  segmentBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      segmentBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const segment = btn.dataset.segment;
+      activeAnalyticsSegment = segment;
+      if (segmentedControl) {
+        segmentedControl.setAttribute('data-active', segment);
+      }
+
+      // Toggle active panes
+      const panes = document.querySelectorAll('#tab-analytics .analytics-segment-pane');
+      panes.forEach(pane => {
+        pane.classList.remove('active');
+      });
+      const activePane = document.getElementById(`segment-${segment}-pane`);
+      if (activePane) activePane.classList.add('active');
+
+      // Trigger lazy rendering
+      renderAnalytics();
+    });
+  });
+
+  // 3. Compact Switcher inside Log Book Pane
+  const logsSwitchBtns = document.querySelectorAll('#tab-analytics .logs-switch-btn');
+  logsSwitchBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      logsSwitchBtns.forEach(b => {
+        b.classList.remove('active');
+        b.style.background = 'transparent';
+        b.style.color = 'var(--text-muted)';
+      });
+      btn.classList.add('active');
+      btn.style.background = 'var(--electric-blue-light)';
+      btn.style.color = '#fff';
+
+      const subview = btn.dataset.subview;
+      activeLogsSubView = subview;
+
+      const calendarView = document.getElementById('analytics-calendar-view');
+      const historyListView = document.getElementById('analytics-history-list-view');
+
+      if (subview === 'calendar') {
+        if (calendarView) calendarView.classList.remove('hide');
+        if (historyListView) historyListView.classList.add('hide');
+        renderCalendarView();
+      } else {
+        if (calendarView) calendarView.classList.add('hide');
+        if (historyListView) historyListView.classList.remove('hide');
+        renderAccordionHistoryView();
+      }
+    });
+  });
+
   // Quick Time filter chips
   const chips = document.querySelectorAll('#tab-analytics .filter-chip');
   const customDateInputs = document.getElementById('custom-date-inputs');
@@ -3282,18 +3438,6 @@ function initAnalyticsTab() {
       renderAnalytics();
     });
   }
-
-  // Toggles for Visual Variations
-  const viewBtns = document.querySelectorAll('#tab-analytics .view-toggle-btn');
-  viewBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      viewBtns.forEach(x => x.classList.remove('active'));
-      btn.classList.add('active');
-
-      activeAnalyticsView = btn.dataset.view;
-      renderActiveVariationView();
-    });
-  });
 
   // Autocomplete suggestions searchable exercise picker
   const searchInput = document.getElementById('analytics-exercise-search');
@@ -3396,10 +3540,21 @@ function initAnalyticsTab() {
 
 // Orchestrator for tab refresh
 function renderAnalytics() {
-  console.log("Refreshing Analytics view with active filters...");
-  renderActiveVariationView();
-  if (selectedAnalyticsExercise) {
-    renderExerciseAnalyticsDashboard();
+  console.log("Refreshing Analytics view with active filters...", activeAnalyticsSegment);
+  
+  if (activeAnalyticsSegment === 'overview') {
+    renderHeatmapView();
+    renderMuscleSplitView();
+  } else if (activeAnalyticsSegment === 'logs') {
+    if (activeLogsSubView === 'calendar') {
+      renderCalendarView();
+    } else if (activeLogsSubView === 'list') {
+      renderAccordionHistoryView();
+    }
+  } else if (activeAnalyticsSegment === 'exercise') {
+    if (selectedAnalyticsExercise) {
+      renderExerciseAnalyticsDashboard();
+    }
   }
 }
 
@@ -3452,21 +3607,8 @@ function getFilteredHistory() {
 
 // Switch between views
 function renderActiveVariationView() {
-  const views = document.querySelectorAll('#tab-analytics .analytics-sub-view');
-  views.forEach(v => v.classList.add('hide'));
-
-  const activeViewEl = document.getElementById(`analytics-${activeAnalyticsView}-view`);
-  if (activeViewEl) activeViewEl.classList.remove('hide');
-
-  if (activeAnalyticsView === 'calendar') {
-    renderCalendarView();
-  } else if (activeAnalyticsView === 'heatmap') {
-    renderHeatmapView();
-  } else if (activeAnalyticsView === 'split') {
-    renderMuscleSplitView();
-  } else if (activeAnalyticsView === 'list') {
-    renderAccordionHistoryView();
-  }
+  // Bypassed in favor of premium lazy rendering
+  renderAnalytics();
 }
 
 // D. Single Exercise progression Bezier SVG Chart Dashboard
