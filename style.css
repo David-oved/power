@@ -1376,18 +1376,34 @@ body.authenticated .workout-summary-modal.active {
   transform: translateX(-50%);
   width: calc(100% - 48px);
   max-width: 420px;
-  background: rgba(255, 255, 255, 0.02);
-  backdrop-filter: blur(20px) saturate(190%);
-  -webkit-backdrop-filter: blur(20px) saturate(190%);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 30px;
+  height: 52px;
+  background: rgba(20, 20, 24, 0.85);
+  backdrop-filter: blur(25px) saturate(200%);
+  -webkit-backdrop-filter: blur(25px) saturate(200%);
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
+  border-radius: 26px;
   box-shadow: 
-    0 15px 35px rgba(0, 0, 0, 0.4),
-    0 0 1px rgba(255, 255, 255, 0.15) inset;
+    0 15px 35px rgba(0, 0, 0, 0.5),
+    0 0 1px rgba(255, 255, 255, 0.2) inset;
   z-index: 1000;
   display: none; /* Hidden by default on auth screen */
   overflow: visible;
-  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+}
+
+.ios-bottom-nav.collapsed {
+  width: 52px !important;
+  height: 52px !important;
+  border-radius: 50% !important;
+  left: 24px !important;
+  transform: translateX(0) !important;
+  max-width: 52px !important;
+  box-shadow: 
+    0 10px 25px rgba(220, 38, 38, 0.45),
+    0 0 15px rgba(220, 38, 38, 0.25),
+    0 0 1px rgba(255, 255, 255, 0.3) inset !important;
+  background: rgba(15, 15, 20, 0.95) !important;
+  border: 1.5px solid rgba(220, 38, 38, 0.5) !important;
 }
 
 body.authenticated .ios-bottom-nav {
@@ -1410,8 +1426,16 @@ body.authenticated .ios-bottom-nav {
   display: flex;
   justify-content: space-around;
   align-items: center;
-  padding: 4px 12px;
+  padding: 0 12px;
+  height: 100%;
   direction: rtl !important; /* Workouts on the far right, Settings on the far left */
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1) 0.05s, visibility 0.25s cubic-bezier(0.16, 1, 0.3, 1) 0.05s;
+}
+
+.ios-bottom-nav.collapsed .nav-container {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
 }
 
 .ios-bottom-nav .nav-tab {
@@ -1419,7 +1443,8 @@ body.authenticated .ios-bottom-nav {
   border: none;
   position: relative;
   cursor: pointer;
-  padding: 4px 16px;
+  padding: 2px 14px;
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1437,18 +1462,18 @@ body.authenticated .ios-bottom-nav {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
 }
 
 .ios-bottom-nav .nav-tab .tab-icon {
-  font-size: 1.35rem;
+  font-size: 1.15rem;
   opacity: 0.45;
   transition: all 0.3s ease;
   filter: grayscale(100%) brightness(0.8);
 }
 
 .ios-bottom-nav .nav-tab .tab-label {
-  font-size: 0.68rem;
+  font-size: 0.62rem;
   font-weight: 600;
   color: var(--text-muted);
   opacity: 0.5;
@@ -1459,7 +1484,7 @@ body.authenticated .ios-bottom-nav {
 /* Active Tab Styles */
 .ios-bottom-nav .nav-tab.active .tab-icon {
   opacity: 1;
-  transform: scale(1.1);
+  transform: scale(1.08);
   filter: none;
 }
 
@@ -1472,17 +1497,17 @@ body.authenticated .ios-bottom-nav {
 /* Leftmost Avatar Slot */
 .ios-bottom-nav .nav-avatar-wrapper {
   position: relative;
-  width: 36px;
-  height: 36px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
-  padding: 2px;
+  padding: 1px;
   background: rgba(255, 255, 255, 0.1);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .ios-bottom-nav .nav-tab.active .nav-avatar-wrapper {
   background: linear-gradient(135deg, var(--electric-blue) 0%, var(--electric-blue-light) 100%);
-  box-shadow: 0 0 12px var(--electric-blue-glow-subtle);
+  box-shadow: 0 0 10px var(--electric-blue-glow-subtle);
   transform: scale(1.08);
 }
 
@@ -1491,7 +1516,7 @@ body.authenticated .ios-bottom-nav {
   height: 100%;
   border-radius: 50%;
   object-fit: cover;
-  border: 1.5px solid #090a0f;
+  border: 1px solid #090a0f;
   background: var(--bg-card);
 }
 
@@ -1502,7 +1527,7 @@ body.authenticated .ios-bottom-nav {
   right: 0;
   bottom: 0;
   border-radius: 50%;
-  border: 2px solid var(--electric-blue-light);
+  border: 1.5px solid var(--electric-blue-light);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -1514,13 +1539,57 @@ body.authenticated .ios-bottom-nav {
 /* Coming Soon Indicators */
 .ios-bottom-nav .coming-soon-dot {
   position: absolute;
-  top: 6px;
-  right: 12px;
-  width: 5px;
-  height: 5px;
+  top: 4px;
+  right: 10px;
+  width: 4px;
+  height: 4px;
   background: var(--electric-blue);
   border-radius: 50%;
   opacity: 0.35;
+}
+
+/* Floating Menu Toggle Button in Collapsed Circle */
+#nav-menu-toggle-btn {
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) scale(0) !important;
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50% !important;
+  background: transparent !important;
+  border: none !important;
+  color: #ffffff !important;
+  font-size: 1.35rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+  z-index: 1001 !important;
+}
+
+#nav-menu-toggle-btn:hover {
+  transform: translate(-50%, -50%) scale(1.15) !important;
+  color: var(--electric-blue-light) !important;
+}
+
+#nav-menu-toggle-btn:active {
+  transform: translate(-50%, -50%) scale(0.9) !important;
+}
+
+.ios-bottom-nav.collapsed #nav-menu-toggle-btn {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transform: translate(-50%, -50%) scale(1) !important;
+}
+
+.ios-bottom-nav:not(.collapsed) #nav-menu-toggle-btn {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translate(-50%, -50%) scale(0) !important;
 }
 
 /* ==========================================================================
