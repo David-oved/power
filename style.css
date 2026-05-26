@@ -6109,8 +6109,139 @@ body.authenticated .ios-bottom-nav {
   z-index: 2;
 }
 
+/* ==========================================================================
+   AuraApp Premium Scroll & Overlay Corrections
+   ========================================================================== */
 
+/* Universal dynamic viewport height & inner scrolling behavior to prevent mobile cutoffs */
+html, body {
+  height: 100dvh !important;
+  overflow: hidden !important;
+}
 
+/* Ensure that all sub-tab scroll containers have sufficient bottom padding to clear bottom toolbars */
+.ios-analytics-scroll-container,
+.ios-settings-scroll-container,
+.exercises-list-container {
+  padding-bottom: calc(140px + env(safe-area-inset-bottom, 24px)) !important;
+  scroll-padding-bottom: calc(140px + env(safe-area-inset-bottom, 24px)) !important;
+}
 
+/* Fallback scrolling safety for idle workouts page when many tiles exist on tiny viewports */
+#workout-idle-view {
+  overflow-y: auto !important;
+  max-height: 100%;
+  padding-bottom: 120px !important;
+}
 
+/* ==========================================================================
+   Tab 3: Premium Exercise Leaderboard (Leading Exercises) Widget
+   ========================================================================== */
+.leaderboard-card {
+  padding: 20px;
+  border-radius: 20px;
+  background: rgba(20, 21, 28, 0.6) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
+}
 
+.leaderboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  direction: rtl;
+}
+
+.leader-item {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), background 0.25s ease, border-color 0.25s ease;
+}
+
+.leader-item:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  transform: translateX(-4px); /* RTL slide-in alignment */
+}
+
+.leader-item:active {
+  transform: scale(0.98) translateX(-2px);
+}
+
+.gold-tier {
+  border-color: rgba(255, 215, 0, 0.15) !important;
+  box-shadow: inset 0 0 10px rgba(255, 215, 0, 0.03);
+}
+.silver-tier {
+  border-color: rgba(192, 192, 192, 0.15) !important;
+  box-shadow: inset 0 0 10px rgba(192, 192, 192, 0.03);
+}
+.bronze-tier {
+  border-color: rgba(205, 127, 50, 0.15) !important;
+  box-shadow: inset 0 0 10px rgba(205, 127, 50, 0.03);
+}
+
+.gold-gradient {
+  background: linear-gradient(90deg, #FFA500, #FFD700) !important;
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+}
+
+.silver-gradient {
+  background: linear-gradient(90deg, #9ca3af, #e5e7eb) !important;
+  box-shadow: 0 0 8px rgba(192, 192, 192, 0.4);
+}
+
+.bronze-gradient {
+  background: linear-gradient(90deg, #b45309, #d97706) !important;
+  box-shadow: 0 0 8px rgba(205, 127, 50, 0.4);
+}
+
+/* ==========================================================================
+   Tab 2: Premium Training Calendar Color-Coded Dots & Cell Glows
+   ========================================================================== */
+.calendar-day-cell {
+  position: relative;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.calendar-day-cell:hover {
+  transform: scale(1.06);
+  z-index: 10;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.15);
+}
+
+.calendar-day-cell.today {
+  border: 1.5px solid #00F0FF !important;
+  background: rgba(0, 240, 255, 0.08) !important;
+  color: #00F0FF !important;
+  box-shadow: inset 0 0 8px rgba(0, 240, 255, 0.2);
+}
+
+.calendar-day-cell.has-workout {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Neon glow workout dot indicators */
+.workout-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.workout-dot.gym {
+  background: #8A2BE2 !important; /* Neon Purple */
+  box-shadow: 0 0 6px #8A2BE2;
+}
+
+.workout-dot.park {
+  background: #00FF87 !important; /* Neon Green */
+  box-shadow: 0 0 6px #00FF87;
+}
+
+.workout-dot.home {
+  background: #FFA500 !important; /* Warm Orange */
+  box-shadow: 0 0 6px #FFA500;
+}
