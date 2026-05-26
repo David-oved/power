@@ -4857,6 +4857,8 @@ body.authenticated .ios-bottom-nav {
   overflow-y: auto;
   padding: 1.5rem 1.2rem calc(8rem + env(safe-area-inset-bottom)) 1.2rem;
   direction: rtl;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Multi-Filter control panel styles */
@@ -5498,6 +5500,520 @@ body.authenticated .ios-bottom-nav {
   outline: none;
   -webkit-tap-highlight-color: transparent;
 }
+
+/* Dynamic Sub-Navigation Bar & Tab 1 styles */
+#metrics-sub-nav {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), width 0.4s cubic-bezier(0.16, 1, 0.3, 1), height 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+#metrics-sub-nav.nav-hidden {
+  transform: translate(-50%, 80px) scale(0.95) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.sub-tab-pane {
+  display: none;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  width: 100%;
+  height: 100%;
+}
+
+.sub-tab-pane.active {
+  display: flex !important;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.nav-tab.sub-nav-back {
+  border-left: 1.5px solid rgba(255, 255, 255, 0.08);
+  padding-left: 12px;
+  margin-left: 6px;
+}
+
+/* Beautiful workout card design inside the chronological list */
+.workout-log-card {
+  background: rgba(20, 20, 24, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  padding: 1.2rem;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s ease, border-color 0.2s ease;
+  direction: rtl;
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.workout-log-card:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.workout-log-card:active {
+  transform: scale(0.98) translateY(0);
+}
+
+.workout-log-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.workout-log-location {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.workout-log-emoji {
+  font-size: 1.5rem;
+}
+
+.workout-log-name {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.workout-log-date {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.workout-log-stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.workout-log-volume {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--electric-blue-light);
+}
+
+.workout-log-pr-badge {
+  background: linear-gradient(135deg, #dc2626 0%, #f43f5e 100%);
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+}
+
+.workout-log-exercises {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 10px;
+}
+
+.workout-log-exercise-item {
+  font-size: 0.85rem;
+  color: #e2e8f0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.workout-log-exercise-name {
+  font-weight: 700;
+}
+
+.workout-log-exercise-sets {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  direction: ltr;
+}
+
+/* Schedule Future Workout Premium Styles */
+.calendar-day-cell.has-future-workout {
+  background: rgba(249, 115, 22, 0.1) !important;
+  border-color: rgba(249, 115, 22, 0.4) !important;
+  color: #ffedd5 !important;
+  font-weight: 700 !important;
+  box-shadow: inset 0 0 8px rgba(249, 115, 22, 0.2), 0 0 8px rgba(249, 115, 22, 0.15) !important;
+}
+
+.future-workout-dot-indicator {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #f97316;
+  box-shadow: 0 0 6px #ea580c;
+}
+
+.future-workout-card {
+  padding: 10px;
+  background: rgba(249, 115, 22, 0.08) !important;
+  border: 1px solid rgba(249, 115, 22, 0.25) !important;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  direction: rtl;
+  text-align: right;
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.05);
+}
+
+.future-workout-card .future-header {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
+  color: #ffedd5;
+  margin-bottom: 4px;
+}
+
+.future-workout-card .future-badge {
+  font-size: 0.72rem;
+  background: rgba(249, 115, 22, 0.2);
+  color: #fdba74;
+  padding: 1px 6px;
+  border-radius: 6px;
+  border: 1px solid rgba(249, 115, 22, 0.3);
+}
+
+.schedule-trigger-btn {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.schedule-trigger-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(249, 115, 22, 0.5) !important;
+}
+.schedule-trigger-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* ==========================================================================
+   Tab 3: Exercises Manager & Tracker Specific Styles
+   ========================================================================== */
+
+/* Exercises list grid (Tab 3 main view) */
+.exercises-list-grid-tab3 {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.exercise-manage-card-tab3 {
+  background: rgba(20, 20, 24, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 18px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s ease, border-color 0.2s ease;
+  direction: rtl;
+  text-align: right;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.exercise-manage-card-tab3:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.exercise-manage-card-tab3:active {
+  transform: scale(0.98) translateY(0);
+}
+
+.ex-card-info-tab3 {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ex-card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ex-card-emoji-tab3 {
+  font-size: 1.25rem;
+}
+
+.ex-card-name-tab3 {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.ex-card-stats-tab3 {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.ex-card-badge-tab3 {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 8px;
+}
+
+/* PR History Timeline */
+.pr-history-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 160px;
+  overflow-y: auto;
+  padding-right: 4px;
+  direction: rtl;
+}
+
+.pr-timeline-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  padding: 8px 12px;
+  font-size: 0.82rem;
+}
+
+.pr-timeline-val {
+  font-weight: 700;
+  color: #fff;
+  font-family: var(--font-display);
+}
+
+.pr-timeline-date {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.pr-timeline-badge {
+  font-size: 0.7rem;
+  background: rgba(234, 179, 8, 0.15);
+  color: #facc15;
+  padding: 2px 6px;
+  border-radius: 6px;
+  border: 1px solid rgba(234, 179, 8, 0.3);
+}
+
+/* SVG Chart styling for Tab 3 specifically */
+.bezier-chart-path-tab3 {
+  fill: none;
+  stroke: var(--electric-blue-light);
+  stroke-width: 3.5px;
+  stroke-linecap: round;
+  filter: drop-shadow(0 4px 10px var(--electric-blue-glow));
+}
+
+.bezier-chart-area-tab3 {
+  fill: url(#chart-gradient-fill-tab3);
+  opacity: 0.15;
+}
+
+.bezier-chart-point-tab3 {
+  fill: #ffffff;
+  stroke: var(--electric-blue-light);
+  stroke-width: 2.5px;
+  transition: r 0.2s, fill 0.2s;
+  cursor: pointer;
+}
+
+.bezier-chart-point-tab3:hover {
+  r: 6px;
+  fill: var(--electric-blue-light);
+}
+
+.chart-tabs-tab3 button.chart-tab {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  color: var(--text-muted);
+}
+
+.chart-tabs-tab3 button.chart-tab.active {
+  background: rgba(0, 122, 255, 0.15) !important;
+  border-color: rgba(0, 122, 255, 0.4) !important;
+  color: var(--electric-blue-light) !important;
+  box-shadow: inset 0 0 10px rgba(0, 122, 255, 0.1) !important;
+}
+
+/* ==========================================================================
+   Tab 4: Premium Glassmorphic AI Coach Style
+   ========================================================================== */
+.glassmorphic-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 24px;
+  border: 1px solid rgba(220, 38, 38, 0.15); /* Crimson outline base */
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 0 20px rgba(220, 38, 38, 0.05);
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glassmorphic-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 24px;
+  padding: 1.5px;
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.6) 0%, rgba(239, 68, 68, 0.1) 40%, rgba(220, 38, 38, 0.05) 60%, rgba(220, 38, 38, 0.8) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.glassmorphic-card:hover {
+  transform: translateY(-6px) scale(1.02);
+  border-color: rgba(220, 38, 38, 0.35);
+  box-shadow: 
+    0 25px 50px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 0 30px rgba(220, 38, 38, 0.15);
+}
+
+/* Pulsating crimson/neon red halo orb inside card */
+.aura-ai-orb {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90px;
+  height: 90px;
+  background: radial-gradient(circle, rgba(220, 38, 38, 0.35) 0%, rgba(220, 38, 38, 0) 70%);
+  filter: blur(10px);
+  z-index: 1;
+  border-radius: 50%;
+}
+
+.animate-orb {
+  animation: orb-pulsate 3s ease-in-out infinite alternate;
+}
+
+@keyframes orb-pulsate {
+  0% {
+    transform: translate(-50%, -50%) scale(0.9);
+    opacity: 0.6;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.25);
+    opacity: 0.95;
+  }
+}
+
+/* Glowing & pulsating badge */
+.coming-soon-badge-glow {
+  background: rgba(220, 38, 38, 0.12);
+  color: #fca5a5;
+  border: 1px solid rgba(220, 38, 38, 0.4);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-weight: 800;
+  font-size: 0.8rem;
+  display: inline-block;
+  letter-spacing: 1px;
+  box-shadow: 0 0 12px rgba(220, 38, 38, 0.15);
+  text-shadow: 0 0 4px rgba(220, 38, 38, 0.5);
+  font-family: var(--font-sans);
+}
+
+.animated-pulse-badge {
+  animation: badge-glow-pulse 2s infinite alternate;
+}
+
+@keyframes badge-glow-pulse {
+  0% {
+    border-color: rgba(220, 38, 38, 0.3);
+    box-shadow: 0 0 8px rgba(220, 38, 38, 0.1);
+    color: #fecaca;
+  }
+  100% {
+    border-color: rgba(220, 38, 38, 0.7);
+    box-shadow: 0 0 18px rgba(220, 38, 38, 0.4);
+    color: #ffffff;
+  }
+}
+
+/* Ripple effect styles */
+.ai-ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(220, 38, 38, 0.3);
+  transform: scale(0);
+  animation: ai-ripple-effect 0.8s ease-out;
+  pointer-events: none;
+  z-index: 10;
+}
+
+@keyframes ai-ripple-effect {
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+/* Light theme overrides for AURA AI Coach glassmorphic card */
+.tab-pane:not(.dark-theme) .glassmorphic-card {
+  background: rgba(255, 255, 255, 0.65) !important;
+  border-color: rgba(220, 38, 38, 0.25) !important;
+  box-shadow: 
+    0 15px 35px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    0 0 20px rgba(220, 38, 38, 0.03) !important;
+}
+
+.tab-pane:not(.dark-theme) .glassmorphic-card:hover {
+  background: rgba(255, 255, 255, 0.8) !important;
+  border-color: rgba(220, 38, 38, 0.45) !important;
+  box-shadow: 
+    0 20px 45px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 0 25px rgba(220, 38, 38, 0.08) !important;
+}
+
+.tab-pane:not(.dark-theme) .aura-ai-title {
+  background: linear-gradient(135deg, #1c1c1e 30%, #dc2626 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+.tab-pane:not(.dark-theme) .aura-ai-desc {
+  color: #3a3a3c !important;
+  font-weight: 500 !important;
+}
+
+.tab-pane:not(.dark-theme) .coming-soon-badge-glow {
+  background: rgba(220, 38, 38, 0.08) !important;
+  color: #b91c1c !important;
+  border-color: rgba(220, 38, 38, 0.3) !important;
+  box-shadow: 0 0 8px rgba(220, 38, 38, 0.08) !important;
+  text-shadow: none !important;
+}
+
+/* LTR/RTL Spacing & Symmetric Cleanups */
+.ios-analytics-scroll-container {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;  /* IE and Edge */
+}
+
+.ios-analytics-scroll-container::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
 
 
 
