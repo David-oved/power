@@ -1,4 +1,4 @@
-const CACHE_NAME = 'aura-app-v1.9';
+const CACHE_NAME = 'aura-app-v2.0';
 const ASSETS = [
   './',
   './index.html',
@@ -7,7 +7,6 @@ const ASSETS = [
   './sw.js',
   './firebase-config.js',
   './manifest.json',
-  './icon-512.svg',
   './icon-192.png',
   './icon-512.png'
   // Firebase SDK files intentionally excluded: served from Google CDN with long cache-control headers.
