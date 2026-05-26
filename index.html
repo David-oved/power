@@ -2,6 +2,11 @@
 <html lang="he" dir="rtl">
 <head>
   <meta charset="UTF-8">
+  <script>
+    window.onerror = function(msg, url, line) {
+      alert("קוד שגיאה: " + msg + "\nשורה: " + line);
+    };
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>AuraApp</title>
   
@@ -647,6 +652,9 @@
 
     <!-- Premium iOS 26 Bottom Navigation Bar -->
     <nav class="ios-bottom-nav">
+      <button id="nav-menu-toggle-btn" class="nav-menu-toggle-btn hide">
+        <span class="toggle-icon">☰</span>
+      </button>
       <div class="nav-container">
         <!-- Tab 1: Workouts -->
         <button class="nav-tab" data-tab="workouts" aria-label="Workouts Tab">
