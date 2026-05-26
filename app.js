@@ -825,6 +825,7 @@ if ('serviceWorker' in navigator) {
     let refreshing = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       if (refreshing) return;
+      if (!navigator.serviceWorker.controller) return; // הגנה מלופ
       refreshing = true;
       console.log("Service Worker controller changed. Reloading page for new version...");
       SafeStorage.setItem('pwa_just_updated', 'true');
@@ -930,6 +931,37 @@ window.addEventListener('load', () => {
 // ==========================================================================
 // iOS 26 Tab Switching Engine & Tab Reset Logic
 // ==========================================================================
+let autoCollapseTimeout = null;
+
+function collapseNav() {
+  const bottomNav = document.querySelector('.ios-bottom-nav');
+  const menuToggleBtn = document.getElementById('nav-menu-toggle-btn');
+  if (bottomNav) {
+    bottomNav.classList.add('collapsed');
+    if (menuToggleBtn) menuToggleBtn.classList.remove('hide');
+  }
+  if (autoCollapseTimeout) {
+    clearTimeout(autoCollapseTimeout);
+    autoCollapseTimeout = null;
+  }
+}
+
+function expandNav() {
+  const bottomNav = document.querySelector('.ios-bottom-nav');
+  const menuToggleBtn = document.getElementById('nav-menu-toggle-btn');
+  if (bottomNav) {
+    bottomNav.classList.remove('collapsed');
+    if (menuToggleBtn) menuToggleBtn.classList.add('hide');
+  }
+  // UX premium: if no tab clicked in 5 seconds, auto-collapse back
+  if (autoCollapseTimeout) {
+    clearTimeout(autoCollapseTimeout);
+  }
+  autoCollapseTimeout = setTimeout(() => {
+    collapseNav();
+  }, 5000);
+}
+
 function resetTabs() {
   const navTabs = document.querySelectorAll('.ios-bottom-nav .nav-tab');
   const tabPanes = document.querySelectorAll('.tab-content-container .tab-pane');
@@ -942,6 +974,9 @@ function resetTabs() {
   
   const settingsPane = document.getElementById('tab-settings');
   if (settingsPane) settingsPane.classList.add('active');
+
+  // Reset to expanded state on tab reset
+  expandNav();
 }
 
 // Binds tab clicking event listeners
@@ -949,7 +984,9 @@ const navTabs = document.querySelectorAll('.ios-bottom-nav .nav-tab');
 const tabPanes = document.querySelectorAll('.tab-content-container .tab-pane');
 
 navTabs.forEach((tab) => {
-  tab.addEventListener('click', () => {
+  tab.addEventListener('click', (e) => {
+    e.stopPropagation(); // prevent triggering expandNav on the nav itself
+
     const targetTab = tab.dataset.tab;
     if (!targetTab) return;
 
@@ -966,7 +1003,36 @@ navTabs.forEach((tab) => {
     });
     
     console.log(`Switched to tab: ${targetTab}`);
+
+    // UX auto-collapse: clear the 5s idle collapse timer and collapse after 400ms delay
+    if (autoCollapseTimeout) {
+      clearTimeout(autoCollapseTimeout);
+      autoCollapseTimeout = null;
+    }
+    setTimeout(collapseNav, 400);
   });
+});
+
+// Bind click listeners for Collapsible Navigation Bar
+onDOMReady(() => {
+  const bottomNav = document.querySelector('.ios-bottom-nav');
+  const menuToggleBtn = document.getElementById('nav-menu-toggle-btn');
+
+  if (bottomNav) {
+    bottomNav.addEventListener('click', (e) => {
+      if (bottomNav.classList.contains('collapsed')) {
+        e.stopPropagation();
+        expandNav();
+      }
+    });
+  }
+
+  if (menuToggleBtn) {
+    menuToggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      expandNav();
+    });
+  }
 });
 
 // ==========================================================================
