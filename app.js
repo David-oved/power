@@ -2966,11 +2966,21 @@ function openSetLoggingModal(ex, exIdx) {
   const repsGroup = document.getElementById('set-log-reps-group');
   const metricType = ex.metricType || 'both';
 
+  // Use CSS class (.slider-group-hidden) rather than inline style.display,
+  // because .slider-group-container has display:flex !important in CSS
   if (weightGroup) {
-    weightGroup.style.display = (metricType === 'reps') ? 'none' : 'flex';
+    if (metricType === 'reps') {
+      weightGroup.classList.add('slider-group-hidden');
+    } else {
+      weightGroup.classList.remove('slider-group-hidden');
+    }
   }
   if (repsGroup) {
-    repsGroup.style.display = (metricType === 'weight') ? 'none' : 'flex';
+    if (metricType === 'weight') {
+      repsGroup.classList.add('slider-group-hidden');
+    } else {
+      repsGroup.classList.remove('slider-group-hidden');
+    }
   }
 
   // Determine standard baseline values based on last completed set or sensible defaults
