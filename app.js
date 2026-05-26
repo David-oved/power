@@ -658,21 +658,46 @@ if (loginBtn) {
 }
 
 // Proactive Environment Warnings (WhatsApp/Telegram/Private Tabs)
+// Proactive Environment Warnings (WhatsApp/Telegram/Private Tabs/Android WebViews/Local Files)
 function detectEnvironmentAndWarn() {
   const storageOk = SafeStorage.isSupported();
   const userAgent = navigator.userAgent || navigator.vendor || window.opera;
-  const isInApp = /FBAN|FBAV|Instagram|Twitter|FBIOS|Messenger|WhatsApp|Telegram|Line|WeChat/i.test(userAgent);
+  
+  // זיהוי דפדפנים פנימיים באפליקציות מוכרות
+  const isKnownInApp = /FBAN|FBAV|Instagram|Twitter|FBIOS|Messenger|WhatsApp|Telegram|Line|WeChat/i.test(userAgent);
+  
+  // זיהוי WebView כללי באנדרואיד (מכיל את האינדיקטור wv)
+  const isAndroidWebView = /Android/i.test(userAgent) && /wv/i.test(userAgent);
+  const isInApp = isKnownInApp || isAndroidWebView;
+
+  // בדיקה האם האפליקציה מורצת מקובץ מקומי ולא משרת מאובטח
+  const isLocalFile = window.location.protocol === 'file:';
 
   const authCard = document.querySelector('.auth-card');
   if (authCard) {
     let warningHtml = '';
-    if (isInApp) {
+    
+    if (isLocalFile) {
       warningHtml = `
-        <div style="background: rgba(239, 68, 68, 0.1); border: 1px dashed rgba(239, 68, 68, 0.3); border-radius: 12px; padding: 12px; margin-bottom: 20px; direction: rtl; text-align: right; font-size: 0.85rem; color: #ef4444; display: flex; gap: 8px; align-items: start;">
-          <span style="font-size: 1.1rem;">⚠️</span>
+        <div style="background: rgba(239, 68, 68, 0.12); border: 1px dashed rgba(239, 68, 68, 0.4); border-radius: 12px; padding: 14px; margin-bottom: 20px; direction: rtl; text-align: right; font-size: 0.88rem; color: #f87171; display: flex; gap: 10px; align-items: start; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.08);">
+          <span style="font-size: 1.25rem;">⚠️</span>
           <div>
-            <strong>שים לב: דפדפן פנימי (WhatsApp/Telegram)!</strong><br>
-            התחברות עם Google עלולה להיכשל במצב זה. אנא לחץ על שלוש הנקודות בפינה העליונה (או לחצן השיתוף בתחתית) ובחר <strong>"פתח בדפדפן הרגיל"</strong> (Chrome באנדרואיד או Safari באייפון) כדי להתחבר בהצלחה.
+            <strong>הרצה מקומית לא מאובטחת!</strong><br>
+            הורדת קבצי הקוד ישירות למכשיר חוסמת את החיבור המאובטח של גוגל.<br>
+            <strong style="color: #fff;">איך להתחבר?</strong> עליך להיכנס לאפליקציה דרך הקישור הרשמי והמאובטח שלה: <br>
+            <a href="https://power-4ab3e.web.app" target="_blank" style="color: #60a5fa; text-decoration: underline; font-weight: bold;">https://power-4ab3e.web.app</a><br>
+            ומשם תוכל להתקין אותה למסך הבית בקלות!
+          </div>
+        </div>
+      `;
+    } else if (isInApp) {
+      warningHtml = `
+        <div style="background: rgba(239, 68, 68, 0.12); border: 1px dashed rgba(239, 68, 68, 0.4); border-radius: 12px; padding: 14px; margin-bottom: 20px; direction: rtl; text-align: right; font-size: 0.88rem; color: #f87171; display: flex; gap: 10px; align-items: start; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.08);">
+          <span style="font-size: 1.25rem;">⚠️</span>
+          <div>
+            <strong>דפדפן לא נתמך / חסום על ידי Google!</strong><br>
+            פתחת את האפליקציה מתוך קישור פנימי. גוגל חוסמת התחברות מאובטחת בסביבה זו.<br>
+            <strong style="color: #fff;">מה לעשות?</strong> לחץ על שלוש הנקודות בפינה העליונה ובחר <strong>"פתח בדפדפן"</strong> (Chrome) כדי להתחבר בהצלחה ולהתקין את האפליקציה למסך הבית.
           </div>
         </div>
       `;
