@@ -19,7 +19,20 @@
 
 // AuraApp - Core PWA Logic & Firebase Authentication Gateway
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { 
+  getAuth, 
+  signInWithPopup, 
+  signInWithRedirect, 
+  getRedirectResult, 
+  GoogleAuthProvider, 
+  signOut, 
+  onAuthStateChanged,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail,
+  linkWithCredential,
+  EmailAuthProvider
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 // ==========================================================================
 // 1. SafeStorage Adapter to handle Private Browsing & Quota Limits safely
@@ -534,6 +547,10 @@ if (firebaseEnabled) {
     })
     .catch((error) => {
       console.error("Error resolving redirect result:", error.code, error.message);
+      if (error.code === 'auth/account-exists-with-different-credential') {
+        handleAccountExistsWithDifferentCredential(error);
+        return;
+      }
       if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
         console.log("Sign-in process was cancelled by the user.");
       } else if (error.code === 'auth/web-storage-unsupported') {
@@ -601,6 +618,13 @@ if (loginBtn) {
     } catch (popupError) {
       console.warn("Popup authentication failed/blocked. Code:", popupError.code, popupError.message);
       
+      if (popupError.code === 'auth/account-exists-with-different-credential') {
+        handleAccountExistsWithDifferentCredential(popupError);
+        loginBtn.disabled = false;
+        if (btnTextEl) btnTextEl.textContent = originalText;
+        return;
+      }
+
       // If user cancelled, just reset button state and return safely.
       if (popupError.code === 'auth/popup-closed-by-user' || popupError.code === 'auth/cancelled-popup-request') {
         console.log("Sign-in process was cancelled by the user.");
@@ -616,7 +640,13 @@ if (loginBtn) {
         await signInWithRedirect(auth, googleProvider);
       } catch (redirectError) {
         console.error("Redirect fallback authentication error:", redirectError);
-        handleAuthError(redirectError, loginBtn, originalText);
+        if (redirectError.code === 'auth/account-exists-with-different-credential') {
+          handleAccountExistsWithDifferentCredential(redirectError);
+          loginBtn.disabled = false;
+          if (btnTextEl) btnTextEl.textContent = originalText;
+        } else {
+          handleAuthError(redirectError, loginBtn, originalText);
+        }
       }
     }
   });
@@ -736,6 +766,266 @@ if (profilePicBtn) {
   profilePicBtn.addEventListener('click', () => {
     if (appLogoutBtn) {
       appLogoutBtn.classList.toggle('hide');
+    }
+  });
+}
+
+// ==========================================================================
+// AuraApp - Email & Password Authentication & Account Linking Flow Handlers
+// ==========================================================================
+
+// Global state variables for Account Linking
+let pendingGoogleCredential = null;
+let pendingEmailForLinking = null;
+
+// Helper to prompt for existing password and securely link accounts
+window.handleAccountExistsWithDifferentCredential = function(error) {
+  console.log("Caught account-exists-with-different-credential. Prompting password for linking...");
+  pendingGoogleCredential = GoogleAuthProvider.credentialFromError(error);
+  pendingEmailForLinking = error.customData?.email || error.email;
+  
+  const linkingModal = document.getElementById('account-linking-modal');
+  if (linkingModal) {
+    linkingModal.classList.remove('hide');
+  }
+};
+
+// Wire up Account Linking Modal & Form
+const accountLinkingForm = document.getElementById('account-linking-form');
+const closeAccountLinkingBtn = document.getElementById('close-account-linking-btn');
+const accountLinkingModal = document.getElementById('account-linking-modal');
+
+if (closeAccountLinkingBtn && accountLinkingModal) {
+  closeAccountLinkingBtn.addEventListener('click', () => {
+    accountLinkingModal.classList.add('hide');
+    pendingGoogleCredential = null;
+    pendingEmailForLinking = null;
+  });
+}
+
+if (accountLinkingForm) {
+  accountLinkingForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!pendingGoogleCredential || !pendingEmailForLinking) {
+      alert("שגיאת תהליך קישור. אנא נסה להתחבר מחדש.");
+      return;
+    }
+
+    const passwordInput = document.getElementById('link-password-input');
+    const password = passwordInput ? passwordInput.value : '';
+    
+    const submitBtn = accountLinkingForm.querySelector('button[type="submit"]');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = "מקשר חשבונות... ⏳";
+    }
+
+    try {
+      // 1. Sign in with the existing email and password
+      const userCredential = await signInWithEmailAndPassword(auth, pendingEmailForLinking, password);
+      // 2. Link the google credential to the signed in user
+      await linkWithCredential(userCredential.user, pendingGoogleCredential);
+      
+      alert("החשבונות קושרו בהצלחה! מעתה תוכל להתחבר בשתי הדרכים.");
+      if (accountLinkingModal) accountLinkingModal.classList.add('hide');
+      if (passwordInput) passwordInput.value = '';
+      pendingGoogleCredential = null;
+      pendingEmailForLinking = null;
+    } catch (linkError) {
+      console.error("Account linking failed:", linkError);
+      alert("קישור החשבון נכשל. אנא ודא שהסיסמה שהזנת נכונה.");
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = "אמת וקשר חשבון";
+      }
+    }
+  });
+}
+
+// Wire up Tab Segment Controls for Login Card
+const authTabGoogle = document.getElementById('auth-tab-google');
+const authTabEmail = document.getElementById('auth-tab-email');
+const googleAuthSection = document.getElementById('google-auth-section');
+const emailAuthSection = document.getElementById('email-auth-section');
+
+if (authTabGoogle && authTabEmail && googleAuthSection && emailAuthSection) {
+  authTabGoogle.addEventListener('click', () => {
+    authTabGoogle.classList.add('active');
+    authTabEmail.classList.remove('active');
+    googleAuthSection.classList.remove('hide');
+    emailAuthSection.classList.add('hide');
+  });
+
+  authTabEmail.addEventListener('click', () => {
+    authTabEmail.classList.add('active');
+    authTabGoogle.classList.remove('active');
+    emailAuthSection.classList.remove('hide');
+    googleAuthSection.classList.add('hide');
+  });
+}
+
+// Wire up Email & Password Sign-in / Sign-up Mode toggler
+const toggleAuthModeBtn = document.getElementById('toggle-auth-mode-btn');
+const emailFormTitle = document.getElementById('email-form-title');
+const emailSubmitBtn = document.getElementById('email-submit-btn');
+
+let emailAuthMode = "signin"; // default is sign-in
+
+if (toggleAuthModeBtn && emailFormTitle && emailSubmitBtn) {
+  toggleAuthModeBtn.addEventListener('click', () => {
+    if (emailAuthMode === "signin") {
+      emailAuthMode = "signup";
+      emailFormTitle.textContent = "הרשמה לחשבון חדש";
+      emailSubmitBtn.textContent = "הרשם כעת";
+      toggleAuthModeBtn.textContent = "כבר יש לך חשבון? להתחברות ✨";
+    } else {
+      emailAuthMode = "signin";
+      emailFormTitle.textContent = "התחברות לחשבון";
+      emailSubmitBtn.textContent = "התחבר כעת";
+      toggleAuthModeBtn.textContent = "אין לך חשבון? להרשמה חדשה ✨";
+    }
+  });
+}
+
+// Wire up Email Form Submission
+const emailAuthForm = document.getElementById('email-auth-form');
+if (emailAuthForm) {
+  emailAuthForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!firebaseEnabled) {
+      alert("Authentication features are currently unavailable because Firebase is not configured properly.");
+      return;
+    }
+
+    const email = document.getElementById('auth-email-input').value;
+    const password = document.getElementById('auth-password-input').value;
+    
+    if (password.length < 6) {
+      alert("הסיסמה חייבת להכיל לפחות 6 תווים.");
+      return;
+    }
+    
+    const submitBtn = document.getElementById('email-submit-btn');
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = emailAuthMode === "signin" ? "מתחבר... ⏳" : "נרשם... ⏳";
+    }
+    
+    try {
+      if (emailAuthMode === "signin") {
+        console.log("Signing in with email & password...");
+        await signInWithEmailAndPassword(auth, email, password);
+      } else {
+        console.log("Registering with email & password...");
+        await createUserWithEmailAndPassword(auth, email, password);
+        alert("נרשמת בהצלחה! ברוך הבא ל-AuraApp.");
+      }
+    } catch (authError) {
+      console.error("Email auth error:", authError.code, authError.message);
+      let userFriendlyMessage = "שגיאת הזדהות. אנא נסה שוב.";
+      if (authError.code === 'auth/invalid-credential' || authError.code === 'auth/user-not-found' || authError.code === 'auth/wrong-password') {
+        userFriendlyMessage = "אימייל או סיסמה לא נכונים.";
+      } else if (authError.code === 'auth/email-already-in-use') {
+        userFriendlyMessage = "כתובת האימייל הזו כבר נמצאת בשימוש במערכת. נסה להתחבר.";
+      } else if (authError.code === 'auth/invalid-email') {
+        userFriendlyMessage = "כתובת אימייל לא תקינה.";
+      } else if (authError.code === 'auth/weak-password') {
+        userFriendlyMessage = "הסיסמה חלשה מדי. אנא בחר סיסמה עם לפחות 6 תווים.";
+      }
+      alert(userFriendlyMessage);
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = emailAuthMode === "signin" ? "התחבר כעת" : "הרשם כעת";
+      }
+    }
+  });
+}
+
+// Wire up Forgot Password Modal Toggles
+const forgotPasswordLink = document.getElementById('forgot-password-link');
+const forgotPasswordModal = document.getElementById('forgot-password-modal');
+const closeForgotPasswordBtn = document.getElementById('close-forgot-password-btn');
+
+if (forgotPasswordLink && forgotPasswordModal) {
+  forgotPasswordLink.addEventListener('click', () => {
+    forgotPasswordModal.classList.remove('hide');
+  });
+}
+
+if (closeForgotPasswordBtn && forgotPasswordModal) {
+  closeForgotPasswordBtn.addEventListener('click', () => {
+    forgotPasswordModal.classList.add('hide');
+  });
+}
+
+// Wire up Forgot Password Submission
+const forgotPasswordForm = document.getElementById('forgot-password-form');
+if (forgotPasswordForm) {
+  forgotPasswordForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!firebaseEnabled) {
+      alert("שירותי אימות אינם זמינים כעת.");
+      return;
+    }
+
+    const email = document.getElementById('reset-email-input').value;
+    
+    try {
+      await sendPasswordResetEmail(auth, email);
+      alert("קישור לאיפוס הסיסמה נשלח לתיבת המייל שלך!");
+      if (forgotPasswordModal) forgotPasswordModal.classList.add('hide');
+      document.getElementById('reset-email-input').value = '';
+    } catch (resetError) {
+      console.error("Password reset error:", resetError);
+      alert("שליחת קישור האיפוס נכשלה. אנא ודא שהאימייל שהזנת תקין.");
+    }
+  });
+}
+
+// Wire up Settings Pane Add/Change Password
+const settingsPasswordForm = document.getElementById('settings-password-form');
+if (settingsPasswordForm) {
+  settingsPasswordForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!firebaseEnabled || !currentUser) {
+      alert("אין משתמש מחובר במצב אימות פעיל.");
+      return;
+    }
+    
+    const passwordInput = document.getElementById('settings-password-input');
+    const password = passwordInput ? passwordInput.value : '';
+    if (password.length < 6) {
+      alert("הסיסמה חייבת להכיל לפחות 6 תווים.");
+      return;
+    }
+    
+    const saveBtn = document.getElementById('save-settings-password-btn');
+    if (saveBtn) {
+      saveBtn.disabled = true;
+      saveBtn.textContent = "...שומר סיסמה ⏳";
+    }
+    
+    try {
+      const credential = EmailAuthProvider.credential(currentUser.email, password);
+      await linkWithCredential(currentUser, credential);
+      alert("הסיסמה נשמרה בהצלחה! מעתה תוכל להתחבר גם באמצעות אימייל וסיסמה.");
+      if (passwordInput) passwordInput.value = '';
+    } catch (saveError) {
+      console.error("Failed to link email credential from settings:", saveError.code, saveError.message);
+      let userFriendlyMessage = "שמירת הסיסמה נכשלה. אנא נסה שוב.";
+      if (saveError.code === 'auth/credential-already-in-use') {
+        userFriendlyMessage = "האימייל הזה כבר מקושר לחשבון אחר במערכת.";
+      } else if (saveError.code === 'auth/requires-recent-login') {
+        userFriendlyMessage = "פעולה זו דורשת התחברות מחדש מטעמי אבטחה.";
+      }
+      alert(userFriendlyMessage);
+    } finally {
+      if (saveBtn) {
+        saveBtn.disabled = false;
+        saveBtn.textContent = "שמור סיסמה";
+      }
     }
   });
 }
