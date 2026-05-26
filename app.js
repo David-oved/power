@@ -1006,6 +1006,11 @@ navTabs.forEach((tab) => {
     });
     
     console.log(`Switched to tab: ${targetTab}`);
+    if (targetTab === 'analytics') {
+      if (typeof renderAnalytics === 'function') {
+        renderAnalytics();
+      }
+    }
 
     // NEW BEHAVIOR: Expand nav on tab switch, let it stay open until user interacts with the tab content
     // The nav collapses only when user scrolls or takes an action inside the tab
@@ -1603,6 +1608,11 @@ function renderExercisePickerList() {
       // Open metric selector modal
       const metricModal = document.getElementById('metric-selector-modal');
       if (metricModal) metricModal.classList.remove('hide');
+
+      // Trigger Previous Performance Popup Alert if history exists
+      if (typeof checkAndShowPreviousPerformance === 'function') {
+        checkAndShowPreviousPerformance(ex.name);
+      }
     });
 
     // ⭐ Favorite Star Button
@@ -2256,90 +2266,9 @@ function cancelWorkoutSession() {
 
 // Render Workout History list in Tab 3
 function renderWorkoutHistory() {
-  const listContainer = document.getElementById('workout-history-list');
-  if (!listContainer) return;
-  
-  listContainer.innerHTML = '';
-  
-  if (workoutHistory.length === 0) {
-    const emptyState = document.createElement('div');
-    emptyState.className = 'history-empty-state';
-    emptyState.innerHTML = `
-      <span class="empty-state-emoji">📊</span>
-      <h3 style="font-family: var(--font-display); font-size: 1.2rem; font-weight: 700; color: #ffffff;">אין אימונים מוקלטים עדיין</h3>
-      <p style="color: var(--text-muted); font-size: 0.88rem; line-height: 1.5; margin-top: 6px;">האימונים שתבצע ותסיים יישמרו כאן לצמיתות בצורה מסודרת עם פרטי נפח ומשכים!</p>
-    `;
-    listContainer.appendChild(emptyState);
-    return;
+  if (typeof renderAnalytics === 'function') {
+    renderAnalytics();
   }
-  
-  // Sort history descending (latest first)
-  const sorted = [...workoutHistory].sort((a, b) => b.date - a.date);
-  
-  sorted.forEach(log => {
-    const card = document.createElement('div');
-    card.className = 'history-card';
-    
-    // Calculate total sets & volume
-    let totalSets = 0;
-    let totalVolume = 0;
-    
-    log.exercises.forEach(ex => {
-      ex.sets.forEach(set => {
-        if (set.completed) {
-          totalSets++;
-          const reps = Number(set.reps) || 0;
-          const weight = Number(set.weight) || 0;
-          totalVolume += (reps * weight);
-        }
-      });
-    });
-    
-    // Duration formatting
-    let durationText = '';
-    if (log.duration < 60) {
-      durationText = 'פחות מדקה';
-    } else if (log.duration < 3600) {
-      durationText = `${Math.floor(log.duration / 60)} דק׳`;
-    } else {
-      const hrs = Math.floor(log.duration / 3600);
-      const mins = Math.floor((log.duration % 3600) / 60);
-      durationText = `${hrs} שעות ו-${mins} דק׳`;
-    }
-    
-    // Date formatting (Hebrew)
-    const dateObj = new Date(log.date);
-    const dateFormatted = dateObj.toLocaleDateString('he-IL', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'numeric',
-      year: 'numeric'
-    });
-    
-    const dispName = log.locationName || (log.location === 'gym' ? 'חדר כושר' : 'פארק');
-    const dispEmoji = log.locationEmoji || (log.location === 'gym' ? '🏋️‍♂️' : '🌳');
-    
-    card.innerHTML = `
-      <div class="history-card-header">
-        <span class="history-card-badge ${log.location === 'gym' ? 'badge-gym' : 'badge-park'}">
-          ${dispEmoji} ${dispName}
-        </span>
-        <div class="history-card-date">${dateFormatted}</div>
-      </div>
-      <div class="history-card-stats">
-        <div class="history-stat">⏱️ <strong>${durationText}</strong></div>
-        <div class="history-stat">💪 <strong>${log.exercises.length} תרגילים</strong> (${totalSets} סטים)</div>
-        <div class="history-stat">📊 נפח: <strong>${totalVolume.toLocaleString()} ק״ג</strong></div>
-      </div>
-    `;
-    
-    // Card clicking opens Edit Modal
-    card.addEventListener('click', () => {
-      openEditModal(log.id);
-    });
-    
-    listContainer.appendChild(card);
-  });
 }
 
 // Workout History Editor Modal system
@@ -3006,6 +2935,1061 @@ function openSetLoggingModal(ex, exIdx) {
     setLogModal.classList.remove('hide');
   }
 }
+
+
+// ==========================================================================
+// 20. PREMIUM WORKOUTS & METRICS EXTENSIONS
+// ==========================================================================
+
+// Global settings for Analytics Tab
+let filterTimeSelection = 'all';
+let filterStartDate = null;
+let filterEndDate = null;
+let filterLocation = 'all';
+let filterMuscleGroup = 'all';
+let selectedAnalyticsExercise = null;
+let activeChartType = '1rm'; // '1rm', 'weight', 'volume'
+let activeAnalyticsView = 'calendar'; // 'calendar', 'heatmap', 'split', 'list'
+let currentCalendarDate = new Date();
+
+// Hebrew Quotes for Rest Timer Screen
+const HEBREW_QUOTES = [
+  "אין קיצורי דרך למקומות ששווה להגיע אליהם! 🔥",
+  "כל חזרה מקרבת אותך לגרסה הטובה ביותר של עצמך. 💪",
+  "הכאב של היום הוא הכוח של מחר! ⚡",
+  "אל תפסיק כשזה קשה, תפסיק כשסיימת. 🏆",
+  "המשמעת העצמית שלך היא המפתח לברזל! 🏋️‍♂️",
+  "אתה נלחם נגד עצמך של אתמול, לא נגד אף אחד אחר. 🌟",
+  "הפוך את התירוצים שלך לתוצאות בקצה הברזל! 🔥",
+  "המנוחה מכינה אותך לסט המושלם הבא. תתרכז! 🎯"
+];
+
+// Circular progress variable
+let restTimerTotalDuration = 90;
+
+// Override startRestTimer to handle premium circular animation, quotes, and total duration tracking
+const originalStartRestTimer = startRestTimer;
+startRestTimer = function(seconds = 90) {
+  restTimerTotalDuration = seconds;
+  restTimerSecondsLeft = seconds;
+
+  // Clear existing
+  if (restTimerInterval) {
+    clearInterval(restTimerInterval);
+    restTimerInterval = null;
+  }
+
+  const bubble = document.getElementById('rest-timer-bubble');
+  if (bubble) {
+    bubble.classList.remove('hide');
+    bubble.classList.remove('expired');
+  }
+
+  // Display a random motivational quote
+  const quoteEl = document.getElementById('rest-timer-quote');
+  if (quoteEl) {
+    const randIdx = Math.floor(Math.random() * HEBREW_QUOTES.length);
+    quoteEl.textContent = `"${HEBREW_QUOTES[randIdx]}"`;
+  }
+
+  updateRestTimerUI();
+
+  restTimerInterval = setInterval(() => {
+    restTimerSecondsLeft--;
+    if (restTimerSecondsLeft <= 0) {
+      restTimerSecondsLeft = 0;
+      updateRestTimerUI();
+      handleRestTimerExpiration();
+    } else {
+      updateRestTimerUI();
+    }
+  }, 1000);
+};
+
+// Override updateRestTimerUI to update SVG circular progress
+const originalUpdateRestTimerUI = updateRestTimerUI;
+updateRestTimerUI = function() {
+  const countdownDisplay = document.getElementById('rest-timer-countdown');
+  if (!countdownDisplay) return;
+
+  const mins = Math.floor(restTimerSecondsLeft / 60);
+  const secs = restTimerSecondsLeft % 60;
+  countdownDisplay.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+  // Update SVG Circular Indicator
+  const progressCircle = document.getElementById('rest-timer-progress-circle');
+  if (progressCircle) {
+    const pct = restTimerTotalDuration > 0 ? restTimerSecondsLeft / restTimerTotalDuration : 0;
+    // Circular length is 283 (approx 2 * Math.PI * 45)
+    const offset = Math.max(0, Math.min(283, 283 * (1 - pct)));
+    progressCircle.style.strokeDashoffset = offset;
+  }
+};
+
+// Adjust rest timer control bindings
+onDOMReady(() => {
+  const plus30 = document.getElementById('rest-timer-plus-30');
+  const minus30 = document.getElementById('rest-timer-minus-30');
+
+  if (plus30) {
+    plus30.addEventListener('click', (e) => {
+      restTimerTotalDuration = Math.max(restTimerTotalDuration, restTimerSecondsLeft);
+      updateRestTimerUI();
+    });
+  }
+  if (minus30) {
+    minus30.addEventListener('click', (e) => {
+      updateRestTimerUI();
+    });
+  }
+});
+
+// A. Previous Workout Performance Alert popup
+function checkAndShowPreviousPerformance(exerciseName) {
+  if (!workoutHistory || workoutHistory.length === 0) return;
+
+  // Find the last completed training session containing this exercise (latest first)
+  const sorted = [...workoutHistory].sort((a, b) => b.date - a.date);
+  const prevWorkout = sorted.find(w => w.exercises && w.exercises.some(ex => ex.name === exerciseName && ex.sets && ex.sets.some(s => s.completed)));
+  if (!prevWorkout) return;
+
+  const prevEx = prevWorkout.exercises.find(ex => ex.name === exerciseName);
+  if (!prevEx) return;
+
+  const completedSets = prevEx.sets.filter(s => s.completed);
+  if (completedSets.length === 0) return;
+
+  // Set popup text
+  const titleEl = document.getElementById('prev-workout-alert-title');
+  const dateEl = document.getElementById('prev-workout-alert-date');
+  const container = document.getElementById('prev-workout-alert-sets');
+
+  if (titleEl) titleEl.textContent = exerciseName;
+  if (dateEl) {
+    const dateObj = new Date(prevWorkout.date);
+    const dateStr = dateObj.toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric', year: 'numeric' });
+    const locationStr = prevWorkout.locationName || (prevWorkout.location === 'gym' ? 'חדר כושר' : 'פארק');
+    const emoji = prevWorkout.locationEmoji || (prevWorkout.location === 'gym' ? '🏋️‍♂️' : '🌳');
+    dateEl.textContent = `אימון אחרון (${emoji} ${locationStr}): ${dateStr}`;
+  }
+
+  if (container) {
+    container.innerHTML = '';
+    completedSets.forEach((s, idx) => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; margin-bottom: 6px; font-size: 0.9rem; color: #ffffff;';
+      
+      let valText = '';
+      if (prevEx.metricType === 'both') {
+        valText = `<strong>${s.weight} ק״ג</strong> × <strong>${s.reps} חזרות</strong>`;
+      } else if (prevEx.metricType === 'weight') {
+        valText = `<strong>${s.weight} ק״ג</strong>`;
+      } else {
+        valText = `<strong>${s.reps} חזרות</strong>`;
+      }
+
+      row.innerHTML = `
+        <span style="font-weight: 700; color: #ef4444;">סט ${idx + 1}</span>
+        <span style="direction: ltr;">${valText}</span>
+      `;
+      container.appendChild(row);
+    });
+  }
+
+  // Show the alert modal
+  const modal = document.getElementById('prev-workout-alert-modal');
+  if (modal) modal.classList.remove('hide');
+}
+
+// Bind Previous Performance Alert buttons
+onDOMReady(() => {
+  const modal = document.getElementById('prev-workout-alert-modal');
+  const closeBtn = document.getElementById('close-prev-workout-alert-btn');
+  const okBtn = document.getElementById('prev-workout-alert-ok-btn');
+
+  const dismiss = () => {
+    if (modal) modal.classList.add('hide');
+  };
+
+  if (closeBtn) closeBtn.addEventListener('click', dismiss);
+  if (okBtn) okBtn.addEventListener('click', dismiss);
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) dismiss();
+    });
+  }
+});
+
+// B. Plate Calculator
+function calculatePlates(targetWeight) {
+  const displayTarget = document.getElementById('plate-calc-target-weight');
+  if (displayTarget) displayTarget.textContent = targetWeight;
+
+  const stack = document.getElementById('plates-stack-left');
+  const list = document.getElementById('plates-list-needed');
+
+  if (stack) stack.innerHTML = '';
+  if (list) list.innerHTML = '';
+
+  const bar = 20;
+  if (targetWeight <= bar) {
+    if (list) list.innerHTML = '<span style="color: var(--text-muted); font-size: 0.9rem;">מוט ריק בלבד (20 ק״ג) 🏋️‍♂️</span>';
+    return;
+  }
+
+  let weightPerSide = (targetWeight - bar) / 2;
+  const plates = [25, 20, 15, 10, 5, 2.5, 1.25];
+  const needed = [];
+
+  let temp = weightPerSide;
+  for (const p of plates) {
+    const count = Math.floor(temp / p);
+    if (count > 0) {
+      needed.push({ weight: p, count: count });
+      temp = Math.round((temp - p * count) * 100) / 100;
+    }
+  }
+
+  if (needed.length === 0) {
+    if (list) list.innerHTML = '<span style="color: var(--text-muted); font-size: 0.9rem;">אין שילוב פלטות מתאים</span>';
+    return;
+  }
+
+  // Display list chips
+  needed.forEach(item => {
+    const chip = document.createElement('span');
+    chip.className = 'plate-chip';
+    chip.textContent = `${item.weight} ק״ג × ${item.count}`;
+    if (list) list.appendChild(chip);
+  });
+
+  // Render visual stack on barbell rod sleeve
+  const colors = {
+    25: '#dc2626', // Molten red
+    20: '#2563eb', // Heavy blue
+    15: '#eab308', // Gold yellow
+    10: '#16a34a', // Forest green
+    5: '#94a3b8',  // Sleek silver
+    2.5: '#475569', // Iron charcoal
+    1.25: '#1e293b' // Micro steel
+  };
+
+  const heights = { 25: 86, 20: 80, 15: 72, 10: 62, 5: 50, 2.5: 42, 1.25: 34 };
+  const widths = { 25: 18, 20: 16, 15: 14, 10: 12, 5: 10, 2.5: 8, 1.25: 6 };
+
+  needed.forEach(item => {
+    for (let i = 0; i < item.count; i++) {
+      const plate = document.createElement('div');
+      const h = heights[item.weight] || 40;
+      const w = widths[item.weight] || 8;
+      const c = colors[item.weight] || '#ffffff';
+
+      plate.style.cssText = `
+        width: ${w}px;
+        height: ${h}px;
+        background: ${c};
+        border-radius: 4px;
+        box-shadow: 0 0 8px rgba(0,0,0,0.6), inset 0 2px 4px rgba(255,255,255,0.25);
+        border: 1px solid rgba(0, 0, 0, 0.4);
+        transition: transform 0.2s ease;
+      `;
+      plate.title = `${item.weight} ק״ג`;
+      if (stack) stack.appendChild(plate);
+    }
+  });
+}
+
+// Bind Barbell Plate Calculator trigger & close
+onDOMReady(() => {
+  const trigger = document.getElementById('trigger-plate-calc-btn');
+  const modal = document.getElementById('plate-calculator-modal');
+  const close = document.getElementById('close-plate-calc-btn');
+
+  if (trigger && modal) {
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const slider = document.getElementById('weight-range-slider');
+      const target = slider ? parseFloat(slider.value) || 60 : 60;
+      calculatePlates(target);
+      modal.classList.remove('hide');
+    });
+  }
+
+  const dismiss = () => {
+    if (modal) modal.classList.add('hide');
+  };
+
+  if (close) close.addEventListener('click', dismiss);
+  if (modal) {
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) dismiss();
+    });
+  }
+});
+
+// C. Metrics Tab Rendering and Event Listeners
+function initAnalyticsTab() {
+  console.log("Initializing premium Analytics Dashboard controllers...");
+
+  // Quick Time filter chips
+  const chips = document.querySelectorAll('#tab-analytics .filter-chip');
+  const customDateInputs = document.getElementById('custom-date-inputs');
+
+  chips.forEach(c => {
+    c.addEventListener('click', () => {
+      chips.forEach(x => x.classList.remove('active'));
+      c.classList.add('active');
+
+      filterTimeSelection = c.dataset.time;
+
+      if (filterTimeSelection === 'custom') {
+        if (customDateInputs) customDateInputs.style.display = 'flex';
+      } else {
+        if (customDateInputs) customDateInputs.style.display = 'none';
+      }
+
+      renderAnalytics();
+    });
+  });
+
+  // Custom date selection inputs
+  const startD = document.getElementById('filter-start-date');
+  const endD = document.getElementById('filter-end-date');
+
+  const onDateChange = () => {
+    filterStartDate = startD && startD.value ? new Date(startD.value) : null;
+    filterEndDate = endD && endD.value ? new Date(endD.value) : null;
+    renderAnalytics();
+  };
+
+  if (startD) startD.addEventListener('change', onDateChange);
+  if (endD) endD.addEventListener('change', onDateChange);
+
+  // Dropdown filter triggers
+  const locationSelect = document.getElementById('filter-location-select');
+  const muscleSelect = document.getElementById('filter-muscle-select');
+
+  if (locationSelect) {
+    locationSelect.addEventListener('change', () => {
+      filterLocation = locationSelect.value;
+      renderAnalytics();
+    });
+  }
+
+  if (muscleSelect) {
+    muscleSelect.addEventListener('change', () => {
+      filterMuscleGroup = muscleSelect.value;
+      renderAnalytics();
+    });
+  }
+
+  // Toggles for Visual Variations
+  const viewBtns = document.querySelectorAll('#tab-analytics .view-toggle-btn');
+  viewBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      viewBtns.forEach(x => x.classList.remove('active'));
+      btn.classList.add('active');
+
+      activeAnalyticsView = btn.dataset.view;
+      renderActiveVariationView();
+    });
+  });
+
+  // Autocomplete suggestions searchable exercise picker
+  const searchInput = document.getElementById('analytics-exercise-search');
+  const dropdown = document.getElementById('analytics-suggestions-dropdown');
+  const clearBtn = document.getElementById('clear-dashboard-btn');
+
+  if (searchInput && dropdown) {
+    searchInput.addEventListener('input', () => {
+      const val = searchInput.value.trim().toLowerCase();
+      if (!val) {
+        dropdown.classList.add('hide');
+        return;
+      }
+
+      // Collect all exercises from history and standard lists
+      const set = new Set();
+      if (typeof exercisesList !== 'undefined') {
+        exercisesList.forEach(e => set.add(e.name));
+      }
+      workoutHistory.forEach(w => {
+        if (w.exercises) w.exercises.forEach(e => set.add(e.name));
+      });
+
+      const matches = Array.from(set).filter(name => name.toLowerCase().includes(val));
+
+      if (matches.length === 0) {
+        dropdown.innerHTML = '<div style="padding: 10px; color: var(--text-muted); font-size: 0.85rem; text-align: right; direction: rtl;">לא נמצאו תרגילים מתאימים</div>';
+      } else {
+        dropdown.innerHTML = '';
+        matches.slice(0, 5).forEach(name => {
+          const item = document.createElement('div');
+          item.className = 'suggestion-item';
+          item.style.cssText = 'padding: 10px 14px; color: #fff; font-size: 0.9rem; font-weight: 600; cursor: pointer; text-align: right; direction: rtl; border-bottom: 1px solid rgba(255,255,255,0.03);';
+          item.textContent = name;
+          item.addEventListener('click', () => {
+            selectedAnalyticsExercise = name;
+            searchInput.value = name;
+            dropdown.classList.add('hide');
+
+            // Open dashboard
+            const db = document.getElementById('analytics-exercise-dashboard');
+            const dbName = document.getElementById('dashboard-exercise-name');
+            if (db) db.classList.remove('hide');
+            if (dbName) dbName.textContent = name;
+
+            renderExerciseAnalyticsDashboard();
+          });
+          dropdown.appendChild(item);
+        });
+      }
+      dropdown.classList.remove('hide');
+    });
+
+    // Close suggestions on outside click
+    document.addEventListener('click', (e) => {
+      if (e.target !== searchInput && e.target !== dropdown) {
+        dropdown.classList.add('hide');
+      }
+    });
+  }
+
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      selectedAnalyticsExercise = null;
+      if (searchInput) searchInput.value = '';
+      const db = document.getElementById('analytics-exercise-dashboard');
+      if (db) db.classList.add('hide');
+    });
+  }
+
+  // Chart Switcher tabs listener
+  const chartTabs = document.querySelectorAll('#tab-analytics .chart-tab');
+  chartTabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      chartTabs.forEach(x => x.classList.remove('active'));
+      tab.classList.add('active');
+
+      activeChartType = tab.dataset.chart;
+      renderExerciseAnalyticsDashboard();
+    });
+  });
+
+  // Calendar month navigation
+  const prevMonthBtn = document.getElementById('calendar-prev-month');
+  const nextMonthBtn = document.getElementById('calendar-next-month');
+
+  if (prevMonthBtn) {
+    prevMonthBtn.addEventListener('click', () => {
+      currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
+      renderCalendarView();
+    });
+  }
+  if (nextMonthBtn) {
+    nextMonthBtn.addEventListener('click', () => {
+      currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
+      renderCalendarView();
+    });
+  }
+}
+
+// Orchestrator for tab refresh
+function renderAnalytics() {
+  console.log("Refreshing Analytics view with active filters...");
+  renderActiveVariationView();
+  if (selectedAnalyticsExercise) {
+    renderExerciseAnalyticsDashboard();
+  }
+}
+
+// Get history array filtered by advanced controls
+function getFilteredHistory() {
+  let result = [...workoutHistory];
+
+  // Time Filter
+  const now = new Date();
+  if (filterTimeSelection === '7') {
+    const limit = new Date();
+    limit.setDate(now.getDate() - 7);
+    result = result.filter(w => new Date(w.date) >= limit);
+  } else if (filterTimeSelection === '30') {
+    const limit = new Date();
+    limit.setDate(now.getDate() - 30);
+    result = result.filter(w => new Date(w.date) >= limit);
+  } else if (filterTimeSelection === 'custom') {
+    if (filterStartDate) {
+      result = result.filter(w => new Date(w.date) >= filterStartDate);
+    }
+    if (filterEndDate) {
+      const endLimit = new Date(filterEndDate);
+      endLimit.setHours(23, 59, 59, 999);
+      result = result.filter(w => new Date(w.date) <= endLimit);
+    }
+  }
+
+  // Location Filter
+  if (filterLocation !== 'all') {
+    result = result.filter(w => w.location === filterLocation);
+  }
+
+  // Muscle Group Filter
+  if (filterMuscleGroup !== 'all') {
+    result = result.filter(w => {
+      return w.exercises && w.exercises.some(ex => {
+        let cat = 'אחר';
+        if (typeof exercisesList !== 'undefined') {
+          const matched = exercisesList.find(x => x.name === ex.name);
+          if (matched) cat = matched.category || 'אחר';
+        }
+        return cat === filterMuscleGroup;
+      });
+    });
+  }
+
+  return result.sort((a, b) => b.date - a.date);
+}
+
+// Switch between views
+function renderActiveVariationView() {
+  const views = document.querySelectorAll('#tab-analytics .analytics-sub-view');
+  views.forEach(v => v.classList.add('hide'));
+
+  const activeViewEl = document.getElementById(`analytics-${activeAnalyticsView}-view`);
+  if (activeViewEl) activeViewEl.classList.remove('hide');
+
+  if (activeAnalyticsView === 'calendar') {
+    renderCalendarView();
+  } else if (activeAnalyticsView === 'heatmap') {
+    renderHeatmapView();
+  } else if (activeAnalyticsView === 'split') {
+    renderMuscleSplitView();
+  } else if (activeAnalyticsView === 'list') {
+    renderAccordionHistoryView();
+  }
+}
+
+// D. Single Exercise progression Bezier SVG Chart Dashboard
+function renderExerciseAnalyticsDashboard() {
+  if (!selectedAnalyticsExercise) return;
+
+  const filteredHistory = getFilteredHistory();
+  const exerciseSessions = [];
+  const chronological = [...filteredHistory].sort((a, b) => a.date - b.date);
+
+  chronological.forEach(w => {
+    if (!w.exercises) return;
+    const ex = w.exercises.find(e => e.name === selectedAnalyticsExercise);
+    if (ex && ex.sets && ex.sets.some(s => s.completed)) {
+      exerciseSessions.push({
+        date: new Date(w.date),
+        sets: ex.sets.filter(s => s.completed),
+        metricType: ex.metricType || 'both'
+      });
+    }
+  });
+
+  const chartSvg = document.getElementById('bezier-chart-svg');
+  const noDataEl = document.getElementById('chart-no-data');
+  const prEl = document.getElementById('dashboard-pr-value');
+  const rmEl = document.getElementById('dashboard-1rm-value');
+  const volEl = document.getElementById('dashboard-vol-value');
+
+  if (!chartSvg) return;
+
+  if (exerciseSessions.length === 0) {
+    if (noDataEl) noDataEl.style.display = 'flex';
+    if (prEl) prEl.textContent = '--';
+    if (rmEl) rmEl.textContent = '--';
+    if (volEl) volEl.textContent = '--';
+    
+    const areaPath = document.getElementById('chart-area-path');
+    const linePath = document.getElementById('chart-line-path');
+    const pointsGroup = document.getElementById('chart-points-group');
+    const gridlines = document.getElementById('chart-gridlines');
+    if (areaPath) areaPath.setAttribute('d', '');
+    if (linePath) linePath.setAttribute('d', '');
+    if (pointsGroup) pointsGroup.innerHTML = '';
+    if (gridlines) gridlines.innerHTML = '';
+    return;
+  }
+
+  if (noDataEl) noDataEl.style.display = 'none';
+
+  let maxWeight = 0;
+  let max1RM = 0;
+  let totalVolume = 0;
+  const points = [];
+
+  exerciseSessions.forEach(session => {
+    let sessionMaxWeight = 0;
+    let sessionMax1RM = 0;
+    let sessionVolume = 0;
+
+    session.sets.forEach(s => {
+      const w = parseFloat(s.weight) || 0;
+      const r = parseInt(s.reps, 10) || 0;
+
+      if (w > sessionMaxWeight) sessionMaxWeight = w;
+      const oneRM = r === 1 ? w : w * (1 + r / 30);
+      if (oneRM > sessionMax1RM) sessionMax1RM = oneRM;
+      sessionVolume += (w * r);
+    });
+
+    totalVolume += sessionVolume;
+    if (sessionMaxWeight > maxWeight) maxWeight = sessionMaxWeight;
+    if (sessionMax1RM > max1RM) max1RM = sessionMax1RM;
+
+    let yValue = 0;
+    if (activeChartType === '1rm') {
+      yValue = sessionMax1RM;
+    } else if (activeChartType === 'weight') {
+      yValue = sessionMaxWeight;
+    } else {
+      yValue = sessionVolume;
+    }
+
+    points.push({
+      date: session.date,
+      value: yValue
+    });
+  });
+
+  if (prEl) prEl.textContent = `${maxWeight} ק״ג`;
+  if (rmEl) rmEl.textContent = `${Math.round(max1RM)} ק״ג`;
+  if (volEl) volEl.textContent = `${totalVolume.toLocaleString()} ק״ג`;
+
+  const width = chartSvg.clientWidth || 320;
+  const height = chartSvg.clientHeight || 160;
+
+  const paddingX = 30;
+  const paddingY = 20;
+
+  const minVal = Math.min(...points.map(p => p.value)) * 0.9;
+  const maxVal = Math.max(...points.map(p => p.value)) * 1.1 || 100;
+  const valRange = (maxVal - minVal) || 1;
+
+  const svgCoords = points.map((p, idx) => {
+    const x = points.length > 1 
+      ? paddingX + (idx / (points.length - 1)) * (width - 2 * paddingX)
+      : width / 2;
+    const y = height - paddingY - ((p.value - minVal) / valRange) * (height - 2 * paddingY);
+    return { x, y, val: p.value, date: p.date };
+  });
+
+  let dLine = '';
+  let dArea = '';
+
+  if (svgCoords.length === 1) {
+    const c = svgCoords[0];
+    dLine = `M ${c.x - 10} ${c.y} L ${c.x + 10} ${c.y}`;
+    dArea = `M ${c.x - 10} ${c.y} L ${c.x + 10} ${c.y} L ${c.x + 10} ${height} L ${c.x - 10} ${height} Z`;
+  } else {
+    dLine = `M ${svgCoords[0].x} ${svgCoords[0].y}`;
+    for (let i = 0; i < svgCoords.length - 1; i++) {
+      const curr = svgCoords[i];
+      const next = svgCoords[i + 1];
+      const cpX1 = curr.x + (next.x - curr.x) / 3;
+      const cpY1 = curr.y;
+      const cpX2 = curr.x + 2 * (next.x - curr.x) / 3;
+      const cpY2 = next.y;
+      dLine += ` C ${cpX1} ${cpY1}, ${cpX2} ${cpY2}, ${next.x} ${next.y}`;
+    }
+    dArea = dLine + ` L ${svgCoords[svgCoords.length - 1].x} ${height} L ${svgCoords[0].x} ${height} Z`;
+  }
+
+  const areaPath = document.getElementById('chart-area-path');
+  const linePath = document.getElementById('chart-line-path');
+  const pointsGroup = document.getElementById('chart-points-group');
+  const gridlines = document.getElementById('chart-gridlines');
+
+  if (areaPath) areaPath.setAttribute('d', dArea);
+  if (linePath) {
+    linePath.setAttribute('d', dLine);
+    linePath.style.stroke = 'var(--electric-blue-light)';
+    linePath.style.strokeWidth = '3';
+    linePath.style.fill = 'none';
+  }
+
+  if (gridlines) {
+    gridlines.innerHTML = '';
+    for (let i = 0; i < 3; i++) {
+      const y = paddingY + (i / 2) * (height - 2 * paddingY);
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', '0');
+      line.setAttribute('y1', y);
+      line.setAttribute('x2', width);
+      line.setAttribute('y2', y);
+      line.setAttribute('stroke', 'rgba(255, 255, 255, 0.05)');
+      line.setAttribute('stroke-dasharray', '4, 4');
+      gridlines.appendChild(line);
+    }
+  }
+
+  if (pointsGroup) {
+    pointsGroup.innerHTML = '';
+    svgCoords.forEach(c => {
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('cx', c.x);
+      circle.setAttribute('cy', c.y);
+      circle.setAttribute('r', '5');
+      circle.setAttribute('fill', '#ffffff');
+      circle.setAttribute('stroke', 'var(--color-danger)');
+      circle.setAttribute('stroke-width', '2.5');
+      circle.style.cursor = 'pointer';
+
+      circle.addEventListener('mouseover', () => {
+        circle.setAttribute('r', '7');
+        const dateStr = c.date.toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric' });
+        circle.title = `${dateStr}: ${Math.round(c.val)} ק״ג`;
+      });
+      circle.addEventListener('mouseout', () => {
+        circle.setAttribute('r', '5');
+      });
+      pointsGroup.appendChild(circle);
+    });
+  }
+}
+
+// E. Monthly Calendar layout renderer
+function renderCalendarView() {
+  const container = document.getElementById('calendar-days-grid');
+  const monthLabel = document.getElementById('calendar-month-label');
+
+  if (!container || !monthLabel) return;
+
+  container.innerHTML = '';
+  const year = currentCalendarDate.getFullYear();
+  const month = currentCalendarDate.getMonth();
+
+  const monthsHebrew = [
+    'ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני',
+    'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'
+  ];
+  monthLabel.textContent = `${monthsHebrew[month]} ${year}`;
+
+  const firstDayIndex = new Date(year, month, 1).getDay();
+  const totalDays = new Date(year, month + 1, 0).getDate();
+
+  const filtered = getFilteredHistory();
+  const workoutsByDay = {};
+
+  filtered.forEach(w => {
+    const d = new Date(w.date);
+    if (d.getFullYear() === year && d.getMonth() === month) {
+      const dayNum = d.getDate();
+      if (!workoutsByDay[dayNum]) workoutsByDay[dayNum] = [];
+      workoutsByDay[dayNum].push(w);
+    }
+  });
+
+  for (let i = 0; i < firstDayIndex; i++) {
+    const empty = document.createElement('div');
+    empty.className = 'calendar-day-empty';
+    container.appendChild(empty);
+  }
+
+  for (let day = 1; day <= totalDays; day++) {
+    const dayCell = document.createElement('div');
+    dayCell.className = 'calendar-day-cell';
+    dayCell.textContent = day;
+
+    const today = new Date();
+    if (today.getDate() === day && today.getMonth() === month && today.getFullYear() === year) {
+      dayCell.classList.add('today');
+    }
+
+    const sessions = workoutsByDay[day];
+    if (sessions && sessions.length > 0) {
+      dayCell.classList.add('has-workout');
+
+      const dot = document.createElement('span');
+      dot.className = 'calendar-workout-dot';
+      dayCell.appendChild(dot);
+
+      dayCell.addEventListener('click', (e) => {
+        e.stopPropagation();
+        
+        let detailsHtml = sessions.map(w => {
+          const duration = w.duration ? Math.round(w.duration / 60) : 0;
+          return `
+            <div style="padding: 10px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; margin-bottom: 8px; direction: rtl; text-align: right;">
+              <div style="display: flex; justify-content: space-between; font-weight: 700; color: #fff;">
+                <span>${w.locationEmoji || '🏋️'} ${w.locationName || 'אימון'}</span>
+                <span style="font-size: 0.8rem; color: var(--text-muted);">${duration} דק׳</span>
+              </div>
+              <button onclick="openEditModal(${w.id})" class="btn btn-secondary" style="width: 100%; margin-top: 8px; padding: 6px !important; font-size: 0.75rem !important;">🛠️ ערוך אימון</button>
+            </div>
+          `;
+        }).join('');
+
+        const summaryAlert = document.createElement('div');
+        summaryAlert.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 1600;';
+        summaryAlert.innerHTML = `
+          <div class="workout-modal-card glass-modal-card" style="max-width: 320px; width: 90%; border-radius: 20px; padding: 1.2rem; text-align: center; border: 1px solid rgba(255,255,255,0.08);">
+            <h4 style="margin: 0 0 12px 0; font-size: 1.1rem; color: #fff; direction: rtl;">אימונים ב-${day}/${month + 1}/${year}</h4>
+            ${detailsHtml}
+            <button class="btn btn-primary close-calendar-alert" style="width: 100%; padding: 10px; margin-top: 10px; border-radius: 10px;">סגור</button>
+          </div>
+        `;
+
+        summaryAlert.querySelector('.close-calendar-alert').addEventListener('click', () => {
+          summaryAlert.remove();
+        });
+
+        document.body.appendChild(summaryAlert);
+      });
+    }
+    container.appendChild(dayCell);
+  }
+}
+
+// F. Annual Github-style Heatmap renderer
+function renderHeatmapView() {
+  const svg = document.getElementById('heatmap-svg');
+  if (!svg) return;
+
+  svg.innerHTML = '';
+
+  const filtered = getFilteredHistory();
+  const workoutsByDateStr = {};
+
+  filtered.forEach(w => {
+    const d = new Date(w.date);
+    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    if (!workoutsByDateStr[dateStr]) workoutsByDateStr[dateStr] = 0;
+    workoutsByDateStr[dateStr]++;
+  });
+
+  const now = new Date();
+  const startDate = new Date();
+  startDate.setDate(now.getDate() - 364);
+
+  const startDay = startDate.getDay();
+  startDate.setDate(startDate.getDate() - startDay);
+
+  const rectSize = 10;
+  const gap = 3;
+
+  for (let week = 0; week < 53; week++) {
+    for (let day = 0; day < 7; day++) {
+      const currentDate = new Date(startDate);
+      currentDate.setDate(startDate.getDate() + (week * 7) + day);
+
+      if (currentDate > now) continue;
+
+      const dateStr = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}-${String(currentDate.getDate()).padStart(2, '0')}`;
+      const count = workoutsByDateStr[dateStr] || 0;
+
+      let color = 'rgba(255, 255, 255, 0.05)';
+      if (count === 1) color = '#fca5a5';
+      else if (count === 2) color = '#f87171';
+      else if (count >= 3) color = '#dc2626';
+
+      const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+      rect.setAttribute('x', String(week * (rectSize + gap)));
+      rect.setAttribute('y', String(day * (rectSize + gap)));
+      rect.setAttribute('width', String(rectSize));
+      rect.setAttribute('height', String(rectSize));
+      rect.setAttribute('rx', '2');
+      rect.setAttribute('fill', color);
+      
+      const formattedDate = currentDate.toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric' });
+      rect.setAttribute('title', `${formattedDate}: ${count} אימונים`);
+
+      rect.addEventListener('mouseover', () => {
+        rect.setAttribute('stroke', '#ffffff');
+        rect.setAttribute('stroke-width', '1');
+      });
+      rect.addEventListener('mouseout', () => {
+        rect.removeAttribute('stroke');
+      });
+
+      svg.appendChild(rect);
+    }
+  }
+}
+
+// G. Muscle volume distribution progress split
+function renderMuscleSplitView() {
+  const container = document.getElementById('muscle-splits-container');
+  const adviceEl = document.getElementById('muscle-recommendation-box');
+
+  if (!container || !adviceEl) return;
+
+  container.innerHTML = '';
+
+  const filtered = getFilteredHistory();
+  const volumeByMuscle = {
+    'חזה': 0, 'גב': 0, 'כתפיים': 0, 'רגליים': 0, 'ידיים': 0, 'בטן': 0, 'אירובי': 0, 'ליבה': 0, 'אחר': 0
+  };
+
+  let totalOverallVolume = 0;
+
+  filtered.forEach(w => {
+    if (!w.exercises) return;
+    w.exercises.forEach(ex => {
+      let cat = 'אחר';
+      if (typeof exercisesList !== 'undefined') {
+        const matched = exercisesList.find(x => x.name === ex.name);
+        if (matched) cat = matched.category || 'אחר';
+      }
+
+      ex.sets.forEach(s => {
+        if (s.completed) {
+          const w = parseFloat(s.weight) || 0;
+          const r = parseInt(s.reps, 10) || 0;
+          const vol = w * r;
+
+          if (volumeByMuscle[cat] !== undefined) {
+            volumeByMuscle[cat] += vol;
+            totalOverallVolume += vol;
+          } else {
+            volumeByMuscle['אחר'] += vol;
+            totalOverallVolume += vol;
+          }
+        }
+      });
+    });
+  });
+
+  if (totalOverallVolume === 0) {
+    container.innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: 20px; font-size: 0.9rem;">אין נתוני נפח שרירים מסוננים עדיין.</div>';
+    adviceEl.textContent = 'בצע אימונים ורשום סטים כדי לקבל המלצות לאיזון שרירי.';
+    return;
+  }
+
+  Object.keys(volumeByMuscle).forEach(muscle => {
+    const vol = volumeByMuscle[muscle];
+    if (vol === 0) return;
+
+    const pct = Math.round((vol / totalOverallVolume) * 100);
+    const barRow = document.createElement('div');
+    barRow.className = 'muscle-split-row';
+    barRow.style.cssText = 'margin-bottom: 12px;';
+
+    barRow.innerHTML = `
+      <div style="display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 700; color: #fff; margin-bottom: 4px; direction: rtl;">
+        <span>${muscle}</span>
+        <span>${pct}% (${vol.toLocaleString()} ק״ג)</span>
+      </div>
+      <div class="progress-bar-track" style="width: 100%; height: 8px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden;">
+        <div class="progress-bar-fill" style="width: ${pct}%; height: 100%; background: linear-gradient(90deg, #ef4444, #dc2626); box-shadow: 0 0 8px rgba(220, 38, 38, 0.4); border-radius: 4px;"></div>
+      </div>
+    `;
+    container.appendChild(barRow);
+  });
+
+  const legsPct = (volumeByMuscle['רגליים'] / totalOverallVolume) * 100;
+  const chestPct = (volumeByMuscle['חזה'] / totalOverallVolume) * 100;
+  const backPct = (volumeByMuscle['גב'] / totalOverallVolume) * 100;
+
+  if (legsPct < 15) {
+    adviceEl.innerHTML = `⚠️ <strong>הנחיית איזון:</strong> נפח אימוני הרגליים שלך נמוך יחסית לתא המותניים (${Math.round(legsPct)}%). מומלץ להוסיף סקוואט או מכרעים כדי למנוע חוסר איזון פיזיולוגי! 🦵`;
+  } else if (Math.abs(chestPct - backPct) > 20) {
+    adviceEl.innerHTML = '⚠️ <strong>הנחיית איזון:</strong> יש פער משמעותי בין נפח החזה לגב. הקפד על יחס שווה של לחיצות ומשיכות למניעת פציעות כתפיים ויציבה כפופה! 🦅🍒';
+  } else {
+    adviceEl.innerHTML = '✨ <strong>הנחיית איזון:</strong> כל הכבוד! חלוקת העומסים והנפח שלך מאוזנת ומקצועית ביותר. המשך ככה! 🏋️‍♂️🏆';
+  }
+}
+
+// H. Accordion history list view renderer
+function renderAccordionHistoryView() {
+  const container = document.getElementById('accordion-history-container');
+  if (!container) return;
+
+  container.innerHTML = '';
+  const filtered = getFilteredHistory();
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: 20px; font-size: 0.9rem; direction: rtl;">לא נמצאו אימונים התואמים את המסננים שבחרת.</div>';
+    return;
+  }
+
+  filtered.forEach(w => {
+    const card = document.createElement('div');
+    card.className = 'history-accordion-card';
+    card.style.cssText = 'background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; margin-bottom: 12px; padding: 12px 16px; cursor: pointer; transition: all 0.25s ease;';
+
+    const duration = w.duration ? Math.round(w.duration / 60) : 0;
+    const dateObj = new Date(w.date);
+    const dateStr = dateObj.toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric', year: 'numeric' });
+
+    let totalVolume = 0;
+    let totalSets = 0;
+
+    w.exercises.forEach(ex => {
+      ex.sets.forEach(s => {
+        if (s.completed) {
+          totalSets++;
+          totalVolume += (parseFloat(s.weight) || 0) * (parseInt(s.reps, 10) || 0);
+        }
+      });
+    });
+
+    card.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center; direction: rtl;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 1.4rem;">${w.locationEmoji || '🏋️'}</span>
+          <div>
+            <h4 style="margin: 0; font-size: 0.98rem; font-weight: 800; color: #fff;">${w.locationName || 'אימון'}</h4>
+            <span style="font-size: 0.78rem; color: var(--text-muted);">${dateStr} • ${duration} דקות</span>
+          </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 0.82rem; font-weight: 700; color: var(--electric-blue-light);">${totalVolume.toLocaleString()} ק״ג</span>
+          <span class="accordion-arrow" style="font-size: 0.9rem; transition: transform 0.2s ease;">▼</span>
+        </div>
+      </div>
+      <div class="accordion-details hide" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.05); direction: rtl;">
+        <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px;">
+          ${w.exercises.map(ex => {
+            const exSetsText = ex.sets.map(s => `${s.weight}ק״ג×${s.reps}`).join(', ');
+            return `
+              <div style="font-size: 0.85rem; color: #e2e8f0; display: flex; justify-content: space-between;">
+                <span style="font-weight: 700;">• ${ex.name}</span>
+                <span style="color: var(--text-muted); font-size: 0.8rem; direction: ltr;">[${exSetsText}]</span>
+              </div>
+            `;
+          }).join('')}
+        </div>
+        <button class="btn btn-secondary edit-w-accordion-btn" style="width: 100%; padding: 8px !important; font-size: 0.8rem !important; border-radius: 10px;">🛠️ ערוך פרטי אימון</button>
+      </div>
+    `;
+
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.edit-w-accordion-btn')) return;
+
+      const details = card.querySelector('.accordion-details');
+      const arrow = card.querySelector('.accordion-arrow');
+
+      if (details) {
+        if (details.classList.contains('hide')) {
+          details.classList.remove('hide');
+          if (arrow) arrow.style.transform = 'rotate(180deg)';
+          card.style.background = 'rgba(255,255,255,0.04)';
+        } else {
+          details.classList.add('hide');
+          if (arrow) arrow.style.transform = 'rotate(0deg)';
+          card.style.background = 'rgba(255,255,255,0.02)';
+        }
+      }
+    });
+
+    const editBtn = card.querySelector('.edit-w-accordion-btn');
+    if (editBtn) {
+      editBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openEditModal(w.id);
+      });
+    }
+
+    container.appendChild(card);
+  });
+}
+
+// Hook Analytics Initialization on Window Load and PWA startup
+onDOMReady(initAnalyticsTab);
 
 
 
