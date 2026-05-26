@@ -3932,305 +3932,599 @@ body.authenticated .ios-bottom-nav {
 }
 
 /* ==========================================================================
-   EXERCISE PICKER OVERHAUL - Beautiful Single Column List
+   EXERCISE PICKER OVERHAUL - Beautiful Single Column iOS-style List
    ========================================================================== */
 
-/* Empty state */
+/* Empty state styling */
 .exercise-picker-empty {
-  text-align: center;
-  padding: 32px 20px;
-  color: var(--text-muted);
-  font-size: 0.9rem;
-  font-weight: 500;
-  opacity: 0.7;
+  text-align: center !important;
+  padding: 40px 20px !important;
+  color: var(--text-muted) !important;
+  font-size: 0.95rem !important;
+  font-weight: 500 !important;
+  opacity: 0.7 !important;
+  font-family: var(--font-sans) !important;
 }
 
-/* Beautiful single-row exercise list item */
+/* Ensure the outer card supports flex column without height collapse */
+.exercise-picker-card {
+  height: 85vh !important;
+  max-height: 85vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  border-radius: 28px 28px 0 0 !important;
+}
+
+/* Perfect inner scrollbar and area scroll control */
+.exercise-picker-list {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding: 10px 1.5rem 120px 1.5rem !important; /* Leave generous padding at the bottom so it doesn't get clipped by the custom exercise button */
+  -webkit-overflow-scrolling: touch !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+}
+
+/* Custom scrollbar to match high-performance aesthetic */
+.exercise-picker-list::-webkit-scrollbar {
+  width: 6px !important;
+}
+.exercise-picker-list::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+.exercise-picker-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-radius: 3px !important;
+}
+.exercise-picker-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Beautiful single-row exercise card */
 .exercise-list-item {
-  width: 100%;
-  min-height: 60px;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  direction: rtl;
-  text-align: right;
-  padding: 12px 14px;
-  background: rgba(255, 255, 255, 0.025);
-  border: 1px solid rgba(255, 255, 255, 0.05);
-  border-radius: 14px;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  gap: 12px;
-  position: relative;
-  overflow: hidden;
+  width: 100% !important;
+  min-height: 64px !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  direction: rtl !important;
+  text-align: right !important;
+  padding: 14px 18px !important;
+  background: rgba(255, 255, 255, 0.025) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-radius: 16px !important;
+  cursor: pointer !important;
+  transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+  gap: 12px !important;
+  position: relative !important;
+  overflow: hidden !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15) !important;
 }
 
+/* Subtle gloss shine overlay */
 .exercise-list-item::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: 14px;
-  background: linear-gradient(135deg, rgba(255,255,255,0.02) 0%, transparent 100%);
-  pointer-events: none;
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 !important;
+  border-radius: 16px !important;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.015) 0%, transparent 100%) !important;
+  pointer-events: none !important;
 }
 
 .exercise-list-item:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.12);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3), 0 0 8px rgba(220, 38, 38, 0.06);
+  background: rgba(255, 255, 255, 0.055) !important;
+  border-color: var(--electric-blue-light) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), 0 0 12px var(--electric-blue-glow-subtle) !important;
 }
 
 .exercise-list-item:active {
-  transform: translateY(0) scale(0.99);
-  background: rgba(255, 255, 255, 0.08);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  transform: translateY(0) scale(0.98) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2) !important;
 }
 
-/* Left: name + optional emoji */
+/* Push name to right, and emoji/category/arrow to the left */
 .ex-list-info {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: 1;
-  min-width: 0;
-}
-
-.ex-list-emoji {
-  font-size: 1.25rem;
-  line-height: 1;
-  flex-shrink: 0;
+  display: flex !important;
+  flex-direction: row-reverse !important; /* Put name on right, emoji on left (visual order) */
+  align-items: center !important;
+  justify-content: space-between !important;
+  flex: 1 !important;
+  min-width: 0 !important;
+  margin-left: 16px !important;
 }
 
 .ex-list-name {
-  font-size: 1.02rem;
-  font-weight: 700;
-  color: #ffffff;
-  font-family: var(--font-display);
-  text-align: right;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  letter-spacing: -0.2px;
+  font-family: var(--font-display) !important;
+  font-size: 1.05rem !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  letter-spacing: -0.2px !important;
 }
 
-/* Right side: category badge + arrow */
+.ex-list-emoji {
+  font-size: 1.3rem !important;
+  line-height: 1 !important;
+  flex-shrink: 0 !important;
+  margin-left: 8px !important;
+}
+
+/* Category Badge and Arrow Alignments */
 .ex-list-right {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  flex-shrink: 0 !important;
 }
 
 .ex-category-badge {
-  font-size: 0.72rem;
-  font-weight: 700;
-  padding: 3px 9px;
-  border-radius: 20px;
-  white-space: nowrap;
-  letter-spacing: 0.2px;
-  font-family: var(--font-display);
+  font-family: var(--font-display) !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  padding: 4px 10px !important;
+  border-radius: 12px !important;
+  white-space: nowrap !important;
+  letter-spacing: 0.3px !important;
 }
 
 .ex-list-arrow {
-  color: rgba(255, 255, 255, 0.2);
-  font-size: 1rem;
-  font-weight: 300;
-  flex-shrink: 0;
-  transition: color 0.2s;
+  color: rgba(255, 255, 255, 0.25) !important;
+  font-size: 1.1rem !important;
+  font-weight: 300 !important;
+  flex-shrink: 0 !important;
+  transition: transform 0.25s ease, color 0.25s ease !important;
+  display: inline-block !important;
 }
 
 .exercise-list-item:hover .ex-list-arrow {
-  color: rgba(255, 255, 255, 0.55);
-}
-
-/* Add Custom Exercise Trigger Button */
-.btn-add-custom-exercise-trigger {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 12px 20px;
-  background: rgba(56, 189, 248, 0.06);
-  border: 1.5px dashed rgba(56, 189, 248, 0.3);
-  border-radius: 14px;
-  color: #38bdf8;
-  font-size: 0.95rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-  direction: rtl;
-  font-family: var(--font-display);
-  letter-spacing: 0.1px;
-}
-
-.btn-add-custom-exercise-trigger:hover {
-  background: rgba(56, 189, 248, 0.1);
-  border-color: rgba(56, 189, 248, 0.55);
-  box-shadow: 0 0 16px rgba(56, 189, 248, 0.12);
-  transform: translateY(-1px);
-}
-
-.btn-add-custom-exercise-trigger:active {
-  transform: translateY(0);
-}
-
-.add-custom-ex-icon {
-  font-size: 1.1rem;
+  color: var(--electric-blue-light) !important;
+  transform: translateX(-4px) !important; /* iOS slide left animation on hover */
 }
 
 /* ==========================================================================
-   CUSTOM EXERCISE CREATION MODAL
+   BUTTONS AND MISCELLANEOUS PICKER CONTROLS
    ========================================================================== */
 
-/* Override: center the card vertically since we set align-items: center on overlay */
-.custom-ex-modal-card {
-  backdrop-filter: blur(30px) !important;
-  -webkit-backdrop-filter: blur(30px) !important;
+/* Add Custom Exercise Trigger Button */
+.btn-add-custom-exercise-trigger {
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  padding: 14px 20px !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1.5px dashed rgba(255, 255, 255, 0.15) !important;
+  border-radius: 16px !important;
+  color: var(--electric-blue-light) !important;
+  font-size: 1rem !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  direction: rtl !important;
+  font-family: var(--font-display) !important;
+  letter-spacing: 0.1px !important;
 }
 
-/* Field groups */
+.btn-add-custom-exercise-trigger:hover {
+  background: rgba(220, 38, 38, 0.06) !important;
+  border-color: var(--electric-blue-light) !important;
+  color: #ffffff !important;
+  box-shadow: 0 6px 20px var(--electric-blue-glow-subtle) !important;
+  transform: translateY(-2px) !important;
+}
+
+.btn-add-custom-exercise-trigger:active {
+  transform: translateY(0) scale(0.98) !important;
+}
+
+
+/* ==========================================================================
+   CUSTOM EXERCISE CREATION MODAL (#custom-exercise-modal)
+   ========================================================================== */
+
+#custom-exercise-modal .custom-ex-modal-card {
+  background: linear-gradient(135deg, rgba(16, 17, 22, 0.96) 0%, rgba(8, 9, 12, 0.99) 100%) !important;
+  backdrop-filter: blur(35px) !important;
+  -webkit-backdrop-filter: blur(35px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.09) !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85) !important;
+  border-radius: 28px !important;
+  direction: rtl !important;
+}
+
+/* Field styling */
 .custom-ex-field-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
 }
 
 .custom-ex-field-label {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  text-align: right;
-  direction: rtl;
+  font-size: 0.85rem !important;
+  font-weight: 700 !important;
+  color: var(--text-muted) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.8px !important;
+  text-align: right !important;
+  direction: rtl !important;
 }
 
-/* Styled name input */
 .custom-ex-name-input {
-  width: 100%;
-  padding: 13px 14px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1.5px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
-  color: #ffffff;
-  font-size: 1rem;
-  font-weight: 600;
-  text-align: right;
-  direction: rtl;
-  outline: none;
-  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
-  font-family: var(--font-sans);
+  width: 100% !important;
+  padding: 14px 16px !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 14px !important;
+  color: #ffffff !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  text-align: right !important;
+  direction: rtl !important;
+  outline: none !important;
+  transition: all 0.25s ease !important;
+  font-family: var(--font-sans) !important;
 }
 
 .custom-ex-name-input::placeholder {
-  color: rgba(255, 255, 255, 0.2);
-  font-weight: 400;
+  color: rgba(255, 255, 255, 0.25) !important;
+  font-weight: 400 !important;
 }
 
 .custom-ex-name-input:focus {
-  border-color: rgba(220, 38, 38, 0.6);
-  background: rgba(255, 255, 255, 0.07);
-  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+  border-color: var(--electric-blue-light) !important;
+  background: rgba(255, 255, 255, 0.07) !important;
+  box-shadow: 0 0 0 3px var(--electric-blue-glow-subtle) !important;
 }
 
-/* Category pill selector */
-.custom-ex-category-pills {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  direction: rtl;
+/* Muscle group cards grid */
+.custom-ex-category-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 10px !important;
+  margin-top: 10px !important;
 }
 
-.category-pill-btn {
-  padding: 7px 14px;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: var(--text-muted);
-  font-size: 0.83rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  white-space: nowrap;
-  font-family: var(--font-display);
+.muscle-card {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 12px 8px !important;
+  border-radius: 16px !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  background: rgba(255, 255, 255, 0.02) !important;
+  color: var(--text-muted) !important;
+  cursor: pointer !important;
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+  outline: none !important;
 }
 
-.category-pill-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.15);
+.muscle-card:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+  transform: translateY(-2px) !important;
 }
 
-.category-pill-btn.active {
-  background: linear-gradient(135deg, var(--electric-blue) 0%, var(--electric-blue-light) 100%);
-  border-color: rgba(255, 255, 255, 0.2);
-  color: #ffffff;
-  box-shadow: 0 3px 10px var(--electric-blue-glow-subtle);
+.muscle-card.active {
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.15) 0%, rgba(244, 63, 94, 0.15) 100%) !important;
+  border-color: var(--electric-blue-light) !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 15px var(--electric-blue-glow-subtle) !important;
+  transform: scale(1.03) !important;
 }
 
-/* Emoji picker row */
+.muscle-card.active span {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+/* Emoji selection row */
 .custom-ex-emoji-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  direction: rtl;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  direction: rtl !important;
 }
 
 .emoji-pick-btn {
-  width: 44px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  font-size: 1.35rem;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  line-height: 1;
+  width: 44px !important;
+  height: 44px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 12px !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  font-size: 1.35rem !important;
+  cursor: pointer !important;
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+  color: var(--text-muted) !important;
 }
 
-/* "ללא" button is text-only — smaller font */
 .emoji-pick-btn[data-emoji=""] {
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  width: auto;
-  padding: 0 10px;
+  font-size: 0.8rem !important;
+  font-weight: 700 !important;
+  width: auto !important;
+  padding: 0 14px !important;
 }
 
 .emoji-pick-btn:hover {
-  background: rgba(255, 255, 255, 0.09);
-  border-color: rgba(255, 255, 255, 0.15);
-  transform: scale(1.1);
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  transform: scale(1.1) !important;
 }
 
 .emoji-pick-btn.active {
-  background: rgba(220, 38, 38, 0.15);
-  border-color: rgba(220, 38, 38, 0.45);
-  box-shadow: 0 0 10px rgba(220, 38, 38, 0.15);
+  background: rgba(220, 38, 38, 0.15) !important;
+  border-color: var(--electric-blue-light) !important;
+  box-shadow: 0 0 10px var(--electric-blue-glow-subtle) !important;
+  color: #ffffff !important;
 }
 
 .emoji-pick-btn[data-emoji=""].active {
-  color: #ffffff;
-  background: rgba(220, 38, 38, 0.2);
+  color: #ffffff !important;
+  background: rgba(220, 38, 38, 0.2) !important;
 }
 
-/* Light mode overrides for exercise list items */
+
+/* ==========================================================================
+   SET LOGGING POPUP MODAL (#set-log-modal)
+   ========================================================================== */
+
+#set-log-modal .set-log-modal-card {
+  background: linear-gradient(135deg, rgba(16, 17, 22, 0.96) 0%, rgba(8, 9, 12, 0.99) 100%) !important;
+  backdrop-filter: blur(35px) !important;
+  -webkit-backdrop-filter: blur(35px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.09) !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85), 0 0 30px var(--electric-blue-glow-subtle) !important;
+  padding: 24px !important;
+  border-radius: 28px !important;
+  direction: rtl !important;
+  max-width: 400px !important;
+  width: 95% !important;
+}
+
+.set-log-header {
+  text-align: center !important;
+  margin-bottom: 24px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  padding-bottom: 16px !important;
+}
+
+.set-log-exercise-name {
+  font-family: var(--font-display) !important;
+  font-size: 1.4rem !important;
+  font-weight: 800 !important;
+  color: #ffffff !important;
+  letter-spacing: -0.3px !important;
+}
+
+.set-log-set-number {
+  font-size: 0.95rem !important;
+  color: var(--electric-blue-light) !important;
+  font-weight: 700 !important;
+  margin-top: 4px !important;
+  letter-spacing: 0.5px !important;
+  text-transform: uppercase !important;
+}
+
+.set-log-sliders-area {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 20px !important;
+}
+
+.slider-group-container {
+  background: rgba(255, 255, 255, 0.015) !important;
+  border: 1px solid rgba(255, 255, 255, 0.04) !important;
+  border-radius: 18px !important;
+  padding: 16px !important;
+  transition: border-color 0.25s, box-shadow 0.25s !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+}
+
+.slider-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  direction: rtl !important;
+}
+
+.slider-display-value {
+  font-family: 'Courier New', Courier, monospace !important;
+  font-size: 1.4rem !important;
+  font-weight: 800 !important;
+  color: #ffffff !important;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.25) !important;
+}
+
+.slider-control-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  direction: ltr !important; /* keep sliders LTR for intuitive slider dragging */
+}
+
+
+/* ==========================================================================
+   PREMIUM GLASSMORPHIC SLIDERS (.premium-range-slider)
+   ========================================================================== */
+
+.premium-range-slider {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  width: 100% !important;
+  background: transparent !important;
+  cursor: pointer !important;
+}
+
+/* Chrome, Safari, Edge, Opera Track */
+.premium-range-slider::-webkit-slider-runnable-track {
+  width: 100% !important;
+  height: 8px !important;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.12)) !important;
+  backdrop-filter: blur(5px) !important;
+  -webkit-backdrop-filter: blur(5px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 4px !important;
+}
+
+/* Chrome, Safari, Edge, Opera Thumb */
+.premium-range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  width: 22px !important;
+  height: 22px !important;
+  border-radius: 50% !important;
+  background: radial-gradient(circle, #ffffff 30%, var(--electric-blue-light) 100%) !important;
+  border: 2px solid #ffffff !important;
+  box-shadow: 0 0 10px var(--electric-blue-glow), 0 4px 8px rgba(0, 0, 0, 0.5) !important;
+  margin-top: -7px !important;
+  transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.15s ease !important;
+}
+
+.premium-range-slider:active::-webkit-slider-thumb {
+  transform: scale(1.25) !important;
+  box-shadow: 0 0 18px var(--electric-blue-glow), 0 4px 12px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* Firefox Track */
+.premium-range-slider::-moz-range-track {
+  width: 100% !important;
+  height: 8px !important;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.12)) !important;
+  backdrop-filter: blur(5px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 4px !important;
+}
+
+/* Firefox Thumb */
+.premium-range-slider::-moz-range-thumb {
+  width: 22px !important;
+  height: 22px !important;
+  border-radius: 50% !important;
+  background: radial-gradient(circle, #ffffff 30%, var(--electric-blue-light) 100%) !important;
+  border: 2px solid #ffffff !important;
+  box-shadow: 0 0 10px var(--electric-blue-glow), 0 4px 8px rgba(0, 0, 0, 0.5) !important;
+  transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.15s ease !important;
+  box-sizing: border-box !important;
+}
+
+.premium-range-slider:active::-moz-range-thumb {
+  transform: scale(1.25) !important;
+  box-shadow: 0 0 18px var(--electric-blue-glow), 0 4px 12px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* Firefox active progress fill */
+.premium-range-slider::-moz-range-progress {
+  background: linear-gradient(90deg, var(--electric-blue) 0%, var(--electric-blue-light) 100%) !important;
+  height: 8px !important;
+  border-radius: 4px 0 0 4px !important;
+}
+
+
+/* ==========================================================================
+   MICRO-ADJUSTMENT BUTTONS (.slider-adjust-btn)
+   ========================================================================== */
+
+.slider-adjust-btn {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50% !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  color: #ffffff !important;
+  font-size: 1.3rem !important;
+  font-weight: bold !important;
+  cursor: pointer !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3) !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+.slider-adjust-btn:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  color: var(--electric-blue-light) !important;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4), 0 0 8px var(--electric-blue-glow-subtle) !important;
+  transform: scale(1.08) !important;
+}
+
+.slider-adjust-btn:active {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-color: var(--electric-blue-light) !important;
+  transform: scale(0.92) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+  color: #ffffff !important;
+}
+
+
+/* ==========================================================================
+   REST CHIPS AND METRIC SELECTION TILES
+   ========================================================================== */
+
+/* Metric Selection Timer Chips */
+.rest-option-chip {
+  padding: 8px 16px !important;
+  border-radius: 20px !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  color: var(--text-muted) !important;
+  cursor: pointer !important;
+  font-weight: 600 !important;
+  font-size: 0.9rem !important;
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+  outline: none !important;
+}
+
+.rest-option-chip:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+  transform: scale(1.05) !important;
+}
+
+.rest-option-chip.active {
+  background: linear-gradient(135deg, var(--electric-blue) 0%, var(--electric-blue-light) 100%) !important;
+  border-color: var(--electric-blue-light) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px var(--electric-blue-glow-subtle) !important;
+  font-weight: 700 !important;
+}
+
+
+/* ==========================================================================
+   LIGHT MODE STYLING COMPATIBILITY
+   ========================================================================== */
+
 .tab-pane:not(.dark-theme) .exercise-list-item {
   background: #ffffff !important;
-  border-color: rgba(0, 0, 0, 0.06) !important;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
 }
 
 .tab-pane:not(.dark-theme) .exercise-list-item:hover {
   background: #f2f2f7 !important;
-  border-color: rgba(0,0,0,0.1) !important;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.07) !important;
+  border-color: var(--electric-blue-light) !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08) !important;
 }
 
 .tab-pane:not(.dark-theme) .ex-list-name {
@@ -4238,10 +4532,23 @@ body.authenticated .ios-bottom-nav {
 }
 
 .tab-pane:not(.dark-theme) .ex-list-arrow {
-  color: rgba(0,0,0,0.2) !important;
+  color: rgba(0, 0, 0, 0.2) !important;
 }
 
 .tab-pane:not(.dark-theme) .exercise-list-item:hover .ex-list-arrow {
-  color: rgba(0,0,0,0.45) !important;
+  color: var(--electric-blue-light) !important;
+}
+
+.tab-pane:not(.dark-theme) .muscle-card {
+  background: #f2f2f7 !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+}
+
+.tab-pane:not(.dark-theme) .muscle-card:hover {
+  background: #e5e5ea !important;
+}
+
+.tab-pane:not(.dark-theme) .muscle-card.active {
+  background: rgba(220, 38, 38, 0.08) !important;
 }
 
