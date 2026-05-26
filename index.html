@@ -155,13 +155,6 @@
           <p class="brand-subtitle">Discover a premium cross-platform interface</p>
         </div>
         
-        <div class="auth-tabs">
-          <button type="button" class="auth-tab-btn active" id="auth-tab-google">Google Sign-In</button>
-          <button type="button" class="auth-tab-btn" id="auth-tab-email">אימייל וסיסמה</button>
-        </div>
-
-        <div class="divider"></div>
-
         <!-- Google Auth Section -->
         <div id="google-auth-section" style="width: 100%;">
           <!-- Google Custom Standard Sign-In Button -->
@@ -179,34 +172,6 @@
           <div class="auth-footer" style="margin-top: 1.5rem;">
             <p>Secure authentication via Google Identity</p>
           </div>
-        </div>
-
-        <!-- Email Auth Section -->
-        <div id="email-auth-section" class="hide" style="width: 100%;">
-          <form id="email-auth-form" style="display: flex; flex-direction: column; gap: 1.2rem; direction: rtl; text-align: right;">
-            <h3 id="email-form-title" style="font-size: 1.2rem; font-weight: 800; color: #ffffff; text-align: center; margin: 0;">התחברות לחשבון</h3>
-            
-            <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
-              <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">כתובת אימייל</label>
-              <input type="email" id="auth-email-input" placeholder="name@example.com" required style="width: 100%; direction: ltr; text-align: left;" class="auth-input">
-            </div>
-            
-            <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
-              <div style="display: flex; justify-content: space-between; align-items: center;">
-                <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">סיסמה</label>
-                <button type="button" id="forgot-password-link" style="background: none; border: none; font-size: 0.8rem; color: var(--neon-orange-light); cursor: pointer; text-decoration: underline; font-weight: 600; padding: 0;">שכחת סיסמה? 🔒</button>
-              </div>
-              <input type="password" id="auth-password-input" placeholder="••••••••" required style="width: 100%; direction: ltr; text-align: left;" class="auth-input">
-            </div>
-            
-            <button type="submit" id="email-submit-btn" class="btn btn-primary" style="width: 100%; padding: 14px; font-weight: bold; border-radius: 14px; margin-top: 0.5rem;">
-              התחבר כעת
-            </button>
-            
-            <div style="text-align: center; margin-top: 0.5rem;">
-              <button type="button" id="toggle-auth-mode-btn" style="background: none; border: none; font-size: 0.85rem; color: var(--text-muted); cursor: pointer; text-decoration: underline; font-weight: 600;">אין לך חשבון? להרשמה חדשה ✨</button>
-            </div>
-          </form>
         </div>
       </div>
     </section>
@@ -329,16 +294,7 @@
                 <span class="field-label">אימייל</span>
               </div>
             </div>
-            <div class="ios-settings-card-group" id="settings-password-setup-group" style="margin-top: 1.5rem; width: 100%;">
-              <div class="ios-settings-group-title" style="text-align: right; margin-bottom: 0.5rem;">אבטחת חשבון</div>
-              <div class="ios-setting-row no-hover" style="display: flex; flex-direction: column; align-items: stretch; padding: 15px; gap: 10px;">
-                <span class="ios-row-label" style="text-align: right; width: 100%; font-size: 0.9rem; font-weight: 700; color: #ffffff;">הוספת/עדכון סיסמה לחשבון 🔐</span>
-                <form id="settings-password-form" style="display: flex; flex-direction: column; gap: 10px; width: 100%; direction: rtl;">
-                  <input type="password" id="settings-password-input" placeholder="סיסמה חדשה (מינימום 6 תווים)" required style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; color: #ffffff; text-align: right; direction: rtl; outline: none;" class="auth-input">
-                  <button type="submit" id="save-settings-password-btn" class="btn btn-primary" style="padding: 12px; font-size: 0.95rem; font-weight: bold; border-radius: 12px; width: 100%;">שמור סיסמה</button>
-                </form>
-              </div>
-            </div>
+
 
             <div class="settings-actions" style="margin-top: 1.5rem; display: flex; justify-content: center; width: 100%;">
               <button id="app-logout-btn" class="btn btn-logout hide" style="width: 100%; max-width: 240px;">
@@ -1313,51 +1269,7 @@
     </div>
   </div>
 
-  <!-- Forgot Password Modal -->
-  <div id="forgot-password-modal" class="workout-modal-overlay hide" style="z-index: 2000; align-items: center; justify-content: center;">
-    <div class="workout-modal-card glass-modal-card" style="max-width: 380px; width: 92%; border-radius: 24px; padding: 1.5rem; border: 1px solid rgba(255, 255, 255, 0.1);">
-      <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; direction: rtl;">
-        <h3 style="font-size: 1.25rem; font-weight: 800; color: #ffffff; margin: 0; display: flex; align-items: center; gap: 8px;">שחזור סיסמה 🔒</h3>
-        <button type="button" id="close-forgot-password-btn" class="btn-cancel-link" style="background: none; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; padding: 0 4px; line-height: 1;">&times;</button>
-      </div>
-      
-      <form id="forgot-password-form" style="display: flex; flex-direction: column; gap: 1rem; direction: rtl; text-align: right;">
-        <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; margin: 0;">הזן את כתובת האימייל שלך ונשלח לך קישור מאובטח לאיפוס הסיסמה.</p>
-        
-        <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
-          <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">כתובת אימייל</label>
-          <input type="email" id="reset-email-input" placeholder="name@example.com" required style="width: 100%; direction: ltr; text-align: left;" class="auth-input">
-        </div>
-        
-        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px; font-weight: bold; border-radius: 14px; margin-top: 0.5rem;">
-          שלח קישור לאיפוס
-        </button>
-      </form>
-    </div>
-  </div>
 
-  <!-- Account Linking Modal -->
-  <div id="account-linking-modal" class="workout-modal-overlay hide" style="z-index: 2100; align-items: center; justify-content: center;">
-    <div class="workout-modal-card glass-modal-card" style="max-width: 380px; width: 92%; border-radius: 24px; padding: 1.5rem; border: 1px solid rgba(255, 255, 255, 0.1);">
-      <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; direction: rtl;">
-        <h3 style="font-size: 1.25rem; font-weight: 800; color: #ffffff; margin: 0; display: flex; align-items: center; gap: 8px;">קישור חשבונות מאובטח 🔗</h3>
-        <button type="button" id="close-account-linking-btn" class="btn-cancel-link" style="background: none; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; padding: 0 4px; line-height: 1;">&times;</button>
-      </div>
-      
-      <form id="account-linking-form" style="display: flex; flex-direction: column; gap: 1rem; direction: rtl; text-align: right;">
-        <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; margin: 0;">כבר קיים חשבון עם אימייל זה במערכת. אנא הזן את סיסמת החשבון הקיים שלך כדי לקשר אותו בצורה מאובטחת לחשבון Google שלך.</p>
-        
-        <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
-          <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">סיסמה</label>
-          <input type="password" id="link-password-input" placeholder="••••••••" required style="width: 100%; direction: ltr; text-align: left;" class="auth-input">
-        </div>
-        
-        <button type="submit" class="btn btn-primary" style="width: 100%; padding: 14px; font-weight: bold; border-radius: 14px; margin-top: 0.5rem;">
-          אמת וקשר חשבון
-        </button>
-      </form>
-    </div>
-  </div>
 
   <!-- Load global Firebase credential settings -->
   <script src="firebase-config.js"></script>
