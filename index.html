@@ -169,22 +169,8 @@
           </div>
           <span class="google-btn-text">Sign in with Google</span>
         </button>
-
-        <!-- Dynamic beautiful separator -->
-        <div class="or-separator">
-          <span class="separator-line"></span>
-          <span class="separator-text">או</span>
-          <span class="separator-line"></span>
-        </div>
-
-        <!-- Phone Sign-In Trigger Button -->
-        <button id="phone-login-trigger-btn" class="phone-btn">
-          <div class="phone-icon-wrapper">📞</div>
-          <span class="phone-btn-text">התחבר עם מספר טלפון</span>
-        </button>
-
         <div class="auth-footer">
-          <p>Secure authentication via Google Identity & Phone SMS</p>
+          <p>Secure authentication via Google Identity</p>
         </div>
       </div>
     </section>
@@ -305,38 +291,6 @@
               <div class="ios-settings-field-row">
                 <span id="settings-user-email-field" class="field-value">user@gmail.com</span>
                 <span class="field-label">אימייל</span>
-              </div>
-              <!-- New Phone Number row (hidden by default unless phone is linked) -->
-              <div id="settings-user-phone-row" class="ios-settings-field-row hide">
-                <span id="settings-user-phone-field" class="field-value">--</span>
-                <span class="field-label">מספר טלפון</span>
-              </div>
-            </div>
-
-            <!-- New Account Security / Linking group -->
-            <div class="ios-settings-card-group" style="margin-top: 15px;">
-              <div class="ios-settings-group-title">קישור ואבטחת חשבון</div>
-              
-              <!-- Link Google Row -->
-              <div id="settings-link-google-row" class="ios-setting-row hide">
-                <div class="ios-row-left">
-                  <span class="badge-mini badge-unverified" id="link-google-badge">קשר חשבון 📧</span>
-                </div>
-                <div class="ios-row-right">
-                  <span class="ios-row-icon-badge" style="background: rgba(234, 67, 53, 0.1); color: #ea4335;">📧</span>
-                  <span class="ios-row-label">חשבון Google</span>
-                </div>
-              </div>
-
-              <!-- Link Phone Row -->
-              <div id="settings-link-phone-row" class="ios-setting-row hide">
-                <div class="ios-row-left">
-                  <span class="badge-mini badge-unverified" id="link-phone-badge">קשר טלפון 📞</span>
-                </div>
-                <div class="ios-row-right">
-                  <span class="ios-row-icon-badge" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">📞</span>
-                  <span class="ios-row-label">מספר טלפון</span>
-                </div>
               </div>
             </div>
             
@@ -1279,60 +1233,6 @@
         <span class="toast-text" style="font-size: 0.85rem; font-weight: 600; color: #1e293b; text-align: right;">גרסה חדשה זמינה לשיפור הביצועים והעיצוב!</span>
       </div>
       <button id="pwa-refresh-btn" class="btn toast-refresh-btn" style="background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%) !important; color: #ffffff !important; border: none !important; font-size: 0.8rem !important; padding: 6px 14px !important; border-radius: 10px !important; font-weight: 700 !important; cursor: pointer !important; box-shadow: 0 4px 10px rgba(220, 38, 38, 0.25) !important;">רענן כעת</button>
-    </div>
-  </div>
-
-  <!-- Phone Authentication Modal (Sleek Glassmorphic Overlay) -->
-  <div id="phone-auth-modal" class="workout-modal-overlay hide" style="z-index: 1750; align-items: center; justify-content: center; display: flex;">
-    <div class="workout-modal-card glass-modal-card" style="max-width: 380px; width: 92%; border-radius: 24px; padding: 2rem; border: 1px solid rgba(255, 255, 255, 0.1); position: relative; height: auto; max-height: 90vh;">
-      <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; direction: rtl;">
-        <h3 id="phone-auth-modal-title" style="font-size: 1.25rem; font-weight: 800; color: #ffffff; margin: 0;">התחברות עם טלפון</h3>
-        <button id="close-phone-auth-btn" class="btn-cancel-link" style="background: none; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; padding: 0 4px; line-height: 1;">&times;</button>
-      </div>
-      
-      <!-- Stage 1: Phone Number Input -->
-      <div id="phone-auth-stage-input" class="phone-auth-stage" style="display: flex; flex-direction: column; gap: 15px; direction: rtl;">
-        <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0 0 10px 0; text-align: right; line-height: 1.4;">הזן את מספר הטלפון שלך כדי לקבל קוד אימות חד-פעמי ב-SMS.</p>
-        
-        <div style="display: flex; gap: 10px; direction: ltr;">
-          <input type="tel" id="phone-number-input" placeholder="0501234567" style="flex: 1; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; color: #ffffff; text-align: center; font-size: 1.1rem; font-weight: 600; outline: none; transition: border-color 0.2s;" autocomplete="tel">
-          <div style="padding: 12px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; color: #ffffff; font-size: 1rem; font-weight: bold; display: flex; align-items: center; justify-content: center; min-width: 60px;">+972</div>
-        </div>
-        
-        <button id="send-otp-btn" class="btn btn-primary" style="width: 100%; padding: 14px; font-weight: bold; border-radius: 12px; background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2) !important; border: none; color: #fff; cursor: pointer; font-size: 1rem;">שלח קוד אימות</button>
-      </div>
-
-      <!-- Stage 2: OTP Verification -->
-      <div id="phone-auth-stage-otp" class="phone-auth-stage hide" style="display: flex; flex-direction: column; gap: 15px; direction: rtl;">
-        <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0 0 10px 0; text-align: right; line-height: 1.4;">שלחנו קוד אימות בן 6 ספרות למספר <span id="display-phone-number" style="direction: ltr; display: inline-block; font-weight: 700; color: #ffffff;"></span>.</p>
-        
-        <input type="text" id="otp-code-input" placeholder="------" maxlength="6" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; color: #ffffff; text-align: center; font-size: 1.5rem; font-weight: bold; letter-spacing: 6px; outline: none; transition: border-color 0.2s;" autocomplete="one-time-code">
-        
-        <button id="verify-otp-btn" class="btn btn-primary" style="width: 100%; padding: 14px; font-weight: bold; border-radius: 12px; background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2) !important; border: none; color: #fff; cursor: pointer; font-size: 1rem;">אמת והתחבר</button>
-        
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; font-size: 0.85rem;">
-          <button id="back-to-input-btn" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-weight: 500;">חזור</button>
-          <span id="resend-countdown" style="color: var(--text-muted);">שלח שוב בעוד <span id="countdown-seconds">30</span> שניות</span>
-          <button id="resend-otp-btn" class="hide" style="background: none; border: none; color: #60a5fa; cursor: pointer; font-weight: bold;">שלח שוב</button>
-        </div>
-      </div>
-
-      <!-- Invisible reCAPTCHA container required by Firebase -->
-      <div id="recaptcha-container" style="margin-top: 15px; display: flex; justify-content: center;"></div>
-    </div>
-  </div>
-
-  <!-- Account Linking Prompt Modal -->
-  <div id="account-linking-prompt-modal" class="workout-modal-overlay hide" style="z-index: 1720; align-items: center; justify-content: center; display: flex;">
-    <div class="workout-modal-card glass-modal-card" style="max-width: 380px; width: 92%; border-radius: 24px; padding: 2rem; border: 1px solid rgba(255, 255, 255, 0.1); text-align: center; height: auto;">
-      <div style="font-size: 3rem; margin-bottom: 1rem;">🛡️</div>
-      <h3 id="linking-prompt-title" style="font-size: 1.35rem; font-weight: 800; color: #ffffff; margin: 0 0 0.75rem 0; direction: rtl; line-height: 1.3;">אבטח את החשבון שלך</h3>
-      <p id="linking-prompt-body" style="color: var(--text-muted); font-size: 0.95rem; line-height: 1.5; margin: 0 0 2rem 0; direction: rtl; text-align: center;"></p>
-      
-      <div style="display: flex; flex-direction: column; gap: 10px; width: 100%;">
-        <button id="confirm-link-btn" class="btn btn-primary" style="width: 100%; padding: 14px; font-weight: bold; border-radius: 12px; font-size: 1rem; border: none; color: #fff; cursor: pointer;"></button>
-        <button id="dismiss-link-btn" class="btn btn-secondary" style="width: 100%; padding: 12px; font-weight: 600; border-radius: 12px; font-size: 0.95rem; background: rgba(255,255,255,0.05); color: var(--text-muted); border: 1px solid rgba(255,255,255,0.08); cursor: pointer;">לא עכשיו</button>
-      </div>
     </div>
   </div>
 
