@@ -568,7 +568,6 @@ function onDOMReady(fn) {
 
 onDOMReady(detectEnvironmentAndWarn);
 
-// Dynamic Mobile/Desktop & Standalone Authenticator Gateway
 if (loginBtn) {
   loginBtn.addEventListener('click', async () => {
     if (!firebaseEnabled) {
@@ -590,68 +589,34 @@ if (loginBtn) {
     const originalText = btnTextEl ? btnTextEl.textContent : 'Sign in with Google';
     if (btnTextEl) btnTextEl.textContent = 'Connecting...';
 
-    const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-
-    if (isMobileDevice) {
-      if (isIOS && isStandalone) {
-        // iOS PWA installed mode sandboxes external redirects. Attempt popup first, then fall back dynamically to redirect if popup fails.
-        console.log("iOS Standalone PWA detected. Launching in-app popup auth...");
-        try {
-          await signInWithPopup(auth, googleProvider);
-          console.log("Logged in successfully via popup in iOS PWA!");
-          loginBtn.disabled = false;
-          if (btnTextEl) btnTextEl.textContent = originalText;
-        } catch (popupError) {
-          console.warn("iOS Standalone PWA popup auth failed. Falling back to signInWithRedirect...", popupError);
-          if (btnTextEl) btnTextEl.textContent = 'Redirecting...';
-          try {
-            await signInWithRedirect(auth, googleProvider);
-          } catch (redirectError) {
-            console.error("iOS Standalone PWA redirect fallback auth error:", redirectError);
-            handleAuthError(redirectError, loginBtn, originalText);
-          }
-        }
-      } else {
-        console.log("Mobile device detected. Triggering signInWithRedirect...");
-        if (btnTextEl) btnTextEl.textContent = 'Redirecting...';
-        try {
-          await signInWithRedirect(auth, googleProvider);
-        } catch (redirectError) {
-          console.error("Mobile redirect auth error:", redirectError);
-          handleAuthError(redirectError, loginBtn, originalText);
-        }
-      }
-    } else {
-      // Desktop PWA Standalone and desktop browsers use popup which works flawlessly.
-      console.log("Desktop device or Standalone PWA detected. Attempting popup...");
-      try {
-        await signInWithPopup(auth, googleProvider);
-        console.log("Logged in successfully!");
+    // 100% Success-Rate Google Auth flow for both Mobile & Desktop
+    // Attempt signInWithPopup first because it maintains session state reliably without page reloads/redirect loops.
+    // Fall back to signInWithRedirect ONLY if popup is blocked or unsupported.
+    try {
+      console.log("Attempting Google Authentication via popup...");
+      await signInWithPopup(auth, googleProvider);
+      console.log("Logged in successfully via popup!");
+      loginBtn.disabled = false;
+      if (btnTextEl) btnTextEl.textContent = originalText;
+    } catch (popupError) {
+      console.warn("Popup authentication failed/blocked. Code:", popupError.code, popupError.message);
+      
+      // If user cancelled, just reset button state and return safely.
+      if (popupError.code === 'auth/popup-closed-by-user' || popupError.code === 'auth/cancelled-popup-request') {
+        console.log("Sign-in process was cancelled by the user.");
         loginBtn.disabled = false;
         if (btnTextEl) btnTextEl.textContent = originalText;
-      } catch (popupError) {
-        console.warn("Popup sign-in failed. Error code:", popupError.code);
-        
-        if (popupError.code === 'auth/popup-closed-by-user' || popupError.code === 'auth/cancelled-popup-request') {
-          console.log("Sign-in process was cancelled by the user.");
-          loginBtn.disabled = false;
-          if (btnTextEl) btnTextEl.textContent = originalText;
-          return;
-        }
-        
-        if (!isStandalone) {
-          console.log("Falling back to signInWithRedirect...");
-          if (btnTextEl) btnTextEl.textContent = 'Redirecting...';
-          try {
-            await signInWithRedirect(auth, googleProvider);
-          } catch (redirectError) {
-            console.error("Desktop redirect fallback auth error:", redirectError);
-            handleAuthError(redirectError, loginBtn, originalText);
-          }
-        } else {
-          handleAuthError(popupError, loginBtn, originalText);
-        }
+        return;
+      }
+
+      // If blocked by browser popup blocker, or third-party storage restriction, fallback dynamically to Redirect
+      console.log("Falling back dynamically to signInWithRedirect...");
+      if (btnTextEl) btnTextEl.textContent = 'Redirecting...';
+      try {
+        await signInWithRedirect(auth, googleProvider);
+      } catch (redirectError) {
+        console.error("Redirect fallback authentication error:", redirectError);
+        handleAuthError(redirectError, loginBtn, originalText);
       }
     }
   });
