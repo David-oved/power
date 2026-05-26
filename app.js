@@ -1,3 +1,22 @@
+// =========================================================================================
+// ⚠️ AI AGENTS SECURITY & PRESERVATION GUARD - PLEASE READ CAREFULLY!
+// =========================================================================================
+// This codebase has a highly custom, optimized PWA On-Demand Update Engine and a Version
+// Isolation Guard in app.js and sw.js.
+// 
+// RULES OF ENGAGEMENT:
+// 1. DO NOT touch the Service Worker registration and loadAppVersion / showUpdateToast functions.
+// 2. DO NOT revert the PWA update flow back to automatic background-caching in sw.js.
+// 3. DO NOT change the active user profile image element ID (#app-user-photo) in DOM binding.
+// 4. NOTE: Most of the workout, sets, and exercise logic in app.js is CURRENTLY "inactive/dormant"
+//    because index.html is in a Minimal Profile Hub state. DO NOT try to delete or "revive"
+//    it unless explicitly asked by the user.
+// 
+// 🚨 CRITICAL RULE: If these constraints interfere with a task given to you by the user,
+// you MUST ask the user in the chat for explicit permission first! Do NOT make changes to
+// these flows without the user's explicit OK in the chat!
+// =========================================================================================
+
 // AuraApp - Core PWA Logic & Firebase Authentication Gateway
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, signInWithPopup, signInWithRedirect, getRedirectResult, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -63,11 +82,9 @@ let firebaseAuthResolved = false;
 
 let currentUser = null;
 let isSensitiveDataVisible = false;
-let pendingMetricType = null; // תוקן: הגדרת משתנה הסטייט החסר למניעת ReferenceError
 
-// ==========================================================================
-// Firebase Initialization
-// ==========================================================================
+
+// Initialize Firebase App robustly using credentials from firebase-config.js
 if (window.firebaseConfig && window.firebaseConfig.apiKey && window.firebaseConfig.apiKey !== "YOUR_API_KEY") {
   try {
     app = initializeApp(window.firebaseConfig);
@@ -151,6 +168,7 @@ async function triggerLocalNotification(title, body) {
     }
   };
 
+  // Try to use Service Worker registration first for full iOS and Android standalone PWA support
   if ('serviceWorker' in navigator) {
     try {
       const reg = await navigator.serviceWorker.ready;
@@ -164,6 +182,7 @@ async function triggerLocalNotification(title, body) {
     }
   }
 
+  // Fallback to standard client-side Notification API (for desktop browsers)
   try {
     new Notification(title, options);
     console.log("Local notification triggered successfully via standard constructor.");
@@ -183,6 +202,7 @@ function safeFormatDate(value) {
   return isNaN(d.getTime()) ? 'N/A' : d.toLocaleDateString();
 }
 
+// Safe Date Time Helper
 function safeFormatDateTime(value) {
   if (!value) return 'N/A';
   const num = Number(value);
@@ -217,6 +237,11 @@ function hideSplashScreen() {
   }
 }
 
+// Manage App Screen Transitions adapted for Premium Splash Screen Overlay
+// CRITICAL SECURITY NOTE FOR FUTURE AGENTS:
+// To enforce strict visual isolation, all active application overlay/global elements (like bottom bars,
+// settings drawers, updates alerts, and modals) MUST be completely hidden on the initial login gate.
+// The presence of body class 'authenticated' is the strict CSS gatekeepers. DO NOT change this logic.
 function switchScreen(signedIn) {
   const splash = document.getElementById('splash-screen');
   const isSplashActive = splash && !splash.classList.contains('fade-out') && (splash.style.display !== 'none');
@@ -262,6 +287,7 @@ function switchScreen(signedIn) {
   }
 }
 
+// Safe Element Text Updater Helper
 const setElText = (id, text) => {
   const el = document.getElementById(id);
   if (el) el.textContent = text;
@@ -276,7 +302,6 @@ function maskString(str, visibleCount = 4) {
   return str.substring(0, visibleCount) + '...' + str.substring(str.length - visibleCount);
 }
 
-// Mask email logic
 function maskEmail(email) {
   if (!email) return '--';
   const parts = email.split('@');
@@ -298,11 +323,13 @@ function updateAuthUI() {
   const createdTime = currentUser.metadata?.createdAt || currentUser.metadata?.creationTime;
   const loginTime = currentUser.metadata?.lastLoginAt || currentUser.metadata?.lastSignInTime;
 
+  // Header Display Name
   setElText('user-display-name', name ? name.split(' ')[0] : 'User');
   setElText('settings-user-name-field', name);
   setElText('settings-user-email-field', email);
   setElText('settings-user-name-main', name);
 
+  // Photo Binding
   const fallbackPhoto = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
   const photoURL = currentUser.photoURL || fallbackPhoto;
   if (navUserPhoto) {
@@ -327,6 +354,7 @@ function updateAuthUI() {
     drawerUserPhoto.onerror = () => { drawerUserPhoto.src = fallbackPhoto; };
   }
 
+  // Drawer Fields
   setElText('drawer-user-full-name', name);
 
   if (isSensitiveDataVisible) {
@@ -352,6 +380,7 @@ function updateAuthUI() {
     }
   }
 
+  // Raw Profile JSON compilation
   const cleanUser = {
     uid: isSensitiveDataVisible ? uid : maskString(uid, 5),
     displayName: name,
@@ -376,6 +405,7 @@ function updateAuthUI() {
   }
 }
 
+// Reset DOM fields safely on Logout to avoid credential leakage
 function clearUserSession() {
   currentUser = null;
   SafeStorage._fallbackMem = {};
@@ -417,6 +447,7 @@ function clearUserSession() {
   if (floatingUserPhoto) floatingUserPhoto.src = fallbackPhoto;
   if (drawerUserPhoto) drawerUserPhoto.src = fallbackPhoto;
   
+  // Reset tabs to default Settings tab upon logout
   resetTabs();
 
   if (typeof clearWorkoutSession === 'function') clearWorkoutSession();
@@ -427,6 +458,8 @@ function clearUserSession() {
   }
 }
 
+
+// Monitor Firebase Authentication Transitions safely
 // Monitor Firebase Authentication Transitions safely
 let initialAuthCheckDone = false;
 if (firebaseEnabled) {
@@ -443,6 +476,7 @@ if (firebaseEnabled) {
       if (typeof initWorkouts === 'function') initWorkouts();
       switchScreen(true);
 
+      // Trigger notification if it's a real-time transition, and we haven't welcomed them in this session
       const hasBeenWelcomed = sessionStorage.getItem('aura_session_welcomed');
       if (isLoginTransition && !hasBeenWelcomed && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
         triggerLocalNotification(
@@ -451,12 +485,14 @@ if (firebaseEnabled) {
         );
         sessionStorage.setItem('aura_session_welcomed', 'true');
       } else {
+        // If already logged in, quietly mark welcomed so we do not spam them
         sessionStorage.setItem('aura_session_welcomed', 'true');
       }
     } else {
       console.log("No authenticated user active.");
       const prevUser = currentUser;
       
+      // Clear session guard on sign out
       sessionStorage.removeItem('aura_session_welcomed');
       
       clearUserSession();
@@ -473,10 +509,12 @@ if (firebaseEnabled) {
     hideSplashScreen();
   });
 
+  // Resolve redirect logins
   getRedirectResult(auth)
     .then((result) => {
       if (result && result.user) {
         console.log("Redirect sign-in resolved successfully for:", result.user.displayName);
+        // Force session welcomed flag to prevent double-firing
         sessionStorage.setItem('aura_session_welcomed', 'true');
         if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
           triggerLocalNotification(
@@ -497,6 +535,7 @@ if (firebaseEnabled) {
       }
     });
 
+  // Fail-safe: Hide the splash screen after 8 seconds if Firebase fails or hangs on startup
   setTimeout(() => {
     if (!firebaseAuthResolved) {
       console.warn("Firebase Auth resolution timed out. Falling back to offline/auth login screen.");
@@ -505,6 +544,7 @@ if (firebaseEnabled) {
     hideSplashScreen();
   }, 8000);
 } else {
+  // Graceful fallback for missing config on startup
   console.log("Firebase is disabled. Auth features are unavailable.");
   switchScreen(false);
   setTimeout(hideSplashScreen, 1000);
@@ -520,6 +560,7 @@ function onDOMReady(fn) {
 
 onDOMReady(detectEnvironmentAndWarn);
 
+// Dynamic Mobile/Desktop & Standalone Authenticator Gateway
 if (loginBtn) {
   loginBtn.addEventListener('click', async () => {
     if (!firebaseEnabled) {
@@ -527,6 +568,7 @@ if (loginBtn) {
       return;
     }
 
+    // Proactively request notification permission on user-initiated gesture (safely)
     if ('Notification' in window && typeof Notification !== 'undefined' && Notification.permission === 'default') {
       try {
         await Notification.requestPermission();
@@ -545,6 +587,7 @@ if (loginBtn) {
 
     if (isMobileDevice) {
       if (isIOS && isStandalone) {
+        // iOS PWA installed mode sandboxes external redirects. Attempt popup first, then fall back dynamically to redirect if popup fails.
         console.log("iOS Standalone PWA detected. Launching in-app popup auth...");
         try {
           await signInWithPopup(auth, googleProvider);
@@ -572,6 +615,7 @@ if (loginBtn) {
         }
       }
     } else {
+      // Desktop PWA Standalone and desktop browsers use popup which works flawlessly.
       console.log("Desktop device or Standalone PWA detected. Attempting popup...");
       try {
         await signInWithPopup(auth, googleProvider);
@@ -605,6 +649,7 @@ if (loginBtn) {
   });
 }
 
+// Proactive Environment Warnings (WhatsApp/Telegram/Private Tabs)
 function detectEnvironmentAndWarn() {
   const storageOk = SafeStorage.isSupported();
   const userAgent = navigator.userAgent || navigator.vendor || window.opera;
@@ -643,6 +688,7 @@ function detectEnvironmentAndWarn() {
   }
 }
 
+// Error Translator
 function handleAuthError(error, btn, originalText) {
   btn.disabled = false;
   btn.querySelector('.google-btn-text').textContent = originalText;
@@ -661,8 +707,10 @@ function handleAuthError(error, btn, originalText) {
   alert(userFriendlyMessage);
 }
 
+// Trigger Log Out Flow cleanly supporting Firebase Auth
 if (logoutBtn) {
   logoutBtn.addEventListener('click', async () => {
+    // Proactively request notification permission on user-initiated gesture if not yet determined
     if ('Notification' in window && typeof Notification !== 'undefined' && Notification.permission === 'default') {
       try {
         await Notification.requestPermission();
@@ -685,6 +733,7 @@ if (logoutBtn) {
   });
 }
 
+// Support profilePicBtn clicking to toggle the visibility of appLogoutBtn
 if (profilePicBtn) {
   profilePicBtn.addEventListener('click', () => {
     if (appLogoutBtn) {
@@ -699,6 +748,7 @@ const isLocalhost = window.location.hostname === 'localhost' ||
                     window.location.protocol === 'file:';
 
 if ('serviceWorker' in navigator) {
+  // Allow local service worker testing if developer sets localStorage.getItem('enableLocalSW') === 'true'
   if (isLocalhost && SafeStorage.getItem('enableLocalSW') !== 'true') {
     navigator.serviceWorker.getRegistrations().then((registrations) => {
       for (let registration of registrations) {
@@ -707,6 +757,7 @@ if ('serviceWorker' in navigator) {
       }
     });
   } else {
+    // Helper to query cache version dynamically from active Service Worker
     const loadAppVersion = (reg) => {
       const activeWorker = navigator.serviceWorker.controller || reg.active;
       if (!activeWorker) return;
@@ -724,6 +775,7 @@ if ('serviceWorker' in navigator) {
     };
 
     window.addEventListener('load', () => {
+      // Trigger update notification on load if we just updated successfully
       const justUpdated = SafeStorage.getItem('pwa_just_updated');
       if (justUpdated) {
         SafeStorage.removeItem('pwa_just_updated');
@@ -741,7 +793,9 @@ if ('serviceWorker' in navigator) {
         .then((registration) => {
           console.log('PWA Service Worker registered successfully! Scope:', registration.scope);
           
+          // Dynamically query and update active version display on load
           loadAppVersion(registration);
+          
           registration.update();
           
           setInterval(() => {
@@ -792,6 +846,7 @@ if ('serviceWorker' in navigator) {
   }
 }
 
+// Glassmorphic PWA auto-update toast notification
 function showUpdateToast(waitingWorker) {
   const toast = document.getElementById('pwa-update-toast');
   const refreshBtn = document.getElementById('pwa-refresh-btn');
@@ -801,22 +856,26 @@ function showUpdateToast(waitingWorker) {
     refreshBtn.addEventListener('click', () => {
       console.log("User requested update activation. Initiating on-demand asset download...");
       
+      // Make the button disabled and change its visual state to loading
       refreshBtn.disabled = true;
       refreshBtn.style.opacity = '0.7';
       refreshBtn.style.cursor = 'not-allowed';
       refreshBtn.textContent = 'מוריד עדכונים... ⏳';
       
+      // Send message to Service Worker to start download and skip waiting
       waitingWorker.postMessage({ action: 'downloadAndActivate' });
     });
   }
 }
 
+// Settings Drawer Open / Close Trigger Listeners
 if (floatingAvatarBtn) floatingAvatarBtn.addEventListener('click', openDrawer);
 const navSettingsBtn = document.getElementById('nav-settings-btn');
 if (navSettingsBtn) navSettingsBtn.addEventListener('click', openDrawer);
 if (drawerCloseBtn) drawerCloseBtn.addEventListener('click', closeDrawer);
 if (drawerOverlay) drawerOverlay.addEventListener('click', closeDrawer);
 
+// Collapsible JSON Terminal Toggle (Settings Drawer)
 const drawerJsonToggle = document.getElementById('drawer-json-toggle');
 const drawerJsonContainer = document.getElementById('drawer-json-terminal-container');
 const drawerToggleArrow = document.getElementById('drawer-toggle-arrow');
@@ -834,6 +893,7 @@ if (drawerJsonToggle) {
   });
 }
 
+// Sensitive Information Toggle Button Listener
 if (toggleSensitiveBtn) {
   toggleSensitiveBtn.addEventListener('click', () => {
     isSensitiveDataVisible = !isSensitiveDataVisible;
@@ -842,6 +902,7 @@ if (toggleSensitiveBtn) {
   });
 }
 
+// Premium iOS PWA Installation Banner Prompt Logic
 window.addEventListener('load', () => {
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
   const iosPromptDismissed = SafeStorage.getItem('ios-pwa-prompt-dismissed');
@@ -865,6 +926,7 @@ window.addEventListener('load', () => {
   }
 });
 
+
 // ==========================================================================
 // iOS 26 Tab Switching Engine & Tab Reset Logic
 // ==========================================================================
@@ -882,6 +944,7 @@ function resetTabs() {
   if (settingsPane) settingsPane.classList.add('active');
 }
 
+// Binds tab clicking event listeners
 const navTabs = document.querySelectorAll('.ios-bottom-nav .nav-tab');
 const tabPanes = document.querySelectorAll('.tab-content-container .tab-pane');
 
@@ -890,9 +953,11 @@ navTabs.forEach((tab) => {
     const targetTab = tab.dataset.tab;
     if (!targetTab) return;
 
+    // Update active class on tab buttons
     navTabs.forEach(t => t.classList.remove('active'));
     tab.classList.add('active');
 
+    // Update active class on tab panes
     tabPanes.forEach((pane) => {
       pane.classList.remove('active');
       if (pane.id === `tab-${targetTab}`) {
@@ -904,6 +969,9 @@ navTabs.forEach((tab) => {
   });
 });
 
+// ==========================================================================
+// iOS Settings Sub-navigation (Main View <-> Account Details View)
+// ==========================================================================
 const goToAccountBtn = document.getElementById('go-to-account-btn');
 const backToSettingsBtn = document.getElementById('back-to-settings-btn');
 const settingsMainView = document.getElementById('settings-main-view');
@@ -989,17 +1057,13 @@ let activeTimerInterval = null;
 let workoutHistory = [];
 let editingWorkout = null;
 
+// Custom Locations & Exercises State
 let customLocations = [];
 let customExercises = [];
 let selectedExerciseForAdding = null;
 let currentActiveCategoryFilter = 'הכל';
-let pendingMetricType = null;
 
-// Set Modal State Variables
-let currentModalExercise = null;
-let currentModalSetIdx = null;
-let currentModalExIdx = null;
-
+// Rest Timer State Variables
 let restTimerInterval = null;
 let restTimerSecondsLeft = 0;
 
@@ -1009,9 +1073,11 @@ function saveActiveWorkoutState() {
   }
 }
 
+// Initialize workouts state on user auth
 function initWorkouts() {
   if (!currentUser) return;
   
+  // Load History
   const historyData = SafeStorage.getItem(`aura-workout-history_${currentUser.uid}`);
   if (historyData) {
     try {
@@ -1024,6 +1090,7 @@ function initWorkouts() {
     workoutHistory = [];
   }
   
+  // Load Custom Locations
   const locsData = SafeStorage.getItem(`aura-custom-locations_${currentUser.uid}`);
   if (locsData) {
     try {
@@ -1036,6 +1103,7 @@ function initWorkouts() {
     customLocations = [];
   }
   
+  // Load Custom Exercises
   const exsData = SafeStorage.getItem(`aura-custom-exercises_${currentUser.uid}`);
   if (exsData) {
     try {
@@ -1048,9 +1116,13 @@ function initWorkouts() {
     customExercises = [];
   }
   
+  // Render Tab 3 History Logs
   renderWorkoutHistory();
+  
+  // Render location grid dynamically
   renderLocationSelectorGrid();
   
+  // Restore Active Workout if any (anti-data loss on reload)
   const activeData = SafeStorage.getItem(`aura-active-workout_${currentUser.uid}`);
   if (activeData) {
     try {
@@ -1069,18 +1141,21 @@ function initWorkouts() {
   }
 }
 
+// Clear workout session on logout
 function clearWorkoutSession() {
   if (activeTimerInterval) {
     clearInterval(activeTimerInterval);
     activeTimerInterval = null;
   }
   
+  // Stop the rest timer on logout
   if (typeof stopRestTimer === 'function') stopRestTimer();
 
   activeWorkout = null;
   workoutHistory = [];
   editingWorkout = null;
   
+  // Reset active UI views to idle
   const activeView = document.getElementById('workout-active-view');
   const idleView = document.getElementById('workout-idle-view');
   const locationGrid = document.getElementById('location-selector-grid');
@@ -1098,6 +1173,7 @@ function clearWorkoutSession() {
   if (historyList) historyList.innerHTML = '';
 }
 
+// Toggle grid to select location
 const startWorkoutBtn = document.getElementById('start-workout-btn');
 const cancelLocationBtn = document.getElementById('cancel-location-btn');
 const locationGrid = document.getElementById('location-selector-grid');
@@ -1116,11 +1192,13 @@ if (cancelLocationBtn && startWorkoutBtn && locationGrid) {
   });
 }
 
+// Dynamic Location Selector Grid Render
 function renderLocationSelectorGrid() {
   const container = document.getElementById('location-tiles-container');
   if (!container) return;
   container.innerHTML = '';
   
+  // Default Gym Tile
   const gymTile = document.createElement('button');
   gymTile.className = 'location-tile';
   gymTile.innerHTML = `
@@ -1130,6 +1208,7 @@ function renderLocationSelectorGrid() {
   gymTile.addEventListener('click', () => startNewWorkout('gym'));
   container.appendChild(gymTile);
 
+  // Default Park Tile
   const parkTile = document.createElement('button');
   parkTile.className = 'location-tile';
   parkTile.innerHTML = `
@@ -1139,6 +1218,7 @@ function renderLocationSelectorGrid() {
   parkTile.addEventListener('click', () => startNewWorkout('park'));
   container.appendChild(parkTile);
 
+  // Render Custom Locations
   customLocations.forEach(loc => {
     const tile = document.createElement('button');
     tile.className = 'location-tile';
@@ -1150,6 +1230,7 @@ function renderLocationSelectorGrid() {
     container.appendChild(tile);
   });
 
+  // Add Custom Location Tile
   const addTile = document.createElement('button');
   addTile.className = 'location-tile add-custom-location-tile';
   addTile.innerHTML = `
@@ -1190,6 +1271,7 @@ function startNewWorkout(location, name = '', emoji = '') {
   
   SafeStorage.setItem(`aura-active-workout_${currentUser.uid}`, JSON.stringify(activeWorkout));
   
+  // Transition Views
   const idleView = document.getElementById('workout-idle-view');
   const activeView = document.getElementById('workout-active-view');
   
@@ -1199,20 +1281,25 @@ function startNewWorkout(location, name = '', emoji = '') {
   }
   if (activeView) activeView.classList.remove('hide');
   
+  // Reset Start buttons for next time
   if (locationGrid) locationGrid.classList.add('hide');
   if (startWorkoutBtn) startWorkoutBtn.classList.remove('hide');
   
+  // Update Header Badge
   const badgeIcon = document.getElementById('active-location-icon');
   const badgeText = document.getElementById('active-location-text');
   if (badgeIcon) badgeIcon.textContent = dispEmoji;
   if (badgeText) badgeText.textContent = dispName;
   
+  // Reset Timer UI
   const timerDisplay = document.getElementById('active-timer');
   if (timerDisplay) timerDisplay.textContent = '00:00:00';
   
+  // Start Timer
   if (activeTimerInterval) clearInterval(activeTimerInterval);
   activeTimerInterval = setInterval(updateActiveTimer, 1000);
   
+  // Render exercises list (empty)
   renderExercises();
 }
 
@@ -1259,6 +1346,7 @@ function updateActiveTimer() {
   }
 }
 
+// Exercise Picker List and Filters Rendering
 function renderExercisePickerFilters() {
   const container = document.getElementById('exercise-category-filters');
   if (!container || !activeWorkout) return;
@@ -1304,6 +1392,7 @@ function renderExercisePickerList() {
   const searchInput = document.getElementById('exercise-search-input');
   const query = searchInput ? searchInput.value.toLowerCase().trim() : '';
   
+  // Get base exercises
   let baseList = [];
   if (activeWorkout.location === 'gym') {
     baseList = [...GYM_EXERCISES];
@@ -1313,6 +1402,7 @@ function renderExercisePickerList() {
     baseList = [...GYM_EXERCISES, ...PARK_EXERCISES];
   }
   
+  // Add custom user-created exercises
   const userCustoms = customExercises.filter(ex => {
     if (activeWorkout.location === 'gym' || activeWorkout.location === 'park') {
       return ex.locationType === activeWorkout.location;
@@ -1322,6 +1412,7 @@ function renderExercisePickerList() {
   
   let fullList = [...baseList, ...userCustoms];
   
+  // Remove duplicates by name
   const seen = new Set();
   fullList = fullList.filter(ex => {
     const k = ex.name.trim();
@@ -1330,10 +1421,12 @@ function renderExercisePickerList() {
     return true;
   });
   
+  // Filter by category
   if (currentActiveCategoryFilter !== 'הכל') {
     fullList = fullList.filter(ex => ex.category === currentActiveCategoryFilter);
   }
   
+  // Filter by search query
   if (query) {
     fullList = fullList.filter(ex => ex.name.toLowerCase().includes(query));
   }
@@ -1346,6 +1439,7 @@ function renderExercisePickerList() {
     return;
   }
   
+  // Category color map for badges
   const categoryColors = {
     'חזה':      { bg: 'rgba(239,68,68,0.15)',   color: '#f87171' },
     'גב':       { bg: 'rgba(59,130,246,0.15)',  color: '#60a5fa' },
@@ -1381,9 +1475,11 @@ function renderExercisePickerList() {
     item.addEventListener('click', () => {
       selectedExerciseForAdding = ex.name;
       
+      // Hide exercise picker
       const pickerModal = document.getElementById('exercise-picker-modal');
       if (pickerModal) pickerModal.classList.add('hide');
       
+      // Open metric selector modal
       const metricModal = document.getElementById('metric-selector-modal');
       if (metricModal) metricModal.classList.remove('hide');
     });
@@ -1393,11 +1489,13 @@ function renderExercisePickerList() {
 
 // Bind workout setup events on DOM Ready
 onDOMReady(() => {
+  // Search input filter listener
   const searchInput = document.getElementById('exercise-search-input');
   if (searchInput) {
     searchInput.addEventListener('input', renderExercisePickerList);
   }
   
+  // Backdrop click listeners for modals
   const pickerModal = document.getElementById('exercise-picker-modal');
   if (pickerModal) {
     pickerModal.addEventListener('click', (e) => {
@@ -1417,6 +1515,7 @@ onDOMReady(() => {
     });
   }
   
+  // Close exercise picker button
   const closePickerBtn = document.getElementById('close-exercise-picker-btn');
   if (closePickerBtn) {
     closePickerBtn.addEventListener('click', () => {
@@ -1425,6 +1524,7 @@ onDOMReady(() => {
     });
   }
 
+  // Close Custom Location Modal
   const closeCustomLocBtn = document.getElementById('close-custom-location-btn');
   if (closeCustomLocBtn) {
     closeCustomLocBtn.addEventListener('click', () => {
@@ -1433,6 +1533,7 @@ onDOMReady(() => {
     });
   }
 
+  // Close Metric Selector Modal
   const closeMetricBtn = document.getElementById('close-metric-selector-btn');
   if (closeMetricBtn) {
     closeMetricBtn.addEventListener('click', () => {
@@ -1442,6 +1543,7 @@ onDOMReady(() => {
     });
   }
 
+  // Save Custom Location
   const saveCustomLocBtn = document.getElementById('save-custom-location-btn');
   if (saveCustomLocBtn) {
     saveCustomLocBtn.addEventListener('click', () => {
@@ -1474,19 +1576,23 @@ onDOMReady(() => {
     });
   }
 
+  // Open Custom Exercise Modal button (new flow)
   const openCustomExModalBtn = document.getElementById('open-custom-exercise-modal-btn');
   if (openCustomExModalBtn) {
     openCustomExModalBtn.addEventListener('click', () => {
       const customExModal = document.getElementById('custom-exercise-modal');
       if (customExModal) {
+        // Reset form state
         const nameInput = document.getElementById('new-custom-exercise-name-input');
         if (nameInput) nameInput.value = '';
         
+        // Reset category pills to default
         document.querySelectorAll('#custom-ex-category-selector .category-pill-btn').forEach(btn => {
           btn.classList.remove('active');
           if (btn.dataset.category === 'מותאם אישית') btn.classList.add('active');
         });
         
+        // Reset emoji to none
         document.querySelectorAll('#custom-ex-emoji-selector .emoji-pick-btn').forEach(btn => {
           btn.classList.remove('active');
           if (btn.dataset.emoji === '') btn.classList.add('active');
@@ -1498,6 +1604,7 @@ onDOMReady(() => {
     });
   }
 
+  // Category pill single-select in custom exercise modal
   const categoryPillContainer = document.getElementById('custom-ex-category-selector');
   if (categoryPillContainer) {
     categoryPillContainer.addEventListener('click', (e) => {
@@ -1508,6 +1615,7 @@ onDOMReady(() => {
     });
   }
 
+  // Emoji single-select in custom exercise modal
   const emojiSelectorContainer = document.getElementById('custom-ex-emoji-selector');
   if (emojiSelectorContainer) {
     emojiSelectorContainer.addEventListener('click', (e) => {
@@ -1518,6 +1626,7 @@ onDOMReady(() => {
     });
   }
 
+  // Close Custom Exercise Modal
   const closeCustomExModalBtn = document.getElementById('close-custom-exercise-modal-btn');
   if (closeCustomExModalBtn) {
     closeCustomExModalBtn.addEventListener('click', () => {
@@ -1526,6 +1635,7 @@ onDOMReady(() => {
     });
   }
 
+  // Backdrop click to close custom exercise modal
   const customExModal = document.getElementById('custom-exercise-modal');
   if (customExModal) {
     customExModal.addEventListener('click', (e) => {
@@ -1533,6 +1643,7 @@ onDOMReady(() => {
     });
   }
 
+  // Save Custom Exercise from new modal
   const saveCustomExBtn = document.getElementById('save-custom-exercise-btn');
   if (saveCustomExBtn) {
     saveCustomExBtn.addEventListener('click', () => {
@@ -1544,8 +1655,12 @@ onDOMReady(() => {
       }
       
       const exName = nameInput.value.trim();
+      
+      // Get selected category
       const activeCatPill = document.querySelector('#custom-ex-category-selector .category-pill-btn.active');
       const selectedCategory = activeCatPill ? activeCatPill.dataset.category : 'מותאם אישית';
+      
+      // Get selected emoji
       const activeEmojiBtn = document.querySelector('#custom-ex-emoji-selector .emoji-pick-btn.active');
       const selectedEmoji = activeEmojiBtn ? activeEmojiBtn.dataset.emoji : '';
       
@@ -1561,9 +1676,11 @@ onDOMReady(() => {
         SafeStorage.setItem(`aura-custom-exercises_${currentUser.uid}`, JSON.stringify(customExercises));
       }
       
+      // Close custom exercise modal
       const customExModal = document.getElementById('custom-exercise-modal');
       if (customExModal) customExModal.classList.add('hide');
       
+      // Auto-select and trigger metrics choice
       selectedExerciseForAdding = exName;
       
       const pickerModal = document.getElementById('exercise-picker-modal');
@@ -1572,21 +1689,26 @@ onDOMReady(() => {
       const metricModal = document.getElementById('metric-selector-modal');
       if (metricModal) metricModal.classList.remove('hide');
       
+      // Re-render the list in background
       renderExercisePickerList();
     });
   }
 
+  // Legacy add-custom-exercise-btn (gracefully inactive since we removed the inline creator)
+  // Kept as a no-op stub to avoid errors if anything references it externally
   const legacyAddCustomExBtn = document.getElementById('add-custom-exercise-btn');
   if (legacyAddCustomExBtn) {
-    legacyAddCustomExBtn.style.display = 'none';
+    legacyAddCustomExBtn.style.display = 'none'; // Hidden fallback
   }
 
+  // Bind Metric Selector Tiles click — now opens rest-config modal FIRST
   document.querySelectorAll('.metric-tile').forEach(tile => {
     tile.addEventListener('click', () => {
       const metricType = tile.getAttribute('data-metric');
       console.log("Metric tile clicked. Chosen metricType:", metricType, "selectedExerciseForAdding:", selectedExerciseForAdding);
       
       if (!selectedExerciseForAdding) {
+        console.warn("No selected exercise for adding. Checking active picker state...");
         alert('שגיאה: לא נבחר תרגיל. אנא בחר תרגיל שוב.');
         return;
       }
@@ -1596,172 +1718,38 @@ onDOMReady(() => {
         return;
       }
       
+      // Store pending metricType; hide metric modal and open rest-config modal
       pendingMetricType = metricType;
       const metricModal = document.getElementById('metric-selector-modal');
       if (metricModal) metricModal.classList.add('hide');
       
+      // Open rest config modal
       openRestConfigModal();
     });
   });
-
-  // Rest Config Modal Option Buttons
-  document.querySelectorAll('.rest-config-option-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const secsAttr = btn.getAttribute('data-seconds');
-      
-      // Remove selected class from other buttons
-      document.querySelectorAll('.rest-config-option-btn').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-
-      if (secsAttr === 'custom') {
-        const customRow = document.getElementById('rest-config-custom-row');
-        if (customRow) {
-          customRow.style.display = 'flex';
-          const customInput = document.getElementById('rest-config-custom-input');
-          if (customInput) customInput.focus();
-        }
-      } else {
-        const seconds = parseInt(secsAttr, 10) || 90;
-        confirmRestAndAddExercise(seconds);
-      }
-    });
-  });
-
-  // Custom rest confirm button
-  const customRestConfirmBtn = document.getElementById('rest-config-custom-confirm-btn');
-  if (customRestConfirmBtn) {
-    customRestConfirmBtn.addEventListener('click', () => {
-      const customInput = document.getElementById('rest-config-custom-input');
-      if (customInput) {
-        const seconds = parseInt(customInput.value, 10) || 60;
-        confirmRestAndAddExercise(seconds);
-      }
-    });
-  }
-
-  // Close Rest Config Modal Button
-  const closeRestConfigBtn = document.getElementById('close-rest-config-btn');
-  if (closeRestConfigBtn) {
-    closeRestConfigBtn.addEventListener('click', () => {
-      const modal = document.getElementById('rest-config-modal');
-      if (modal) modal.classList.add('hide');
-      selectedExerciseForAdding = null;
-      pendingMetricType = null;
-    });
-  }
-
-  // Backdrop click to close rest config modal
-  const restConfigModal = document.getElementById('rest-config-modal');
-  if (restConfigModal) {
-    restConfigModal.addEventListener('click', (e) => {
-      if (e.target === restConfigModal) {
-        restConfigModal.classList.add('hide');
-        selectedExerciseForAdding = null;
-        pendingMetricType = null;
-      }
-    });
-  }
-
-  // Set Entry Modal Confirm Button ("✓ סיימתי סט")
-  const setEntryConfirmBtn = document.getElementById('set-entry-confirm-btn');
-  if (setEntryConfirmBtn) {
-    setEntryConfirmBtn.addEventListener('click', () => {
-      if (!currentModalExercise || currentModalSetIdx === null || currentModalExIdx === null) return;
-      
-      const metricType = currentModalExercise.metricType || 'both';
-      let selectedWeight = '';
-      let selectedReps = '';
-      
-      if (metricType === 'both' || metricType === 'weight') {
-        selectedWeight = getSelectedPickerValue('weight-picker');
-      }
-      if (metricType === 'both' || metricType === 'reps') {
-        selectedReps = getSelectedPickerValue('reps-picker');
-      }
-      
-      // Validate
-      if ((metricType === 'both' || metricType === 'reps') && (selectedReps === null || selectedReps <= 0)) {
-        alert('אנא בחר מספר חזרות תקין.');
-        return;
-      }
-      if ((metricType === 'both' || metricType === 'weight') && (selectedWeight === null || selectedWeight < 0)) {
-        alert('אנא בחר משקל תקין.');
-        return;
-      }
-      
-      // Save data
-      const currentSet = currentModalExercise.sets[currentModalSetIdx];
-      if (currentSet) {
-        if (metricType === 'both' || metricType === 'weight') currentSet.weight = selectedWeight;
-        if (metricType === 'both' || metricType === 'reps') currentSet.reps = selectedReps;
-        currentSet.completed = true;
-      }
-      
-      saveActiveWorkoutState();
-      renderExercises();
-      
-      // Close Modal
-      const modal = document.getElementById('set-entry-modal');
-      if (modal) modal.classList.add('hide');
-      
-      // Trigger rest timer countdown
-      const restSecs = currentModalExercise.restSeconds || 90;
-      if (typeof startRestTimer === 'function') {
-        startRestTimer(restSecs);
-      }
-      
-      // Clean up modal states
-      currentModalExercise = null;
-      currentModalSetIdx = null;
-      currentModalExIdx = null;
-    });
-  }
-
-  // Set Entry Modal Cancel Button ("✕ ביטול")
-  const setEntryCancelBtn = document.getElementById('set-entry-cancel-btn');
-  if (setEntryCancelBtn) {
-    setEntryCancelBtn.addEventListener('click', () => {
-      const modal = document.getElementById('set-entry-modal');
-      if (modal) modal.classList.add('hide');
-      
-      // Clean up modal states
-      currentModalExercise = null;
-      currentModalSetIdx = null;
-      currentModalExIdx = null;
-    });
-  }
-
-  // Backdrop click to close set entry modal
-  const setEntryModal = document.getElementById('set-entry-modal');
-  if (setEntryModal) {
-    setEntryModal.addEventListener('click', (e) => {
-      if (e.target === setEntryModal) {
-        setEntryModal.classList.add('hide');
-        currentModalExercise = null;
-        currentModalSetIdx = null;
-        currentModalExIdx = null;
-      }
-    });
-  }
 });
 
+// Add Exercise Button Listener
 const addExerciseBtn = document.getElementById('add-exercise-btn');
 if (addExerciseBtn) {
   addExerciseBtn.addEventListener('click', () => {
     if (!activeWorkout) return;
     
+    // Automatically filter out and discard any draft exercises that have 0 completed sets
     activeWorkout.exercises = activeWorkout.exercises.filter(ex => {
       return ex.sets.some(s => s.completed);
     });
     saveActiveWorkoutState();
     renderExercises();
     
+    // Guard: Can't add if there is any active exercise that has completed sets but is not finalized
     const hasActive = activeWorkout.exercises.some(ex => !ex.completed);
     if (hasActive) {
       alert('נא לסיים את התרגיל הנוכחי לפני הוספת תרגיל חדש.');
       return;
     }
     
+    // Open exercise picker modal
     const pickerModal = document.getElementById('exercise-picker-modal');
     if (pickerModal) {
       pickerModal.classList.remove('hide');
@@ -1772,23 +1760,18 @@ if (addExerciseBtn) {
       renderExercisePickerList();
     }
   });
-}
-
-// Render dynamic Exercises List in Tab 2
+}// Render dynamic Exercises List in Tab 2
 function renderExercises() {
   const container = document.getElementById('exercises-container');
   if (!container || !activeWorkout) return;
   
   container.innerHTML = '';
-<<<<<<< HEAD
   
-  // Disable / Enable Add Exercise Button styles
-=======
+  // An exercise only counts as uncompleted if it has at least one completed set but isn't finalized
   const hasUncompleted = activeWorkout.exercises.some(ex => !ex.completed && ex.sets.some(s => s.completed));
   
->>>>>>> 4c82a4ca1de96ad1d79c19e65cfd03412b906bda
+  // Disable / Enable Add Exercise Button styles
   if (addExerciseBtn) {
-    const hasUncompleted = activeWorkout.exercises.some(ex => !ex.completed && ex.sets.some(s => s.completed));
     if (hasUncompleted) {
       addExerciseBtn.disabled = true;
       addExerciseBtn.style.opacity = '0.4';
@@ -1803,19 +1786,17 @@ function renderExercises() {
   activeWorkout.exercises.forEach((ex, exIdx) => {
     const card = document.createElement('div');
     card.className = `exercise-card ${ex.completed ? 'saved' : ''}`;
-    const metricType = ex.metricType || 'both';
     
-<<<<<<< HEAD
-    const metricType = ex.metricType || 'both';
+    const metricType = ex.metricType || 'both'; // Default compatibility
     
     // Header Row
-=======
->>>>>>> 4c82a4ca1de96ad1d79c19e65cfd03412b906bda
     const header = document.createElement('div');
     header.className = 'exercise-card-header';
+    
     const titleContainer = document.createElement('div');
     titleContainer.className = 'exercise-title-container';
     
+    // Trash icon to delete exercise (only if not completed)
     if (!ex.completed) {
       const removeExBtn = document.createElement('button');
       removeExBtn.className = 'remove-exercise-btn';
@@ -1837,6 +1818,7 @@ function renderExercises() {
     nameLabel.textContent = ex.name;
     titleContainer.appendChild(nameLabel);
     
+    // Metric Badge
     let metricLabel = '⚖️ משקל וחזרות';
     if (metricType === 'reps') metricLabel = '🔢 חזרות בלבד';
     if (metricType === 'weight') metricLabel = '🏋️‍♂️ משקל בלבד';
@@ -1854,6 +1836,7 @@ function renderExercises() {
     
     header.appendChild(titleContainer);
     
+    // Save / Edit exercise button on top corner
     const actionBtn = document.createElement('button');
     if (ex.completed) {
       actionBtn.className = 'btn edit-exercise-btn';
@@ -1881,13 +1864,13 @@ function renderExercises() {
     header.appendChild(actionBtn);
     card.appendChild(header);
     
+    // Sets Container Area
     const setsArea = document.createElement('div');
     setsArea.className = 'sets-area';
     
-<<<<<<< HEAD
+    // ---- NEW BEHAVIOR: compact completed sets + enter-set button ----
+    
     // Show all completed sets as compact read-only rows
-=======
->>>>>>> 4c82a4ca1de96ad1d79c19e65cfd03412b906bda
     const completedSets = ex.sets.filter(s => s.completed);
     if (completedSets.length > 0) {
       const compactList = document.createElement('div');
@@ -1908,11 +1891,7 @@ function renderExercises() {
           <span class="compact-set-values">${valueStr}</span>
           <span class="compact-set-num">סט ${realIdx + 1}</span>
         `;
-<<<<<<< HEAD
-        
         // Click on completed set to undo it (toggle off)
-=======
->>>>>>> 4c82a4ca1de96ad1d79c19e65cfd03412b906bda
         if (!ex.completed) {
           row.style.cursor = 'pointer';
           row.title = 'לחץ לביטול הסט';
@@ -1929,37 +1908,7 @@ function renderExercises() {
       setsArea.appendChild(compactList);
     }
     
-<<<<<<< HEAD
-    // If exercise not yet completed, show current active incomplete set input button or "Add Set"
-    if (!ex.completed) {
-      const nextIncompleteIdx = ex.sets.findIndex(s => !s.completed);
-      if (nextIncompleteIdx !== -1) {
-        // Show active data input trigger button
-        const enterSetBtn = document.createElement('button');
-        enterSetBtn.className = 'enter-set-data-btn';
-        enterSetBtn.textContent = `▶ הזן נתוני סט ${nextIncompleteIdx + 1}`;
-        enterSetBtn.addEventListener('click', () => {
-          openSetEntryModal(ex, nextIncompleteIdx, exIdx);
-        });
-        setsArea.appendChild(enterSetBtn);
-      } else {
-        // All sets are completed, allow adding a new set
-        const lastSet = ex.sets[ex.sets.length - 1];
-        const addSetBtn = document.createElement('button');
-        addSetBtn.className = 'add-set-btn';
-        addSetBtn.textContent = '➕ הוסף סט חדש';
-        addSetBtn.addEventListener('click', () => {
-          ex.sets.push({
-            reps: lastSet ? lastSet.reps || '' : '',
-            weight: lastSet ? lastSet.weight || '' : '',
-            completed: false
-          });
-          saveActiveWorkoutState();
-          renderExercises();
-        });
-        setsArea.appendChild(addSetBtn);
-      }
-=======
+    // If exercise not yet completed, show the "enter set data" button for the next active set
     if (!ex.completed) {
       const nextIncompleteIdx = ex.sets.findIndex(s => !s.completed);
       const activeSetIdx = nextIncompleteIdx !== -1 ? nextIncompleteIdx : ex.sets.length;
@@ -1971,7 +1920,67 @@ function renderExercises() {
         openSetEntryModal(ex, activeSetIdx, exIdx);
       });
       setsArea.appendChild(enterSetBtn);
->>>>>>> 4c82a4ca1de96ad1d79c19e65cfd03412b906bda
+    }
+    
+    card.appendChild(setsArea);
+    container.appendChild(card);
+  });
+          // Validate according to metric configuration
+          let hasReps = true;
+          let hasWeight = true;
+          
+          if (metricType === 'both' || metricType === 'reps') {
+            hasReps = repsInput && repsInput.value.trim() !== '' && Number(repsInput.value) > 0;
+          }
+          if (metricType === 'both' || metricType === 'weight') {
+            hasWeight = weightInput && weightInput.value.trim() !== '' && Number(weightInput.value) >= 0;
+          }
+          
+          if (!hasReps && (metricType === 'both' || metricType === 'reps')) {
+            alert('אנา הזן מספר חזרות תקין.');
+            if (repsInput) repsInput.focus();
+            return;
+          }
+          if (!hasWeight && (metricType === 'both' || metricType === 'weight')) {
+            alert('אנא הזן משקל תקין.');
+            if (weightInput) weightInput.focus();
+            return;
+          }
+          
+          if (repsInput) set.reps = repsInput.value;
+          if (weightInput) set.weight = weightInput.value;
+          set.completed = true;
+          saveActiveWorkoutState();
+          renderExercises();
+ 
+          // Trigger premium Rest Timer countdown
+          if (typeof startRestTimer === 'function') startRestTimer(90);
+        }
+      });
+      checkWrapper.appendChild(checkBtn);
+      setRow.appendChild(checkWrapper);
+      
+      setsArea.appendChild(setRow);
+    });
+    
+    // Add Set Button - Only show if exercise is not completed AND the last set is completed!
+    if (!ex.completed) {
+      const lastSet = ex.sets[ex.sets.length - 1];
+      if (lastSet && lastSet.completed) {
+        const addSetBtn = document.createElement('button');
+        addSetBtn.className = 'add-set-btn';
+        addSetBtn.textContent = '➕ הוסף סט חדש';
+        addSetBtn.addEventListener('click', () => {
+          ex.sets.push({
+            reps: lastSet.reps || '',
+            weight: lastSet.weight || '',
+            completed: false
+          });
+          saveActiveWorkoutState();
+          renderExercises();
+        });
+        setsArea.appendChild(addSetBtn);
+      }
     }
     
     card.appendChild(setsArea);
@@ -1985,6 +1994,7 @@ if (finishWorkoutBtn) {
   finishWorkoutBtn.addEventListener('click', () => {
     if (!activeWorkout) return;
     
+    // Auto-complete any active exercises that have valid sets filled but weren't finalized
     activeWorkout.exercises.forEach(ex => {
       if (!ex.completed && ex.name.trim() !== '') {
         ex.sets.forEach(set => {
@@ -2003,6 +2013,7 @@ if (finishWorkoutBtn) {
       }
     });
 
+    // Sanitization: Filter out empty sets and discard exercises with no valid sets or empty names
     const sanitizedExercises = activeWorkout.exercises.map(ex => {
       const clonedEx = JSON.parse(JSON.stringify(ex));
       clonedEx.sets = clonedEx.sets.filter(s => {
@@ -2020,6 +2031,7 @@ if (finishWorkoutBtn) {
       return;
     }
     
+    // Calculate final duration
     const durationSeconds = Math.floor((Date.now() - activeWorkout.startTime) / 1000);
     
     const workoutLog = {
@@ -2032,9 +2044,11 @@ if (finishWorkoutBtn) {
       exercises: sanitizedExercises
     };
     
+    // Add to history
     workoutHistory.push(workoutLog);
     SafeStorage.setItem(`aura-workout-history_${currentUser.uid}`, JSON.stringify(workoutHistory));
     
+    // Clean up active session and Rest Timer
     SafeStorage.removeItem(`aura-active-workout_${currentUser.uid}`);
     if (typeof stopRestTimer === 'function') stopRestTimer();
 
@@ -2044,6 +2058,7 @@ if (finishWorkoutBtn) {
     }
     activeWorkout = null;
     
+    // Reset Workouts Tab Views to Idle
     const activeView = document.getElementById('workout-active-view');
     const idleView = document.getElementById('workout-idle-view');
     if (activeView) activeView.classList.add('hide');
@@ -2052,13 +2067,16 @@ if (finishWorkoutBtn) {
       idleView.classList.remove('hide');
     }
     
+    // Re-render History list
     renderWorkoutHistory();
     
+    // Switch dynamically to Tab 3 (Analytics/Data Tab)
     const analyticsTabBtn = document.querySelector('.ios-bottom-nav .nav-tab[data-tab="analytics"]');
     if (analyticsTabBtn) {
       analyticsTabBtn.click();
     }
     
+    // Trigger successful notification
     if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
       triggerLocalNotification("אימון נשמר בהצלחה! 💪", "הנתונים שלך מוגנים ומאובטחים לצמיתות במכשיר.");
     }
@@ -2071,6 +2089,7 @@ function cancelWorkoutSession() {
     activeTimerInterval = null;
   }
   
+  // Stop the rest timer on cancel
   if (typeof stopRestTimer === 'function') stopRestTimer();
 
   activeWorkout = null;
@@ -2087,6 +2106,7 @@ function cancelWorkoutSession() {
   }
 }
 
+// Render Workout History list in Tab 3
 function renderWorkoutHistory() {
   const listContainer = document.getElementById('workout-history-list');
   if (!listContainer) return;
@@ -2105,12 +2125,14 @@ function renderWorkoutHistory() {
     return;
   }
   
+  // Sort history descending (latest first)
   const sorted = [...workoutHistory].sort((a, b) => b.date - a.date);
   
   sorted.forEach(log => {
     const card = document.createElement('div');
     card.className = 'history-card';
     
+    // Calculate total sets & volume
     let totalSets = 0;
     let totalVolume = 0;
     
@@ -2125,6 +2147,7 @@ function renderWorkoutHistory() {
       });
     });
     
+    // Duration formatting
     let durationText = '';
     if (log.duration < 60) {
       durationText = 'פחות מדקה';
@@ -2136,6 +2159,7 @@ function renderWorkoutHistory() {
       durationText = `${hrs} שעות ו-${mins} דק׳`;
     }
     
+    // Date formatting (Hebrew)
     const dateObj = new Date(log.date);
     const dateFormatted = dateObj.toLocaleDateString('he-IL', {
       weekday: 'long',
@@ -2161,6 +2185,7 @@ function renderWorkoutHistory() {
       </div>
     `;
     
+    // Card clicking opens Edit Modal
     card.addEventListener('click', () => {
       openEditModal(log.id);
     });
@@ -2169,6 +2194,7 @@ function renderWorkoutHistory() {
   });
 }
 
+// Workout History Editor Modal system
 const editModal = document.getElementById('workout-edit-modal');
 const closeEditModalBtn = document.getElementById('close-edit-modal-btn');
 const saveEditedWorkoutBtn = document.getElementById('save-edited-workout-btn');
@@ -2192,7 +2218,10 @@ function openEditModal(workoutId) {
   const original = workoutHistory.find(w => w.id === workoutId);
   if (!original || !editModal) return;
   
+  // Clone the workout object so modifications are staged
   editingWorkout = JSON.parse(JSON.stringify(original));
+  
+  // Load Meta Info
   const metaContainer = document.getElementById('modal-workout-meta');
   if (metaContainer) {
     const dateObj = new Date(editingWorkout.date);
@@ -2219,6 +2248,8 @@ function openEditModal(workoutId) {
   }
   
   renderModalExercises();
+  
+  // Display Modal Panel
   editModal.classList.remove('hide');
 }
 
@@ -2233,8 +2264,10 @@ function renderModalExercises() {
     card.className = 'exercise-card';
     card.style.background = 'rgba(255, 255, 255, 0.03)';
     
+    // Header
     const header = document.createElement('div');
     header.className = 'exercise-card-header';
+    
     const titleContainer = document.createElement('div');
     titleContainer.className = 'exercise-title-container';
     
@@ -2257,8 +2290,10 @@ function renderModalExercises() {
     });
     titleContainer.appendChild(nameInput);
     header.appendChild(titleContainer);
+    
     card.appendChild(header);
     
+    // Sets list (LTR layout)
     const setsArea = document.createElement('div');
     setsArea.className = 'sets-area';
     
@@ -2274,8 +2309,9 @@ function renderModalExercises() {
     
     ex.sets.forEach((set, setIdx) => {
       const setRow = document.createElement('div');
-      setRow.className = 'set-row completed';
+      setRow.className = 'set-row completed'; // All saved/edited sets are fully unlocked in edit mode
       
+      // Remove Set
       const removeSetBtn = document.createElement('button');
       removeSetBtn.className = 'remove-set-btn';
       removeSetBtn.innerHTML = '✕';
@@ -2289,6 +2325,7 @@ function renderModalExercises() {
       });
       setRow.appendChild(removeSetBtn);
       
+      // Weight
       const weightWrapper = document.createElement('div');
       weightWrapper.className = 'set-input-wrapper';
       const weightInput = document.createElement('input');
@@ -2301,6 +2338,7 @@ function renderModalExercises() {
       weightWrapper.appendChild(weightInput);
       setRow.appendChild(weightWrapper);
       
+      // Reps
       const repsWrapper = document.createElement('div');
       repsWrapper.className = 'set-input-wrapper';
       const repsInput = document.createElement('input');
@@ -2313,6 +2351,7 @@ function renderModalExercises() {
       repsWrapper.appendChild(repsInput);
       setRow.appendChild(repsWrapper);
       
+      // Set label
       const setLabelWrapper = document.createElement('div');
       setLabelWrapper.className = 'set-input-wrapper';
       const setLabel = document.createElement('span');
@@ -2324,6 +2363,7 @@ function renderModalExercises() {
       setsArea.appendChild(setRow);
     });
     
+    // Add Set button in modal
     const addSetBtn = document.createElement('button');
     addSetBtn.className = 'add-set-btn';
     addSetBtn.textContent = '➕ הוסף סט';
@@ -2342,6 +2382,7 @@ function renderModalExercises() {
     container.appendChild(card);
   });
   
+  // Add Exercise button inside edit modal
   const addExBtn = document.createElement('button');
   addExBtn.className = 'btn btn-secondary';
   addExBtn.style.width = '100%';
@@ -2359,10 +2400,12 @@ function renderModalExercises() {
   container.appendChild(addExBtn);
 }
 
+// Save Edited Workout
 if (saveEditedWorkoutBtn) {
   saveEditedWorkoutBtn.addEventListener('click', () => {
     if (!editingWorkout || !currentUser) return;
     
+    // Validations
     if (editingWorkout.exercises.length === 0) {
       if (confirm('לא נותרו תרגילים באימון זה. האם ברצונך למחוק אותו לגמרי מההיסטוריה?')) {
         deleteWorkoutFromHistory(editingWorkout.id);
@@ -2377,6 +2420,7 @@ if (saveEditedWorkoutBtn) {
         return;
       }
       
+      // Filter out completely empty sets in edit mode for user convenience, or validate
       ex.sets = ex.sets.filter(s => {
         const hasReps = s.reps !== null && String(s.reps).trim() !== '' && Number(s.reps) > 0;
         const hasWeight = s.weight !== null && String(s.weight).trim() !== '' && Number(s.weight) >= 0;
@@ -2388,25 +2432,32 @@ if (saveEditedWorkoutBtn) {
         return;
       }
       
+      // Mark all sets completed inside this edited workout log
       ex.sets.forEach(s => s.completed = true);
       ex.completed = true;
     }
     
+    // Update main history array
     const originalIdx = workoutHistory.findIndex(w => w.id === editingWorkout.id);
     if (originalIdx !== -1) {
       workoutHistory[originalIdx] = editingWorkout;
       SafeStorage.setItem(`aura-workout-history_${currentUser.uid}`, JSON.stringify(workoutHistory));
       
+      // UI refresh
       renderWorkoutHistory();
+      
+      // Close modal
       editModal.classList.add('hide');
       editingWorkout = null;
     }
   });
 }
 
+// Delete Workout from History
 if (deleteWorkoutBtn) {
   deleteWorkoutBtn.addEventListener('click', () => {
     if (!editingWorkout) return;
+    
     if (confirm('האם אתה בטוח שברצונך למחוק את האימון הזה לצמיתות מההיסטוריה? פעולה זו אינה ניתנת לביטול.')) {
       deleteWorkoutFromHistory(editingWorkout.id);
     }
@@ -2420,10 +2471,14 @@ function deleteWorkoutFromHistory(workoutId) {
   SafeStorage.setItem(`aura-workout-history_${currentUser.uid}`, JSON.stringify(workoutHistory));
   
   renderWorkoutHistory();
+  
   if (editModal) editModal.classList.add('hide');
   editingWorkout = null;
 }
 
+// ==========================================================================
+// AuraApp Redesigned Settings Tab Controller & iOS Interactive Logic
+// ==========================================================================
 function initPremiumSettings() {
   console.log("Initializing premium iOS Settings View...");
 
@@ -2456,235 +2511,15 @@ function initPremiumSettings() {
   }
 }
 
+// Invoke the premium settings view initializer on window load and dynamic transitions
 onDOMReady(initPremiumSettings);
-
-// ==========================================================================
-// 18.5 PREMIUM SET ENTRY & REST CONFIG MODAL SYSTEM
-// ==========================================================================
-function openRestConfigModal() {
-  const modal = document.getElementById('rest-config-modal');
-  if (modal) {
-    modal.classList.remove('hide');
-    const customRow = document.getElementById('rest-config-custom-row');
-    if (customRow) customRow.style.display = 'none';
-    document.querySelectorAll('.rest-config-option-btn').forEach(btn => {
-      btn.classList.remove('selected');
-    });
-  }
-}
-
-function confirmRestAndAddExercise(seconds) {
-  if (activeWorkout && selectedExerciseForAdding && pendingMetricType) {
-    activeWorkout.exercises.push({
-      name: selectedExerciseForAdding,
-      metricType: pendingMetricType,
-      restSeconds: seconds,
-      completed: false,
-      sets: [
-        { reps: '', weight: '', completed: false }
-      ]
-    });
-    saveActiveWorkoutState();
-    renderExercises();
-  }
-  const restModal = document.getElementById('rest-config-modal');
-  if (restModal) restModal.classList.add('hide');
-  selectedExerciseForAdding = null;
-  pendingMetricType = null;
-}
-
-function openSetEntryModal(ex, setIdx, exIdx) {
-  currentModalExercise = ex;
-  currentModalSetIdx = setIdx;
-  currentModalExIdx = exIdx;
-  
-  const modal = document.getElementById('set-entry-modal');
-  if (!modal) return;
-  
-  const exNameEl = document.getElementById('set-entry-exercise-name');
-  const setNumEl = document.getElementById('set-entry-set-number');
-  if (exNameEl) exNameEl.textContent = ex.name;
-  if (setNumEl) setNumEl.textContent = `סט ${setIdx + 1}`;
-  
-  const metricType = ex.metricType || 'both';
-  
-  // Show/Hide columns based on metricType
-  const weightCol = document.getElementById('set-entry-weight-col');
-  const repsCol = document.getElementById('set-entry-reps-col');
-  
-  if (weightCol) {
-    weightCol.style.display = (metricType === 'both' || metricType === 'weight') ? 'flex' : 'none';
-  }
-  if (repsCol) {
-    repsCol.style.display = (metricType === 'both' || metricType === 'reps') ? 'flex' : 'none';
-  }
-  
-  // Get previous set values or default to pre-fill picker
-  let initialWeight = 60.0;
-  let initialReps = 10;
-  
-  // Try current incomplete set values first
-  const currentSet = ex.sets[setIdx];
-  if (currentSet) {
-    if (currentSet.weight !== '') initialWeight = parseFloat(currentSet.weight);
-    if (currentSet.reps !== '') initialReps = parseInt(currentSet.reps, 10);
-  }
-  
-  // Otherwise try the previous completed set's values
-  if (setIdx > 0) {
-    const prevSet = ex.sets[setIdx - 1];
-    if (prevSet && prevSet.completed) {
-      if (currentSet && currentSet.weight === '' && prevSet.weight !== '') {
-        initialWeight = parseFloat(prevSet.weight);
-      }
-      if (currentSet && currentSet.reps === '' && prevSet.reps !== '') {
-        initialReps = parseInt(prevSet.reps, 10);
-      }
-    }
-  }
-  
-  // Populate pickers dynamically if not already populated
-  initDrumPickers();
-  
-  // Open modal first so scroll dimensions are calculated correctly
-  modal.classList.remove('hide');
-  
-  // Scroll to correct position
-  setTimeout(() => {
-    scrollToDrumPickerValue('weight-picker', initialWeight);
-    scrollToDrumPickerValue('reps-picker', initialReps);
-  }, 50);
-}
-
-let drumPickersInitialized = false;
-const weightValues = [];
-const repsValues = [];
-
-function initDrumPickers() {
-  if (drumPickersInitialized) return;
-  
-  // Populate weight picker (0 to 200, step 0.5)
-  const weightTrack = document.getElementById('weight-picker-track');
-  if (weightTrack) {
-    weightTrack.style.paddingTop = '88px';
-    weightTrack.style.paddingBottom = '88px';
-    weightTrack.innerHTML = '';
-    weightValues.length = 0;
-    for (let w = 0; w <= 200; w += 0.5) {
-      weightValues.push(w);
-      const div = document.createElement('div');
-      div.className = 'drum-picker-item';
-      div.style.height = '44px';
-      div.style.scrollSnapAlign = 'center';
-      div.dataset.value = w;
-      div.textContent = w.toFixed(1);
-      weightTrack.appendChild(div);
-    }
-    setupDrumPickerScrollListener('weight-picker');
-    setupDrumPickerClickListener('weight-picker');
-  }
-  
-  // Populate reps picker (1 to 100)
-  const repsTrack = document.getElementById('reps-picker-track');
-  if (repsTrack) {
-    repsTrack.style.paddingTop = '88px';
-    repsTrack.style.paddingBottom = '88px';
-    repsTrack.innerHTML = '';
-    repsValues.length = 0;
-    for (let r = 1; r <= 100; r++) {
-      repsValues.push(r);
-      const div = document.createElement('div');
-      div.className = 'drum-picker-item';
-      div.style.height = '44px';
-      div.style.scrollSnapAlign = 'center';
-      div.dataset.value = r;
-      div.textContent = r;
-      repsTrack.appendChild(div);
-    }
-    setupDrumPickerScrollListener('reps-picker');
-    setupDrumPickerClickListener('reps-picker');
-  }
-  
-  drumPickersInitialized = true;
-}
-
-function scrollToDrumPickerValue(containerId, value) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-  
-  const items = container.querySelectorAll('.drum-picker-item');
-  let targetIdx = 0;
-  
-  for (let i = 0; i < items.length; i++) {
-    const val = parseFloat(items[i].dataset.value);
-    if (Math.abs(val - value) < 0.25) {
-      targetIdx = i;
-      break;
-    }
-  }
-  
-  container.scrollTop = targetIdx * 44;
-  
-  // Force active highlighting classes
-  items.forEach((item, i) => {
-    item.classList.remove('selected', 'near-selected');
-    if (i === targetIdx) {
-      item.classList.add('selected');
-    } else if (i === targetIdx - 1 || i === targetIdx + 1) {
-      item.classList.add('near-selected');
-    }
-  });
-}
-
-function setupDrumPickerScrollListener(containerId) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-  
-  container.addEventListener('scroll', () => {
-    const idx = Math.round(container.scrollTop / 44);
-    const items = container.querySelectorAll('.drum-picker-item');
-    items.forEach((item, i) => {
-      item.classList.remove('selected', 'near-selected');
-      if (i === idx) {
-        item.classList.add('selected');
-      } else if (i === idx - 1 || i === idx + 1) {
-        item.classList.add('near-selected');
-      }
-    });
-  });
-}
-
-function setupDrumPickerClickListener(containerId) {
-  const container = document.getElementById(containerId);
-  if (!container) return;
-  
-  container.addEventListener('click', (e) => {
-    const item = e.target.closest('.drum-picker-item');
-    if (item) {
-      const idx = Array.from(container.querySelectorAll('.drum-picker-item')).indexOf(item);
-      if (idx !== -1) {
-        container.scrollTo({ top: idx * 44, behavior: 'smooth' });
-      }
-    }
-  });
-}
-
-function getSelectedPickerValue(containerId) {
-  const container = document.getElementById(containerId);
-  if (!container) return null;
-  const idx = Math.round(container.scrollTop / 44);
-  const items = container.querySelectorAll('.drum-picker-item');
-  if (items[idx]) {
-    return parseFloat(items[idx].dataset.value);
-  }
-  return null;
-}
 
 
 // ==========================================================================
 // 19. PREMIUM REST TIMER SYSTEM
 // ==========================================================================
 function startRestTimer(seconds = 90) {
+  // Clear any existing rest timer
   stopRestTimer();
 
   restTimerSecondsLeft = seconds;
@@ -2741,15 +2576,18 @@ function handleRestTimerExpiration() {
     bubble.classList.add('expired');
   }
 
+  // Trigger Local Notification
   if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
     triggerLocalNotification("המנוחה נגמרה! ⏱️💪", "הגיע הזמן לסט הבא. קדימה, לעבודה!");
   }
 
+  // Support mobile haptic vibration
   if (navigator.vibrate) {
     navigator.vibrate([200, 100, 200]);
   }
 }
 
+// Bind Rest Timer controls
 onDOMReady(() => {
   const closeBtn = document.getElementById('close-rest-timer-btn');
   const plus30Btn = document.getElementById('rest-timer-plus-30');
@@ -2762,6 +2600,7 @@ onDOMReady(() => {
   if (plus30Btn) {
     plus30Btn.addEventListener('click', () => {
       restTimerSecondsLeft += 30;
+      // If it was expired or stopped, revive it
       if (restTimerSecondsLeft > 0 && !restTimerInterval) {
         const bubble = document.getElementById('rest-timer-bubble');
         if (bubble) bubble.classList.remove('expired');
@@ -2792,16 +2631,6 @@ onDOMReady(() => {
   }
 });
 
-// ==========================================================================
-// 20. MODAL INTERFACES & UI STUBS
-// ==========================================================================
-// Stubs implemented safely to ensure calls do not crash on undefined handles.
-function openRestConfigModal() {
-  console.log("Stub: openRestConfigModal invoked for asset download / rest duration selection.");
-  // Add your modal triggering classes here (e.g. document.getElementById('rest-modal').classList.remove('hide'))
-}
 
-function openSetEntryModal(exerciseObj, activeSetIdx, exerciseIdx) {
-  console.log(`Stub: openSetEntryModal invoked for ${exerciseObj.name}, Set: ${activeSetIdx + 1}`);
-  // Add your modal triggering classes here
-}
+
+
