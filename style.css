@@ -2482,6 +2482,13 @@ body.authenticated .ios-bottom-nav {
   width: 100%;
 }
 
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
 .modal-footer {
   padding: 1.5rem;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
@@ -5531,6 +5538,31 @@ body.authenticated .ios-bottom-nav {
 .accordion-item-card.expanded .accordion-content {
   border-top-width: 1px;
   max-height: 1000px; /* high enough to cover expanded set list */
+}
+
+.workout-active-view {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+}
+
+.exercises-list-container {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  padding: 1.5rem 1.5rem 120px 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  width: 100%;
 }
 
 .accordion-content-inner {
