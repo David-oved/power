@@ -5832,6 +5832,24 @@ body.authenticated .ios-bottom-nav {
   pointer-events: none !important;
 }
 
+/* Main bottom nav hidden state (when sub-navigation is active) */
+.ios-bottom-nav.nav-hidden {
+  transform: translate(-50%, 80px) scale(0.95) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Meals Metrics Sub-Navigation Bar */
+#meals-metrics-sub-nav {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), width 0.4s cubic-bezier(0.16, 1, 0.3, 1), height 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+#meals-metrics-sub-nav.nav-hidden {
+  transform: translate(-50%, 80px) scale(0.95) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
 .sub-tab-pane {
   display: none;
   opacity: 0;
