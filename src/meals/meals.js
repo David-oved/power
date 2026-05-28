@@ -12,15 +12,12 @@ export const MACRO_GOALS = {
   fat: 70
 };
 
-// Safe helper to update text contents safely
-const setElText = (id, text) => {
-  const el = document.getElementById(id);
-  if (el) el.textContent = text;
-};
-
 // Initialize meals on user login
 export function initMeals() {
   if (!state.currentUser) return;
+  
+  // Load metrics from LocalStorage per user
+  state.loadMealMetrics();
   
   // Load meals from LocalStorage
   const mealsData = SafeStorage.getItem(`aura-logged-meals_${state.currentUser.uid}`);
@@ -35,8 +32,10 @@ export function initMeals() {
     state.loggedMeals = [];
   }
   
-  // Render Meals tab UI
+  // Render dynamic components
+  renderAddMealSliders();
   renderMealsDashboard();
+  renderMealSettings();
   
   // Bind events for meals tab
   bindMealsEvents();
@@ -54,8 +53,9 @@ export function clearMealsSession() {
       </div>
     `;
   }
-  // Reset summary counters
-  updateSummaryUI(0, 0, 0, 0);
+  
+  const container = document.getElementById('meals-gauges-container');
+  if (container) container.innerHTML = '';
 }
 
 // Save meals to LocalStorage
@@ -63,34 +63,6 @@ export function saveMealsState() {
   if (state.currentUser) {
     SafeStorage.setItem(`aura-logged-meals_${state.currentUser.uid}`, JSON.stringify(state.loggedMeals));
   }
-}
-
-// Update summary dashboard counters and progress bars
-export function updateSummaryUI(calories, protein, carbs, fat) {
-  // Update texts
-  setElText('calories-current', calories.toLocaleString());
-  setElText('protein-current', protein.toLocaleString());
-  setElText('carbs-current', carbs.toLocaleString());
-  setElText('fat-current', fat.toLocaleString());
-  
-  // Calculate percentage widths (capped at 100)
-  const caloriesPercent = Math.min(100, Math.round((calories / MACRO_GOALS.calories) * 100));
-  const proteinPercent = Math.min(100, Math.round((protein / MACRO_GOALS.protein) * 100));
-  const carbsPercent = Math.min(100, Math.round((carbs / MACRO_GOALS.carbs) * 100));
-  const fatPercent = Math.min(100, Math.round((fat / MACRO_GOALS.fat) * 100));
-  
-  // Update progress bars
-  const calBar = document.getElementById('calories-progress-bar');
-  if (calBar) calBar.style.width = `${caloriesPercent}%`;
-  
-  const protBar = document.getElementById('protein-progress-bar');
-  if (protBar) protBar.style.width = `${proteinPercent}%`;
-  
-  const carbsBar = document.getElementById('carbs-progress-bar');
-  if (carbsBar) carbsBar.style.width = `${carbsPercent}%`;
-  
-  const fatBar = document.getElementById('fat-progress-bar');
-  if (fatBar) fatBar.style.width = `${fatPercent}%`;
 }
 
 // Get meals logged today (local time YYYY-MM-DD)
@@ -102,7 +74,7 @@ export function getTodayDateString() {
   return `${year}-${month}-${day}`;
 }
 
-// Render the meals dashboard fully
+// Render dynamic components
 export function renderMealsDashboard() {
   loggedMealsList = document.getElementById('logged-meals-list');
   if (!loggedMealsList) return;
@@ -111,21 +83,8 @@ export function renderMealsDashboard() {
   const todayStr = getTodayDateString();
   const todayMeals = state.loggedMeals.filter(m => m.date === todayStr);
   
-  // Calculate totals
-  let totalCalories = 0;
-  let totalProtein = 0;
-  let totalCarbs = 0;
-  let totalFat = 0;
-  
-  todayMeals.forEach(m => {
-    totalCalories += Number(m.calories || 0);
-    totalProtein += Number(m.protein || 0);
-    totalCarbs += Number(m.carbs || 0);
-    totalFat += Number(m.fat || 0);
-  });
-  
-  // Update Summary UI
-  updateSummaryUI(totalCalories, totalProtein, totalCarbs, totalFat);
+  // Render Dynamic Gauges Grid
+  renderGauges();
   
   // Render meals list
   if (todayMeals.length === 0) {
@@ -147,6 +106,16 @@ export function renderMealsDashboard() {
       if (meal.type === 'ערב') badgeClass = 'type-badge-dinner';
       if (meal.type === 'חטיף') badgeClass = 'type-badge-snack';
       
+      // Build micro-nutrition description dynamically
+      let descString = `${meal.protein || 0}g חלבון • ${meal.calories || 0} קק"ל`;
+      
+      // Add custom metrics values if present
+      state.mealMetrics.forEach(m => {
+        if (m.isCustom && meal[m.key] > 0) {
+          descString += ` • ${meal[m.key]}${m.unit} ${m.name}`;
+        }
+      });
+      
       row.innerHTML = `
         <div style="display: flex; align-items: center; gap: 10px;">
           <span style="font-size: 1.25rem;">${meal.type === 'בוקר' ? '🍳' : meal.type === 'צהריים' ? '🍗' : meal.type === 'ערב' ? '🥩' : '🍌'}</span>
@@ -154,7 +123,7 @@ export function renderMealsDashboard() {
             <span style="font-size: 0.95rem; font-weight: 700; color: #ffffff;">${meal.name}</span>
             <div style="display: flex; align-items: center; gap: 6px;">
               <span class="logged-meal-type-badge ${badgeClass}">${meal.type}</span>
-              <span style="font-size: 0.78rem; color: var(--text-muted);">${meal.protein}g חלבון • ${meal.calories} קק"ל</span>
+              <span style="font-size: 0.78rem; color: var(--text-muted);">${descString}</span>
             </div>
           </div>
         </div>
@@ -172,19 +141,278 @@ export function renderMealsDashboard() {
   }
 }
 
+// Draw dynamic semi-circle gauges for each active metric
+export function renderGauges() {
+  const container = document.getElementById('meals-gauges-container');
+  if (!container) return;
+
+  container.innerHTML = '';
+  
+  const todayStr = getTodayDateString();
+  const todayMeals = state.loggedMeals.filter(m => m.date === todayStr);
+
+  state.mealMetrics.forEach(metric => {
+    // Calculate total for this specific metric
+    let total = 0;
+    todayMeals.forEach(meal => {
+      total += Number(meal[metric.key] || 0);
+    });
+
+    const percentage = metric.goal > 0 ? Math.min(100, Math.round((total / metric.goal) * 100)) : 0;
+    const strokeDashoffset = 251.3 - (percentage / 100) * 251.3;
+
+    const gaugeId = `gauge-fill-${metric.key}`;
+    const gradientId = `grad-${metric.key}`;
+    
+    let gradientColors = '';
+    if (metric.key === 'calories') {
+      gradientColors = `<stop offset="0%" stop-color="#ff9500" /><stop offset="100%" stop-color="#ff3b30" />`;
+    } else if (metric.key === 'protein') {
+      gradientColors = `<stop offset="0%" stop-color="#ec4899" /><stop offset="100%" stop-color="#e11d48" />`;
+    } else if (metric.key === 'carbs') {
+      gradientColors = `<stop offset="0%" stop-color="#f59e0b" /><stop offset="100%" stop-color="#d97706" />`;
+    } else if (metric.key === 'fat') {
+      gradientColors = `<stop offset="0%" stop-color="#a855f7" /><stop offset="100%" stop-color="#7c3aed" />`;
+    } else {
+      // Electric blue/neon for custom
+      gradientColors = `<stop offset="0%" stop-color="#00f0ff" /><stop offset="100%" stop-color="#007aff" />`;
+    }
+
+    const gaugeHTML = `
+      <div class="premium-gauge-card" style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 24px; padding: 16px 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.2); transition: transform 0.2s;">
+        <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); display: flex; align-items: center; gap: 6px; margin-bottom: 8px; direction: rtl;">
+          <span style="font-size: 1.1rem;">${metric.emoji}</span>
+          <span style="color: #ffffff; letter-spacing: 0.5px;">${metric.name}</span>
+        </div>
+        
+        <div style="position: relative; width: 100%; max-width: 130px; text-align: center;">
+          <svg viewBox="0 0 200 120" style="width: 100%; height: auto; display: block;">
+            <defs>
+              <linearGradient id="${gradientId}" x1="0%" y1="100%" x2="100%" y2="0%">
+                ${gradientColors}
+              </linearGradient>
+            </defs>
+            <!-- Background Arc -->
+            <path d="M20,110 A80,80 0 0,1 180,110" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="12" stroke-linecap="round"/>
+            <!-- Progress Arc -->
+            <path id="${gaugeId}" d="M20,110 A80,80 0 0,1 180,110" fill="none" stroke="url(#${gradientId})" stroke-width="12" stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="251.3" style="transition: stroke-dashoffset 1s cubic-bezier(0.1, 0.8, 0.25, 1); filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4));"/>
+          </svg>
+          
+          <div style="position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; width: 100%;">
+            <span style="font-size: 1.1rem; font-weight: 900; color: #ffffff; font-family: var(--font-display);">${total.toLocaleString()} ${metric.unit}</span>
+            <span style="font-size: 0.7rem; color: var(--text-muted); font-weight: 600; margin-top: 1px;">יעד: ${metric.goal.toLocaleString()}</span>
+          </div>
+        </div>
+        <span style="font-size: 0.8rem; font-weight: 800; color: #ffffff; margin-top: 6px; background: rgba(255,255,255,0.05); padding: 2px 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">${percentage}%</span>
+      </div>
+    `;
+
+    const wrapper = document.createElement('div');
+    wrapper.innerHTML = gaugeHTML.trim();
+    const element = wrapper.firstChild;
+    container.appendChild(element);
+
+    // Trigger animation with a tiny timeout to execute after DOM mounting
+    setTimeout(() => {
+      const path = document.getElementById(gaugeId);
+      if (path) {
+        path.style.strokeDashoffset = strokeDashoffset;
+      }
+    }, 50);
+  });
+}
+
+// Generate the beautiful premium slider elements dynamically
+export function renderAddMealSliders() {
+  const container = document.getElementById('add-meal-sliders-container');
+  if (!container) return;
+
+  container.innerHTML = '';
+  
+  state.loadMealMetrics();
+
+  state.mealMetrics.forEach(metric => {
+    let max = 100;
+    let step = 1;
+    let def = 0;
+
+    if (metric.key === 'calories') {
+      max = 2000;
+      step = 10;
+      def = 350;
+    } else if (metric.key === 'protein') {
+      max = 150;
+      step = 1;
+      def = 25;
+    } else if (metric.key === 'carbs') {
+      max = 250;
+      step = 1;
+      def = 40;
+    } else if (metric.key === 'fat') {
+      max = 100;
+      step = 1;
+      def = 10;
+    } else {
+      // Custom metric
+      max = Math.max(metric.goal * 2, 100);
+      step = 1;
+      def = Math.round(metric.goal / 3) || 0;
+    }
+
+    const sliderGroup = document.createElement('div');
+    sliderGroup.className = 'slider-group-container';
+    sliderGroup.style.cssText = 'display: flex; flex-direction: column; gap: 8px;';
+    sliderGroup.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center; direction: rtl;">
+        <span style="font-size: 0.9rem; font-weight: 700; color: var(--text-muted);">${metric.emoji} ${metric.name}</span>
+        <span class="slider-display-badge" style="font-size: 0.95rem; font-weight: 800; color: #ffffff; background: rgba(255,255,255,0.06); padding: 2px 10px; border-radius: 20px;" id="slider-val-${metric.key}">${def} ${metric.unit}</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 10px; direction: ltr;">
+        <button type="button" class="slider-adjust-btn minus-btn" data-key="${metric.key}" style="width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.2rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; outline: none; transition: background 0.2s;">-</button>
+        <input type="range" class="premium-range-slider" id="slider-${metric.key}" data-key="${metric.key}" min="0" max="${max}" step="${step}" value="${def}" style="flex: 1; height: 6px; border-radius: 3px; outline: none; background: rgba(255,255,255,0.1); cursor: pointer;">
+        <button type="button" class="slider-adjust-btn plus-btn" data-key="${metric.key}" style="width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.2rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; outline: none; transition: background 0.2s;">+</button>
+      </div>
+    `;
+
+    container.appendChild(sliderGroup);
+  });
+
+  // Bind slider micro-adjustment controls
+  bindSliderMicroAdjustments();
+}
+
+// Logic for range input micro-adjustments
+function bindSliderMicroAdjustments() {
+  const container = document.getElementById('add-meal-sliders-container');
+  if (!container) return;
+
+  const sliders = container.querySelectorAll('.premium-range-slider');
+  sliders.forEach(slider => {
+    const key = slider.getAttribute('data-key');
+    const badge = document.getElementById(`slider-val-${key}`);
+    const metric = state.mealMetrics.find(m => m.key === key);
+    
+    slider.addEventListener('input', () => {
+      if (badge && metric) {
+        badge.textContent = `${slider.value} ${metric.unit}`;
+      }
+    });
+  });
+
+  const minusButtons = container.querySelectorAll('.minus-btn');
+  minusButtons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const key = btn.getAttribute('data-key');
+      const slider = document.getElementById(`slider-${key}`);
+      if (slider) {
+        const step = Number(slider.getAttribute('step')) || 1;
+        const min = Number(slider.getAttribute('min')) || 0;
+        const currentVal = Number(slider.value);
+        const newVal = Math.max(min, currentVal - step);
+        slider.value = newVal;
+        slider.dispatchEvent(new Event('input'));
+      }
+    });
+  });
+
+  const plusButtons = container.querySelectorAll('.plus-btn');
+  plusButtons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      const key = btn.getAttribute('data-key');
+      const slider = document.getElementById(`slider-${key}`);
+      if (slider) {
+        const step = Number(slider.getAttribute('step')) || 1;
+        const max = Number(slider.getAttribute('max')) || 100;
+        const currentVal = Number(slider.value);
+        const newVal = Math.min(max, currentVal + step);
+        slider.value = newVal;
+        slider.dispatchEvent(new Event('input'));
+      }
+    });
+  });
+}
+
+// Render Settings Modal Fields
+export function renderMealSettings() {
+  state.loadMealMetrics();
+
+  // Goal settings list
+  const goalsContainer = document.getElementById('settings-goals-list');
+  if (goalsContainer) {
+    goalsContainer.innerHTML = '';
+    state.mealMetrics.forEach(metric => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.04);';
+      row.innerHTML = `
+        <span style="font-size: 0.9rem; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 6px;">
+          <span>${metric.emoji}</span>
+          <span>${metric.name} (${metric.unit})</span>
+        </span>
+        <input type="number" class="metric-goal-input" data-key="${metric.key}" value="${metric.goal}" style="width: 80px; padding: 6px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #ffffff; text-align: center; font-weight: 700; outline: none;">
+      `;
+      goalsContainer.appendChild(row);
+    });
+  }
+
+  // Custom metrics view/delete list
+  const customListContainer = document.getElementById('settings-custom-metrics-list');
+  if (customListContainer) {
+    customListContainer.innerHTML = '';
+    const customMetrics = state.mealMetrics.filter(m => m.isCustom);
+    
+    if (customMetrics.length === 0) {
+      customListContainer.innerHTML = `
+        <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0;">אין מדדים מותאמים אישית כרגע.</p>
+      `;
+    } else {
+      customMetrics.forEach(metric => {
+        const row = document.createElement('div');
+        row.style.cssText = 'display: flex; justify-content: space-between; align-items: center; background: rgba(220, 38, 38, 0.05); padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(220, 38, 38, 0.15);';
+        row.innerHTML = `
+          <span style="font-size: 0.9rem; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 6px;">
+            <span>${metric.emoji}</span>
+            <span>${metric.name}</span>
+          </span>
+          <button type="button" class="delete-custom-metric-btn btn" data-key="${metric.key}" style="background: none; border: none; font-size: 1.1rem; cursor: pointer; padding: 4px; line-height: 1;">🗑️</button>
+        `;
+        row.querySelector('.delete-custom-metric-btn').addEventListener('click', (e) => {
+          e.stopPropagation();
+          deleteCustomMetric(metric.key);
+        });
+        customListContainer.appendChild(row);
+      });
+    }
+  }
+}
+
+// Delete Custom Metric
+export function deleteCustomMetric(key) {
+  state.mealMetrics = state.mealMetrics.filter(m => m.key !== key);
+  state.saveMealMetrics();
+  
+  // Re-render
+  renderMealSettings();
+  renderAddMealSliders();
+  renderMealsDashboard();
+  showPremiumToast("המדד נמחק בהצלחה.", "success");
+}
+
 // Log a new meal
-export function logMeal(name, type, calories, protein, carbs = 0, fat = 0) {
+export function logMeal(name, type, values = {}) {
   const newMeal = {
     id: 'meal_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
     name: name.trim(),
     type: type,
-    calories: Number(calories || 0),
-    protein: Number(protein || 0),
-    carbs: Number(carbs || 0),
-    fat: Number(fat || 0),
     date: getTodayDateString(),
     timestamp: Date.now()
   };
+
+  // Assign values for each active metric
+  state.mealMetrics.forEach(metric => {
+    newMeal[metric.key] = Number(values[metric.key] || 0);
+  });
   
   state.loggedMeals.unshift(newMeal);
   saveMealsState();
@@ -210,20 +438,39 @@ export function bindMealsEvents() {
   const closeBtn = document.getElementById('close-add-meal-modal-btn');
   const addForm = document.getElementById('add-meal-form');
   
-  // Open modal
+  // Settings modal buttons
+  const settingsBtn = document.getElementById('meal-settings-btn');
+  const settingsModal = document.getElementById('meal-settings-modal');
+  const closeSettingsBtn = document.getElementById('close-meal-settings-modal-btn');
+  
+  // Open settings modal
+  if (settingsBtn && settingsModal) {
+    settingsBtn.addEventListener('click', () => {
+      renderMealSettings();
+      settingsModal.classList.remove('hide');
+    });
+  }
+  
+  // Close settings modal
+  if (closeSettingsBtn && settingsModal) {
+    closeSettingsBtn.addEventListener('click', () => {
+      settingsModal.classList.add('hide');
+    });
+  }
+  
+  // Open add-meal modal
   if (triggerBtn && addModal) {
     triggerBtn.addEventListener('click', () => {
       document.getElementById('new-meal-name').value = '';
-      document.getElementById('new-meal-calories').value = '';
-      document.getElementById('new-meal-protein').value = '';
-      document.getElementById('new-meal-carbs').value = '';
-      document.getElementById('new-meal-fat').value = '';
+      
+      // Reset sliders to default values
+      renderAddMealSliders();
       
       addModal.classList.remove('hide');
     });
   }
   
-  // Close modal
+  // Close add-meal modal
   if (closeBtn && addModal) {
     closeBtn.addEventListener('click', () => {
       addModal.classList.add('hide');
@@ -237,14 +484,88 @@ export function bindMealsEvents() {
       
       const name = document.getElementById('new-meal-name').value;
       const type = document.getElementById('new-meal-type').value;
-      const calories = document.getElementById('new-meal-calories').value;
-      const protein = document.getElementById('new-meal-protein').value;
-      const carbs = document.getElementById('new-meal-carbs').value || 0;
-      const fat = document.getElementById('new-meal-fat').value || 0;
       
-      logMeal(name, type, calories, protein, carbs, fat);
+      // Collect slider values dynamically
+      const values = {};
+      state.mealMetrics.forEach(metric => {
+        const slider = document.getElementById(`slider-${metric.key}`);
+        if (slider) {
+          values[metric.key] = Number(slider.value);
+        }
+      });
+      
+      logMeal(name, type, values);
       
       addModal.classList.add('hide');
+    });
+  }
+  
+  // Save Settings Modal Button
+  const saveSettingsBtn = document.getElementById('save-meal-settings-btn');
+  if (saveSettingsBtn && settingsModal) {
+    saveSettingsBtn.addEventListener('click', () => {
+      const goalInputs = document.querySelectorAll('.metric-goal-input');
+      goalInputs.forEach(input => {
+        const key = input.getAttribute('data-key');
+        const value = Number(input.value);
+        const metric = state.mealMetrics.find(m => m.key === key);
+        if (metric && value > 0) {
+          metric.goal = value;
+        }
+      });
+
+      state.saveMealMetrics();
+      
+      renderMealsDashboard();
+      renderAddMealSliders();
+      settingsModal.classList.add('hide');
+      showPremiumToast("היעדים וההגדרות נשמרו בהצלחה! 🎯", "success");
+    });
+  }
+
+  // Create Custom Metric Button
+  const createCustomMetricBtn = document.getElementById('create-custom-metric-btn');
+  if (createCustomMetricBtn) {
+    createCustomMetricBtn.addEventListener('click', () => {
+      const nameInput = document.getElementById('custom-metric-name');
+      const unitInput = document.getElementById('custom-metric-unit');
+      const goalInput = document.getElementById('custom-metric-goal');
+      const emojiInput = document.getElementById('custom-metric-emoji');
+
+      const name = nameInput.value.trim();
+      const unit = unitInput.value.trim();
+      const goal = Number(goalInput.value);
+      const emoji = emojiInput.value.trim() || '📊';
+
+      if (!name || !unit || !goal) {
+        showPremiumToast("אנא מלא את כל השדות ליצירת מדד.", "error");
+        return;
+      }
+
+      const key = 'custom_' + Date.now();
+      const newMetric = {
+        key: key,
+        name: name,
+        unit: unit,
+        goal: goal,
+        emoji: emoji,
+        isCustom: true
+      };
+
+      state.mealMetrics.push(newMetric);
+      state.saveMealMetrics();
+
+      // Clear inputs
+      nameInput.value = '';
+      unitInput.value = '';
+      goalInput.value = '';
+      emojiInput.value = '';
+
+      // Re-render
+      renderMealSettings();
+      renderAddMealSliders();
+      renderMealsDashboard();
+      showPremiumToast(`המדד "${name}" נוצר בהצלחה! ✨`, "success");
     });
   }
   
@@ -256,17 +577,17 @@ export function bindMealsEvents() {
       e.stopPropagation();
       
       const name = btn.getAttribute('data-name');
-      const calories = btn.getAttribute('data-calories');
-      const protein = btn.getAttribute('data-protein');
-      const carbs = btn.getAttribute('data-carbs') || 0;
-      const fat = btn.getAttribute('data-fat') || 0;
+      const calories = Number(btn.getAttribute('data-calories') || 0);
+      const protein = Number(btn.getAttribute('data-protein') || 0);
+      const carbs = Number(btn.getAttribute('data-carbs') || 0);
+      const fat = Number(btn.getAttribute('data-fat') || 0);
       
       let type = 'צהריים';
       if (name.includes('דייסת')) type = 'בוקר';
       if (name.includes('שייק')) type = 'חטיף';
       if (name.includes('סלט סלמון')) type = 'ערב';
       
-      logMeal(name, type, calories, protein, carbs, fat);
+      logMeal(name, type, { calories, protein, carbs, fat });
     });
   });
   
