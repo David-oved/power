@@ -343,7 +343,7 @@
           </div>
 
           <!-- Active Workout View (Live Tracking Console) -->
-          <div id="workout-active-view" class="workout-active-view hide" style="width: 100%; height: 100%; display: flex; flex-direction: column;">
+          <div id="workout-active-view" class="workout-active-view hide">
             <div class="active-workout-header-bar">
               <div class="active-location-badge">
                 <span id="active-location-icon">🏋️‍♂️</span>&nbsp;
@@ -540,13 +540,13 @@
 
           <!-- Custom Location Creation Modal -->
           <div id="custom-location-modal" class="workout-modal-overlay hide" style="z-index: 1250;">
-            <div class="workout-modal-card" style="max-width: 380px; width: 90%; max-height: 90vh; overflow-y: auto;">
+            <div class="workout-modal-card" style="max-width: 380px; width: 90%; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden;">
               <div class="modal-header" style="padding: 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
                 <button id="close-custom-location-btn" class="btn-cancel-link" style="background: none; border: none; font-size: 0.95rem; font-weight: 700; color: var(--text-muted); cursor: pointer;">ביטול</button>
                 <h3 class="modal-title" style="margin: 0; font-size: 1.15rem; font-weight: 800; color: #ffffff;">סוג אימון חדש</h3>
                 <span style="width: 40px;"></span>
               </div>
-              <div class="modal-body" style="padding: 1.5rem; text-align: center; display: flex; flex-direction: column; gap: 15px;">
+              <div class="modal-body" style="padding: 1.5rem; text-align: center; display: flex; flex-direction: column; gap: 15px; overflow-y: auto; flex: 1; -webkit-overflow-scrolling: touch; scroll-behavior: smooth;">
                 <h4 style="font-size: 1.05rem; color: #ffffff; text-align: right; direction: rtl;">איזה סוג אימון ברצונך להוסיף?</h4>
                 <input type="text" id="custom-location-name-input" placeholder="שם סוג האימון (למשל: אימון ביתי)" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; color: #ffffff; text-align: right; direction: rtl; outline: none;">
                 <input type="text" id="custom-location-emoji-input" placeholder="אימוג׳י מייצג (למשל: 🏠)" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; color: #ffffff; text-align: right; direction: rtl; outline: none;">
@@ -826,6 +826,13 @@
                     <option value="unused">💤 לא היו בשימוש מעולם</option>
                   </select>
                 </div>
+                <!-- Favorite Filter Dropdown -->
+                <div class="filter-field">
+                  <select id="exercises-favorite-filter-tab3" class="premium-filter-select" style="width: 100%;">
+                    <option value="all">⭐ כל התרגילים (ללא סינון מועדפים)</option>
+                    <option value="favorites">⭐ תרגילים מועדפים בלבד</option>
+                  </select>
+                </div>
               </div>
 
               <!-- Dynamic Exercises Grid Container -->
@@ -843,10 +850,10 @@
                     <h3 id="inspector-exercise-name" style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #ffffff;">שם התרגיל</h3>
                     <span id="inspector-exercise-category" class="ex-category-badge" style="margin-top: 4px; display: inline-block;">קטגוריה</span>
                   </div>
-                  <span style="width: 40px;"></span>
+                  <button id="inspector-exercise-fav-btn" class="ex-fav-star-btn" style="width: 36px; height: 36px; font-size: 1rem; border: none; background: transparent;"></button>
                 </div>
                 
-                <div class="modal-body" style="padding: 1.5rem 1.5rem calc(100px + env(safe-area-inset-bottom)) 1.5rem; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; flex: 1; direction: rtl; text-align: right;">
+                <div class="modal-body" style="padding: 1.5rem 1.5rem calc(100px + env(safe-area-inset-bottom)) 1.5rem; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; flex: 1; direction: rtl; text-align: right; -webkit-overflow-scrolling: touch; scroll-behavior: smooth;">
                   
                   <!-- Progression Chart Tabs -->
                   <div class="chart-tabs-tab3" style="display: flex; gap: 8px; margin-bottom: 8px;">
@@ -926,13 +933,13 @@
 
             <!-- Simple Add New Exercise Modal -->
             <div id="add-global-exercise-modal" class="workout-modal-overlay hide" style="z-index: 1600; align-items: center; justify-content: center;">
-              <div class="workout-modal-card glass-modal-card" style="max-width: 400px; width: 92%; border-radius: 28px; padding: 1.5rem; border: 1px solid rgba(255, 255, 255, 0.1); max-height: 90vh; overflow-y: auto;">
+              <div class="workout-modal-card glass-modal-card" style="max-width: 400px; width: 92%; border-radius: 28px; padding: 1.5rem 1.5rem 0 1.5rem; border: 1px solid rgba(255, 255, 255, 0.1); max-height: 90vh; display: flex; flex-direction: column; overflow: hidden;">
                 <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; direction: rtl;">
                   <h3 style="font-size: 1.25rem; font-weight: 800; color: #ffffff; margin: 0;">הוספת תרגיל לנצח ✨</h3>
                   <button id="close-add-global-exercise-modal-btn" class="btn-cancel-link" style="background: none; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; padding: 0 4px; line-height: 1;">&times;</button>
                 </div>
                 
-                <div style="display: flex; flex-direction: column; gap: 1.2rem; direction: rtl; text-align: right;">
+                <div style="display: flex; flex-direction: column; gap: 1.2rem; direction: rtl; text-align: right; overflow-y: auto; flex: 1; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; padding-bottom: 1.5rem;">
                   <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
                     <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">שם התרגיל</label>
                     <input type="text" id="new-global-exercise-name" placeholder="למשל: כפיפות ברכיים בשכיבה" class="analytics-search-input" style="width: 100%; margin: 0; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; padding: 12px; text-align: right;" required>
@@ -987,7 +994,7 @@
 
           <!-- Workout Edit Modal Panel (Floating glassmorphic dialog, hidden by default) -->
           <div id="workout-edit-modal" class="workout-modal-overlay hide" style="z-index: 1400;">
-            <div class="workout-modal-card glass-modal-card" style="max-width: 440px; width: 95%; max-height: 90vh; overflow-y: auto;">
+            <div class="workout-modal-card glass-modal-card" style="max-width: 440px; width: 95%; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden;">
               <div class="modal-header">
                 <button id="close-edit-modal-btn" class="btn-cancel-link" style="margin: 0; background: none; border: none; font-size: 0.95rem; font-weight: 700; color: var(--text-muted); cursor: pointer;">סגור</button>
                 <h3 class="modal-title" style="direction: rtl;">עריכת אימון</h3>
@@ -1282,29 +1289,31 @@
 
   <!-- Previous Performance Alert Modal -->
   <div id="prev-workout-alert-modal" class="workout-modal-overlay hide" style="z-index: 1550; align-items: center; justify-content: center;">
-    <div class="workout-modal-card glass-modal-card" style="max-width: 380px; width: 92%; border-radius: 24px; padding: 1.5rem; text-align: center; border: 1px solid rgba(255, 255, 255, 0.1); max-height: 90vh; overflow-y: auto;">
+    <div class="workout-modal-card glass-modal-card" style="max-width: 380px; width: 92%; border-radius: 24px; padding: 1.5rem 1.5rem 0 1.5rem; text-align: center; border: 1px solid rgba(255, 255, 255, 0.1); max-height: 90vh; display: flex; flex-direction: column; overflow: hidden;">
       <div class="alert-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; direction: rtl;">
         <span style="font-size: 1.2rem; font-weight: 800; color: #dc2626; display: flex; align-items: center; gap: 8px;">🔥 הישג אחרון!</span>
         <button id="close-prev-workout-alert-btn" class="btn-cancel-link" style="background: none; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; padding: 0 4px;">&times;</button>
       </div>
-      <h3 id="prev-workout-alert-title" style="font-size: 1.15rem; font-weight: 700; color: #ffffff; margin-bottom: 0.5rem; direction: rtl; text-align: right;">לחיצת חזה</h3>
-      <div id="prev-workout-alert-date" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; text-align: right; direction: rtl;">אימון אחרון: --</div>
-      <div id="prev-workout-alert-sets" style="display: flex; flex-direction: column; gap: 8px; max-height: 200px; overflow-y: auto; direction: rtl;">
-        <!-- Injected dynamically: list of sets with weight and reps -->
+      <div class="modal-body" style="overflow-y: auto; flex: 1; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; direction: rtl; padding-bottom: 1rem; text-align: center;">
+        <h3 id="prev-workout-alert-title" style="font-size: 1.15rem; font-weight: 700; color: #ffffff; margin-bottom: 0.5rem; direction: rtl; text-align: right;">לחיצת חזה</h3>
+        <div id="prev-workout-alert-date" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1rem; text-align: right; direction: rtl;">אימון אחרון: --</div>
+        <div id="prev-workout-alert-sets" style="display: flex; flex-direction: column; gap: 8px; direction: rtl;">
+          <!-- Injected dynamically: list of sets with weight and reps -->
+        </div>
       </div>
-      <button id="prev-workout-alert-ok-btn" class="btn btn-primary" style="width: 100%; margin-top: 1.2rem; padding: 12px; font-weight: bold; border-radius: 12px;">קדימה, בוא נשבור את זה! 💪</button>
+      <button id="prev-workout-alert-ok-btn" class="btn btn-primary" style="width: 100%; margin-top: 1.2rem; padding: 12px; font-weight: bold; border-radius: 12px; margin-bottom: 1.5rem;">קדימה, בוא נשבור את זה! 💪</button>
     </div>
   </div>
 
   <!-- Barbell Plate Calculator Modal -->
   <div id="plate-calculator-modal" class="workout-modal-overlay hide" style="z-index: 1520;">
-    <div class="workout-modal-card plate-calculator-card" style="max-width: 420px; width: 100%; border-radius: 28px 28px 0 0; position: absolute; bottom: 0; padding: 1.5rem; animation: slide-up-sheet 0.3s cubic-bezier(0.16, 1, 0.3, 1); max-height: 90vh; overflow-y: auto;">
+    <div class="workout-modal-card plate-calculator-card" style="max-width: 420px; width: 100%; border-radius: 28px 28px 0 0; position: absolute; bottom: 0; padding: 1.5rem 1.5rem 0 1.5rem; animation: slide-up-sheet 0.3s cubic-bezier(0.16, 1, 0.3, 1); max-height: 90vh; display: flex; flex-direction: column; overflow: hidden;">
       <div class="modal-header" style="padding-bottom: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: space-between; align-items: center;">
         <button id="close-plate-calc-btn" class="btn-cancel-link" style="background: none; border: none; font-size: 0.95rem; font-weight: 700; color: var(--text-muted); cursor: pointer;">סגור</button>
         <h3 class="modal-title" style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #ffffff; direction: rtl;">🧮 מחשב פלטות</h3>
         <span style="width: 40px;"></span>
       </div>
-      <div class="modal-body" style="padding: 1.5rem 0; text-align: center;">
+      <div class="modal-body" style="padding: 1.5rem 0 1.5rem 0; text-align: center; overflow-y: auto; flex: 1; -webkit-overflow-scrolling: touch; scroll-behavior: smooth;">
         <div style="font-size: 1rem; color: var(--text-muted); margin-bottom: 1rem; direction: rtl;">משקל יעד: <strong id="plate-calc-target-weight" style="color: #ffffff; font-size: 1.2rem;">60</strong> ק״ג (כולל מוט 20 ק״ג)</div>
         
         <!-- Barbell Visualization -->
@@ -1328,13 +1337,13 @@
 
   <!-- Schedule Future Workout Modal -->
   <div id="schedule-workout-modal" class="workout-modal-overlay hide" style="z-index: 1550; align-items: center; justify-content: center;">
-    <div class="workout-modal-card glass-modal-card" style="max-width: 400px; width: 92%; border-radius: 24px; padding: 1.5rem; border: 1px solid rgba(255, 255, 255, 0.1); max-height: 90vh; overflow-y: auto;">
+    <div class="workout-modal-card glass-modal-card" style="max-width: 400px; width: 92%; border-radius: 24px; padding: 1.5rem 1.5rem 0 1.5rem; border: 1px solid rgba(255, 255, 255, 0.1); max-height: 90vh; display: flex; flex-direction: column; overflow: hidden;">
       <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; direction: rtl;">
         <h3 style="font-size: 1.25rem; font-weight: 800; color: #ffffff; margin: 0; display: flex; align-items: center; gap: 8px;">📅 קביעת אימון עתידי</h3>
         <button id="close-schedule-workout-btn" class="btn-cancel-link" style="background: none; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; padding: 0 4px; line-height: 1;">&times;</button>
       </div>
       
-      <form id="schedule-workout-form" style="display: flex; flex-direction: column; gap: 1rem; direction: rtl; text-align: right;">
+      <form id="schedule-workout-form" style="display: flex; flex-direction: column; gap: 1rem; direction: rtl; text-align: right; overflow-y: auto; flex: 1; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; padding-bottom: 1.5rem;">
         
         <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
           <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">מיקום / סוג אימון</label>
@@ -1375,14 +1384,14 @@
 
   <!-- Add Meal Modal Bottom Sheet -->
   <div id="add-meal-modal" class="workout-modal-overlay hide" style="z-index: 1450;">
-    <div class="workout-modal-card" style="max-width: 400px; width: 95%; height: auto; max-height: 90vh; overflow-y: auto; border-radius: 28px 28px 0 0; position: absolute; bottom: 0; padding: 1.5rem; animation: slide-up-sheet 0.35s cubic-bezier(0.16, 1, 0.3, 1);">
+    <div class="workout-modal-card" style="max-width: 400px; width: 95%; max-height: 90vh; border-radius: 28px 28px 0 0; position: absolute; bottom: 0; padding: 1.5rem 1.5rem 0 1.5rem; animation: slide-up-sheet 0.35s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; overflow: hidden;">
       <div class="modal-header" style="padding-bottom: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: space-between; align-items: center;">
         <button id="close-add-meal-modal-btn" class="btn-cancel-link" style="background: none; border: none; font-size: 0.95rem; font-weight: 700; color: var(--text-muted); cursor: pointer;">ביטול</button>
         <h3 class="modal-title" style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #ffffff; direction: rtl;">🍳 הוספת ארוחה חדשה</h3>
         <span style="width: 40px;"></span>
       </div>
       
-      <form id="add-meal-form" style="display: flex; flex-direction: column; gap: 15px; direction: rtl; text-align: right; margin-top: 15px;">
+      <form id="add-meal-form" style="display: flex; flex-direction: column; gap: 15px; direction: rtl; text-align: right; margin-top: 15px; overflow-y: auto; flex: 1; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; padding-bottom: 1.5rem;">
         <!-- Meal Name -->
         <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
           <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">שם הארוחה</label>
