@@ -113,7 +113,7 @@ const authScreen = document.getElementById('auth-screen');
 const appScreen = document.getElementById('app-screen');
 const loginBtn = document.getElementById('google-login-btn');
 const logoutBtn = document.getElementById('app-logout-btn');
-const appLogoutBtn = document.getElementById('app-logout-btn');
+const appLogoutBtn = logoutBtn; // Consolidated reference to avoid duplicate DOM queries
 
 const userDisplayName = document.getElementById('user-display-name');
 const navUserPhoto = document.getElementById('nav-user-photo');
@@ -237,8 +237,8 @@ function switchScreen(signedIn) {
   const isSplashActive = splash && !splash.classList.contains('fade-out') && (splash.style.display !== 'none');
 
   if (signedIn) {
-    if (appLogoutBtn) {
-      appLogoutBtn.classList.remove('hide');
+    if (logoutBtn) {
+      logoutBtn.classList.remove('hide');
     }
     document.body.classList.add('authenticated');
     if (authScreen) authScreen.classList.remove('active');
@@ -256,8 +256,8 @@ function switchScreen(signedIn) {
       }
     }, 400);
   } else {
-    if (appLogoutBtn) {
-      appLogoutBtn.classList.add('hide');
+    if (logoutBtn) {
+      logoutBtn.classList.add('hide');
     }
     document.body.classList.remove('authenticated');
     if (appScreen) appScreen.classList.remove('active');
@@ -1252,6 +1252,7 @@ function initWorkouts() {
   
   // Render location grid dynamically
   renderLocationSelectorGrid();
+  populateLocationSelects();
   
   // Restore Active Workout if any (anti-data loss on reload)
   const activeData = SafeStorage.getItem(`aura-active-workout_${currentUser.uid}`);
@@ -1373,6 +1374,32 @@ function renderLocationSelectorGrid() {
     if (modal) modal.classList.remove('hide');
   });
   container.appendChild(addTile);
+}
+
+// Dynamic Custom Locations populator for filter & schedule selects
+function populateLocationSelects() {
+  const filterSelect = document.getElementById('filter-location-select');
+  const scheduleSelect = document.getElementById('schedule-location-select');
+  if (filterSelect) {
+    filterSelect.innerHTML = `
+      <option value="all">כל המיקומים 📍</option>
+      <option value="gym">🏋️‍♂️ חדר כושר</option>
+      <option value="park">🌳 פארק</option>
+    `;
+    customLocations.forEach(loc => {
+      filterSelect.innerHTML += `<option value="${loc.id}">${loc.emoji || '💪'} ${loc.name}</option>`;
+    });
+  }
+  if (scheduleSelect) {
+    scheduleSelect.innerHTML = `
+      <option value="gym">🏋️‍♂️ חדר כושר</option>
+      <option value="park">🌳 פארק</option>
+    `;
+    customLocations.forEach(loc => {
+      scheduleSelect.innerHTML += `<option value="${loc.id}">${loc.emoji || '💪'} ${loc.name}</option>`;
+    });
+    scheduleSelect.innerHTML += `<option value="custom">✍️ סוג אימון מותאם אישית...</option>`;
+  }
 }
 
 function startNewWorkout(location, name = '', emoji = '') {
@@ -1750,6 +1777,7 @@ onDOMReady(() => {
       if (modal) modal.classList.add('hide');
       
       renderLocationSelectorGrid();
+      populateLocationSelects();
     });
   }
 
@@ -1874,6 +1902,7 @@ onDOMReady(() => {
       
       // Re-render the list in background
       renderExercisePickerList();
+      if (typeof renderExercisesManager === 'function') renderExercisesManager();
     });
   }
 
@@ -2394,19 +2423,30 @@ function renderModalExercises() {
     const setsArea = document.createElement('div');
     setsArea.className = 'sets-area';
     
+    const metricType = ex.metricType || 'both';
+
     const setsHeader = document.createElement('div');
-    setsHeader.className = 'sets-header-row';
-    setsHeader.innerHTML = `
-      <div>מחק</div>
-      <div>משקל</div>
-      <div>חזרות</div>
-      <div>סט</div>
-    `;
+    if (metricType === 'both') {
+      setsHeader.className = 'sets-header-row grid-4-cols';
+      setsHeader.innerHTML = `
+        <div>מחק</div>
+        <div>משקל</div>
+        <div>חזרות</div>
+        <div>סט</div>
+      `;
+    } else {
+      setsHeader.className = 'sets-header-row grid-3-cols';
+      setsHeader.innerHTML = `
+        <div>מחק</div>
+        <div>${metricType === 'reps' ? 'חזרות' : 'משקל'}</div>
+        <div>סט</div>
+      `;
+    }
     setsArea.appendChild(setsHeader);
     
     ex.sets.forEach((set, setIdx) => {
       const setRow = document.createElement('div');
-      setRow.className = 'set-row completed'; // All saved/edited sets are fully unlocked in edit mode
+      setRow.className = `set-row completed ${metricType === 'both' ? 'grid-4-cols' : 'grid-3-cols'}`;
       
       // Remove Set
       const removeSetBtn = document.createElement('button');
@@ -2423,30 +2463,34 @@ function renderModalExercises() {
       setRow.appendChild(removeSetBtn);
       
       // Weight
-      const weightWrapper = document.createElement('div');
-      weightWrapper.className = 'set-input-wrapper';
-      const weightInput = document.createElement('input');
-      weightInput.type = 'number';
-      weightInput.className = 'set-input';
-      weightInput.value = set.weight;
-      weightInput.addEventListener('input', (e) => {
-        set.weight = e.target.value;
-      });
-      weightWrapper.appendChild(weightInput);
-      setRow.appendChild(weightWrapper);
+      if (metricType === 'both' || metricType === 'weight') {
+        const weightWrapper = document.createElement('div');
+        weightWrapper.className = 'set-input-wrapper';
+        const weightInput = document.createElement('input');
+        weightInput.type = 'number';
+        weightInput.className = 'set-input';
+        weightInput.value = set.weight;
+        weightInput.addEventListener('input', (e) => {
+          set.weight = e.target.value;
+        });
+        weightWrapper.appendChild(weightInput);
+        setRow.appendChild(weightWrapper);
+      }
       
       // Reps
-      const repsWrapper = document.createElement('div');
-      repsWrapper.className = 'set-input-wrapper';
-      const repsInput = document.createElement('input');
-      repsInput.type = 'number';
-      repsInput.className = 'set-input';
-      repsInput.value = set.reps;
-      repsInput.addEventListener('input', (e) => {
-        set.reps = e.target.value;
-      });
-      repsWrapper.appendChild(repsInput);
-      setRow.appendChild(repsWrapper);
+      if (metricType === 'both' || metricType === 'reps') {
+        const repsWrapper = document.createElement('div');
+        repsWrapper.className = 'set-input-wrapper';
+        const repsInput = document.createElement('input');
+        repsInput.type = 'number';
+        repsInput.className = 'set-input';
+        repsInput.value = set.reps;
+        repsInput.addEventListener('input', (e) => {
+          set.reps = e.target.value;
+        });
+        repsWrapper.appendChild(repsInput);
+        setRow.appendChild(repsWrapper);
+      }
       
       // Set label
       const setLabelWrapper = document.createElement('div');
@@ -3576,6 +3620,13 @@ function initAnalyticsTab() {
       } else if (locVal === 'park') {
         finalLoc = 'פארק';
         emoji = '🌳';
+      } else {
+        // Match custom locations saved by user
+        const matched = customLocations.find(l => l.id === locVal);
+        if (matched) {
+          finalLoc = matched.name;
+          emoji = matched.emoji || '💪';
+        }
       }
 
       const dateVal = document.getElementById('schedule-date').value;
@@ -3642,7 +3693,10 @@ function renderAnalytics() {
 }
 
 // Get history array filtered by advanced controls
-function getFilteredHistory() {
+function getFilteredHistory(ignoreFilters = false) {
+  if (ignoreFilters) {
+    return [...workoutHistory].sort((a, b) => b.date - a.date);
+  }
   let result = [...workoutHistory];
 
   // Time Filter
@@ -3972,7 +4026,7 @@ function renderCalendarView() {
   const firstDayIndex = new Date(year, month, 1).getDay();
   const totalDays = new Date(year, month + 1, 0).getDate();
 
-  const filtered = getFilteredHistory();
+  const filtered = getFilteredHistory(true);
   const workoutsByDay = {};
 
   filtered.forEach(w => {
@@ -4156,7 +4210,7 @@ function renderHeatmapView() {
 
   svg.innerHTML = '';
 
-  const filtered = getFilteredHistory();
+  const filtered = getFilteredHistory(true);
   const workoutsByDateStr = {};
 
   filtered.forEach(w => {
@@ -4224,7 +4278,7 @@ function renderMuscleSplitView() {
 
   container.innerHTML = '';
 
-  const filtered = getFilteredHistory();
+  const filtered = getFilteredHistory(true);
   const volumeByMuscle = {
     'חזה': 0, 'גב': 0, 'כתפיים': 0, 'רגליים': 0, 'ידיים': 0, 'בטן': 0, 'אירובי': 0, 'ליבה': 0, 'אחר': 0
   };
@@ -4298,6 +4352,20 @@ function renderMuscleSplitView() {
   }
 }
 
+// Helper to format exercise sets nicely depending on metricType
+function formatExerciseSetsText(ex) {
+  const type = ex.metricType || 'both';
+  return ex.sets.map(s => {
+    if (type === 'reps') {
+      return `${s.reps} חזרות`;
+    } else if (type === 'weight') {
+      return `${s.weight} ק״ג`;
+    } else {
+      return `${s.weight}ק״ג×${s.reps}`;
+    }
+  }).join(', ');
+}
+
 // H. Accordion history list view renderer
 function renderAccordionHistoryView() {
   const container = document.getElementById('accordion-history-container');
@@ -4349,7 +4417,7 @@ function renderAccordionHistoryView() {
       <div class="accordion-details hide" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.05); direction: rtl;">
         <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px;">
           ${w.exercises.map(ex => {
-            const exSetsText = ex.sets.map(s => `${s.weight}ק״ג×${s.reps}`).join(', ');
+            const exSetsText = formatExerciseSetsText(ex);
             return `
               <div style="font-size: 0.85rem; color: #e2e8f0; display: flex; justify-content: space-between;">
                 <span style="font-weight: 700;">• ${ex.name}</span>
@@ -4674,7 +4742,7 @@ function renderWorkoutsLog() {
       </div>
       <div class="workout-log-exercises">
         ${w.exercises.map(ex => {
-          const exSetsText = ex.sets.map(s => `${s.weight}ק״ג×${s.reps}`).join(', ');
+          const exSetsText = formatExerciseSetsText(ex);
           return `
             <div class="workout-log-exercise-item">
               <span class="workout-log-exercise-name">• ${ex.name}</span>
@@ -4854,11 +4922,13 @@ function renderExercisesManager() {
   const muscleFilter = document.getElementById('exercises-muscle-filter-tab3');
   const typeFilter = document.getElementById('exercises-type-filter-tab3');
   const usageFilter = document.getElementById('exercises-usage-filter-tab3');
+  const favoriteFilter = document.getElementById('exercises-favorite-filter-tab3');
 
   const query = searchInput ? searchInput.value.trim().toLowerCase() : '';
   const selectedMuscle = muscleFilter ? muscleFilter.value : 'all';
   const selectedType = typeFilter ? typeFilter.value : 'all';
   const selectedUsage = usageFilter ? usageFilter.value : 'all';
+  const selectedFavorite = favoriteFilter ? favoriteFilter.value : 'all';
 
   let allExs = getAllExercises();
 
@@ -4876,6 +4946,11 @@ function renderExercisesManager() {
     } else if (selectedType === 'custom') {
       allExs = allExs.filter(ex => !standardNames.has(ex.name.trim().toLowerCase()));
     }
+  }
+
+  // Favorite Filter
+  if (selectedFavorite === 'favorites') {
+    allExs = allExs.filter(ex => favoriteExercises.includes(ex.name));
   }
 
   // New Usage Filter (Used / Recently Used / Unused)
@@ -4920,9 +4995,10 @@ function renderExercisesManager() {
     
     const catStyle = categoryColorsTab3[ex.category] || { bg: 'rgba(255,255,255,0.06)', color: 'var(--text-muted)' };
     const emojiStr = ex.emoji ? `<span class="ex-card-emoji-tab3">${ex.emoji}</span>` : '💪';
+    const isFav = favoriteExercises.includes(ex.name);
     
     card.innerHTML = `
-      <div class="ex-card-info-tab3" style="text-align: right; direction: rtl;">
+      <div class="ex-card-info-tab3" style="text-align: right; direction: rtl; flex: 1;">
         <div class="ex-card-title-row">
           ${emojiStr}
           <span class="ex-card-name-tab3">${ex.name}</span>
@@ -4931,10 +5007,40 @@ function renderExercisesManager() {
           בוצע ${stats.timesPerformed} פעמים • ${stats.totalSets} סטים
         </div>
       </div>
-      <div>
-        <span class="ex-card-badge-tab3" style="background: ${catStyle.bg}; color: ${catStyle.color};">${ex.category || 'אחר'}</span>
+      <div class="ex-card-actions-tab3" style="display: flex; align-items: center; gap: 10px;">
+        <span class="ex-card-badge-tab3" style="background: ${catStyle.bg}; color: ${catStyle.color}; margin-left: 4px;">${ex.category || 'אחר'}</span>
       </div>
     `;
+
+    const actionsContainer = card.querySelector('.ex-card-actions-tab3');
+    const starBtn = document.createElement('button');
+    starBtn.className = `ex-fav-star-btn ${isFav ? 'active' : ''}`;
+    starBtn.style.cssText = 'width: 32px !important; height: 32px !important; font-size: 0.95rem !important; margin: 0 !important; border: 1.5px solid rgba(255, 255, 255, 0.07) !important;';
+    starBtn.title = isFav ? 'הסר ממועדפים' : 'הוסף למועדפים';
+    starBtn.innerHTML = isFav ? '⭐' : '☆';
+    
+    starBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const idx = favoriteExercises.indexOf(ex.name);
+      if (idx > -1) {
+        favoriteExercises.splice(idx, 1);
+        starBtn.innerHTML = '☆';
+        starBtn.classList.remove('active');
+        starBtn.title = 'הוסף למועדפים';
+      } else {
+        favoriteExercises.push(ex.name);
+        starBtn.innerHTML = '⭐';
+        starBtn.classList.add('active');
+        starBtn.title = 'הסר ממועדפים';
+      }
+      if (currentUser) {
+        SafeStorage.setItem(`aura-favorite-exercises_${currentUser.uid}`, JSON.stringify(favoriteExercises));
+      }
+      renderExercisesManager();
+      if (typeof renderExercisePickerList === 'function') renderExercisePickerList();
+    });
+    
+    actionsContainer.appendChild(starBtn);
 
     // Click card opens Inspector modal
     card.addEventListener('click', () => {
@@ -4954,6 +5060,7 @@ function openExerciseInspector(exerciseName) {
 
   const nameEl = document.getElementById('inspector-exercise-name');
   const catBadge = document.getElementById('inspector-exercise-category');
+  const inspectorFavBtn = document.getElementById('inspector-exercise-fav-btn');
   
   if (nameEl) {
     nameEl.textContent = (exDetails.emoji ? `${exDetails.emoji} ` : '') + exDetails.name;
@@ -4963,6 +5070,14 @@ function openExerciseInspector(exerciseName) {
     catBadge.textContent = exDetails.category || 'אחר';
     const catStyle = categoryColorsTab3[exDetails.category] || { bg: 'rgba(255,255,255,0.06)', color: 'var(--text-muted)' };
     catBadge.style.cssText = `background: ${catStyle.bg}; color: ${catStyle.color}; margin-top: 4px; display: inline-block;`;
+  }
+
+  // Populate favorite star in inspector modal
+  if (inspectorFavBtn) {
+    const isFav = favoriteExercises.includes(exerciseName);
+    inspectorFavBtn.className = `ex-fav-star-btn ${isFav ? 'active' : ''}`;
+    inspectorFavBtn.title = isFav ? 'הסר ממועדפים' : 'הוסף למועדפים';
+    inspectorFavBtn.innerHTML = isFav ? '⭐' : '☆';
   }
 
   // Populate Statistics
@@ -5158,6 +5273,12 @@ function deleteGlobalExercise(exerciseName) {
   allExs = allExs.filter(ex => ex.name.trim().toLowerCase() !== exerciseName.trim().toLowerCase());
   saveAllExercises(allExs);
 
+  // Sync customExercises array
+  if (currentUser) {
+    customExercises = customExercises.filter(ex => ex.name.trim().toLowerCase() !== exerciseName.trim().toLowerCase());
+    SafeStorage.setItem(`aura-custom-exercises_${currentUser.uid}`, JSON.stringify(customExercises));
+  }
+
   // Close inspector modal
   const modal = document.getElementById('exercise-inspector-modal');
   if (modal) modal.classList.add('hide');
@@ -5201,6 +5322,12 @@ function addGlobalExercise() {
 
   allExs.push(newEx);
   saveAllExercises(allExs);
+
+  // Sync customExercises if it is categorized as custom or user-created
+  if (currentUser) {
+    customExercises.push(newEx);
+    SafeStorage.setItem(`aura-custom-exercises_${currentUser.uid}`, JSON.stringify(customExercises));
+  }
 
   // Clear inputs
   nameInput.value = '';
@@ -5309,6 +5436,41 @@ onDOMReady(() => {
   if (usageFilterTab3) {
     usageFilterTab3.addEventListener('change', () => {
       renderExercisesManager();
+    });
+  }
+
+  // Favorite filter select changes
+  const favoriteFilterTab3 = document.getElementById('exercises-favorite-filter-tab3');
+  if (favoriteFilterTab3) {
+    favoriteFilterTab3.addEventListener('change', () => {
+      renderExercisesManager();
+    });
+  }
+
+  // Toggle favorite in Inspector Modal
+  const inspectorFavBtn = document.getElementById('inspector-exercise-fav-btn');
+  if (inspectorFavBtn) {
+    inspectorFavBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!currentInspectorExercise) return;
+      const exName = currentInspectorExercise;
+      const idx = favoriteExercises.indexOf(exName);
+      if (idx > -1) {
+        favoriteExercises.splice(idx, 1);
+        inspectorFavBtn.innerHTML = '☆';
+        inspectorFavBtn.classList.remove('active');
+        inspectorFavBtn.title = 'הוסף למועדפים';
+      } else {
+        favoriteExercises.push(exName);
+        inspectorFavBtn.innerHTML = '⭐';
+        inspectorFavBtn.classList.add('active');
+        inspectorFavBtn.title = 'הסר ממועדפים';
+      }
+      if (currentUser) {
+        SafeStorage.setItem(`aura-favorite-exercises_${currentUser.uid}`, JSON.stringify(favoriteExercises));
+      }
+      renderExercisesManager();
+      if (typeof renderExercisePickerList === 'function') renderExercisePickerList();
     });
   }
 
