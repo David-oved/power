@@ -1,4 +1,4 @@
-const CACHE_NAME = 'aura-app-v2.1';
+const CACHE_NAME = 'aura-app-v2.2';
 const ASSETS = [
   './',
   './index.html',
@@ -8,12 +8,19 @@ const ASSETS = [
   './firebase-config.js',
   './manifest.json',
   './icon-192.png',
-  './icon-512.png'
+  './icon-512.png',
+  './src/state.js',
+  './src/utils/storage.js',
+  './src/utils/helpers.js',
+  './src/auth/auth.js',
+  './src/workouts/workouts.js',
+  './src/meals/meals.js',
+  './src/metrics/metrics.js',
+  './src/settings/settings.js'
   // Firebase SDK files intentionally excluded: served from Google CDN with long cache-control headers.
   // Caching opaque cross-origin responses risks serving corrupted/stale Firebase SDK.
 ];
 
-// Service Worker Install State - cache all core files bypass HTTP cache
 // Service Worker Install State - resolve immediately without downloading assets (On-Demand Updates)
 self.addEventListener('install', (event) => {
   console.log('Service Worker: Installed immediately. Assets will be cached on-demand.');
@@ -156,7 +163,6 @@ self.addEventListener('message', (event) => {
   }
   if (event.data && event.data.action === 'getVersion') {
     if (event.ports && event.ports[0]) {
-      // Respond with the clean version suffix extracted from the current active cache name (stripping any leading v)
       const cleanVer = CACHE_NAME.replace('aura-app-', '').replace(/^v/, '');
       event.ports[0].postMessage({ version: cleanVer });
     }
