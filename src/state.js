@@ -53,7 +53,8 @@ export const state = {
   activeLogsSubView: 'calendar',
   currentCalendarDate: new Date(),
   filterSortSelection: 'date-desc',
-  activeAnalyticsSegment: 'workouts', // 'workouts', 'calendar', 'exercises', 'ai'
+  activeAnalyticsSegment: 'workouts', // 'workouts' or 'meals'
+  activeMealsSubTab: 'meals-log', // 'meals-log', 'meals-calendar', 'meals-settings', 'meals-ai'
 
   // Meals State
   loggedMeals: [],
