@@ -228,19 +228,41 @@ onDOMReady(() => {
       console.log(`Switched to tab: ${targetTab}`);
       if (targetTab === 'analytics') {
         const mainNav = document.querySelector('.ios-bottom-nav');
-        const subNav = document.getElementById('metrics-sub-nav');
+        const workoutsSubNav = document.getElementById('metrics-sub-nav');
+        const mealsSubNav = document.getElementById('meals-metrics-sub-nav');
+        
         if (mainNav) mainNav.classList.add('nav-hidden');
-        if (subNav) subNav.classList.remove('nav-hidden');
-
-        if (subNav && subNav.classList.contains('collapsed')) {
-          subNav.classList.remove('collapsed');
-        }
-
-        const defaultSubTab = document.querySelector('#metrics-sub-nav .nav-tab[data-sub-tab="workouts"]');
-        if (defaultSubTab) {
-          defaultSubTab.click();
+        
+        const activeSegment = state.activeAnalyticsSegment || 'workouts';
+        
+        if (activeSegment === 'meals') {
+          if (workoutsSubNav) workoutsSubNav.classList.add('nav-hidden');
+          if (mealsSubNav) {
+            mealsSubNav.classList.remove('nav-hidden');
+            if (mealsSubNav.classList.contains('collapsed')) {
+              mealsSubNav.classList.remove('collapsed');
+            }
+          }
+          const defaultMealsSubTab = document.querySelector(`#meals-metrics-sub-nav .nav-tab[data-meals-sub-tab="${state.activeMealsSubTab || 'meals-log'}"]`);
+          if (defaultMealsSubTab) {
+            defaultMealsSubTab.click();
+          } else {
+            if (window.renderMealsAnalytics) window.renderMealsAnalytics();
+          }
         } else {
-          if (window.renderWorkoutsLog) window.renderWorkoutsLog();
+          if (mealsSubNav) mealsSubNav.classList.add('nav-hidden');
+          if (workoutsSubNav) {
+            workoutsSubNav.classList.remove('nav-hidden');
+            if (workoutsSubNav.classList.contains('collapsed')) {
+              workoutsSubNav.classList.remove('collapsed');
+            }
+          }
+          const defaultSubTab = document.querySelector(`#metrics-sub-nav .nav-tab[data-sub-tab="${state.activeSubTab || 'workouts'}"]`);
+          if (defaultSubTab) {
+            defaultSubTab.click();
+          } else {
+            if (window.renderWorkoutsLog) window.renderWorkoutsLog();
+          }
         }
       }
 
