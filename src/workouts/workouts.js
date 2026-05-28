@@ -990,7 +990,7 @@ export function calculatePlates(targetWeight) {
 
 // ACCORDION HISTORIC LOG EDITOR SYSTEM
 export function openEditModal(workoutId) {
-  const original = state.workoutHistory.find(w => w.id === workoutId);
+  const original = state.workoutHistory.find(w => String(w.id) === String(workoutId));
   const editModal = document.getElementById('workout-edit-modal');
   if (!original || !editModal) return;
   
@@ -1183,7 +1183,7 @@ export function renderModalExercises() {
 export function deleteWorkoutFromHistory(workoutId) {
   if (!state.currentUser) return;
   
-  state.workoutHistory = state.workoutHistory.filter(w => w.id !== workoutId);
+  state.workoutHistory = state.workoutHistory.filter(w => String(w.id) !== String(workoutId));
   SafeStorage.setItem(`aura-workout-history_${state.currentUser.uid}`, JSON.stringify(state.workoutHistory));
   
   if (window.renderWorkoutHistory) window.renderWorkoutHistory();
