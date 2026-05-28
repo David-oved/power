@@ -2,6 +2,7 @@ import { state } from "../state.js";
 import { SafeStorage } from "../utils/storage.js";
 import { triggerLocalNotification, showAuraToast, safeFormatDate } from "../utils/helpers.js";
 import { getAllExercises, saveAllExercises, GYM_EXERCISES, PARK_EXERCISES, openEditModal } from "../workouts/workouts.js";
+import { saveMealsState, getTodayDateString, renderMealsDashboard, renderGauges, renderMealSettings, renderAddMealSliders } from "../meals/meals.js";
 
 // DOM Elements & Configurations
 const HEBREW_QUOTES = [
@@ -1442,7 +1443,13 @@ export function addGlobalExercise() {
 
 // Orchestrator for subtab rendering
 export function renderAnalytics() {
-  console.log("Refreshing Analytics view with active filters...", state.activeSubTab);
+  console.log("Refreshing Analytics view with active filters...", state.activeSubTab, state.activeAnalyticsSegment);
+  
+  // If the meals segment is active, delegate to meals renderer
+  if (state.activeAnalyticsSegment === 'meals') {
+    renderMealsAnalytics();
+    return;
+  }
   
   if (state.activeSubTab === 'workouts') {
     renderWorkoutsLog();
@@ -1959,6 +1966,436 @@ export function initAnalyticsTab() {
 
   // Initialize Coming soon coach
   initAICoach();
+
+  // =========== MEALS ANALYTICS SEGMENT CONTROL ===========
+  const segWorkoutsBtn = document.getElementById('segment-workouts-analytics');
+  const segMealsBtn = document.getElementById('segment-meals-analytics');
+  if (segWorkoutsBtn) segWorkoutsBtn.addEventListener('click', () => switchAnalyticsSegment('workouts'));
+  if (segMealsBtn) segMealsBtn.addEventListener('click', () => switchAnalyticsSegment('meals'));
+
+  // =========== MEALS METRICS SUB-NAVIGATION ===========
+  const mealsSubNavTabs = document.querySelectorAll('#meals-metrics-sub-nav .nav-tab[data-meals-sub-tab]');
+  mealsSubNavTabs.forEach(tab => {
+    tab.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const subTab = tab.dataset.mealsSubTab;
+      if (!subTab) return;
+      activeMealsSubTab = subTab;
+      mealsSubNavTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      const allPanes = document.querySelectorAll('#tab-analytics .sub-tab-pane');
+      allPanes.forEach(p => { p.classList.remove('active'); p.style.display = 'none'; });
+      const targetPane = document.getElementById(`sub-tab-${subTab}`);
+      if (targetPane) { targetPane.classList.add('active'); targetPane.style.display = 'flex'; }
+      renderMealsAnalytics();
+    });
+  });
+
+  // Meals sub-nav back button
+  const mealsSubNavBackBtn = document.getElementById('meals-sub-nav-back-btn');
+  if (mealsSubNavBackBtn) {
+    mealsSubNavBackBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const mainNav = document.querySelector('.ios-bottom-nav');
+      const mealsSubNav = document.getElementById('meals-metrics-sub-nav');
+      if (mealsSubNav) mealsSubNav.classList.add('nav-hidden');
+      if (mainNav) mainNav.classList.remove('nav-hidden');
+      const targetTab = state.lastActiveMainTab || 'settings';
+      const mainTabBtn = document.querySelector(`.ios-bottom-nav .nav-tab[data-tab="${targetTab}"]`);
+      if (mainTabBtn) mainTabBtn.click();
+    });
+  }
+
+  // =========== MEALS FILTERS ===========
+  const toggleMealsFiltersBtn = document.getElementById('toggle-meals-filters-btn');
+  const collapsibleMealsFilters = document.getElementById('collapsible-meals-filters-container');
+  if (toggleMealsFiltersBtn && collapsibleMealsFilters) {
+    toggleMealsFiltersBtn.addEventListener('click', () => {
+      const isExpanded = collapsibleMealsFilters.classList.toggle('expanded');
+      toggleMealsFiltersBtn.classList.toggle('expanded', isExpanded);
+    });
+  }
+
+  const mealTypeFilter = document.getElementById('filter-meal-type-select');
+  if (mealTypeFilter) {
+    mealTypeFilter.addEventListener('change', () => { mealsFilterType = mealTypeFilter.value; renderMealsLogView(); });
+  }
+
+  const caloriesSlider = document.getElementById('filter-calories-range-slider');
+  const caloriesSliderVal = document.getElementById('filter-calories-slider-val');
+  if (caloriesSlider) {
+    caloriesSlider.addEventListener('input', () => {
+      mealsFilterCaloriesMax = Number(caloriesSlider.value);
+      if (caloriesSliderVal) caloriesSliderVal.textContent = caloriesSlider.value;
+      renderMealsLogView();
+    });
+  }
+
+  const mealsFilterChips = document.querySelectorAll('.meals-filter-chip');
+  const mealsCustomDateInputs = document.getElementById('meals-custom-date-inputs');
+  mealsFilterChips.forEach(c => {
+    c.addEventListener('click', () => {
+      mealsFilterChips.forEach(x => x.classList.remove('active'));
+      c.classList.add('active');
+      mealsFilterTimeSelection = c.dataset.time;
+      if (mealsFilterTimeSelection === 'custom') { if (mealsCustomDateInputs) mealsCustomDateInputs.style.display = 'flex'; }
+      else { if (mealsCustomDateInputs) mealsCustomDateInputs.style.display = 'none'; }
+      renderMealsLogView();
+    });
+  });
+
+  const mealsStartD = document.getElementById('filter-meals-start-date');
+  const mealsEndD = document.getElementById('filter-meals-end-date');
+  const onMealsDateChange = () => {
+    mealsFilterStartDate = mealsStartD && mealsStartD.value ? new Date(mealsStartD.value) : null;
+    mealsFilterEndDate = mealsEndD && mealsEndD.value ? new Date(mealsEndD.value) : null;
+    renderMealsLogView();
+  };
+  if (mealsStartD) mealsStartD.addEventListener('change', onMealsDateChange);
+  if (mealsEndD) mealsEndD.addEventListener('change', onMealsDateChange);
+
+  // =========== MEALS CALENDAR NAVIGATION ===========
+  const mealsPrevMonth = document.getElementById('meals-calendar-prev-month');
+  const mealsNextMonth = document.getElementById('meals-calendar-next-month');
+  if (mealsPrevMonth) {
+    mealsPrevMonth.addEventListener('click', () => { mealsCalendarDate.setMonth(mealsCalendarDate.getMonth() - 1); renderMealsCalendarView(); });
+  }
+  if (mealsNextMonth) {
+    mealsNextMonth.addEventListener('click', () => { mealsCalendarDate.setMonth(mealsCalendarDate.getMonth() + 1); renderMealsCalendarView(); });
+  }
+
+  // =========== MEALS SETTINGS FORM ===========
+  const mealsSettingsForm = document.getElementById('meals-settings-form');
+  if (mealsSettingsForm) {
+    mealsSettingsForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const calVal = Number(document.getElementById('settings-goal-calories')?.value);
+      const proVal = Number(document.getElementById('settings-goal-protein')?.value);
+      const carbVal = Number(document.getElementById('settings-goal-carbs')?.value);
+      const fatVal = Number(document.getElementById('settings-goal-fat')?.value);
+      const calM = state.mealMetrics.find(m => m.key === 'calories');
+      const proM = state.mealMetrics.find(m => m.key === 'protein');
+      const carbM = state.mealMetrics.find(m => m.key === 'carbs');
+      const fatM = state.mealMetrics.find(m => m.key === 'fat');
+      if (calM && calVal > 0) calM.goal = calVal;
+      if (proM && proVal > 0) proM.goal = proVal;
+      if (carbM && carbVal > 0) carbM.goal = carbVal;
+      if (fatM && fatVal > 0) fatM.goal = fatVal;
+      state.saveMealMetrics();
+      renderMealsDashboard();
+      renderAddMealSliders();
+      renderMealSettings();
+      showAuraToast("היעדים עודכנו בהצלחה! 🎯");
+    });
+  }
+
+  // =========== MEAL EDIT MODAL ===========
+  bindEditMealSliders();
+
+  const closeMealEditBtn = document.getElementById('close-meal-edit-modal-btn');
+  const mealEditModal = document.getElementById('meal-edit-modal');
+  if (closeMealEditBtn && mealEditModal) {
+    closeMealEditBtn.addEventListener('click', () => { mealEditModal.classList.add('hide'); mealEditModal.style.display = 'none'; editingMealId = null; });
+  }
+  if (mealEditModal) {
+    mealEditModal.addEventListener('click', (e) => { if (e.target === mealEditModal) { mealEditModal.classList.add('hide'); mealEditModal.style.display = 'none'; editingMealId = null; } });
+  }
+
+  const saveMealEditBtn = document.getElementById('save-edited-meal-btn');
+  if (saveMealEditBtn) saveMealEditBtn.addEventListener('click', (e) => { e.preventDefault(); saveMealEdit(); });
+
+  const deleteMealEditBtn = document.getElementById('delete-edited-meal-btn');
+  if (deleteMealEditBtn) deleteMealEditBtn.addEventListener('click', (e) => { e.preventDefault(); deleteMealFromEditModal(); });
+}
+
+// ============= MEALS ANALYTICS INTEGRATION =============
+
+// Meals analytics local state
+let mealsCalendarDate = new Date();
+let mealsFilterType = 'all';
+let mealsFilterTimeSelection = 'all';
+let mealsFilterStartDate = null;
+let mealsFilterEndDate = null;
+let mealsFilterCaloriesMax = 2000;
+let activeMealsSubTab = 'meals-log';
+let editingMealId = null;
+
+// Switch between Workouts Analytics and Meals Analytics segments
+export function switchAnalyticsSegment(segment) {
+  state.activeAnalyticsSegment = segment;
+  const segWorkouts = document.getElementById('segment-workouts-analytics');
+  const segMeals = document.getElementById('segment-meals-analytics');
+  const metricsSubNav = document.getElementById('metrics-sub-nav');
+  const mealsSubNav = document.getElementById('meals-metrics-sub-nav');
+
+  // Hide ALL sub-tab panes first
+  const allSubPanes = document.querySelectorAll('#tab-analytics .sub-tab-pane');
+  allSubPanes.forEach(p => { p.style.display = 'none'; p.classList.remove('active'); });
+
+  if (segment === 'workouts') {
+    if (segWorkouts) { segWorkouts.style.background = 'linear-gradient(135deg, var(--electric-blue) 0%, var(--electric-blue-light) 100%)'; segWorkouts.style.color = 'white'; segWorkouts.classList.add('active'); }
+    if (segMeals) { segMeals.style.background = 'transparent'; segMeals.style.color = 'var(--text-muted)'; segMeals.classList.remove('active'); }
+    if (metricsSubNav) metricsSubNav.classList.remove('nav-hidden');
+    if (mealsSubNav) mealsSubNav.classList.add('nav-hidden');
+    const activePane = document.getElementById(`sub-tab-${state.activeSubTab}`);
+    if (activePane) { activePane.style.display = 'flex'; activePane.classList.add('active'); }
+    renderAnalytics();
+  } else if (segment === 'meals') {
+    if (segMeals) { segMeals.style.background = 'linear-gradient(135deg, #34c759 0%, #30db5b 100%)'; segMeals.style.color = 'white'; segMeals.classList.add('active'); }
+    if (segWorkouts) { segWorkouts.style.background = 'transparent'; segWorkouts.style.color = 'var(--text-muted)'; segWorkouts.classList.remove('active'); }
+    if (mealsSubNav) mealsSubNav.classList.remove('nav-hidden');
+    if (metricsSubNav) metricsSubNav.classList.add('nav-hidden');
+    const activePane = document.getElementById(`sub-tab-${activeMealsSubTab}`);
+    if (activePane) { activePane.style.display = 'flex'; activePane.classList.add('active'); }
+    renderMealsAnalytics();
+  }
+}
+
+// Orchestrator for meals analytics sub-tab rendering
+function renderMealsAnalytics() {
+  if (activeMealsSubTab === 'meals-log') {
+    renderMealsLogView();
+  } else if (activeMealsSubTab === 'meals-calendar') {
+    renderMealsCalendarView();
+  } else if (activeMealsSubTab === 'meals-settings') {
+    renderMealsAnalyticsSettings();
+  }
+}
+
+// Render filtered meals log list
+function renderMealsLogView() {
+  const container = document.getElementById('meals-log-container');
+  if (!container) return;
+  container.innerHTML = '';
+  let meals = [...state.loggedMeals];
+
+  // Apply type filter
+  if (mealsFilterType !== 'all') meals = meals.filter(m => m.type === mealsFilterType);
+  // Apply calories cap filter
+  if (mealsFilterCaloriesMax < 2000) meals = meals.filter(m => (m.calories || 0) <= mealsFilterCaloriesMax);
+  // Apply date filters
+  const now = new Date();
+  if (mealsFilterTimeSelection === '7') {
+    const limit = new Date(); limit.setDate(now.getDate() - 7);
+    meals = meals.filter(m => new Date(m.date) >= limit);
+  } else if (mealsFilterTimeSelection === '30') {
+    const limit = new Date(); limit.setDate(now.getDate() - 30);
+    meals = meals.filter(m => new Date(m.date) >= limit);
+  } else if (mealsFilterTimeSelection === 'custom') {
+    if (mealsFilterStartDate) meals = meals.filter(m => new Date(m.date) >= mealsFilterStartDate);
+    if (mealsFilterEndDate) { const endL = new Date(mealsFilterEndDate); endL.setHours(23,59,59,999); meals = meals.filter(m => new Date(m.date) <= endL); }
+  }
+
+  meals.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+  if (meals.length === 0) {
+    container.innerHTML = '<div style="color: var(--text-muted); text-align: center; padding: 30px; font-size: 0.95rem; direction: rtl;">לא נמצאו ארוחות התואמות את סינוני החיפוש.</div>';
+    return;
+  }
+
+  // Group by date
+  const grouped = {};
+  meals.forEach(m => { const k = m.date || 'unknown'; if (!grouped[k]) grouped[k] = []; grouped[k].push(m); });
+
+  Object.keys(grouped).sort().reverse().forEach(dateKey => {
+    const dateLabel = document.createElement('div');
+    dateLabel.style.cssText = 'font-size: 0.85rem; font-weight: 800; color: var(--text-muted); padding: 8px 0 4px 0; direction: rtl; border-bottom: 1px solid rgba(255,255,255,0.04); margin-bottom: 8px;';
+    try { const [y,mo,d] = dateKey.split('-'); dateLabel.textContent = `\u{1F4C5} ${d}/${mo}/${y}`; } catch(e) { dateLabel.textContent = dateKey; }
+    container.appendChild(dateLabel);
+
+    grouped[dateKey].forEach(meal => {
+      const card = document.createElement('div');
+      card.className = 'workout-log-card';
+      card.style.cssText = 'cursor: pointer; padding: 12px 14px;';
+      let badgeColor = '#34c759';
+      if (meal.type === 'צהריים') badgeColor = '#ff9500';
+      else if (meal.type === 'ערב') badgeColor = '#af52de';
+      else if (meal.type === 'חטיף') badgeColor = '#007aff';
+      const emoji = meal.type === 'בוקר' ? '🍳' : meal.type === 'צהריים' ? '🍗' : meal.type === 'ערב' ? '🥩' : '🍌';
+
+      card.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; direction: rtl;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 1.3rem;">${emoji}</span>
+            <div>
+              <h4 style="margin: 0; font-size: 0.95rem; font-weight: 800; color: #fff;">${meal.name || 'ארוחה'}</h4>
+              <span style="font-size: 0.78rem; color: var(--text-muted);">${meal.calories || 0} קק\"ל \u2022 ${meal.protein || 0}g חלבון</span>
+            </div>
+          </div>
+          <span style="font-size: 0.72rem; padding: 3px 8px; background: ${badgeColor}20; color: ${badgeColor}; border-radius: 8px; font-weight: 700;">${meal.type}</span>
+        </div>
+      `;
+      card.addEventListener('click', () => openMealEditModal(meal.id));
+      container.appendChild(card);
+    });
+  });
+}
+
+// Render meals calendar view
+function renderMealsCalendarView() {
+  const container = document.getElementById('meals-calendar-days-grid');
+  const monthLabel = document.getElementById('meals-calendar-month-label');
+  if (!container || !monthLabel) return;
+  container.innerHTML = '';
+  const year = mealsCalendarDate.getFullYear();
+  const month = mealsCalendarDate.getMonth();
+  const monthsHebrew = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+  monthLabel.textContent = `${monthsHebrew[month]} ${year}`;
+  const firstDayIndex = new Date(year, month, 1).getDay();
+  const totalDays = new Date(year, month + 1, 0).getDate();
+
+  const mealsByDay = {};
+  state.loggedMeals.forEach(m => {
+    if (!m.date) return;
+    const parts = m.date.split('-').map(Number);
+    if (parts[0] === year && (parts[1] - 1) === month) {
+      if (!mealsByDay[parts[2]]) mealsByDay[parts[2]] = [];
+      mealsByDay[parts[2]].push(m);
+    }
+  });
+
+  for (let i = 0; i < firstDayIndex; i++) {
+    const empty = document.createElement('div'); empty.className = 'calendar-day-empty'; container.appendChild(empty);
+  }
+  const today = new Date();
+  for (let day = 1; day <= totalDays; day++) {
+    const dayCell = document.createElement('div');
+    dayCell.className = 'calendar-day-cell';
+    dayCell.textContent = day;
+    if (today.getDate() === day && today.getMonth() === month && today.getFullYear() === year) dayCell.classList.add('today');
+
+    const dayMeals = mealsByDay[day] || [];
+    if (dayMeals.length > 0) {
+      dayCell.classList.add('has-workout');
+      const dotsC = document.createElement('div');
+      dotsC.style.cssText = 'display:flex;gap:3px;position:absolute;bottom:4px;left:50%;transform:translateX(-50%);justify-content:center;width:100%;';
+      dayMeals.slice(0, 4).forEach(() => {
+        const dot = document.createElement('span');
+        dot.style.cssText = 'width:5px;height:5px;border-radius:50%;background:#34c759;display:inline-block;';
+        dotsC.appendChild(dot);
+      });
+      dayCell.appendChild(dotsC);
+
+      dayCell.addEventListener('click', (e) => {
+        e.stopPropagation();
+        let html = `<h5 style="color:#a7f3d0;text-align:right;margin:4px 0 8px 0;font-size:0.9rem;font-weight:700;">${dayMeals.length} ארוחות ביום ${day}/${month+1}:</h5>`;
+        dayMeals.forEach(m => {
+          const me = m.type==='בוקר'?'🍳':m.type==='צהריים'?'🍗':m.type==='ערב'?'🥩':'🍌';
+          html += `<div style="padding:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.05);border-radius:12px;margin-bottom:8px;direction:rtl;text-align:right;"><div style="display:flex;justify-content:space-between;font-weight:700;color:#fff;"><span>${me} ${m.name||'ארוחה'}</span><span style="font-size:0.78rem;color:var(--text-muted);">${m.type}</span></div><div style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">🔥 ${m.calories||0} קק\"ל \u2022 🥩 ${m.protein||0}g \u2022 🌾 ${m.carbs||0}g \u2022 🥑 ${m.fat||0}g</div></div>`;
+        });
+        const ov = document.createElement('div');
+        ov.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.65);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;z-index:1600;';
+        ov.innerHTML = `<div class="workout-modal-card glass-modal-card" style="max-width:320px;width:90%;border-radius:20px;padding:1.2rem;text-align:center;border:1px solid rgba(255,255,255,0.08);"><h4 style="margin:0 0 12px 0;font-size:1.1rem;color:#fff;direction:rtl;">🍽️ ארוחות ב-${day}/${month+1}/${year}</h4><div style="max-height:280px;overflow-y:auto;padding-right:4px;">${html}</div><button class="btn btn-primary close-cal-alert" style="width:100%;padding:10px;margin-top:10px;border-radius:10px;">סגור</button></div>`;
+        ov.querySelector('.close-cal-alert').addEventListener('click', () => ov.remove());
+        ov.addEventListener('click', (ev) => { if (ev.target === ov) ov.remove(); });
+        document.body.appendChild(ov);
+      });
+    }
+    container.appendChild(dayCell);
+  }
+}
+
+// Populate meals settings form in the analytics sub-tab
+function renderMealsAnalyticsSettings() {
+  state.loadMealMetrics();
+  const calInput = document.getElementById('settings-goal-calories');
+  const proInput = document.getElementById('settings-goal-protein');
+  const carbInput = document.getElementById('settings-goal-carbs');
+  const fatInput = document.getElementById('settings-goal-fat');
+  const calM = state.mealMetrics.find(m => m.key === 'calories');
+  const proM = state.mealMetrics.find(m => m.key === 'protein');
+  const carbM = state.mealMetrics.find(m => m.key === 'carbs');
+  const fatM = state.mealMetrics.find(m => m.key === 'fat');
+  if (calInput && calM) calInput.value = calM.goal;
+  if (proInput && proM) proInput.value = proM.goal;
+  if (carbInput && carbM) carbInput.value = carbM.goal;
+  if (fatInput && fatM) fatInput.value = fatM.goal;
+}
+
+// Open meal edit modal
+function openMealEditModal(mealId) {
+  const meal = state.loggedMeals.find(m => m.id === mealId);
+  if (!meal) return;
+  editingMealId = mealId;
+  const nameInput = document.getElementById('edit-meal-name');
+  const typeSelect = document.getElementById('edit-meal-type');
+  if (nameInput) nameInput.value = meal.name || '';
+  if (typeSelect) typeSelect.value = meal.type || 'צהריים';
+  const configs = [
+    { key: 'calories', slider: 'edit-meal-calories-slider', val: 'edit-meal-calories-val' },
+    { key: 'protein', slider: 'edit-meal-protein-slider', val: 'edit-meal-protein-val' },
+    { key: 'carbs', slider: 'edit-meal-carbs-slider', val: 'edit-meal-carbs-val' },
+    { key: 'fat', slider: 'edit-meal-fat-slider', val: 'edit-meal-fat-val' }
+  ];
+  configs.forEach(cfg => {
+    const sl = document.getElementById(cfg.slider);
+    const vl = document.getElementById(cfg.val);
+    if (sl) { sl.value = meal[cfg.key] || 0; if (vl) vl.textContent = meal[cfg.key] || 0; }
+  });
+  const modal = document.getElementById('meal-edit-modal');
+  if (modal) { modal.classList.remove('hide'); modal.style.display = 'flex'; }
+}
+
+// Save edited meal
+function saveMealEdit() {
+  if (!editingMealId) return;
+  const meal = state.loggedMeals.find(m => m.id === editingMealId);
+  if (!meal) return;
+  const nameInput = document.getElementById('edit-meal-name');
+  const typeSelect = document.getElementById('edit-meal-type');
+  if (nameInput) meal.name = nameInput.value.trim();
+  if (typeSelect) meal.type = typeSelect.value;
+  const calSl = document.getElementById('edit-meal-calories-slider');
+  const proSl = document.getElementById('edit-meal-protein-slider');
+  const carbSl = document.getElementById('edit-meal-carbs-slider');
+  const fatSl = document.getElementById('edit-meal-fat-slider');
+  if (calSl) meal.calories = Number(calSl.value);
+  if (proSl) meal.protein = Number(proSl.value);
+  if (carbSl) meal.carbs = Number(carbSl.value);
+  if (fatSl) meal.fat = Number(fatSl.value);
+  saveMealsState();
+  renderMealsDashboard();
+  renderMealsLogView();
+  const modal = document.getElementById('meal-edit-modal');
+  if (modal) { modal.classList.add('hide'); modal.style.display = 'none'; }
+  editingMealId = null;
+  showAuraToast("הארוחה עודכנה בהצלחה! ✅");
+}
+
+// Delete meal from edit modal
+function deleteMealFromEditModal() {
+  if (!editingMealId) return;
+  state.loggedMeals = state.loggedMeals.filter(m => m.id !== editingMealId);
+  saveMealsState();
+  renderMealsDashboard();
+  renderMealsLogView();
+  const modal = document.getElementById('meal-edit-modal');
+  if (modal) { modal.classList.add('hide'); modal.style.display = 'none'; }
+  editingMealId = null;
+  showAuraToast("הארוחה נמחקה. 🗑️");
+}
+
+// Bind edit meal slider micro-adjustments
+function bindEditMealSliders() {
+  const cfgs = [
+    { slider: 'edit-meal-calories-slider', val: 'edit-meal-calories-val', minus: 'edit-meal-calories-minus', plus: 'edit-meal-calories-plus' },
+    { slider: 'edit-meal-protein-slider', val: 'edit-meal-protein-val', minus: 'edit-meal-protein-minus', plus: 'edit-meal-protein-plus' },
+    { slider: 'edit-meal-carbs-slider', val: 'edit-meal-carbs-val', minus: 'edit-meal-carbs-minus', plus: 'edit-meal-carbs-plus' },
+    { slider: 'edit-meal-fat-slider', val: 'edit-meal-fat-val', minus: 'edit-meal-fat-minus', plus: 'edit-meal-fat-plus' }
+  ];
+  cfgs.forEach(cfg => {
+    const slider = document.getElementById(cfg.slider);
+    const valDisplay = document.getElementById(cfg.val);
+    const minusBtn = document.getElementById(cfg.minus);
+    const plusBtn = document.getElementById(cfg.plus);
+    if (slider && valDisplay) slider.addEventListener('input', () => { valDisplay.textContent = slider.value; });
+    if (minusBtn && slider) {
+      minusBtn.addEventListener('click', (e) => { e.preventDefault(); const step = Number(slider.step)||1; slider.value = Math.max(Number(slider.min)||0, Number(slider.value)-step); slider.dispatchEvent(new Event('input')); });
+    }
+    if (plusBtn && slider) {
+      plusBtn.addEventListener('click', (e) => { e.preventDefault(); const step = Number(slider.step)||1; slider.value = Math.min(Number(slider.max)||2000, Number(slider.value)+step); slider.dispatchEvent(new Event('input')); });
+    }
+  });
 }
 
 // Hook into global compatibility mappings
@@ -1969,6 +2406,10 @@ export function initAnalyticsModule() {
   window.renderExercisesManager = renderExercisesManager;
   window.renderAccordionHistoryView = renderAccordionHistoryView;
   window.renderWorkoutsLog = renderWorkoutsLog;
+  window.renderMealsAnalytics = renderMealsAnalytics;
+  window.switchAnalyticsSegment = switchAnalyticsSegment;
+  window.renderMealsLogView = renderMealsLogView;
+  window.renderMealsCalendarView = renderMealsCalendarView;
 }
 
 // Helper compatibility functions
