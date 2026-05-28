@@ -489,7 +489,7 @@ export function renderCalendarView() {
         summaryAlert.querySelectorAll('.edit-past-workout-btn').forEach(btn => {
           btn.addEventListener('click', (ev) => {
             ev.stopPropagation();
-            const wId = Number(btn.dataset.id);
+            const wId = btn.dataset.id;
             openEditModal(wId);
             summaryAlert.remove();
           });
@@ -1500,29 +1500,55 @@ export function initAnalyticsTab() {
     });
   }
 
-  // iOS Segmented Navigation
-  const segmentBtns = document.querySelectorAll('#tab-analytics .segment-btn');
-  const segmentedControl = document.querySelector('#tab-analytics .segmented-control');
-  segmentBtns.forEach(btn => {
-    btn.addEventListener('click', () => {
-      segmentBtns.forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
+  // Metrics Sub-Navigation Bar Tab Switcher
+  const subNavTabs = document.querySelectorAll('#metrics-sub-nav .nav-tab[data-sub-tab]');
+  subNavTabs.forEach(tab => {
+    tab.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const subTab = tab.dataset.subTab;
+      if (!subTab) return;
 
-      const segment = btn.dataset.segment;
-      state.activeAnalyticsSegment = segment;
-      if (segmentedControl) {
-        segmentedControl.setAttribute('data-active', segment);
-      }
+      state.activeSubTab = subTab;
 
-      const panes = document.querySelectorAll('#tab-analytics .analytics-segment-pane');
-      panes.forEach(pane => pane.classList.remove('active'));
-      
-      const activePane = document.getElementById(`segment-${segment}-pane`);
-      if (activePane) activePane.classList.add('active');
+      // Update active class on sub-nav tabs
+      subNavTabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
 
+      // Update active sub-tab panes and adjust inline display styles
+      const subPanes = document.querySelectorAll('#tab-analytics .sub-tab-pane');
+      subPanes.forEach(pane => {
+        pane.classList.remove('active');
+        if (pane.id === `sub-tab-${subTab}`) {
+          pane.classList.add('active');
+          pane.style.display = 'flex';
+        } else {
+          pane.style.display = 'none';
+        }
+      });
+
+      console.log(`Switched to metrics sub-tab: ${subTab}`);
       renderAnalytics();
     });
   });
+
+  // Metrics Sub-Navigation Back Button Handler
+  const subNavBackBtn = document.getElementById('sub-nav-back-btn');
+  if (subNavBackBtn) {
+    subNavBackBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const mainNav = document.querySelector('.ios-bottom-nav');
+      const subNav = document.getElementById('metrics-sub-nav');
+      if (subNav) subNav.classList.add('nav-hidden');
+      if (mainNav) mainNav.classList.remove('nav-hidden');
+
+      // Return to the last active main navigation tab
+      const targetTab = state.lastActiveMainTab || 'settings';
+      const mainTabBtn = document.querySelector(`.ios-bottom-nav .nav-tab[data-tab="${targetTab}"]`);
+      if (mainTabBtn) {
+        mainTabBtn.click();
+      }
+    });
+  }
 
   // Log book switcher
   const logsSwitchBtns = document.querySelectorAll('#tab-analytics .logs-switch-btn');
