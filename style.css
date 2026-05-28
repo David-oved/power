@@ -6701,3 +6701,54 @@ html, body {
   background: #ffffff !important;
   border-color: rgba(0, 0, 0, 0.1) !important;
 }
+
+/* ==========================================================================
+   18. NEW MEALS ANALYTICS SEGMENT & CALENDAR CUSTOM STYLING
+   ========================================================================== */
+.premium-segment-control {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+.segment-btn {
+  font-size: 0.88rem;
+  letter-spacing: 0.3px;
+  -webkit-tap-highlight-color: transparent;
+}
+.segment-btn.active {
+  box-shadow: 0 2px 8px rgba(0, 240, 255, 0.2);
+}
+.meals-filter-chip {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text-muted);
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.meals-filter-chip.active {
+  background: linear-gradient(135deg, #34c759 0%, #30db5b 100%);
+  border-color: #34c759;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(52, 199, 89, 0.3);
+}
+.calendar-day-cell.has-meals::after {
+  content: '';
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #34c759 !important;
+  box-shadow: 0 0 4px #34c759;
+}
+.meals-indicator-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #34c759;
+  box-shadow: 0 0 4px #34c759;
+}
