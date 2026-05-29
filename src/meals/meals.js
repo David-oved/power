@@ -47,8 +47,8 @@ export function clearMealsSession() {
   loggedMealsList = document.getElementById('logged-meals-list');
   if (loggedMealsList) {
     loggedMealsList.innerHTML = `
-      <div class="meals-empty-state" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem 1rem; border: 1px dashed rgba(255, 255, 255, 0.08); border-radius: 18px; text-align: center; gap: 8px;">
-        <span style="font-size: 2.2rem;">🥗</span>
+      <div class="meals-empty-state-card">
+        <span style="font-size: 2rem;">🥗</span>
         <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted); direction: rtl;">לא נרשמו ארוחות היום. התחל להוסיף ארוחות כדי לעקוב אחר התזונה שלך!</p>
       </div>
     `;
@@ -83,14 +83,35 @@ export function renderMealsDashboard() {
   const todayStr = getTodayDateString();
   const todayMeals = state.loggedMeals.filter(m => m.date === todayStr);
   
+  // Update date badge
+  const dateBadge = document.getElementById('meals-today-date-badge');
+  if (dateBadge) {
+    const d = new Date();
+    const dayNames = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
+    const monthNames = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'];
+    dateBadge.textContent = `📅 יום ${dayNames[d.getDay()]}, ${d.getDate()} ב${monthNames[d.getMonth()]}`;
+  }
+  
+  // Update meals count badge
+  const countBadge = document.getElementById('meals-count-badge');
+  const countText = document.getElementById('meals-count-text');
+  if (countBadge && countText) {
+    countText.textContent = `${todayMeals.length} ארוחות`;
+    if (todayMeals.length > 0) {
+      countBadge.classList.add('has-data');
+    } else {
+      countBadge.classList.remove('has-data');
+    }
+  }
+  
   // Render Dynamic Gauges Grid
   renderGauges();
   
   // Render meals list
   if (todayMeals.length === 0) {
     loggedMealsList.innerHTML = `
-      <div class="meals-empty-state" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem 1rem; border: 1px dashed rgba(255, 255, 255, 0.08); border-radius: 18px; text-align: center; gap: 8px;">
-        <span style="font-size: 2.2rem;">🥗</span>
+      <div class="meals-empty-state-card">
+        <span style="font-size: 2rem;">🥗</span>
         <p style="margin: 0; font-size: 0.85rem; color: var(--text-muted); direction: rtl;">לא נרשמו ארוחות היום. התחל להוסיף ארוחות כדי לעקוב אחר התזונה שלך!</p>
       </div>
     `;
@@ -179,13 +200,13 @@ export function renderGauges() {
     }
 
     const gaugeHTML = `
-      <div class="premium-gauge-card" style="background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 24px; padding: 16px 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.2); transition: transform 0.2s;">
-        <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); display: flex; align-items: center; gap: 6px; margin-bottom: 8px; direction: rtl;">
-          <span style="font-size: 1.1rem;">${metric.emoji}</span>
-          <span style="color: #ffffff; letter-spacing: 0.5px;">${metric.name}</span>
+      <div class="premium-gauge-card">
+        <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-muted); display: flex; align-items: center; gap: 6px; margin-bottom: 6px; direction: rtl;">
+          <span style="font-size: 1rem;">${metric.emoji}</span>
+          <span style="color: #ffffff; letter-spacing: 0.3px; font-size: 0.82rem;">${metric.name}</span>
         </div>
         
-        <div style="position: relative; width: 100%; max-width: 130px; text-align: center;">
+        <div style="position: relative; width: 100%; max-width: 120px; text-align: center;">
           <svg viewBox="0 0 200 120" style="width: 100%; height: auto; display: block;">
             <defs>
               <linearGradient id="${gradientId}" x1="0%" y1="100%" x2="100%" y2="0%">
@@ -198,12 +219,12 @@ export function renderGauges() {
             <path id="${gaugeId}" d="M20,110 A80,80 0 0,1 180,110" fill="none" stroke="url(#${gradientId})" stroke-width="12" stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="251.3" style="transition: stroke-dashoffset 1s cubic-bezier(0.1, 0.8, 0.25, 1); filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4));"/>
           </svg>
           
-          <div style="position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; width: 100%;">
-            <span style="font-size: 1.1rem; font-weight: 900; color: #ffffff; font-family: var(--font-display);">${total.toLocaleString()} ${metric.unit}</span>
-            <span style="font-size: 0.7rem; color: var(--text-muted); font-weight: 600; margin-top: 1px;">יעד: ${metric.goal.toLocaleString()}</span>
+          <div style="position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; width: 100%;">
+            <span style="font-size: 1rem; font-weight: 900; color: #ffffff; font-family: var(--font-display);">${total.toLocaleString()} ${metric.unit}</span>
+            <span style="font-size: 0.65rem; color: var(--text-muted); font-weight: 600; margin-top: 1px;">יעד: ${metric.goal.toLocaleString()}</span>
           </div>
         </div>
-        <span style="font-size: 0.8rem; font-weight: 800; color: #ffffff; margin-top: 6px; background: rgba(255,255,255,0.05); padding: 2px 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">${percentage}%</span>
+        <span style="font-size: 0.75rem; font-weight: 800; color: #ffffff; margin-top: 4px; background: rgba(255,255,255,0.05); padding: 2px 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">${percentage}%</span>
       </div>
     `;
 
