@@ -1154,7 +1154,7 @@ export function renderExercisesManager() {
         SafeStorage.setItem(`aura-favorite-exercises_${state.currentUser.uid}`, JSON.stringify(state.favoriteExercises));
       }
       renderExercisesManager();
-      if (typeof renderExercisePickerList === 'function') renderExercisePickerList();
+      if (typeof window.renderExercisePickerList === 'function') window.renderExercisePickerList();
     });
     
     actionsContainer.appendChild(starBtn);
@@ -1388,7 +1388,7 @@ export function deleteGlobalExercise(exerciseName) {
   if (modal) modal.classList.add('hide');
 
   renderExercisesManager();
-  if (typeof renderExercisePickerList === 'function') renderExercisePickerList();
+  if (typeof window.renderExercisePickerList === 'function') window.renderExercisePickerList();
   
   alert(`התרגיל "${exerciseName}" נמחק לנצח! 🗑️`);
 }
@@ -1436,7 +1436,7 @@ export function addGlobalExercise() {
   if (modal) modal.classList.add('hide');
 
   renderExercisesManager();
-  if (typeof renderExercisePickerList === 'function') renderExercisePickerList();
+  if (typeof window.renderExercisePickerList === 'function') window.renderExercisePickerList();
 
   alert(`התרגיל "${name}" נוסף לנצח בהצלחה! ✨`);
 }
@@ -1935,7 +1935,7 @@ export function initAnalyticsTab() {
         SafeStorage.setItem(`aura-favorite-exercises_${state.currentUser.uid}`, JSON.stringify(state.favoriteExercises));
       }
       renderExercisesManager();
-      if (typeof renderExercisePickerList === 'function') renderExercisePickerList();
+      if (typeof window.renderExercisePickerList === 'function') window.renderExercisePickerList();
     });
   }
 
