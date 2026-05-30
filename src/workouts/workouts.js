@@ -537,12 +537,33 @@ export function renderExercisePickerList() {
           const val = parseInt(chip.getAttribute('data-sets'), 10);
           if (val === 3) {
             chip.classList.add('active');
-            chip.style.border = '1px solid var(--electric-blue)';
-            chip.style.background = 'var(--electric-blue-light)';
           } else {
             chip.classList.remove('active');
-            chip.style.border = '1px solid rgba(255,255,255,0.1)';
-            chip.style.background = 'rgba(255,255,255,0.05)';
+          }
+        });
+      }
+
+      // Reset rest time to 90s
+      const restChipsContainer = document.getElementById('rest-time-chips-container');
+      if (restChipsContainer) {
+        restChipsContainer.querySelectorAll('.rest-option-chip').forEach(chip => {
+          const val = parseInt(chip.getAttribute('data-rest'), 10);
+          if (val === 90) {
+            chip.classList.add('active');
+          } else {
+            chip.classList.remove('active');
+          }
+        });
+      }
+
+      // Reset metric selection to 'both'
+      if (metricModal) {
+        metricModal.querySelectorAll('.premium-metric-card').forEach(card => {
+          const m = card.getAttribute('data-metric');
+          if (m === 'both') {
+            card.classList.add('active');
+          } else {
+            card.classList.remove('active');
           }
         });
       }
@@ -1394,12 +1415,8 @@ export function initWorkoutsModule() {
         const val = parseInt(chip.getAttribute('data-sets'), 10);
         if (val === targetSets) {
           chip.classList.add('active');
-          chip.style.border = '1px solid var(--electric-blue)';
-          chip.style.background = 'var(--electric-blue-light)';
         } else {
           chip.classList.remove('active');
-          chip.style.border = '1px solid rgba(255,255,255,0.1)';
-          chip.style.background = 'rgba(255,255,255,0.05)';
         }
       });
     }
@@ -1588,10 +1605,20 @@ export function initWorkoutsModule() {
     });
   }
 
-  document.querySelectorAll('.metric-tile').forEach(tile => {
-    tile.addEventListener('click', () => {
-      const metricType = tile.getAttribute('data-metric');
-      console.log("Metric tile clicked:", metricType, "selectedExerciseForAdding:", state.selectedExerciseForAdding);
+  // Handle click on premium metric selector cards to make them statefully selectable
+  const metricCards = document.querySelectorAll('.premium-metric-card');
+  metricCards.forEach(card => {
+    card.addEventListener('click', () => {
+      metricCards.forEach(c => c.classList.remove('active'));
+      card.classList.add('active');
+    });
+  });
+
+  // Handle click on confirm add exercise button
+  const confirmAddExerciseBtn = document.getElementById('confirm-add-exercise-btn');
+  if (confirmAddExerciseBtn) {
+    confirmAddExerciseBtn.addEventListener('click', () => {
+      console.log("Confirm add exercise clicked. Selected exercise:", state.selectedExerciseForAdding);
       
       if (!state.selectedExerciseForAdding) {
         alert('שגיאה: לא נבחר תרגיל. אנא בחר תרגיל שוב.');
@@ -1600,10 +1627,15 @@ export function initWorkoutsModule() {
       
       if (!state.activeWorkout) return;
       
+      // Extract active metric type from selection
+      const activeCard = document.querySelector('.premium-metric-card.active');
+      const metricType = activeCard ? activeCard.getAttribute('data-metric') : 'both';
+      
+      // Extract rest time
       const activeRestChip = document.querySelector('#rest-time-chips-container .rest-option-chip.active');
       const seconds = activeRestChip ? parseInt(activeRestChip.getAttribute('data-rest'), 10) : 90;
 
-      // Extract chosen targetSetsCount from modal UI
+      // Extract target sets count
       const metricSetsDisplay = document.getElementById('metric-sets-display');
       const targetSets = metricSetsDisplay ? parseInt(metricSetsDisplay.textContent, 10) || 3 : 3;
 
@@ -1624,7 +1656,7 @@ export function initWorkoutsModule() {
       
       renderExercises();
     });
-  });
+  }
 
   const restChipsContainer = document.getElementById('rest-time-chips-container');
   if (restChipsContainer) {
