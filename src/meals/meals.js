@@ -119,13 +119,23 @@ export function renderMealsDashboard() {
     loggedMealsList.innerHTML = '';
     todayMeals.forEach((meal) => {
       const row = document.createElement('div');
-      row.className = 'logged-meal-row';
       
-      // Determine badge class
+      // Determine badge class & dynamic category class
       let badgeClass = 'type-badge-breakfast';
-      if (meal.type === 'צהריים') badgeClass = 'type-badge-lunch';
-      if (meal.type === 'ערב') badgeClass = 'type-badge-dinner';
-      if (meal.type === 'חטיף') badgeClass = 'type-badge-snack';
+      let typeClass = 'meal-type-breakfast';
+      if (meal.type === 'צהריים') {
+        badgeClass = 'type-badge-lunch';
+        typeClass = 'meal-type-lunch';
+      }
+      if (meal.type === 'ערב') {
+        badgeClass = 'type-badge-dinner';
+        typeClass = 'meal-type-dinner';
+      }
+      if (meal.type === 'חטיף') {
+        badgeClass = 'type-badge-snack';
+        typeClass = 'meal-type-snack';
+      }
+      row.className = `logged-meal-row ${typeClass}`;
       
       // Build micro-nutrition description dynamically
       let descString = `${meal.protein || 0}g חלבון • ${meal.calories || 0} קק"ל`;
@@ -141,7 +151,7 @@ export function renderMealsDashboard() {
         <div style="display: flex; align-items: center; gap: 10px;">
           <span style="font-size: 1.25rem;">${meal.type === 'בוקר' ? '🍳' : meal.type === 'צהריים' ? '🍗' : meal.type === 'ערב' ? '🥩' : '🍌'}</span>
           <div style="display: flex; flex-direction: column; gap: 2px;">
-            <span style="font-size: 0.95rem; font-weight: 700; color: #ffffff;">${meal.name}</span>
+            <span style="font-size: 0.95rem; font-weight: 700; color: var(--text-heading);">${meal.name}</span>
             <div style="display: flex; align-items: center; gap: 6px;">
               <span class="logged-meal-type-badge ${badgeClass}">${meal.type}</span>
               <span style="font-size: 0.78rem; color: var(--text-muted);">${descString}</span>
@@ -203,7 +213,7 @@ export function renderGauges() {
       <div class="premium-gauge-card">
         <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-muted); display: flex; align-items: center; gap: 6px; margin-bottom: 6px; direction: rtl;">
           <span style="font-size: 1rem;">${metric.emoji}</span>
-          <span style="color: #ffffff; letter-spacing: 0.3px; font-size: 0.82rem;">${metric.name}</span>
+          <span style="color: var(--text-heading); letter-spacing: 0.3px; font-size: 0.82rem;">${metric.name}</span>
         </div>
         
         <div style="position: relative; width: 100%; max-width: 120px; text-align: center;">
@@ -214,17 +224,17 @@ export function renderGauges() {
               </linearGradient>
             </defs>
             <!-- Background Arc -->
-            <path d="M20,110 A80,80 0 0,1 180,110" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="12" stroke-linecap="round"/>
+            <path class="gauge-bg-arc" d="M20,110 A80,80 0 0,1 180,110" fill="none" stroke-width="12" stroke-linecap="round"/>
             <!-- Progress Arc -->
-            <path id="${gaugeId}" d="M20,110 A80,80 0 0,1 180,110" fill="none" stroke="url(#${gradientId})" stroke-width="12" stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="251.3" style="transition: stroke-dashoffset 1s cubic-bezier(0.1, 0.8, 0.25, 1); filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4));"/>
+            <path id="${gaugeId}" class="gauge-progress-arc progress-${metric.key}" d="M20,110 A80,80 0 0,1 180,110" fill="none" stroke="url(#${gradientId})" stroke-width="12" stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="251.3" style="transition: stroke-dashoffset 1s cubic-bezier(0.1, 0.8, 0.25, 1);"/>
           </svg>
           
           <div style="position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; width: 100%;">
-            <span style="font-size: 1rem; font-weight: 900; color: #ffffff; font-family: var(--font-display);">${total.toLocaleString()} ${metric.unit}</span>
+            <span style="font-size: 1rem; font-weight: 900; color: var(--text-heading); font-family: var(--font-display);">${total.toLocaleString()} ${metric.unit}</span>
             <span style="font-size: 0.65rem; color: var(--text-muted); font-weight: 600; margin-top: 1px;">יעד: ${metric.goal.toLocaleString()}</span>
           </div>
         </div>
-        <span style="font-size: 0.75rem; font-weight: 800; color: #ffffff; margin-top: 4px; background: rgba(255,255,255,0.05); padding: 2px 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">${percentage}%</span>
+        <span class="meals-percentage-badge">${percentage}%</span>
       </div>
     `;
 
@@ -282,16 +292,15 @@ export function renderAddMealSliders() {
 
     const sliderGroup = document.createElement('div');
     sliderGroup.className = 'slider-group-container';
-    sliderGroup.style.cssText = 'display: flex; flex-direction: column; gap: 8px;';
     sliderGroup.innerHTML = `
-      <div style="display: flex; justify-content: space-between; align-items: center; direction: rtl;">
+      <div style="display: flex; justify-content: space-between; align-items: center; direction: rtl; margin-bottom: 4px;">
         <span style="font-size: 0.9rem; font-weight: 700; color: var(--text-muted);">${metric.emoji} ${metric.name}</span>
-        <span class="slider-display-badge" style="font-size: 0.95rem; font-weight: 800; color: #ffffff; background: rgba(255,255,255,0.06); padding: 2px 10px; border-radius: 20px;" id="slider-val-${metric.key}">${def} ${metric.unit}</span>
+        <span class="slider-display-badge" id="slider-val-${metric.key}">${def} ${metric.unit}</span>
       </div>
       <div style="display: flex; align-items: center; gap: 10px; direction: ltr;">
-        <button type="button" class="slider-adjust-btn minus-btn" data-key="${metric.key}" style="width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.2rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; outline: none; transition: background 0.2s;">-</button>
-        <input type="range" class="premium-range-slider" id="slider-${metric.key}" data-key="${metric.key}" min="0" max="${max}" step="${step}" value="${def}" style="flex: 1; height: 6px; border-radius: 3px; outline: none; background: rgba(255,255,255,0.1); cursor: pointer;">
-        <button type="button" class="slider-adjust-btn plus-btn" data-key="${metric.key}" style="width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.2rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; outline: none; transition: background 0.2s;">+</button>
+        <button type="button" class="slider-adjust-btn minus-btn" data-key="${metric.key}">-</button>
+        <input type="range" class="premium-range-slider" id="slider-${metric.key}" data-key="${metric.key}" min="0" max="${max}" step="${step}" value="${def}">
+        <button type="button" class="slider-adjust-btn plus-btn" data-key="${metric.key}">+</button>
       </div>
     `;
 
@@ -365,13 +374,13 @@ export function renderMealSettings() {
     goalsContainer.innerHTML = '';
     state.mealMetrics.forEach(metric => {
       const row = document.createElement('div');
-      row.style.cssText = 'display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02); padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.04);';
+      row.className = 'settings-metric-row';
       row.innerHTML = `
-        <span style="font-size: 0.9rem; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 6px;">
+        <span class="settings-metric-label">
           <span>${metric.emoji}</span>
           <span>${metric.name} (${metric.unit})</span>
         </span>
-        <input type="number" class="metric-goal-input" data-key="${metric.key}" value="${metric.goal}" style="width: 80px; padding: 6px; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #ffffff; text-align: center; font-weight: 700; outline: none;">
+        <input type="number" class="metric-goal-input" data-key="${metric.key}" value="${metric.goal}">
       `;
       goalsContainer.appendChild(row);
     });
@@ -390,13 +399,13 @@ export function renderMealSettings() {
     } else {
       customMetrics.forEach(metric => {
         const row = document.createElement('div');
-        row.style.cssText = 'display: flex; justify-content: space-between; align-items: center; background: rgba(220, 38, 38, 0.05); padding: 10px 14px; border-radius: 12px; border: 1px solid rgba(220, 38, 38, 0.15);';
+        row.className = 'settings-custom-metric-row';
         row.innerHTML = `
-          <span style="font-size: 0.9rem; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 6px;">
+          <span class="settings-metric-label">
             <span>${metric.emoji}</span>
             <span>${metric.name}</span>
           </span>
-          <button type="button" class="delete-custom-metric-btn btn" data-key="${metric.key}" style="background: none; border: none; font-size: 1.1rem; cursor: pointer; padding: 4px; line-height: 1;">🗑️</button>
+          <button type="button" class="delete-custom-metric-btn btn" data-key="${metric.key}">🗑️</button>
         `;
         row.querySelector('.delete-custom-metric-btn').addEventListener('click', (e) => {
           e.stopPropagation();
