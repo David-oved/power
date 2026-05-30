@@ -851,7 +851,7 @@
             <div id="exercise-inspector-modal" class="workout-modal-overlay hide" style="z-index: 1550;">
               <div class="workout-modal-card glass-modal-card" style="max-width: 440px; width: 95%; display: flex; flex-direction: column; height: 90vh; max-height: 90vh; overflow: hidden; border-radius: 28px 28px 0 0; position: absolute; bottom: 0; animation: slide-up-sheet 0.4s cubic-bezier(0.16, 1, 0.3, 1);">
                 <div class="modal-header" style="padding: 18px 1.5rem 12px 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.06);">
-                  <button id="close-exercise-inspector-btn" class="btn-cancel-link" style="background: none; border: none; font-size: 0.95rem; font-weight: 700; color: var(--text-muted); cursor: pointer;">סגור</button>
+                  <button id="close-exercise-inspector-btn" class="ios-back-btn" style="background: none; border: none; font-size: 1.05rem; font-weight: 800; color: var(--electric-blue-light) !important; cursor: pointer; display: flex; align-items: center; gap: 4px; margin: 0 !important; font-family: var(--font-sans);">חזרה ➔</button>
                   <div style="text-align: right; direction: rtl; display: flex; flex-direction: column; align-items: flex-end;">
                     <h3 id="inspector-exercise-name" style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #ffffff;">שם התרגיל</h3>
                     <span id="inspector-exercise-category" class="ex-category-badge" style="margin-top: 4px; display: inline-block;">קטגוריה</span>
@@ -1177,7 +1177,7 @@
               <!-- Header -->
               <div class="modal-header" style="padding: 10px 0; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.05); direction: rtl; width: 100%;">
                 <button id="close-meal-edit-modal-btn" class="btn-cancel-link" style="background: none; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer;">&times;</button>
-                <h3 class="modal-title" style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #ffffff;">עריכת ארוחה 🍳</h3>
+                <h3 class="modal-title" style="margin: 0; font-size: 1.25rem; font-weight: 800; color: var(--text-heading);">עריכת ארוחה 🍳</h3>
                 <div style="width: 20px;"></div> <!-- Spacer to visually center slightly -->
               </div>
 
@@ -1187,7 +1187,7 @@
                 <!-- Meal Name -->
                 <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
                   <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">שם הארוחה</label>
-                  <input type="text" id="edit-meal-name" placeholder="למשל: סלט טונה" class="analytics-search-input" style="width: 100%; margin: 0; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; padding: 12px; text-align: right;" required>
+                  <input type="text" id="edit-meal-name" placeholder="למשל: סלט טונה" class="analytics-search-input" style="width: 100%; margin: 0; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: var(--text-heading); padding: 12px; text-align: right;" required>
                 </div>
 
                 <!-- Meal Type -->
@@ -1208,12 +1208,12 @@
                   <div class="slider-group-container" style="display: flex; flex-direction: column; gap: 6px;">
                     <div class="slider-header" style="display: flex; justify-content: space-between; align-items: center;">
                       <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">קלוריות (קק"ל)</span>
-                      <span class="slider-display-value" style="font-size: 1.15rem; font-weight: 800; color: #ffffff;"><span id="edit-meal-calories-val">350</span> קק"ל</span>
+                      <span class="slider-display-badge"><span id="edit-meal-calories-val">350</span> קק"ל</span>
                     </div>
                     <div class="slider-control-row" style="display: flex; align-items: center; gap: 10px; direction: ltr;">
-                      <button type="button" id="edit-meal-calories-minus" class="slider-adjust-btn" style="width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.2rem; cursor: pointer; display: flex; justify-content: center; align-items: center;">-</button>
-                      <input type="range" id="edit-meal-calories-slider" class="premium-range-slider" min="0" max="2000" step="10" value="350" style="flex: 1; height: 6px; border-radius: 3px; outline: none; background: rgba(255,255,255,0.1);">
-                      <button type="button" id="edit-meal-calories-plus" class="slider-adjust-btn" style="width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.2rem; cursor: pointer; display: flex; justify-content: center; align-items: center;">+</button>
+                      <button type="button" id="edit-meal-calories-minus" class="slider-adjust-btn">-</button>
+                      <input type="range" id="edit-meal-calories-slider" class="premium-range-slider" min="0" max="2000" step="10" value="350">
+                      <button type="button" id="edit-meal-calories-plus" class="slider-adjust-btn">+</button>
                     </div>
                   </div>
 
@@ -1221,12 +1221,12 @@
                   <div class="slider-group-container" style="display: flex; flex-direction: column; gap: 6px;">
                     <div class="slider-header" style="display: flex; justify-content: space-between; align-items: center;">
                       <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">חלבון (גרם)</span>
-                      <span class="slider-display-value" style="font-size: 1.15rem; font-weight: 800; color: #ffffff;"><span id="edit-meal-protein-val">25</span>g</span>
+                      <span class="slider-display-badge"><span id="edit-meal-protein-val">25</span>g</span>
                     </div>
                     <div class="slider-control-row" style="display: flex; align-items: center; gap: 10px; direction: ltr;">
-                      <button type="button" id="edit-meal-protein-minus" class="slider-adjust-btn" style="width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.2rem; cursor: pointer; display: flex; justify-content: center; align-items: center;">-</button>
-                      <input type="range" id="edit-meal-protein-slider" class="premium-range-slider" min="0" max="150" step="1" value="25" style="flex: 1; height: 6px; border-radius: 3px; outline: none; background: rgba(255,255,255,0.1);">
-                      <button type="button" id="edit-meal-protein-plus" class="slider-adjust-btn" style="width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.2rem; cursor: pointer; display: flex; justify-content: center; align-items: center;">+</button>
+                      <button type="button" id="edit-meal-protein-minus" class="slider-adjust-btn">-</button>
+                      <input type="range" id="edit-meal-protein-slider" class="premium-range-slider" min="0" max="150" step="1" value="25">
+                      <button type="button" id="edit-meal-protein-plus" class="slider-adjust-btn">+</button>
                     </div>
                   </div>
 
@@ -1234,12 +1234,12 @@
                   <div class="slider-group-container" style="display: flex; flex-direction: column; gap: 6px;">
                     <div class="slider-header" style="display: flex; justify-content: space-between; align-items: center;">
                       <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">פחמימות (גרם)</span>
-                      <span class="slider-display-value" style="font-size: 1.15rem; font-weight: 800; color: #ffffff;"><span id="edit-meal-carbs-val">30</span>g</span>
+                      <span class="slider-display-badge"><span id="edit-meal-carbs-val">30</span>g</span>
                     </div>
                     <div class="slider-control-row" style="display: flex; align-items: center; gap: 10px; direction: ltr;">
-                      <button type="button" id="edit-meal-carbs-minus" class="slider-adjust-btn" style="width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.2rem; cursor: pointer; display: flex; justify-content: center; align-items: center;">-</button>
-                      <input type="range" id="edit-meal-carbs-slider" class="premium-range-slider" min="0" max="300" step="1" value="30" style="flex: 1; height: 6px; border-radius: 3px; outline: none; background: rgba(255,255,255,0.1);">
-                      <button type="button" id="edit-meal-carbs-plus" class="slider-adjust-btn" style="width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.2rem; cursor: pointer; display: flex; justify-content: center; align-items: center;">+</button>
+                      <button type="button" id="edit-meal-carbs-minus" class="slider-adjust-btn">-</button>
+                      <input type="range" id="edit-meal-carbs-slider" class="premium-range-slider" min="0" max="300" step="1" value="30">
+                      <button type="button" id="edit-meal-carbs-plus" class="slider-adjust-btn">+</button>
                     </div>
                   </div>
 
@@ -1247,12 +1247,12 @@
                   <div class="slider-group-container" style="display: flex; flex-direction: column; gap: 6px;">
                     <div class="slider-header" style="display: flex; justify-content: space-between; align-items: center;">
                       <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">שומן (גרם)</span>
-                      <span class="slider-display-value" style="font-size: 1.15rem; font-weight: 800; color: #ffffff;"><span id="edit-meal-fat-val">10</span>g</span>
+                      <span class="slider-display-badge"><span id="edit-meal-fat-val">10</span>g</span>
                     </div>
                     <div class="slider-control-row" style="display: flex; align-items: center; gap: 10px; direction: ltr;">
-                      <button type="button" id="edit-meal-fat-minus" class="slider-adjust-btn" style="width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.2rem; cursor: pointer; display: flex; justify-content: center; align-items: center;">-</button>
-                      <input type="range" id="edit-meal-fat-slider" class="premium-range-slider" min="0" max="150" step="1" value="10" style="flex: 1; height: 6px; border-radius: 3px; outline: none; background: rgba(255,255,255,0.1);">
-                      <button type="button" id="edit-meal-fat-plus" class="slider-adjust-btn" style="width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.2rem; cursor: pointer; display: flex; justify-content: center; align-items: center;">+</button>
+                      <button type="button" id="edit-meal-fat-minus" class="slider-adjust-btn">-</button>
+                      <input type="range" id="edit-meal-fat-slider" class="premium-range-slider" min="0" max="150" step="1" value="10">
+                      <button type="button" id="edit-meal-fat-plus" class="slider-adjust-btn">+</button>
                     </div>
                   </div>
 
@@ -1334,72 +1334,72 @@
                 </div>
               </div>
 
-              <div class="recommended-meals-carousel" style="display: flex; gap: 12px; overflow-x: auto; padding-bottom: 6px; direction: rtl; -webkit-overflow-scrolling: touch;">
+              <div class="recommended-meals-carousel">
                 
                 <!-- Rec 1: Oatmeal -->
-                <div class="rec-meal-card" style="flex: 0 0 210px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 12px; display: flex; flex-direction: column; gap: 8px; direction: rtl; text-align: right; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-                  <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-size: 1.5rem;">🥣</span>
-                    <span style="font-size: 0.72rem; padding: 2px 8px; background: rgba(52, 199, 89, 0.15); color: #34c759; border-radius: 6px; font-weight: 700;">בוקר</span>
+                <div class="rec-meal-card">
+                  <div class="rec-meal-header">
+                    <span class="rec-meal-emoji">🥣</span>
+                    <span class="rec-meal-tag tag-breakfast">בוקר</span>
                   </div>
-                  <h4 style="margin: 0; font-size: 0.92rem; font-weight: 800; color: #ffffff;">דייסת שיבולת שועל</h4>
-                  <p style="margin: 0; font-size: 0.75rem; color: var(--text-muted); line-height: 1.4;">שיבולת שועל, בננה, חלבון, חמאת בוטנים ופירות יער.</p>
-                  <div style="display: flex; justify-content: space-between; font-size: 0.72rem; font-weight: 700; color: #ffffff; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 8px; margin-top: 2px;">
+                  <h4 class="rec-meal-title">דייסת שיבולת שועל</h4>
+                  <p class="rec-meal-desc">שיבולת שועל, בננה, חלבון, חמאת בוטנים ופירות יער.</p>
+                  <div class="rec-meal-nutrients">
                     <span>🔥 420 קק"ל</span>
                     <span>🥩 25g חלבון</span>
                   </div>
-                  <button type="button" class="quick-log-meal-btn btn" data-name="דייסת שיבולת שועל" data-calories="420" data-protein="25" data-carbs="55" data-fat="10" style="width: 100%; border: none; font-size: 0.78rem; padding: 7px; border-radius: 10px; font-weight: 700; background: rgba(255,255,255,0.05); color: #ffffff; cursor: pointer; transition: all 0.2s;">
+                  <button type="button" class="quick-log-meal-btn btn" data-name="דייסת שיבולת שועל" data-calories="420" data-protein="25" data-carbs="55" data-fat="10">
                     ⚡ רישום מהיר
                   </button>
                 </div>
 
                 <!-- Rec 2: Chicken Breast -->
-                <div class="rec-meal-card" style="flex: 0 0 210px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 12px; display: flex; flex-direction: column; gap: 8px; direction: rtl; text-align: right; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-                  <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-size: 1.5rem;">🍗</span>
-                    <span style="font-size: 0.72rem; padding: 2px 8px; background: rgba(255, 149, 0, 0.15); color: #ff9500; border-radius: 6px; font-weight: 700;">צהריים</span>
+                <div class="rec-meal-card">
+                  <div class="rec-meal-header">
+                    <span class="rec-meal-emoji">🍗</span>
+                    <span class="rec-meal-tag tag-lunch">צהריים</span>
                   </div>
-                  <h4 style="margin: 0; font-size: 0.92rem; font-weight: 800; color: #ffffff;">חזה עוף מבושל עם אורז</h4>
-                  <p style="margin: 0; font-size: 0.75rem; color: var(--text-muted); line-height: 1.4;">חזה עוף צרוב, אורז בסמטי וירקות ירוקים מאודים.</p>
-                  <div style="display: flex; justify-content: space-between; font-size: 0.72rem; font-weight: 700; color: #ffffff; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 8px; margin-top: 2px;">
+                  <h4 class="rec-meal-title">חזה עוף מבושל עם אורז</h4>
+                  <p class="rec-meal-desc">חזה עוף צרוב, אורז בסמטי וירקות ירוקים מאודים.</p>
+                  <div class="rec-meal-nutrients">
                     <span>🔥 580 קק"ל</span>
                     <span>🥩 48g חלבון</span>
                   </div>
-                  <button type="button" class="quick-log-meal-btn btn" data-name="חזה עוף עם אורז" data-calories="580" data-protein="48" data-carbs="60" data-fat="8" style="width: 100%; border: none; font-size: 0.78rem; padding: 7px; border-radius: 10px; font-weight: 700; background: rgba(255,255,255,0.05); color: #ffffff; cursor: pointer; transition: all 0.2s;">
+                  <button type="button" class="quick-log-meal-btn btn" data-name="חזה עוף עם אורז" data-calories="580" data-protein="48" data-carbs="60" data-fat="8">
                     ⚡ רישום מהיר
                   </button>
                 </div>
 
                 <!-- Rec 3: Salmon Salad -->
-                <div class="rec-meal-card" style="flex: 0 0 210px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 12px; display: flex; flex-direction: column; gap: 8px; direction: rtl; text-align: right; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-                  <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-size: 1.5rem;">🐟</span>
-                    <span style="font-size: 0.72rem; padding: 2px 8px; background: rgba(175, 82, 222, 0.15); color: #af52de; border-radius: 6px; font-weight: 700;">ערב</span>
+                <div class="rec-meal-card">
+                  <div class="rec-meal-header">
+                    <span class="rec-meal-emoji">🐟</span>
+                    <span class="rec-meal-tag tag-dinner">ערב</span>
                   </div>
-                  <h4 style="margin: 0; font-size: 0.92rem; font-weight: 800; color: #ffffff;">סלט סלמון ואבוקדו</h4>
-                  <p style="margin: 0; font-size: 0.75rem; color: var(--text-muted); line-height: 1.4;">פילה סלמון אפוי, עלים ירוקים, אבוקדו, מלפפון ושמן זית.</p>
-                  <div style="display: flex; justify-content: space-between; font-size: 0.72rem; font-weight: 700; color: #ffffff; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 8px; margin-top: 2px;">
+                  <h4 class="rec-meal-title">סלט סלמון ואבוקדו</h4>
+                  <p class="rec-meal-desc">פילה סלמון אפוי, עלים ירוקים, אבוקדו, מלפפון ושמן זית.</p>
+                  <div class="rec-meal-nutrients">
                     <span>🔥 490 קק"ל</span>
                     <span>🥩 32g חלבון</span>
                   </div>
-                  <button type="button" class="quick-log-meal-btn btn" data-name="סלט סלמון ואבוקדו" data-calories="490" data-protein="32" data-carbs="12" data-fat="35" style="width: 100%; border: none; font-size: 0.78rem; padding: 7px; border-radius: 10px; font-weight: 700; background: rgba(255,255,255,0.05); color: #ffffff; cursor: pointer; transition: all 0.2s;">
+                  <button type="button" class="quick-log-meal-btn btn" data-name="סלט סלמון ואבוקדו" data-calories="490" data-protein="32" data-carbs="12" data-fat="35">
                     ⚡ רישום מהיר
                   </button>
                 </div>
 
                 <!-- Rec 4: Protein Shake -->
-                <div class="rec-meal-card" style="flex: 0 0 210px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 16px; padding: 12px; display: flex; flex-direction: column; gap: 8px; direction: rtl; text-align: right; box-shadow: 0 4px 12px rgba(0,0,0,0.15);">
-                  <div style="display: flex; justify-content: space-between; align-items: center;">
-                    <span style="font-size: 1.5rem;">🥛</span>
-                    <span style="font-size: 0.72rem; padding: 2px 8px; background: rgba(0, 122, 255, 0.15); color: #007aff; border-radius: 6px; font-weight: 700;">חטיף</span>
+                <div class="rec-meal-card">
+                  <div class="rec-meal-header">
+                    <span class="rec-meal-emoji">🥛</span>
+                    <span class="rec-meal-tag tag-snack">חטיף</span>
                   </div>
-                  <h4 style="margin: 0; font-size: 0.92rem; font-weight: 800; color: #ffffff;">שייק חלבון פרימיום</h4>
-                  <p style="margin: 0; font-size: 0.75rem; color: var(--text-muted); line-height: 1.4;">מנת חלבון מי גבינה, חלב שקדים, בננה וכפית זרעי צ'יה.</p>
-                  <div style="display: flex; justify-content: space-between; font-size: 0.72rem; font-weight: 700; color: #ffffff; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 8px; margin-top: 2px;">
+                  <h4 class="rec-meal-title">שייק חלבון פרימיום</h4>
+                  <p class="rec-meal-desc">מנת חלבון מי גבינה, חלב שקדים, בננה וכפית זרעי צ'יה.</p>
+                  <div class="rec-meal-nutrients">
                     <span>🔥 260 קק"ל</span>
                     <span>🥩 30g חלבון</span>
                   </div>
-                  <button type="button" class="quick-log-meal-btn btn" data-name="שייק חלבון פרימיום" data-calories="260" data-protein="30" data-carbs="24" data-fat="3" style="width: 100%; border: none; font-size: 0.78rem; padding: 7px; border-radius: 10px; font-weight: 700; background: rgba(255,255,255,0.05); color: #ffffff; cursor: pointer; transition: all 0.2s;">
+                  <button type="button" class="quick-log-meal-btn btn" data-name="שייק חלבון פרימיום" data-calories="260" data-protein="30" data-carbs="24" data-fat="3">
                     ⚡ רישום מהיר
                   </button>
                 </div>
