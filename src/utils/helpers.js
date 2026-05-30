@@ -11,6 +11,20 @@ export function escapeHTML(str) {
     .replace(/'/g, '&#039;');
 }
 
+// Centralized helper to safely request notification permissions in a premium, cross-browser way
+export async function requestNotificationPermissionSafely() {
+  if ('Notification' in window && typeof Notification !== 'undefined') {
+    if (Notification.permission === 'default') {
+      try {
+        const permission = await Notification.requestPermission();
+        console.log("Notification permission state:", permission);
+      } catch (err) {
+        console.warn("Could not request notification permission:", err);
+      }
+    }
+  }
+}
+
 // Robust helper to trigger native-like local notifications
 export async function triggerLocalNotification(title, body, isSystemUpdate = false) {
   if (!isSystemUpdate) {
