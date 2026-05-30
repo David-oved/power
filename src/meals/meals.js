@@ -182,75 +182,174 @@ export function renderGauges() {
   const todayStr = getTodayDateString();
   const todayMeals = state.loggedMeals.filter(m => m.date === todayStr);
 
-  state.mealMetrics.forEach(metric => {
-    // Calculate total for this specific metric
-    let total = 0;
+  // Group metrics
+  const coreMetrics = state.mealMetrics.filter(m => !m.isCustom);
+  const customMetrics = state.mealMetrics.filter(m => m.isCustom);
+
+  // Calculate values
+  const totals = {};
+  state.mealMetrics.forEach(m => {
+    totals[m.key] = 0;
     todayMeals.forEach(meal => {
-      total += Number(meal[metric.key] || 0);
+      totals[m.key] += Number(meal[m.key] || 0);
     });
+  });
 
-    const percentage = metric.goal > 0 ? Math.min(100, Math.round((total / metric.goal) * 100)) : 0;
-    const strokeDashoffset = 251.3 - (percentage / 100) * 251.3;
+  const getPercentage = (key) => {
+    const metric = state.mealMetrics.find(m => m.key === key);
+    if (!metric || metric.goal <= 0) return 0;
+    return Math.min(100, Math.round((totals[key] / metric.goal) * 100));
+  };
 
-    const gaugeId = `gauge-fill-${metric.key}`;
-    const gradientId = `grad-${metric.key}`;
-    
-    let gradientColors = '';
-    if (metric.key === 'calories') {
-      gradientColors = `<stop offset="0%" stop-color="#ff9500" /><stop offset="100%" stop-color="#ff3b30" />`;
-    } else if (metric.key === 'protein') {
-      gradientColors = `<stop offset="0%" stop-color="#ec4899" /><stop offset="100%" stop-color="#e11d48" />`;
-    } else if (metric.key === 'carbs') {
-      gradientColors = `<stop offset="0%" stop-color="#f59e0b" /><stop offset="100%" stop-color="#d97706" />`;
-    } else if (metric.key === 'fat') {
-      gradientColors = `<stop offset="0%" stop-color="#a855f7" /><stop offset="100%" stop-color="#7c3aed" />`;
-    } else {
-      // Electric blue/neon for custom
-      gradientColors = `<stop offset="0%" stop-color="#00f0ff" /><stop offset="100%" stop-color="#007aff" />`;
-    }
+  const calGoal = state.mealMetrics.find(m => m.key === 'calories')?.goal || 2200;
+  const proGoal = state.mealMetrics.find(m => m.key === 'protein')?.goal || 150;
+  const carbGoal = state.mealMetrics.find(m => m.key === 'carbs')?.goal || 220;
+  const fatGoal = state.mealMetrics.find(m => m.key === 'fat')?.goal || 70;
 
-    const gaugeHTML = `
-      <div class="premium-gauge-card">
-        <div style="font-size: 0.82rem; font-weight: 700; color: var(--text-muted); display: flex; align-items: center; gap: 6px; margin-bottom: 6px; direction: rtl;">
-          <span style="font-size: 1rem;">${metric.emoji}</span>
-          <span style="color: var(--text-heading); letter-spacing: 0.3px; font-size: 0.82rem;">${metric.name}</span>
-        </div>
-        
-        <div style="position: relative; width: 100%; max-width: 120px; text-align: center;">
-          <svg viewBox="0 0 200 120" style="width: 100%; height: auto; display: block;">
-            <defs>
-              <linearGradient id="${gradientId}" x1="0%" y1="100%" x2="100%" y2="0%">
-                ${gradientColors}
-              </linearGradient>
-            </defs>
-            <!-- Background Arc -->
-            <path class="gauge-bg-arc" d="M20,110 A80,80 0 0,1 180,110" fill="none" stroke-width="12" stroke-linecap="round"/>
-            <!-- Progress Arc -->
-            <path id="${gaugeId}" class="gauge-progress-arc progress-${metric.key}" d="M20,110 A80,80 0 0,1 180,110" fill="none" stroke="url(#${gradientId})" stroke-width="12" stroke-linecap="round" stroke-dasharray="251.3" stroke-dashoffset="251.3" style="transition: stroke-dashoffset 1s cubic-bezier(0.1, 0.8, 0.25, 1);"/>
-          </svg>
+  const calPct = getPercentage('calories');
+  const proPct = getPercentage('protein');
+  const carbPct = getPercentage('carbs');
+  const fatPct = getPercentage('fat');
+
+  // Circs for Concentric Rings
+  const offsetCal = 596.9 - (calPct / 100) * 596.9;
+  const offsetPro = 483.8 - (proPct / 100) * 483.8;
+  const offsetCarb = 377.0 - (carbPct / 100) * 377.0;
+  const offsetFat = 270.2 - (fatPct / 100) * 270.2;
+
+  // Build the unified hi-tech rings dashboard
+  const ringsHTML = `
+    <div class="hitech-rings-dashboard">
+      <div class="rings-svg-container">
+        <svg viewBox="0 0 220 220" class="hitech-rings-svg">
+          <defs>
+            <linearGradient id="cal-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#ff9500" /><stop offset="100%" stop-color="#ff3b30" />
+            </linearGradient>
+            <linearGradient id="pro-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#ec4899" /><stop offset="100%" stop-color="#e11d48" />
+            </linearGradient>
+            <linearGradient id="carb-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#34c759" /><stop offset="100%" stop-color="#30db5b" />
+            </linearGradient>
+            <linearGradient id="fat-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#a855f7" /><stop offset="100%" stop-color="#7c3aed" />
+            </linearGradient>
+            <filter id="glow-cal"><feGaussianBlur stdDeviation="3" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <filter id="glow-pro"><feGaussianBlur stdDeviation="2" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <filter id="glow-carb"><feGaussianBlur stdDeviation="2" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            <filter id="glow-fat"><feGaussianBlur stdDeviation="2" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <!-- Background Circles -->
+          <circle cx="110" cy="110" r="95" class="ring-bg" stroke="rgba(255,255,255,0.04)" stroke-width="12" fill="none" />
+          <circle cx="110" cy="110" r="77" class="ring-bg" stroke="rgba(255,255,255,0.04)" stroke-width="10" fill="none" />
+          <circle cx="110" cy="110" r="60" class="ring-bg" stroke="rgba(255,255,255,0.04)" stroke-width="10" fill="none" />
+          <circle cx="110" cy="110" r="43" class="ring-bg" stroke="rgba(255,255,255,0.04)" stroke-width="10" fill="none" />
           
-          <div style="position: absolute; bottom: 6px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; width: 100%;">
-            <span style="font-size: 1rem; font-weight: 900; color: var(--text-heading); font-family: var(--font-display);">${total.toLocaleString()} ${metric.unit}</span>
-            <span style="font-size: 0.65rem; color: var(--text-muted); font-weight: 600; margin-top: 1px;">יעד: ${metric.goal.toLocaleString()}</span>
+          <!-- Progress Circles (Active) -->
+          <circle id="ring-cal" cx="110" cy="110" r="95" stroke="url(#cal-grad)" stroke-width="12" stroke-linecap="round" fill="none" stroke-dasharray="596.9" stroke-dashoffset="596.9" transform="rotate(-90 110 110)" filter="url(#glow-cal)" style="transition: stroke-dashoffset 1s cubic-bezier(0.16, 1, 0.3, 1);" />
+          <circle id="ring-pro" cx="110" cy="110" r="77" stroke="url(#pro-grad)" stroke-width="10" stroke-linecap="round" fill="none" stroke-dasharray="483.8" stroke-dashoffset="483.8" transform="rotate(-90 110 110)" filter="url(#glow-pro)" style="transition: stroke-dashoffset 1s cubic-bezier(0.16, 1, 0.3, 1);" />
+          <circle id="ring-carb" cx="110" cy="110" r="60" stroke="url(#carb-grad)" stroke-width="10" stroke-linecap="round" fill="none" stroke-dasharray="377.0" stroke-dashoffset="377.0" transform="rotate(-90 110 110)" filter="url(#glow-carb)" style="transition: stroke-dashoffset 1s cubic-bezier(0.16, 1, 0.3, 1);" />
+          <circle id="ring-fat" cx="110" cy="110" r="43" stroke="url(#fat-grad)" stroke-width="10" stroke-linecap="round" fill="none" stroke-dasharray="270.2" stroke-dashoffset="270.2" transform="rotate(-90 110 110)" filter="url(#glow-fat)" style="transition: stroke-dashoffset 1s cubic-bezier(0.16, 1, 0.3, 1);" />
+        </svg>
+        <div class="rings-center-text">
+          <span class="center-cal-value" id="center-cal-value">${totals.calories.toLocaleString()}</span>
+          <span class="center-cal-label">קק"ל / <span id="center-cal-goal">${calGoal.toLocaleString()}</span></span>
+          <span class="center-cal-percentage" style="font-size:0.75rem; color:#ff453a; font-weight:700;">${calPct}%</span>
+        </div>
+      </div>
+      
+      <div class="rings-legend-container">
+        <div class="legend-item" data-key="calories">
+          <div class="legend-dot color-cal"></div>
+          <div class="legend-info">
+            <span class="legend-name">🔥 קלוריות</span>
+            <span class="legend-values"><strong id="legend-val-calories">${totals.calories.toLocaleString()}</strong> / <span id="legend-goal-calories">${calGoal.toLocaleString()}</span></span>
           </div>
         </div>
-        <span class="meals-percentage-badge">${percentage}%</span>
+        <div class="legend-item" data-key="protein">
+          <div class="legend-dot color-pro"></div>
+          <div class="legend-info">
+            <span class="legend-name">🥩 חלבון</span>
+            <span class="legend-values"><strong id="legend-val-protein">${totals.protein}</strong> / <span id="legend-goal-protein">${proGoal}</span>g</span>
+          </div>
+        </div>
+        <div class="legend-item" data-key="carbs">
+          <div class="legend-dot color-carb"></div>
+          <div class="legend-info">
+            <span class="legend-name">🌾 פחמימות</span>
+            <span class="legend-values"><strong id="legend-val-carbs">${totals.carbs}</strong> / <span id="legend-goal-carbs">${carbGoal}</span>g</span>
+          </div>
+        </div>
+        <div class="legend-item" data-key="fat">
+          <div class="legend-dot color-fat"></div>
+          <div class="legend-info">
+            <span class="legend-name">🥑 שומן</span>
+            <span class="legend-values"><strong id="legend-val-fat">${totals.fat}</strong> / <span id="legend-goal-fat">${fatGoal}</span>g</span>
+          </div>
+        </div>
       </div>
-    `;
+    </div>
+  `;
 
-    const wrapper = document.createElement('div');
-    wrapper.innerHTML = gaugeHTML.trim();
-    const element = wrapper.firstChild;
-    container.appendChild(element);
+  const dashboardWrapper = document.createElement('div');
+  dashboardWrapper.innerHTML = ringsHTML.trim();
+  container.appendChild(dashboardWrapper.firstChild);
 
-    // Trigger animation with a tiny timeout to execute after DOM mounting
-    setTimeout(() => {
-      const path = document.getElementById(gaugeId);
-      if (path) {
-        path.style.strokeDashoffset = strokeDashoffset;
-      }
-    }, 50);
-  });
+  // Trigger SVG concentric animations
+  setTimeout(() => {
+    const elCal = document.getElementById('ring-cal');
+    const elPro = document.getElementById('ring-pro');
+    const elCarb = document.getElementById('ring-carb');
+    const elFat = document.getElementById('ring-fat');
+
+    if (elCal) elCal.style.strokeDashoffset = offsetCal;
+    if (elPro) elPro.style.strokeDashoffset = offsetPro;
+    if (elCarb) elCarb.style.strokeDashoffset = offsetCarb;
+    if (elFat) elFat.style.strokeDashoffset = offsetFat;
+  }, 50);
+
+  // If there are custom metrics, render them below in a beautiful dynamic list
+  if (customMetrics.length > 0) {
+    const customTitle = document.createElement('div');
+    customTitle.style.cssText = 'font-size: 0.9rem; font-weight: 800; color: #ffffff; text-align: right; direction: rtl; margin-top: 10px; margin-bottom: 4px;';
+    customTitle.textContent = '📊 מדדים אישיים נוספים';
+    container.appendChild(customTitle);
+
+    const customGrid = document.createElement('div');
+    customGrid.className = 'custom-metrics-dashboard-grid';
+    customGrid.style.cssText = 'display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; direction: rtl; width: 100%;';
+    container.appendChild(customGrid);
+
+    customMetrics.forEach(metric => {
+      const val = totals[metric.key] || 0;
+      const percentage = metric.goal > 0 ? Math.min(100, Math.round((val / metric.goal) * 100)) : 0;
+      
+      const customCard = document.createElement('div');
+      customCard.className = 'premium-gauge-card custom-metric-card';
+      customCard.innerHTML = `
+        <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); display: flex; align-items: center; gap: 4px; width: 100%;">
+          <span style="font-size: 1rem;">${metric.emoji}</span>
+          <span style="color: var(--text-heading); font-size: 0.8rem;">${metric.name}</span>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: flex-start; width: 100%; margin-top: 6px;">
+          <span style="font-size: 1.15rem; font-weight: 900; color: #ffffff;">${val.toLocaleString()} ${metric.unit}</span>
+          <span style="font-size: 0.68rem; color: var(--text-muted);">יעד: ${metric.goal.toLocaleString()}</span>
+        </div>
+        <div class="custom-progress-bar-track" style="width: 100%; height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; margin-top: 8px;">
+          <div class="custom-progress-bar-fill" style="width: 0%; height: 100%; background: linear-gradient(90deg, #00f0ff, #007aff); box-shadow: 0 0 6px rgba(0, 240, 255, 0.4); border-radius: 3px; transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);"></div>
+        </div>
+        <span class="custom-pct-badge" style="position: absolute; top: 12px; left: 12px; font-size: 0.72rem; padding: 2px 6px; background: rgba(0,240,255,0.1); color:#00f0ff; border-radius: 6px; font-weight: 700;">${percentage}%</span>
+      `;
+
+      customGrid.appendChild(customCard);
+
+      setTimeout(() => {
+        const fillBar = customCard.querySelector('.custom-progress-bar-fill');
+        if (fillBar) fillBar.style.width = `${percentage}%`;
+      }, 50);
+    });
+  }
 }
 
 // Generate the beautiful premium slider elements dynamically
@@ -426,6 +525,11 @@ export function deleteCustomMetric(key) {
   renderMealSettings();
   renderAddMealSliders();
   renderMealsDashboard();
+  
+  // Dynamic cross-tab sync
+  if (typeof window.renderMealsLogView === 'function') window.renderMealsLogView();
+  if (typeof window.renderMealsCalendarView === 'function') window.renderMealsCalendarView();
+  
   showPremiumToast("המדד נמחק בהצלחה.", "success");
 }
 
@@ -433,7 +537,7 @@ export function deleteCustomMetric(key) {
 export function logMeal(name, type, values = {}) {
   const newMeal = {
     id: 'meal_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-    name: name.trim(),
+    name: name.trim() || "ארוחה מותאמת",
     type: type,
     date: getTodayDateString(),
     timestamp: Date.now()
@@ -447,6 +551,11 @@ export function logMeal(name, type, values = {}) {
   state.loggedMeals.unshift(newMeal);
   saveMealsState();
   renderMealsDashboard();
+  
+  // Dynamic cross-tab sync
+  if (typeof window.renderMealsLogView === 'function') window.renderMealsLogView();
+  if (typeof window.renderMealsCalendarView === 'function') window.renderMealsCalendarView();
+  
   showPremiumToast("הארוחה נרשמה בהצלחה! 🍳", "success");
 }
 
@@ -455,6 +564,11 @@ export function deleteLoggedMeal(id) {
   state.loggedMeals = state.loggedMeals.filter(m => m.id !== id);
   saveMealsState();
   renderMealsDashboard();
+  
+  // Dynamic cross-tab sync
+  if (typeof window.renderMealsLogView === 'function') window.renderMealsLogView();
+  if (typeof window.renderMealsCalendarView === 'function') window.renderMealsCalendarView();
+  
   showPremiumToast("הארוחה נמחקה.", "success");
 }
 
@@ -478,6 +592,7 @@ export function bindMealsEvents() {
     settingsBtn.addEventListener('click', () => {
       renderMealSettings();
       settingsModal.classList.remove('hide');
+      if (navigator.vibrate) navigator.vibrate(10);
     });
   }
   
@@ -491,12 +606,35 @@ export function bindMealsEvents() {
   // Open add-meal modal
   if (triggerBtn && addModal) {
     triggerBtn.addEventListener('click', () => {
-      document.getElementById('new-meal-name').value = '';
+      const nameInput = document.getElementById('new-meal-name');
+      if (nameInput) nameInput.value = '✍️ ארוחה מותאמת';
+      
+      // Reset preset active state
+      const presetButtons = document.querySelectorAll('#add-meal-modal .preset-btn');
+      presetButtons.forEach(b => {
+        b.classList.remove('active');
+        if (b.getAttribute('data-name') === '✍️ ארוחה מותאמת') {
+          b.classList.add('active');
+        }
+      });
+
+      // Reset segmented control to lunch by default
+      const hiddenType = document.getElementById('new-meal-type');
+      if (hiddenType) hiddenType.value = 'צהריים';
+
+      const typeBtns = document.querySelectorAll('#add-meal-modal .segmented-item');
+      typeBtns.forEach(b => {
+        b.classList.remove('active');
+        if (b.getAttribute('data-value') === 'צהריים') {
+          b.classList.add('active');
+        }
+      });
       
       // Reset sliders to default values
       renderAddMealSliders();
       
       addModal.classList.remove('hide');
+      if (navigator.vibrate) navigator.vibrate(10);
     });
   }
   
@@ -507,13 +645,78 @@ export function bindMealsEvents() {
     });
   }
   
+  // Preset Buttons Click Handler (Zero Typing)
+  const presetButtons = document.querySelectorAll('#add-meal-modal .preset-btn');
+  presetButtons.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      if (navigator.vibrate) navigator.vibrate(12); // Premium micro-vibe haptic feedback
+      
+      presetButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      
+      const name = btn.getAttribute('data-name');
+      const type = btn.getAttribute('data-type');
+      
+      // Autofill name and type inputs
+      const nameInput = document.getElementById('new-meal-name');
+      if (nameInput) nameInput.value = name;
+      
+      const hiddenTypeInput = document.getElementById('new-meal-type');
+      if (hiddenTypeInput) hiddenTypeInput.value = type;
+      
+      const segmentedItems = document.querySelectorAll('#add-meal-modal .segmented-item');
+      segmentedItems.forEach(b => {
+        b.classList.remove('active');
+        if (b.getAttribute('data-value') === type) {
+          b.classList.add('active');
+        }
+      });
+      
+      // Autofill range sliders dynamically
+      state.mealMetrics.forEach(metric => {
+        const slider = document.getElementById(`slider-${metric.key}`);
+        const badge = document.getElementById(`slider-val-${metric.key}`);
+        if (slider) {
+          const val = Number(btn.getAttribute(`data-${metric.key}`)) || 0;
+          slider.value = val;
+          slider.dispatchEvent(new Event('input'));
+          if (badge) {
+            badge.textContent = `${val} ${metric.unit}`;
+          }
+        }
+      });
+    });
+  });
+
+  // Segmented Control Item Clicks (Meal Type)
+  const segmentedItems = document.querySelectorAll('#add-meal-modal .segmented-item');
+  const hiddenTypeInput = document.getElementById('new-meal-type');
+  segmentedItems.forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
+      if (navigator.vibrate) navigator.vibrate(8); // Haptic vibration
+      
+      segmentedItems.forEach(b => b.classList.remove('active'));
+      item.classList.add('active');
+      
+      if (hiddenTypeInput) {
+        hiddenTypeInput.value = item.getAttribute('data-value');
+      }
+    });
+  });
+
   // Handle form submission
   if (addForm && addModal) {
     addForm.addEventListener('submit', (e) => {
       e.preventDefault();
       
-      const name = document.getElementById('new-meal-name').value;
-      const type = document.getElementById('new-meal-type').value;
+      const name = document.getElementById('new-meal-name').value || "ארוחה מותאמת";
+      const type = document.getElementById('new-meal-type').value || "צהריים";
       
       // Collect slider values dynamically
       const values = {};
@@ -548,6 +751,10 @@ export function bindMealsEvents() {
       
       renderMealsDashboard();
       renderAddMealSliders();
+      
+      // Dynamic cross-tab sync
+      if (typeof window.renderMealsAnalytics === 'function') window.renderMealsAnalytics();
+      
       settingsModal.classList.add('hide');
       showPremiumToast("היעדים וההגדרות נשמרו בהצלחה! 🎯", "success");
     });
