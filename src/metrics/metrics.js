@@ -1,6 +1,6 @@
 import { state } from "../state.js";
 import { SafeStorage } from "../utils/storage.js";
-import { triggerLocalNotification, showAuraToast, safeFormatDate } from "../utils/helpers.js";
+import { triggerLocalNotification, showAuraToast, safeFormatDate, requestNotificationPermissionSafely } from "../utils/helpers.js";
 import { getAllExercises, saveAllExercises, GYM_EXERCISES, PARK_EXERCISES, openEditModal } from "../workouts/workouts.js";
 import { saveMealsState, getTodayDateString, renderMealsDashboard, renderGauges, renderMealSettings, renderAddMealSliders } from "../meals/meals.js";
 
@@ -15,20 +15,6 @@ const HEBREW_QUOTES = [
   "הפוך את התירוצים שלך לתוצאות בקצה הברזל! 🔥",
   "המנוחה מכינה אותך לסט המושלם הבא. תתרכז! 🎯"
 ];
-
-// Helper to check for notifications permission
-export async function requestNotificationPermissionSafely() {
-  if ('Notification' in window && typeof Notification !== 'undefined') {
-    if (Notification.permission === 'default') {
-      try {
-        const permission = await Notification.requestPermission();
-        console.log("Notification permission state:", permission);
-      } catch (err) {
-        console.warn("Could not request notification permission:", err);
-      }
-    }
-  }
-}
 
 // Future Workouts LocalStorage Handlers
 export function getFutureWorkouts() {
