@@ -1,6 +1,6 @@
 import { state } from "../state.js";
 import { SafeStorage } from "../utils/storage.js";
-import { triggerLocalNotification, showPremiumToast } from "../utils/helpers.js";
+import { triggerLocalNotification, showPremiumToast, requestNotificationPermissionSafely } from "../utils/helpers.js";
 
 export const GYM_EXERCISES = [
   { name: 'לחיצת חזה עם מוט', category: 'חזה' },
@@ -315,6 +315,9 @@ export function populateLocationSelects() {
 export function startNewWorkout(location, name = '', emoji = '') {
   if (!state.currentUser) return;
   
+  // Proactively request notification permissions for PWA background tracking support
+  requestNotificationPermissionSafely();
+  
   let dispName = 'חדר כושר';
   let dispEmoji = '🏋️‍♂️';
   
@@ -525,6 +528,25 @@ export function renderExercisePickerList() {
       const metricModal = document.getElementById('metric-selector-modal');
       if (metricModal) metricModal.classList.remove('hide');
 
+      // Reset targetSets selection in metric selector modal to 3
+      const display = document.getElementById('metric-sets-display');
+      if (display) display.textContent = '3';
+      const chipsContainer = document.getElementById('sets-chips-container');
+      if (chipsContainer) {
+        chipsContainer.querySelectorAll('.sets-option-chip').forEach(chip => {
+          const val = parseInt(chip.getAttribute('data-sets'), 10);
+          if (val === 3) {
+            chip.classList.add('active');
+            chip.style.border = '1px solid var(--electric-blue)';
+            chip.style.background = 'var(--electric-blue-light)';
+          } else {
+            chip.classList.remove('active');
+            chip.style.border = '1px solid rgba(255,255,255,0.1)';
+            chip.style.background = 'rgba(255,255,255,0.05)';
+          }
+        });
+      }
+
       if (window.checkAndShowPreviousPerformance) {
         window.checkAndShowPreviousPerformance(ex.name);
       }
@@ -657,9 +679,61 @@ export function renderExercises() {
         saveActiveWorkoutState();
         renderExercises();
       });
-    }
     header.appendChild(actionBtn);
     card.appendChild(header);
+    
+    // Inline targetSetsCount stepper for active exercise card
+    if (!ex.completed) {
+      const targetSets = ex.targetSetsCount || 3;
+      
+      const stepperWrapper = document.createElement('div');
+      stepperWrapper.className = 'inline-sets-stepper-wrapper';
+      stepperWrapper.style.cssText = 'display: flex; align-items: center; gap: 8px; margin: 8px 12px 12px 12px; font-size: 0.9rem; color: var(--text-muted); font-weight: 600; direction: rtl;';
+      
+      const stepperLabel = document.createElement('span');
+      stepperLabel.textContent = 'סטים מתוכננים:';
+      stepperWrapper.appendChild(stepperLabel);
+      
+      const minusBtn = document.createElement('button');
+      minusBtn.type = 'button';
+      minusBtn.style.cssText = 'width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); color: #fff; cursor: pointer; display: flex; justify-content: center; align-items: center; font-size: 1.1rem; font-weight: bold; line-height: 1; outline: none; transition: all 0.2s;';
+      minusBtn.textContent = '-';
+      minusBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        ex.targetSetsCount = Math.max(1, (ex.targetSetsCount || 3) - 1);
+        saveActiveWorkoutState();
+        renderExercises();
+      });
+      stepperWrapper.appendChild(minusBtn);
+      
+      const countVal = document.createElement('span');
+      countVal.style.cssText = 'color: #ffffff; font-weight: 800; min-width: 16px; text-align: center; font-size: 1.05rem;';
+      countVal.textContent = targetSets;
+      stepperWrapper.appendChild(countVal);
+      
+      const plusBtn = document.createElement('button');
+      plusBtn.type = 'button';
+      plusBtn.style.cssText = 'width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); color: #fff; cursor: pointer; display: flex; justify-content: center; align-items: center; font-size: 1.1rem; font-weight: bold; line-height: 1; outline: none; transition: all 0.2s;';
+      plusBtn.textContent = '+';
+      plusBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        ex.targetSetsCount = Math.min(12, (ex.targetSetsCount || 3) + 1);
+        saveActiveWorkoutState();
+        renderExercises();
+      });
+      stepperWrapper.appendChild(plusBtn);
+      
+      // Let's also display progress label
+      const progressLabel = document.createElement('span');
+      progressLabel.style.marginRight = '8px';
+      progressLabel.style.color = 'var(--electric-blue-light)';
+      progressLabel.style.fontSize = '0.85rem';
+      const completedCount = ex.sets ? ex.sets.filter(s => s.completed).length : 0;
+      progressLabel.textContent = `(${completedCount}/${targetSets} הושלמו)`;
+      stepperWrapper.appendChild(progressLabel);
+      
+      card.appendChild(stepperWrapper);
+    }
     
     const setsArea = document.createElement('div');
     setsArea.className = 'sets-area';
@@ -751,6 +825,9 @@ export function renderExercises() {
 // REST TIMER ENGINE
 export function startRestTimer(seconds = 90) {
   stopRestTimer();
+
+  // Proactively request permissions when the user begins a rest period
+  requestNotificationPermissionSafely();
 
   state.restTimerSecondsLeft = seconds;
   state.restTimerTotalDuration = seconds;
@@ -888,9 +965,20 @@ export function handleRestTimerExpiration() {
     triggerLocalNotification("המנוחה נגמרה! ⏱️💪", "הגיע הזמן לסט הבא. קדימה, לעבודה!");
   }
 
+  // Fallback / Reinforcement visual toast to guarantee visibility
+  showPremiumToast("המנוחה נגמרה! הגיע הזמן לסט הבא! ⏱️💪", "success");
+
   if (navigator.vibrate) {
     navigator.vibrate([300, 150, 300, 150, 300]);
   }
+
+  // Automatically dismiss the rest timer bubble and return to the workout screen after 5 seconds
+  setTimeout(() => {
+    const currentBubble = document.getElementById('rest-timer-bubble');
+    if (currentBubble && currentBubble.classList.contains('expired')) {
+      stopRestTimer();
+    }
+  }, 5000);
 }
 
 // SET LOGGING MODAL
@@ -1286,6 +1374,58 @@ export function initWorkoutsModule() {
       }
     });
   }
+
+  // Estimated Sets Selection Event Listeners inside metric selector modal
+  const setsChipsContainer = document.getElementById('sets-chips-container');
+  const metricSetsDisplay = document.getElementById('metric-sets-display');
+  const metricSetsMinus = document.getElementById('metric-sets-minus');
+  const metricSetsPlus = document.getElementById('metric-sets-plus');
+
+  function updateSetsUI(value) {
+    const targetSets = Math.max(1, Math.min(12, value));
+    if (metricSetsDisplay) {
+      metricSetsDisplay.textContent = targetSets;
+    }
+    
+    // Sync chips
+    if (setsChipsContainer) {
+      setsChipsContainer.querySelectorAll('.sets-option-chip').forEach(chip => {
+        const val = parseInt(chip.getAttribute('data-sets'), 10);
+        if (val === targetSets) {
+          chip.classList.add('active');
+          chip.style.border = '1px solid var(--electric-blue)';
+          chip.style.background = 'var(--electric-blue-light)';
+        } else {
+          chip.classList.remove('active');
+          chip.style.border = '1px solid rgba(255,255,255,0.1)';
+          chip.style.background = 'rgba(255,255,255,0.05)';
+        }
+      });
+    }
+  }
+
+  if (setsChipsContainer) {
+    setsChipsContainer.addEventListener('click', (e) => {
+      const chip = e.target.closest('.sets-option-chip');
+      if (!chip) return;
+      const val = parseInt(chip.getAttribute('data-sets'), 10);
+      updateSetsUI(val);
+    });
+  }
+
+  if (metricSetsMinus) {
+    metricSetsMinus.addEventListener('click', () => {
+      const currentSets = metricSetsDisplay ? parseInt(metricSetsDisplay.textContent, 10) || 3 : 3;
+      updateSetsUI(currentSets - 1);
+    });
+  }
+
+  if (metricSetsPlus) {
+    metricSetsPlus.addEventListener('click', () => {
+      const currentSets = metricSetsDisplay ? parseInt(metricSetsDisplay.textContent, 10) || 3 : 3;
+      updateSetsUI(currentSets + 1);
+    });
+  }
   
   const closePickerBtn = document.getElementById('close-exercise-picker-btn');
   if (closePickerBtn) {
@@ -1462,10 +1602,15 @@ export function initWorkoutsModule() {
       const activeRestChip = document.querySelector('#rest-time-chips-container .rest-option-chip.active');
       const seconds = activeRestChip ? parseInt(activeRestChip.getAttribute('data-rest'), 10) : 90;
 
+      // Extract chosen targetSetsCount from modal UI
+      const metricSetsDisplay = document.getElementById('metric-sets-display');
+      const targetSets = metricSetsDisplay ? parseInt(metricSetsDisplay.textContent, 10) || 3 : 3;
+
       const newExercise = {
         name: state.selectedExerciseForAdding,
         metricType: metricType,
         restTime: seconds,
+        targetSetsCount: targetSets,
         completed: false,
         sets: []
       };
@@ -1835,10 +1980,28 @@ export function initWorkoutsModule() {
 
       saveActiveWorkoutState();
 
-      if (setLogModal) setLogModal.classList.add('hide');
+      const completedSetsCount = state.currentLoggingExercise.sets.filter(s => s.completed).length;
+      const targetSetsCount = state.currentLoggingExercise.targetSetsCount || 3;
 
-      const restSeconds = state.currentLoggingExercise.restTime || 90;
-      startRestTimer(restSeconds);
+      if (completedSetsCount >= targetSetsCount) {
+        state.currentLoggingExercise.completed = true;
+        // Clean up any remaining uncompleted sets
+        state.currentLoggingExercise.sets = state.currentLoggingExercise.sets.filter(s => s.completed);
+        
+        saveActiveWorkoutState();
+        
+        if (setLogModal) setLogModal.classList.add('hide');
+        
+        // Start 2-minute transition rest timer
+        startRestTimer(120);
+        
+        // Premium toast notification indicating completion
+        showPremiumToast(`התרגיל הושלם בהצלחה! מעבר לתרגיל הבא בעוד 2 דקות מנוחה ⏱️💪`, "success");
+      } else {
+        if (setLogModal) setLogModal.classList.add('hide');
+        const restSeconds = state.currentLoggingExercise.restTime || 90;
+        startRestTimer(restSeconds);
+      }
 
       state.currentLoggingExercise = null;
       state.currentLoggingSetIndex = -1;
