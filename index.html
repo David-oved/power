@@ -430,6 +430,24 @@
 
                 <div class="divider" style="margin: 1.5rem 0 1rem 0; border-top: 1px solid rgba(255, 255, 255, 0.08);"></div>
 
+                <!-- Estimated Sets Selection Section -->
+                <h4 style="font-size: 1.05rem; margin-bottom: 1rem; color: #ffffff; text-align: right; direction: rtl;">🎯 סטים מתוכננים לתרגיל</h4>
+                <div id="sets-chips-container" class="sets-chips-container" style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; direction: ltr; margin-top: 10px; margin-bottom: 12px;">
+                  <button type="button" class="sets-option-chip" data-sets="2" style="padding: 8px 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: all 0.2s;">2</button>
+                  <button type="button" class="sets-option-chip active" data-sets="3" style="padding: 8px 16px; border-radius: 20px; border: 1px solid var(--electric-blue); background: var(--electric-blue-light); color: #fff; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: all 0.2s;">3 ⭐️</button>
+                  <button type="button" class="sets-option-chip" data-sets="4" style="padding: 8px 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: all 0.2s;">4</button>
+                  <button type="button" class="sets-option-chip" data-sets="5" style="padding: 8px 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: all 0.2s;">5</button>
+                  <button type="button" class="sets-option-chip" data-sets="6" style="padding: 8px 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; cursor: pointer; font-weight: 600; font-size: 0.9rem; transition: all 0.2s;">6</button>
+                </div>
+                <!-- Stepper below chips -->
+                <div class="sets-stepper-container" style="display: flex; align-items: center; justify-content: center; gap: 15px; margin-top: 10px; margin-bottom: 12px;">
+                  <button type="button" id="metric-sets-minus" class="stepper-btn" style="width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); color: #fff; font-size: 1.2rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: all 0.2s;">-</button>
+                  <span id="metric-sets-display" style="font-size: 1.25rem; font-weight: 800; color: #ffffff; min-width: 30px; text-align: center;">3</span>
+                  <button type="button" id="metric-sets-plus" class="stepper-btn" style="width: 36px; height: 36px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); color: #fff; font-size: 1.2rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: all 0.2s;">+</button>
+                </div>
+
+                <div class="divider" style="margin: 1.5rem 0 1rem 0; border-top: 1px solid rgba(255, 255, 255, 0.08);"></div>
+
                 <!-- Premium Rest Time Selection Section -->
                 <h4 style="font-size: 1.05rem; margin-bottom: 1rem; color: #ffffff; text-align: right; direction: rtl;">⏱️ זמן מנוחה לתרגיל</h4>
                 <div id="rest-time-chips-container" class="rest-time-chips-container" style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; direction: ltr; margin-top: 10px;">
