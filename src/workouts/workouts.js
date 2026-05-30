@@ -418,27 +418,14 @@ export function renderExercisePickerFilters() {
   container.innerHTML = '';
   
   let categories = ['הכל'];
-  if (state.activeWorkout.location === 'gym') {
-    categories = ['הכל', 'חזה', 'גב', 'כתפיים', 'רגליים', 'ידיים', 'בטן', 'אירובי'];
-  } else if (state.activeWorkout.location === 'park') {
-    categories = ['הכל', 'מתח', 'דחיפה', 'רגליים', 'ליבה ואירובי'];
-  } else {
-    categories = ['הכל', 'מותאם אישית'];
+  if (state.favoriteExercises.length > 0) {
+    categories.push('⭐ מועדפים');
   }
-
-  if (state.favoriteExercises.length > 0 && !categories.includes('מועדפים')) {
-    categories.splice(1, 0, '⭐ מועדפים');
+  categories.push('חזה', 'גב', 'כתפיים', 'רגליים', 'ידיים', 'בטן', 'אירובי', 'ליבה');
+  if (state.customExercises.length > 0) {
+    categories.push('תרגילים שלי');
   }
-
-  const hasCustoms = state.customExercises.some(ex => {
-    if (state.activeWorkout.location === 'gym' || state.activeWorkout.location === 'park') {
-      return ex.locationType === state.activeWorkout.location;
-    }
-    return true;
-  });
-  if (hasCustoms && !categories.includes('מותאם אישית')) {
-    categories.push('מותאם אישית');
-  }
+  categories.push('אחר');
   
   categories.forEach(cat => {
     const btn = document.createElement('button');
@@ -463,15 +450,6 @@ export function renderExercisePickerList() {
   
   let fullList = getAllExercises();
   
-  if (state.activeWorkout.location === 'gym' || state.activeWorkout.location === 'park') {
-    fullList = fullList.filter(ex => {
-      if (ex.locationType && ex.locationType !== state.activeWorkout.location) {
-        return false;
-      }
-      return true;
-    });
-  }
-  
   const seen = new Set();
   fullList = fullList.filter(ex => {
     const k = ex.name.trim().toLowerCase();
@@ -482,6 +460,8 @@ export function renderExercisePickerList() {
   
   if (state.currentActiveCategoryFilter === '⭐ מועדפים') {
     fullList = fullList.filter(ex => state.favoriteExercises.includes(ex.name));
+  } else if (state.currentActiveCategoryFilter === 'תרגילים שלי') {
+    fullList = fullList.filter(ex => state.customExercises.some(c => c.name.trim().toLowerCase() === ex.name.trim().toLowerCase()));
   } else if (state.currentActiveCategoryFilter !== 'הכל') {
     fullList = fullList.filter(ex => ex.category === state.currentActiveCategoryFilter);
   }
@@ -789,6 +769,18 @@ export function startRestTimer(seconds = 90) {
 
   updateRestTimerUI();
 
+  // Save the target end timestamp for PWA background freeze recovery
+  const endTime = Date.now() + seconds * 1000;
+  SafeStorage.setItem('aura-rest-timer-end-time', String(endTime));
+
+  // Schedule background notification via Service Worker
+  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage({
+      action: 'scheduleRestNotification',
+      delayMs: seconds * 1000
+    });
+  }
+
   state.restTimerInterval = setInterval(() => {
     state.restTimerSecondsLeft--;
     if (state.restTimerSecondsLeft <= 0) {
@@ -806,8 +798,16 @@ export function stopRestTimer() {
     clearInterval(state.restTimerInterval);
     state.restTimerInterval = null;
   }
+  SafeStorage.removeItem('aura-rest-timer-end-time');
+  
+  // Cancel background notification via Service Worker
+  if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+    navigator.serviceWorker.controller.postMessage({ action: 'cancelRestNotification' });
+  }
+
   const bubble = document.getElementById('rest-timer-bubble');
   if (bubble) {
+    bubble.style.transform = ''; // Reset transform so PWA transition works cleanly
     bubble.classList.add('hide');
     bubble.classList.remove('expired');
   }
@@ -829,23 +829,67 @@ export function updateRestTimerUI() {
   }
 }
 
+export function playRestAlarmSynth() {
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    const ctx = new AudioContext();
+    const startTime = ctx.currentTime;
+    
+    // Play 4 beautiful double beeps (987Hz B5)
+    for (let i = 0; i < 4; i++) {
+      const timeOffset = i * 0.7;
+      
+      const osc1 = ctx.createOscillator();
+      const gain1 = ctx.createGain();
+      osc1.type = 'sine';
+      osc1.frequency.setValueAtTime(987.77, startTime + timeOffset);
+      gain1.gain.setValueAtTime(0, startTime + timeOffset);
+      gain1.gain.linearRampToValueAtTime(0.35, startTime + timeOffset + 0.04);
+      gain1.gain.exponentialRampToValueAtTime(0.001, startTime + timeOffset + 0.22);
+      osc1.connect(gain1);
+      gain1.connect(ctx.destination);
+      osc1.start(startTime + timeOffset);
+      osc1.stop(startTime + timeOffset + 0.25);
+      
+      const osc2 = ctx.createOscillator();
+      const gain2 = ctx.createGain();
+      osc2.type = 'sine';
+      osc2.frequency.setValueAtTime(987.77, startTime + timeOffset + 0.25);
+      gain2.gain.setValueAtTime(0, startTime + timeOffset + 0.25);
+      gain2.gain.linearRampToValueAtTime(0.35, startTime + timeOffset + 0.25 + 0.04);
+      gain2.gain.exponentialRampToValueAtTime(0.001, startTime + timeOffset + 0.25 + 0.22);
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.start(startTime + timeOffset + 0.25);
+      osc2.stop(startTime + timeOffset + 0.25 + 0.25);
+    }
+  } catch (e) {
+    console.error("Failed to play dynamic synthesized rest alarm:", e);
+  }
+}
+
 export function handleRestTimerExpiration() {
   if (state.restTimerInterval) {
     clearInterval(state.restTimerInterval);
     state.restTimerInterval = null;
   }
+  SafeStorage.removeItem('aura-rest-timer-end-time');
 
   const bubble = document.getElementById('rest-timer-bubble');
   if (bubble) {
     bubble.classList.add('expired');
   }
 
+  // Play alarm sound synthesize
+  playRestAlarmSynth();
+
   if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
     triggerLocalNotification("המנוחה נגמרה! ⏱️💪", "הגיע הזמן לסט הבא. קדימה, לעבודה!");
   }
 
   if (navigator.vibrate) {
-    navigator.vibrate([200, 100, 200]);
+    navigator.vibrate([300, 150, 300, 150, 300]);
   }
 }
 
@@ -1205,6 +1249,7 @@ export function initWorkoutsModule() {
   window.renderModalExercises = renderModalExercises;
   window.deleteWorkoutFromHistory = deleteWorkoutFromHistory;
   window.exercisesList = getAllExercises();
+  window.renderExercisePickerList = renderExercisePickerList;
 
   // Setup click bindings on DOM
   const startWorkoutBtn = document.getElementById('start-workout-btn');
@@ -1834,5 +1879,145 @@ export function initWorkoutsModule() {
     calcModal.addEventListener('click', (e) => {
       if (e.target === calcModal) dismissCalc();
     });
+  }
+
+  // Initialize premium interactive Rest Timer gestures & alarms
+  initRestTimerInteraction();
+}
+
+// ⏱️ Premium Interactive Rest Timer Gesture & Drag Controller
+export function initRestTimerInteraction() {
+  const bubble = document.getElementById('rest-timer-bubble');
+  if (!bubble) return;
+
+  let isDragging = false;
+  let startX = 0, startY = 0;
+  let currentX = 0, currentY = 0;
+  let scale = 1;
+  let initialDistance = 0;
+  let initialScale = 1;
+
+  // Touch handlers for mobile dragging & pinch-to-size
+  bubble.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 1) {
+      isDragging = true;
+      startX = e.touches[0].clientX - currentX;
+      startY = e.touches[0].clientY - currentY;
+      bubble.style.transition = 'none'; // absolute raw tracking
+    } else if (e.touches.length === 2) {
+      isDragging = false;
+      initialDistance = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      initialScale = scale;
+    }
+  }, { passive: true });
+
+  bubble.addEventListener('touchmove', (e) => {
+    if (isDragging && e.touches.length === 1) {
+      e.preventDefault(); // Stop mobile rubber banding
+      currentX = e.touches[0].clientX - startX;
+      currentY = e.touches[0].clientY - startY;
+      updateBubbleTransform();
+    } else if (e.touches.length === 2) {
+      e.preventDefault();
+      const currentDistance = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      if (initialDistance > 0) {
+        const factor = currentDistance / initialDistance;
+        scale = Math.max(0.6, Math.min(1.8, initialScale * factor)); // safety scaling caps
+        updateBubbleTransform();
+      }
+    }
+  }, { passive: false });
+
+  bubble.addEventListener('touchend', () => {
+    isDragging = false;
+    bubble.style.transition = 'transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.1)';
+  });
+
+  // Mouse drag handlers for desktop accessibility
+  bubble.addEventListener('mousedown', (e) => {
+    if (e.button !== 0) return; // only left click
+    if (e.target.closest('button')) return; // do not drag on button clicks
+
+    isDragging = true;
+    startX = e.clientX - currentX;
+    startY = e.clientY - currentY;
+    bubble.style.transition = 'none';
+    bubble.style.cursor = 'grabbing';
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    currentX = e.clientX - startX;
+    currentY = e.clientY - startY;
+    updateBubbleTransform();
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (isDragging) {
+      isDragging = false;
+      bubble.style.transition = 'transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.1)';
+      bubble.style.cursor = 'grab';
+    }
+  });
+
+  // Mouse wheel scroll to resize on desktop
+  bubble.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    const delta = e.deltaY < 0 ? 0.05 : -0.05;
+    scale = Math.max(0.6, Math.min(1.8, scale + delta));
+    updateBubbleTransform();
+  }, { passive: false });
+
+  // PWA Background rest timer recovery logic
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      const endTimeStr = SafeStorage.getItem('aura-rest-timer-end-time');
+      if (endTimeStr) {
+        const endTime = parseInt(endTimeStr, 10);
+        const remaining = Math.round((endTime - Date.now()) / 1000);
+        if (remaining > 0) {
+          state.restTimerSecondsLeft = remaining;
+          updateRestTimerUI();
+          
+          if (!state.restTimerInterval) {
+            state.restTimerInterval = setInterval(() => {
+              state.restTimerSecondsLeft--;
+              if (state.restTimerSecondsLeft <= 0) {
+                state.restTimerSecondsLeft = 0;
+                updateRestTimerUI();
+                handleRestTimerExpiration();
+              } else {
+                updateRestTimerUI();
+              }
+            }, 1000);
+          }
+        } else {
+          // Timer expired in the background
+          SafeStorage.removeItem('aura-rest-timer-end-time');
+          state.restTimerSecondsLeft = 0;
+          updateRestTimerUI();
+          handleRestTimerExpiration();
+        }
+      }
+    }
+  });
+
+  // Ensure close button is bound
+  const closeBtn = document.getElementById('close-rest-timer-btn');
+  if (closeBtn) {
+    closeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      stopRestTimer();
+    });
+  }
+
+  function updateBubbleTransform() {
+    bubble.style.transform = `translate(calc(-50% + ${currentX}px), ${currentY}px) scale(${scale})`;
   }
 }
