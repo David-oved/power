@@ -2050,7 +2050,7 @@ body.authenticated .ios-bottom-nav {
 .exercises-list-container {
   flex: 1;
   overflow-y: auto;
-  padding: 1.5rem 1.5rem 120px 1.5rem;
+  padding: 1.5rem 1.5rem 260px 1.5rem !important;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -5558,7 +5558,7 @@ body.authenticated .ios-bottom-nav {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
-  padding: 1.5rem 1.5rem 120px 1.5rem;
+  padding: 1.5rem 1.5rem 260px 1.5rem !important;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -6466,8 +6466,8 @@ html, body {
 
 /* Extra generous padding for exercises list to ensure scrollability past fixed workout controls */
 .exercises-list-container {
-  padding-bottom: calc(200px + env(safe-area-inset-bottom, 24px)) !important;
-  scroll-padding-bottom: calc(200px + env(safe-area-inset-bottom, 24px)) !important;
+  padding-bottom: 260px !important;
+  scroll-padding-bottom: 260px !important;
 }
 
 /* Fallback scrolling safety for idle workouts page when many tiles exist on tiny viewports */
@@ -6601,14 +6601,22 @@ html, body {
 
 /* Glass Section Card — wraps each major section */
 .meals-section-card {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.025) 0%, rgba(255, 255, 255, 0.008) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: linear-gradient(135deg, rgba(30, 30, 40, 0.4) 0%, rgba(15, 15, 20, 0.6) 100%);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 24px;
-  padding: 20px 18px;
+  padding: 24px 20px;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
-  transition: transform 0.2s, box-shadow 0.2s;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.05);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s;
+}
+
+.meals-section-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.08);
 }
 
 .meals-section-card::before {
@@ -6618,7 +6626,7 @@ html, body {
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.08) 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);
 }
 
 /* Section Header — icon + title + optional badge */
@@ -6627,25 +6635,25 @@ html, body {
   align-items: center;
   justify-content: space-between;
   direction: rtl;
-  margin-bottom: 16px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  margin-bottom: 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .meals-section-title {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 1.05rem;
+  gap: 10px;
+  font-size: 1.1rem;
   font-weight: 800;
-  color: #ffffff;
+  color: var(--text-heading);
   font-family: var(--font-display);
   letter-spacing: -0.01em;
 }
 
 .meals-section-icon {
-  font-size: 1.2rem;
-  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.1));
+  font-size: 1.3rem;
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.15));
 }
 
 /* Daily counter / status badge */
@@ -6653,20 +6661,21 @@ html, body {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 12px;
+  padding: 6px 14px;
   border-radius: 20px;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 700;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.06);
   color: var(--text-muted);
   direction: rtl;
+  transition: all 0.2s ease;
 }
 
 .meals-daily-badge.has-data {
-  background: rgba(52, 199, 89, 0.1);
-  border-color: rgba(52, 199, 89, 0.2);
-  color: #34c759;
+  background: rgba(48, 219, 91, 0.12);
+  border-color: rgba(48, 219, 91, 0.25);
+  color: #30db5b;
 }
 
 /* Page header with greeting */
@@ -6676,62 +6685,110 @@ html, body {
   align-items: center;
   width: 100%;
   direction: rtl;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
   padding: 0 0.5rem;
 }
 
 .meals-page-title {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   font-weight: 800;
-  color: #ffffff;
+  color: var(--text-heading);
   font-family: var(--font-display);
   letter-spacing: -0.02em;
 }
 
 .meals-date-badge {
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 600;
   color: var(--text-muted);
   background: rgba(255, 255, 255, 0.03);
-  padding: 4px 12px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.04);
+  padding: 6px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
   direction: rtl;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   display: inline-block;
   text-align: right;
   width: fit-content;
   margin-right: 0.5rem;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
 }
 
 /* Improved gauge grid layout */
 .meals-gauges-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+  gap: 14px;
   width: 100%;
   direction: rtl;
 }
 
 /* Gauge card compact refinement */
 .premium-gauge-card {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  background: linear-gradient(135deg, rgba(20, 20, 25, 0.8) 0%, rgba(10, 10, 12, 0.9) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 20px;
-  padding: 14px 10px;
+  padding: 16px 12px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-  transition: transform 0.2s;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.03);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s;
+}
+
+.premium-gauge-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.05);
 }
 
 .premium-gauge-card:active {
   transform: scale(0.98);
+}
+
+/* Gauge SVG elements and Glowing Neon Progress Arcs */
+.gauge-bg-arc {
+  stroke: rgba(255, 255, 255, 0.06);
+}
+
+.gauge-progress-arc {
+  stroke-linecap: round;
+  fill: none;
+  transition: stroke-dashoffset 1s cubic-bezier(0.1, 0.8, 0.25, 1);
+}
+
+/* Specific glows per metric type */
+.gauge-progress-arc.progress-calories {
+  filter: drop-shadow(0 0 6px rgba(255, 59, 48, 0.6));
+}
+.gauge-progress-arc.progress-protein {
+  filter: drop-shadow(0 0 6px rgba(225, 29, 72, 0.6));
+}
+.gauge-progress-arc.progress-carbs {
+  filter: drop-shadow(0 0 6px rgba(217, 119, 6, 0.6));
+}
+.gauge-progress-arc.progress-fat {
+  filter: drop-shadow(0 0 6px rgba(124, 58, 237, 0.6));
+}
+.gauge-progress-arc.progress-custom {
+  filter: drop-shadow(0 0 6px rgba(0, 122, 255, 0.6));
+}
+
+/* Gauge Percentage Badge */
+.meals-percentage-badge {
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  margin-top: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 2px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
 }
 
 /* Add meal button — elevated style */
@@ -6747,7 +6804,7 @@ html, body {
   margin: 0;
   font-size: 1.05rem;
   font-weight: 800;
-  color: #ffffff;
+  color: var(--text-heading);
   text-align: right;
   direction: rtl;
   font-family: var(--font-display);
@@ -6762,7 +6819,7 @@ html, body {
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 12px;
   padding: 8px 14px;
-  color: #ffffff;
+  color: var(--text-heading);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -6782,18 +6839,350 @@ html, body {
   transform: scale(0.97);
 }
 
+/* Add Meal Modal Sliders Styling */
+.slider-group-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  padding: 12px 16px;
+  border-radius: 16px;
+  margin-bottom: 4px;
+}
+
+.slider-display-badge {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  background: rgba(255, 255, 255, 0.06);
+  padding: 2px 10px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.slider-adjust-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-heading);
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  outline: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.slider-adjust-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
+
+.slider-adjust-btn:active {
+  transform: scale(0.95);
+}
+
+.premium-range-slider {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  outline: none;
+  background: rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  -webkit-appearance: none;
+  transition: background 0.2s;
+}
+
+.premium-range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--electric-blue);
+  box-shadow: 0 0 10px var(--electric-blue-glow-subtle);
+  border: 2px solid #ffffff;
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.premium-range-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
 /* Empty state refinement */
 .meals-empty-state-card {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2rem 1rem;
-  border: 1px dashed rgba(255, 255, 255, 0.06);
-  border-radius: 18px;
+  padding: 2.5rem 1rem;
+  border: 1px dashed rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
   text-align: center;
   gap: 8px;
   background: rgba(255, 255, 255, 0.01);
+}
+
+/* Recommended Meals Carousel Styling */
+.recommended-meals-carousel {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  direction: rtl;
+  -webkit-overflow-scrolling: touch;
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.recommended-meals-carousel::-webkit-scrollbar {
+  display: none; /* Hide scrollbars for a clean horizontal swipe feel */
+}
+
+.rec-meal-card {
+  flex: 0 0 220px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 20px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  direction: rtl;
+  text-align: right;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.rec-meal-card:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.12);
+  transform: translateY(-6px);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.35);
+}
+
+.rec-meal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.rec-meal-emoji {
+  font-size: 1.6rem;
+}
+
+.rec-meal-tag {
+  font-size: 0.72rem;
+  padding: 3px 10px;
+  border-radius: 8px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+
+.rec-meal-tag.tag-breakfast { background: rgba(48, 219, 91, 0.15); color: #30db5b; border: 1px solid rgba(48, 219, 91, 0.2); }
+.rec-meal-tag.tag-lunch { background: rgba(255, 149, 0, 0.15); color: #ff9500; border: 1px solid rgba(255, 149, 0, 0.2); }
+.rec-meal-tag.tag-dinner { background: rgba(191, 90, 242, 0.15); color: #bf5af2; border: 1px solid rgba(191, 90, 242, 0.2); }
+.rec-meal-tag.tag-snack { background: rgba(10, 132, 255, 0.15); color: #0a84ff; border: 1px solid rgba(10, 132, 255, 0.2); }
+
+.rec-meal-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text-heading);
+}
+
+.rec-meal-desc {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  height: 48px; /* Fixed height for consistent vertical align */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+}
+
+.rec-meal-nutrients {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 8px;
+  margin-top: 2px;
+}
+
+.quick-log-meal-btn {
+  width: 100%;
+  border: none;
+  font-size: 0.8rem;
+  padding: 10px;
+  border-radius: 12px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-heading);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+}
+
+.quick-log-meal-btn:hover {
+  background: linear-gradient(135deg, var(--electric-blue) 0%, var(--electric-blue-light) 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 15px var(--electric-blue-glow-subtle);
+  transform: scale(1.02);
+}
+
+.quick-log-meal-btn:active {
+  transform: scale(0.97);
+}
+
+/* Logged Meal Row Styles */
+.logged-meal-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 18px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-right: 4px solid rgba(255, 255, 255, 0.2); /* Fallback */
+  border-radius: 16px;
+  direction: rtl;
+  text-align: right;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  margin-bottom: 8px;
+}
+
+.logged-meal-row:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+  transform: translateX(-4px);
+}
+
+/* Accent borders per meal type */
+.logged-meal-row.meal-type-breakfast {
+  border-right: 4px solid #30db5b;
+}
+.logged-meal-row.meal-type-lunch {
+  border-right: 4px solid #ff9500;
+}
+.logged-meal-row.meal-type-dinner {
+  border-right: 4px solid #bf5af2;
+}
+.logged-meal-row.meal-type-snack {
+  border-right: 4px solid #0a84ff;
+}
+
+.logged-meal-type-badge {
+  font-size: 0.72rem;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-weight: 700;
+  margin-right: 6px;
+}
+
+.type-badge-breakfast { background: rgba(48, 219, 91, 0.12); color: #30db5b; border: 1px solid rgba(48, 219, 91, 0.2); }
+.type-badge-lunch { background: rgba(255, 149, 0, 0.12); color: #ff9500; border: 1px solid rgba(255, 149, 0, 0.2); }
+.type-badge-dinner { background: rgba(191, 90, 242, 0.12); color: #bf5af2; border: 1px solid rgba(191, 90, 242, 0.2); }
+.type-badge-snack { background: rgba(10, 132, 255, 0.12); color: #0a84ff; border: 1px solid rgba(10, 132, 255, 0.2); }
+
+.delete-meal-btn {
+  background: transparent;
+  border: none;
+  color: var(--color-danger);
+  font-size: 1.1rem;
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.6;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.delete-meal-btn:hover {
+  opacity: 1;
+  transform: scale(1.1);
+  color: #ff453a;
+}
+
+/* Meal settings metric row styles */
+.settings-metric-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  margin-bottom: 8px;
+}
+
+.settings-custom-metric-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 69, 58, 0.05);
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 69, 58, 0.15);
+  margin-bottom: 8px;
+}
+
+.settings-metric-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.metric-goal-input {
+  width: 80px;
+  padding: 6px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-heading);
+  text-align: center;
+  font-weight: 700;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.metric-goal-input:focus {
+  border-color: var(--electric-blue);
+  box-shadow: 0 0 8px var(--electric-blue-glow-subtle);
+}
+
+.delete-custom-metric-btn {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 4px;
+  line-height: 1;
+  opacity: 0.7;
+  transition: all 0.2s;
+}
+
+.delete-custom-metric-btn:hover {
+  opacity: 1;
+  transform: scale(1.1);
 }
 
 /* Tab meals responsive grid for 3+ metrics */
@@ -6808,169 +7197,217 @@ html, body {
   }
 }
 
-/* Light theme overrides for new section cards */
+/* ==========================================================================
+   Light Theme overrides for Premium Meals tab
+   ========================================================================== */
 .tab-pane:not(.dark-theme) .meals-section-card {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(245, 245, 250, 0.95) 100%) !important;
-  border-color: rgba(0, 0, 0, 0.06) !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04) !important;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.7) 0%, rgba(240, 240, 245, 0.8) 100%) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.04), inset 0 1px 1px rgba(255, 255, 255, 0.8) !important;
 }
+
+.tab-pane:not(.dark-theme) .meals-section-card:hover {
+  border-color: rgba(0, 0, 0, 0.1) !important;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.06), inset 0 1px 1px rgba(255, 255, 255, 0.9) !important;
+}
+
 .tab-pane:not(.dark-theme) .meals-section-card::before {
-  background: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.04) 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.04) 50%, transparent 100%) !important;
 }
+
 .tab-pane:not(.dark-theme) .meals-section-header {
-  border-bottom-color: rgba(0, 0, 0, 0.04);
+  border-bottom-color: rgba(0, 0, 0, 0.06) !important;
 }
+
 .tab-pane:not(.dark-theme) .meals-section-title {
   color: #1c1c1e !important;
 }
+
+.tab-pane:not(.dark-theme) .meals-section-icon {
+  filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.05)) !important;
+}
+
 .tab-pane:not(.dark-theme) .meals-daily-badge {
-  background: rgba(0, 0, 0, 0.03);
-  border-color: rgba(0, 0, 0, 0.06);
-  color: #636366;
+  background: rgba(0, 0, 0, 0.03) !important;
+  border-color: rgba(0, 0, 0, 0.05) !important;
+  color: #636366 !important;
 }
+
 .tab-pane:not(.dark-theme) .meals-daily-badge.has-data {
-  background: rgba(52, 199, 89, 0.08);
-  border-color: rgba(52, 199, 89, 0.15);
-  color: #2d9f52;
+  background: rgba(52, 199, 89, 0.08) !important;
+  border-color: rgba(52, 199, 89, 0.15) !important;
+  color: #24963e !important;
 }
+
 .tab-pane:not(.dark-theme) .meals-page-title {
   color: #1c1c1e !important;
 }
+
 .tab-pane:not(.dark-theme) .meals-date-badge {
-  background: rgba(0, 0, 0, 0.03);
-  border-color: rgba(0, 0, 0, 0.05);
-  color: #636366;
-}
-.recommended-meals-carousel::-webkit-scrollbar {
-  display: none; /* Hide scrollbars for a clean iOS horizontal swipe feel */
-}
-.recommended-meals-carousel {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
-}
-.rec-meal-card {
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.rec-meal-card:hover {
-  background: rgba(255, 255, 255, 0.05) !important;
-  transform: translateY(-2px);
-}
-.quick-log-meal-btn {
-  transition: all 0.2s ease;
-}
-.quick-log-meal-btn:hover {
-  background: var(--electric-blue-light) !important;
-  color: #ffffff !important;
-  box-shadow: 0 4px 10px var(--electric-blue-glow-subtle);
-}
-.quick-log-meal-btn:active {
-  transform: scale(0.97);
+  background: rgba(0, 0, 0, 0.02) !important;
+  border-color: rgba(0, 0, 0, 0.04) !important;
+  color: #636366 !important;
+  box-shadow: none !important;
 }
 
-/* Logged Meal Row Styles */
-.logged-meal-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14px 16px;
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(255, 255, 255, 0.04);
-  border-radius: 16px;
-  direction: rtl;
-  text-align: right;
-  transition: all 0.2s ease;
-}
-.logged-meal-row:hover {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.08);
-}
-.logged-meal-type-badge {
-  font-size: 0.72rem;
-  padding: 3px 8px;
-  border-radius: 6px;
-  font-weight: 700;
-  margin-right: 6px;
-}
-.type-badge-breakfast { background: rgba(52, 199, 89, 0.12); color: #34c759; border: 1px solid rgba(52, 199, 89, 0.2); }
-.type-badge-lunch { background: rgba(255, 149, 0, 0.12); color: #ff9500; border: 1px solid rgba(255, 149, 0, 0.2); }
-.type-badge-dinner { background: rgba(175, 82, 222, 0.12); color: #af52de; border: 1px solid rgba(175, 82, 222, 0.2); }
-.type-badge-snack { background: rgba(0, 122, 255, 0.12); color: #007aff; border: 1px solid rgba(0, 122, 255, 0.2); }
-
-.delete-meal-btn {
-  background: transparent;
-  border: none;
-  color: var(--color-danger);
-  font-size: 1.1rem;
-  cursor: pointer;
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0.6;
-  transition: all 0.2s ease;
-}
-.delete-meal-btn:hover {
-  opacity: 1;
-  transform: scale(1.1);
-}
-
-/* Light theme overrides for meals */
-.tab-pane:not(.dark-theme) .nutrition-summary-card {
+.tab-pane:not(.dark-theme) .premium-gauge-card {
   background: #ffffff !important;
-  border-color: rgba(0, 0, 0, 0.06) !important;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02) !important;
+  border-color: rgba(0, 0, 0, 0.05) !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02), inset 0 1px 1px rgba(255, 255, 255, 0.8) !important;
 }
-.tab-pane:not(.dark-theme) .nutrition-summary-card h3 {
-  color: #000000 !important;
+
+.tab-pane:not(.dark-theme) .premium-gauge-card:hover {
+  border-color: rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.04) !important;
 }
-.tab-pane:not(.dark-theme) .nutrition-summary-card span {
+
+.tab-pane:not(.dark-theme) .gauge-bg-arc {
+  stroke: rgba(0, 0, 0, 0.05) !important;
+}
+
+.tab-pane:not(.dark-theme) .gauge-progress-arc {
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.15)) !important;
+}
+
+.tab-pane:not(.dark-theme) .meals-percentage-badge {
+  background: rgba(0, 0, 0, 0.03) !important;
+  border-color: rgba(0, 0, 0, 0.05) !important;
+  color: #1c1c1e !important;
+  box-shadow: none !important;
+}
+
+.tab-pane:not(.dark-theme) .meals-settings-btn {
+  background: rgba(0, 0, 0, 0.03) !important;
+  border-color: rgba(0, 0, 0, 0.05) !important;
   color: #1c1c1e !important;
 }
-.tab-pane:not(.dark-theme) .nutrition-summary-card #calories-current {
-  color: #34c759 !important;
+
+.tab-pane:not(.dark-theme) .meals-settings-btn:hover {
+  background: rgba(0, 0, 0, 0.05) !important;
+  border-color: rgba(0, 0, 0, 0.1) !important;
 }
-.tab-pane:not(.dark-theme) .nutrition-summary-card .progress-bar-bg {
+
+.tab-pane:not(.dark-theme) .slider-group-container {
+  background: rgba(0, 0, 0, 0.01) !important;
+  border-color: rgba(0, 0, 0, 0.03) !important;
+}
+
+.tab-pane:not(.dark-theme) .slider-display-badge {
+  background: rgba(0, 0, 0, 0.04) !important;
+  border-color: rgba(0, 0, 0, 0.04) !important;
+  color: #1c1c1e !important;
+}
+
+.tab-pane:not(.dark-theme) .slider-adjust-btn {
+  border-color: rgba(0, 0, 0, 0.08) !important;
+  background: rgba(0, 0, 0, 0.03) !important;
+  color: #1c1c1e !important;
+}
+
+.tab-pane:not(.dark-theme) .slider-adjust-btn:hover {
+  background: rgba(0, 0, 0, 0.06) !important;
+}
+
+.tab-pane:not(.dark-theme) .premium-range-slider {
   background: rgba(0, 0, 0, 0.05) !important;
 }
-.tab-pane:not(.dark-theme) .nutrition-summary-card div[style*="background: rgba(255, 255, 255, 0.02)"] {
-  background: #f2f2f7 !important;
-  border-color: rgba(0, 0, 0, 0.04) !important;
+
+.tab-pane:not(.dark-theme) .premium-range-slider::-webkit-slider-thumb {
+  border-color: #ffffff !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
 }
-.tab-pane:not(.dark-theme) .nutrition-summary-card div[style*="background: rgba(255, 255, 255, 0.02)"] span {
-  color: #000000 !important;
+
+.tab-pane:not(.dark-theme) .meals-empty-state-card {
+  border-color: rgba(0, 0, 0, 0.06) !important;
+  background: rgba(0, 0, 0, 0.005) !important;
 }
+
 .tab-pane:not(.dark-theme) .rec-meal-card {
   background: #ffffff !important;
-  border-color: rgba(0, 0, 0, 0.06) !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important;
+  border-color: rgba(0, 0, 0, 0.05) !important;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.02) !important;
 }
-.tab-pane:not(.dark-theme) .rec-meal-card h4 {
-  color: #000000 !important;
+
+.tab-pane:not(.dark-theme) .rec-meal-card:hover {
+  background: #fbfbfd !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.05) !important;
 }
-.tab-pane:not(.dark-theme) .rec-meal-card p {
-  color: #555559 !important;
-}
-.tab-pane:not(.dark-theme) .rec-meal-card div[style*="border-top"] {
-  border-top-color: rgba(0, 0, 0, 0.06) !important;
-}
-.tab-pane:not(.dark-theme) .rec-meal-card div[style*="border-top"] span {
+
+.tab-pane:not(.dark-theme) .rec-meal-tag.tag-breakfast { background: rgba(52, 199, 89, 0.1) !important; color: #24963e !important; border-color: rgba(52, 199, 89, 0.15) !important; }
+.tab-pane:not(.dark-theme) .rec-meal-tag.tag-lunch { background: rgba(255, 149, 0, 0.1) !important; color: #d97706 !important; border-color: rgba(255, 149, 0, 0.15) !important; }
+.tab-pane:not(.dark-theme) .rec-meal-tag.tag-dinner { background: rgba(175, 82, 222, 0.1) !important; color: #af52de !important; border-color: rgba(175, 82, 222, 0.15) !important; }
+.tab-pane:not(.dark-theme) .rec-meal-tag.tag-snack { background: rgba(0, 122, 255, 0.1) !important; color: #007aff !important; border-color: rgba(0, 122, 255, 0.15) !important; }
+
+.tab-pane:not(.dark-theme) .rec-meal-title {
   color: #1c1c1e !important;
 }
-.tab-pane:not(.dark-theme) .rec-meal-card button {
-  background: #f2f2f7 !important;
-  color: #000000 !important;
+
+.tab-pane:not(.dark-theme) .rec-meal-desc {
+  color: #636366 !important;
 }
+
+.tab-pane:not(.dark-theme) .rec-meal-nutrients {
+  border-top-color: rgba(0, 0, 0, 0.05) !important;
+  color: #1c1c1e !important;
+}
+
+.tab-pane:not(.dark-theme) .quick-log-meal-btn {
+  background: rgba(0, 0, 0, 0.03) !important;
+  color: #1c1c1e !important;
+}
+
+.tab-pane:not(.dark-theme) .quick-log-meal-btn:hover {
+  background: linear-gradient(135deg, var(--electric-blue) 0%, var(--electric-blue-light) 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 15px var(--electric-blue-glow-subtle) !important;
+}
+
 .tab-pane:not(.dark-theme) .logged-meal-row {
   background: #ffffff !important;
   border-color: rgba(0, 0, 0, 0.05) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02) !important;
 }
+
+.tab-pane:not(.dark-theme) .logged-meal-row:hover {
+  background: #fcfcfd !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04) !important;
+}
+
 .tab-pane:not(.dark-theme) .logged-meal-row span {
   color: #1c1c1e !important;
 }
-.tab-pane:not(.dark-theme) .meals-empty-state {
+
+.tab-pane:not(.dark-theme) .logged-meal-row.meal-type-breakfast { border-right: 4px solid #34c759 !important; }
+.tab-pane:not(.dark-theme) .logged-meal-row.meal-type-lunch { border-right: 4px solid #ff9500 !important; }
+.tab-pane:not(.dark-theme) .logged-meal-row.meal-type-dinner { border-right: 4px solid #af52de !important; }
+.tab-pane:not(.dark-theme) .logged-meal-row.meal-type-snack { border-right: 4px solid #007aff !important; }
+
+.tab-pane:not(.dark-theme) .settings-metric-row {
+  background: rgba(0, 0, 0, 0.01) !important;
+  border-color: rgba(0, 0, 0, 0.03) !important;
+}
+
+.tab-pane:not(.dark-theme) .settings-custom-metric-row {
+  background: rgba(255, 59, 48, 0.05) !important;
+  border-color: rgba(255, 59, 48, 0.1) !important;
+}
+
+.tab-pane:not(.dark-theme) .settings-metric-label {
+  color: #1c1c1e !important;
+}
+
+.tab-pane:not(.dark-theme) .metric-goal-input {
   background: #ffffff !important;
-  border-color: rgba(0, 0, 0, 0.1) !important;
+  border-color: rgba(0, 0, 0, 0.08) !important;
+  color: #1c1c1e !important;
+}
+
+.tab-pane:not(.dark-theme) .delete-custom-metric-btn {
+  color: #ff3b30 !important;
 }
 
 /* ==========================================================================
