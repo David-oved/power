@@ -17,9 +17,11 @@ const ASSETS = [
   './src/meals/meals.js',
   './src/metrics/metrics.js',
   './src/settings/settings.js'
-  // Firebase SDK files intentionally excluded: served from Google CDN with long cache-control headers.
+// Firebase SDK files intentionally excluded: served from Google CDN with long cache-control headers.
   // Caching opaque cross-origin responses risks serving corrupted/stale Firebase SDK.
 ];
+
+let restTimerTimeout = null;
 
 // Service Worker Install State - resolve immediately without downloading assets (On-Demand Updates)
 self.addEventListener('install', (event) => {
@@ -133,6 +135,28 @@ self.addEventListener('fetch', (event) => {
 
 // Support skipWaiting, getVersion & downloadAndActivate messages
 self.addEventListener('message', (event) => {
+  if (event.data && event.data.action === 'scheduleRestNotification') {
+    const delayMs = event.data.delayMs;
+    if (restTimerTimeout) clearTimeout(restTimerTimeout);
+    restTimerTimeout = setTimeout(() => {
+      self.registration.showNotification("המנוחה נגמרה! ⏱️💪", {
+        body: "הגיע הזמן לסט הבא. קדימה, לעבודה!",
+        icon: "./icon-192.png",
+        badge: "./icon-192.png",
+        vibrate: [300, 150, 300, 150, 300],
+        tag: "rest-timer-notification",
+        renotify: true
+      });
+      restTimerTimeout = null;
+    }, delayMs);
+  }
+  if (event.data && event.data.action === 'cancelRestNotification') {
+    if (restTimerTimeout) {
+      clearTimeout(restTimerTimeout);
+      restTimerTimeout = null;
+    }
+  }
+
   if (event.data && event.data.action === 'skipWaiting') {
     self.skipWaiting();
   }
