@@ -679,6 +679,7 @@ export function renderExercises() {
         saveActiveWorkoutState();
         renderExercises();
       });
+    }
     header.appendChild(actionBtn);
     card.appendChild(header);
     
