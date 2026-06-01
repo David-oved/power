@@ -25,7 +25,6 @@ let restTimerTimeout = null;
 // Service Worker Install State - resolve immediately without downloading assets (On-Demand Updates)
 self.addEventListener('install', (event) => {
   console.log('Service Worker: Installed immediately. Assets will be cached on-demand.');
-  self.skipWaiting(); // Force immediate activation to clear the old cache for all users
   event.waitUntil(Promise.resolve());
 });
 
