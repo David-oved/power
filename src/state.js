@@ -43,6 +43,8 @@ export const state = {
   filterMuscleGroup: 'all',
   selectedAnalyticsExercise: null,
   activeChartType: '1rm',
+  activeChartTypeTab3: '1rm',
+  activeInspectorMetric: 'weight',
   activeLogsSubView: 'calendar',
   currentCalendarDate: new Date(),
   filterSortSelection: 'date-desc',
