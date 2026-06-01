@@ -60,7 +60,6 @@ export function clearUserSession() {
 
   // Call clean sessions globally or dynamically
   if (window.clearWorkoutSession) window.clearWorkoutSession();
-  if (window.clearMealsSession) window.clearMealsSession();
 }
 
 // Manage App Screen Transitions with premium animations
@@ -352,7 +351,6 @@ export function initAuth() {
         
         // Dynamic initializers
         if (window.initWorkouts) window.initWorkouts();
-        if (window.initMeals) window.initMeals();
         
         switchScreen(true);
 
