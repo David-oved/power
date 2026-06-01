@@ -303,6 +303,7 @@ export async function syncUserProfileAndRole(user) {
     }
 
     state.currentUserRole = resolvedRole;
+    SafeStorage.setItem(`aura-cached-role_${user.uid}`, resolvedRole);
   } catch (err) {
     console.error("Failed to sync profile with Firestore:", err);
     throw err;
@@ -466,7 +467,8 @@ export function initAuth() {
           }
         }).catch(err => {
           console.log("Failed to resolve user database profile, falling back to offline mode:", err);
-          state.currentUserRole = 'user';
+          const cachedRole = SafeStorage.getItem(`aura-cached-role_${user.uid}`);
+          state.currentUserRole = cachedRole || 'user';
           updateAuthUI();
           if (window.initWorkouts) window.initWorkouts();
           if (window.checkAdminViewAccessibility) window.checkAdminViewAccessibility();
