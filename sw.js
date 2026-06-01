@@ -1,5 +1,5 @@
-const USER_VERSION = '9.0';
-const ADMIN_VERSION = '9.0';
+const USER_VERSION = '9.1';
+const ADMIN_VERSION = '9.1';
 const CACHE_NAME = USER_VERSION;
 const ASSETS = [
   './',
