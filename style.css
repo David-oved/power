@@ -5983,33 +5983,53 @@ body.authenticated .ios-bottom-nav {
 /* Compact exercise preview (visible only when collapsed) */
 .workout-log-exercises {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  flex-direction: row !important;
+  flex-wrap: wrap;
+  gap: 8px;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
-  padding-top: 10px;
+  padding-top: 12px;
   transition: opacity 0.25s ease;
+  direction: rtl;
 }
 
 .workout-log-card.expanded .workout-log-exercises {
   display: none;
 }
 
-.workout-log-exercise-item {
-  font-size: 0.85rem;
-  color: #e2e8f0;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.workout-log-exercise-name {
-  font-weight: 700;
-}
-
-.workout-log-exercise-sets {
-  color: var(--text-muted);
+.workout-log-exercise-preview-chip {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 6px 12px;
   font-size: 0.8rem;
-  direction: ltr;
+  font-weight: 700;
+  color: #e2e8f0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.workout-log-exercise-preview-chip:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.workout-log-preview-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.workout-log-preview-sets-badge {
+  font-size: 0.7rem;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-muted);
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-weight: 600;
+  direction: rtl;
 }
 
 /* Collapsible Expanded Details Area */
