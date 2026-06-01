@@ -1164,6 +1164,16 @@
                 <h3 style="margin: 0 0 1rem 0; font-size: 1.1rem; font-weight: 800; color: #ffffff;">🎯 יעדי תזונה יומיים</h3>
                 
                 <form id="meals-settings-form" style="display: flex; flex-direction: column; gap: 12px;">
+                  <div class="form-group" style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px;">
+                    <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">סגנון תצוגת מדדים 🎨</label>
+                    <div class="style-selector-segmented">
+                      <input type="hidden" id="sub-tab-meals-style" value="concentric">
+                      <button type="button" class="style-select-btn active" data-style="concentric">⭕ טבעות זוהרות</button>
+                      <button type="button" class="style-select-btn" data-style="semicircle">🌙 חצאי עיגול</button>
+                      <button type="button" class="style-select-btn" data-style="squares">🔲 ריבועים</button>
+                    </div>
+                  </div>
+
                   <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
                     <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">יעד קלוריות (קק"ל)</label>
                     <input type="number" id="settings-goal-calories" class="analytics-search-input" style="width: 100%; margin: 0; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; padding: 12px; text-align: right;" min="500" max="10000" required>
@@ -1348,16 +1358,70 @@
               </div>
             </div>
 
-            <!-- Section 2: Logged Meals Today -->
+            <!-- Section 2: Inline Add Meal Form -->
+            <div class="meals-section-card" id="inline-add-meal-card">
+              <div class="meals-section-header" style="margin-bottom: 12px;">
+                <div class="meals-section-title">
+                  <span class="meals-section-icon">🍳</span>
+                  <span>רישום ארוחה חדשה</span>
+                </div>
+              </div>
+              
+              <form id="add-meal-form" style="display: flex; flex-direction: column; gap: 15px; direction: rtl; text-align: right;">
+                <!-- Quick Preset Grid (Zero Typing) -->
+                <div class="form-group" style="display: flex; flex-direction: column; gap: 8px;">
+                  <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">בחירה מהירה ⚡ (ללא מקלדת)</label>
+                  <div class="presets-quick-grid">
+                    <button type="button" class="preset-btn" data-name="🍳 ביצים וגבינה" data-type="בוקר" data-calories="320" data-protein="22" data-carbs="5" data-fat="20">🍳 ביצים</button>
+                    <button type="button" class="preset-btn" data-name="🍗 חזה עוף ואורז" data-type="צהריים" data-calories="580" data-protein="48" data-carbs="60" data-fat="8">🍗 חזה עוף</button>
+                    <button type="button" class="preset-btn" data-name="🥛 שייק חלבון פרימיום" data-type="חטיף" data-calories="260" data-protein="30" data-carbs="24" data-fat="3">🥛 שייק חלבון</button>
+                    <button type="button" class="preset-btn" data-name="🐟 פילה סלמון אפוי" data-type="ערב" data-calories="490" data-protein="32" data-carbs="12" data-fat="35">🐟 סלמון</button>
+                    <button type="button" class="preset-btn" data-name="🥩 בשר בקר מובחר" data-type="צהריים" data-calories="620" data-protein="45" data-carbs="5" data-fat="40">🥩 בשר בקר</button>
+                    <button type="button" class="preset-btn" data-name="🥗 סלט טונה עשיר" data-type="ערב" data-calories="340" data-protein="28" data-carbs="10" data-fat="18">🥗 סלט טונה</button>
+                    <button type="button" class="preset-btn" data-name="🥛 יוגורט חלבון וגרנולה" data-type="בוקר" data-calories="290" data-protein="18" data-carbs="35" data-fat="6">🥛 יוגורט חלבון</button>
+                    <button type="button" class="preset-btn" data-name="🍞 פרוסה עם אבוקדו" data-type="חטיף" data-calories="220" data-protein="6" data-carbs="20" data-fat="12">🍞 אבוקדו</button>
+                    <button type="button" class="preset-btn" data-name="🍌 בננה וחמאת בוטנים" data-type="חטיף" data-calories="250" data-protein="8" data-carbs="30" data-fat="10">🍌 בננה</button>
+                    <button type="button" class="preset-btn active" data-name="✍️ ארוחה מותאמת" data-type="צהריים" data-calories="350" data-protein="25" data-carbs="40" data-fat="10">✍️ מותאם אישית</button>
+                  </div>
+                </div>
+
+                <!-- Meal Name -->
+                <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+                  <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">שם הארוחה</label>
+                  <input type="text" id="new-meal-name" placeholder="למשל: סלט חלבון עם חזה עוף" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; color: #ffffff; text-align: right; direction: rtl; outline: none;" autocomplete="off" value="✍️ ארוחה מותאמת">
+                </div>
+
+                <!-- Meal Type Segmented Control (iOS Style) -->
+                <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
+                  <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">סוג הארוחה</label>
+                  <div class="meals-segmented-control">
+                    <input type="hidden" id="new-meal-type" value="צהריים">
+                    <button type="button" class="segmented-item" data-value="בוקר">🍳 בוקר</button>
+                    <button type="button" class="segmented-item active" data-value="צהריים">🍗 צהריים</button>
+                    <button type="button" class="segmented-item" data-value="ערב">🥩 ערב</button>
+                    <button type="button" class="segmented-item" data-value="חטיף">🍌 חטיף</button>
+                  </div>
+                </div>
+
+                <!-- Dynamic Metrics Sliders Area -->
+                <div id="add-meal-sliders-container" style="display: flex; flex-direction: column; gap: 18px;">
+                  <!-- Generated dynamically from state.mealMetrics -->
+                </div>
+
+                <!-- Save Button -->
+                <button type="submit" id="save-meal-btn" class="btn btn-primary" style="width: 100%; padding: 14px; font-weight: bold; border-radius: 14px; margin-top: 10px; background: linear-gradient(135deg, #34c759 0%, #30db5b 100%); border: none; box-shadow: 0 4px 15px rgba(52, 199, 89, 0.3);">
+                  💾 שמור ורשום ארוחה
+                </button>
+              </form>
+            </div>
+
+            <!-- Section 3: Logged Meals Today -->
             <div class="meals-section-card">
               <div class="meals-section-header">
                 <div class="meals-section-title">
                   <span class="meals-section-icon">🍽️</span>
                   <span>ארוחות שנרשמו היום</span>
                 </div>
-                <button id="add-meal-trigger-btn" class="btn btn-primary" style="padding: 6px 14px; font-size: 0.82rem; font-weight: 700; border-radius: 10px; background: linear-gradient(135deg, var(--electric-blue) 0%, var(--electric-blue-light) 100%); box-shadow: 0 2px 8px var(--electric-blue-glow-subtle); border: none;">
-                  ➕ הוסף ארוחה
-                </button>
               </div>
 
               <!-- Logged Meals List -->
@@ -1715,64 +1779,6 @@
     </div>
   </div>
 
-  <!-- Add Meal Modal Bottom Sheet -->
-  <div id="add-meal-modal" class="workout-modal-overlay hide" style="z-index: 1450;">
-    <div class="workout-modal-card" style="max-width: 400px; width: 95%; max-height: 90vh; border-radius: 28px 28px 0 0; position: absolute; bottom: 0; padding: 1.5rem 1.5rem 0 1.5rem; animation: slide-up-sheet 0.35s cubic-bezier(0.16, 1, 0.3, 1); display: flex; flex-direction: column; overflow: hidden;">
-      <div class="modal-header" style="padding-bottom: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: space-between; align-items: center;">
-        <button id="close-add-meal-modal-btn" class="btn-cancel-link" style="background: none; border: none; font-size: 0.95rem; font-weight: 700; color: var(--text-muted); cursor: pointer;">ביטול</button>
-        <h3 class="modal-title" style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #ffffff; direction: rtl;">🍳 הוספת ארוחה חדשה</h3>
-        <span style="width: 40px;"></span>
-      </div>
-      
-      <form id="add-meal-form" style="display: flex; flex-direction: column; gap: 15px; direction: rtl; text-align: right; margin-top: 15px; overflow-y: auto; flex: 1; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; padding-bottom: 1.5rem;">
-        
-        <!-- Quick Preset Grid (Zero Typing) -->
-        <div class="form-group" style="display: flex; flex-direction: column; gap: 8px;">
-          <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">בחירה מהירה ⚡ (ללא מקלדת)</label>
-          <div class="presets-quick-grid">
-            <button type="button" class="preset-btn" data-name="🍳 ביצים וגבינה" data-type="בוקר" data-calories="320" data-protein="22" data-carbs="5" data-fat="20">🍳 ביצים וגבינה</button>
-            <button type="button" class="preset-btn" data-name="🍗 חזה עוף ואורז" data-type="צהריים" data-calories="580" data-protein="48" data-carbs="60" data-fat="8">🍗 חזה עוף</button>
-            <button type="button" class="preset-btn" data-name="🥛 שייק חלבון פרימיום" data-type="חטיף" data-calories="260" data-protein="30" data-carbs="24" data-fat="3">🥛 שייק חלבון</button>
-            <button type="button" class="preset-btn" data-name="🐟 פילה סלמון אפוי" data-type="ערב" data-calories="490" data-protein="32" data-carbs="12" data-fat="35">🐟 פילה סלמון</button>
-            <button type="button" class="preset-btn" data-name="🥩 בשר בקר מובחר" data-type="צהריים" data-calories="620" data-protein="45" data-carbs="5" data-fat="40">🥩 בשר בקר</button>
-            <button type="button" class="preset-btn" data-name="🥗 סלט טונה עשיר" data-type="ערב" data-calories="340" data-protein="28" data-carbs="10" data-fat="18">🥗 סלט טונה</button>
-            <button type="button" class="preset-btn" data-name="🥛 יוגורט חלבון וגרנולה" data-type="בוקר" data-calories="290" data-protein="18" data-carbs="35" data-fat="6">🥛 יוגורט חלבון</button>
-            <button type="button" class="preset-btn" data-name="🍞 פרוסה עם אבוקדו" data-type="חטיף" data-calories="220" data-protein="6" data-carbs="20" data-fat="12">🍞 לחם אבוקדו</button>
-            <button type="button" class="preset-btn" data-name="🍌 בננה וחמאת בוטנים" data-type="חטיף" data-calories="250" data-protein="8" data-carbs="30" data-fat="10">🍌 בננה ובוטנים</button>
-            <button type="button" class="preset-btn active" data-name="✍️ ארוחה מותאמת" data-type="צהריים" data-calories="350" data-protein="25" data-carbs="40" data-fat="10">✍️ מותאם אישית</button>
-          </div>
-        </div>
-
-        <!-- Meal Name (Now Optional / Autofilled) -->
-        <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
-          <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">שם הארוחה</label>
-          <input type="text" id="new-meal-name" placeholder="למשל: סלט חלבון עם חזה עוף" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; color: #ffffff; text-align: right; direction: rtl; outline: none;" autocomplete="off" value="✍️ ארוחה מותאמת">
-        </div>
-
-        <!-- Meal Type Segmented Control (iOS Style) -->
-        <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
-          <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">סוג הארוחה</label>
-          <div class="meals-segmented-control">
-            <input type="hidden" id="new-meal-type" value="צהריים">
-            <button type="button" class="segmented-item" data-value="בוקר">🍳 בוקר</button>
-            <button type="button" class="segmented-item active" data-value="צהריים">🍗 צהריים</button>
-            <button type="button" class="segmented-item" data-value="ערב">🥩 ערב</button>
-            <button type="button" class="segmented-item" data-value="חטיף">🍌 חטיף</button>
-          </div>
-        </div>
-
-        <!-- Dynamic Metrics Sliders Area -->
-        <div id="add-meal-sliders-container" style="display: flex; flex-direction: column; gap: 18px;">
-          <!-- Generated dynamically from state.mealMetrics -->
-        </div>
-
-        <!-- Save Button -->
-        <button type="submit" id="save-meal-btn" class="btn btn-primary" style="width: 100%; padding: 14px; font-weight: bold; border-radius: 14px; margin-top: 10px; background: linear-gradient(135deg, #34c759 0%, #30db5b 100%); border: none; box-shadow: 0 4px 15px rgba(52, 199, 89, 0.3);">
-          💾 שמור ורשום ארוחה
-        </button>
-      </form>
-    </div>
-  </div>
 
   <!-- Meal Settings Modal Bottom Sheet -->
   <div id="meal-settings-modal" class="workout-modal-overlay hide" style="z-index: 1460;">
@@ -1790,6 +1796,17 @@
           <h4 style="margin: 0; font-size: 1.05rem; font-weight: 800; color: #ffffff; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 6px;">🎯 יעדים יומיים</h4>
           <div id="settings-goals-list" style="display: flex; flex-direction: column; gap: 12px;">
             <!-- Generated dynamically in meals.js -->
+          </div>
+        </div>
+
+        <!-- Section 1.5: Select Metrics Display Style -->
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+          <h4 style="margin: 0; font-size: 1.05rem; font-weight: 800; color: #ffffff; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 6px;">🎨 סגנון תצוגת מדדים</h4>
+          <div class="style-selector-segmented">
+            <input type="hidden" id="settings-meals-style" value="concentric">
+            <button type="button" class="style-select-btn active" data-style="concentric">⭕ טבעות זוהרות</button>
+            <button type="button" class="style-select-btn" data-style="semicircle">🌙 חצאי עיגול</button>
+            <button type="button" class="style-select-btn" data-style="squares">🔲 ריבועים</button>
           </div>
         </div>
 
