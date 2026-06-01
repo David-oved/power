@@ -5,8 +5,8 @@ import { state } from "./src/state.js";
 import { SafeStorage } from "./src/utils/storage.js";
 import { triggerLocalNotification, showPremiumToast } from "./src/utils/helpers.js";
 import { initAuth } from "./src/auth/auth.js";
-import { initWorkoutsModule, initWorkouts } from "./src/workouts/workouts.js";
-import { initMealsModule, initMeals } from "./src/meals/meals.js";
+import { initWorkoutsModule } from "./src/workouts/workouts.js";
+import { initMealsModule } from "./src/meals/meals.js";
 import { initAnalyticsModule, initAnalyticsTab } from "./src/metrics/metrics.js";
 import { initSettingsModule, initPremiumSettings, showUpdateStateInSettings } from "./src/settings/settings.js";
 
