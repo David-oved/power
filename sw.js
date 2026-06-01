@@ -13,7 +13,6 @@ const ASSETS = [
   './src/utils/helpers.js',
   './src/auth/auth.js',
   './src/workouts/workouts.js',
-  './src/meals/meals.js',
   './src/metrics/metrics.js',
   './src/settings/settings.js'
 // Firebase SDK files intentionally excluded: served from Google CDN with long cache-control headers.
