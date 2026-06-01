@@ -59,9 +59,16 @@ export const state = {
   // Meals State
   loggedMeals: [],
   mealMetrics: [...DEFAULT_MEAL_METRICS],
+  mealsDisplayStyle: 'concentric', // 'concentric', 'semicircle', or 'squares'
 
   loadMealMetrics() {
     if (this.currentUser) {
+      const displayStyle = SafeStorage.getItem(`aura-meals-display-style_${this.currentUser.uid}`);
+      if (displayStyle) {
+        this.mealsDisplayStyle = displayStyle;
+      } else {
+        this.mealsDisplayStyle = 'concentric';
+      }
       const data = SafeStorage.getItem(`aura-meal-metrics_${this.currentUser.uid}`);
       if (data) {
         try {
@@ -73,11 +80,13 @@ export const state = {
       }
     }
     this.mealMetrics = JSON.parse(JSON.stringify(DEFAULT_MEAL_METRICS));
+    this.mealsDisplayStyle = 'concentric';
   },
 
   saveMealMetrics() {
     if (this.currentUser) {
       SafeStorage.setItem(`aura-meal-metrics_${this.currentUser.uid}`, JSON.stringify(this.mealMetrics));
+      SafeStorage.setItem(`aura-meals-display-style_${this.currentUser.uid}`, this.mealsDisplayStyle);
     }
   }
 };
