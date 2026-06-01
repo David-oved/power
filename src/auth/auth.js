@@ -292,6 +292,7 @@ export async function syncUserProfileAndRole(user) {
       }
 
       await setDoc(userDocRef, {
+        email: user.email,
         lastLogin: serverTimestamp(),
         displayName: user.displayName || existingData.displayName || 'משתמש',
         photoURL: user.photoURL || existingData.photoURL || '',
