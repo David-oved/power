@@ -2067,11 +2067,17 @@ export function initAnalyticsTab() {
       if (proM && proVal > 0) proM.goal = proVal;
       if (carbM && carbVal > 0) carbM.goal = carbVal;
       if (fatM && fatVal > 0) fatM.goal = fatVal;
+
+      const chosenStyle = document.getElementById('sub-tab-meals-style')?.value;
+      if (chosenStyle) {
+        state.mealsDisplayStyle = chosenStyle;
+      }
+
       state.saveMealMetrics();
       renderMealsDashboard();
       renderAddMealSliders();
       renderMealSettings();
-      showAuraToast("היעדים עודכנו בהצלחה! 🎯");
+      showAuraToast("היעדים וההגדרות עודכנו בהצלחה! 🎯");
     });
   }
 
@@ -2296,6 +2302,22 @@ function renderMealsAnalyticsSettings() {
   if (proInput && proM) proInput.value = proM.goal;
   if (carbInput && carbM) carbInput.value = carbM.goal;
   if (fatInput && fatM) fatInput.value = fatM.goal;
+
+  // Initialize style selectors in Settings with the current saved style
+  const currentStyle = state.mealsDisplayStyle || 'concentric';
+  const subStyleInput = document.getElementById('sub-tab-meals-style');
+  if (subStyleInput) subStyleInput.value = currentStyle;
+  
+  const subStyleContainer = document.querySelector('#sub-tab-meals-settings .style-selector-segmented');
+  if (subStyleContainer) {
+    subStyleContainer.querySelectorAll('.style-select-btn').forEach(btn => {
+      if (btn.getAttribute('data-style') === currentStyle) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+  }
 }
 
 // Open meal edit modal
