@@ -2,50 +2,27 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
-    // Check if the current request is from an authenticated user
-    function isAuthenticated() {
-      return request.auth != null;
-    }
-
-    // Check if the request is for the user's own document
-    function isOwner(userId) {
-      return isAuthenticated() && request.auth.uid == userId;
-    }
-
     // Check if the requesting user has an admin role in the database
     function isAdmin() {
-      return isAuthenticated() && 
+      return request.auth != null && 
         exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
-    }
-
-    // Check if the authenticated Google user is a hardcoded default admin
-    function isDefaultAdmin() {
-      return isAuthenticated() && 
-        request.auth.token != null && 
-        request.auth.token.email != null && (
-          request.auth.token.email.toLowerCase() == 'wbddwd55@gmail.com' || 
-          request.auth.token.email.toLowerCase() == 'wbddw2013@gmail.com'
-        );
     }
 
     // Rules for the users collection
     match /users/{userId} {
       // Any authenticated user can read their own profile, or admins can read any profile
-      allow read: if isOwner(userId) || isAdmin();
+      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
       
-      // Creating a user: allowed if they write their own document with role 'user', OR if they are an admin, OR if they are a default admin
-      allow create: if isOwner(userId) && (
+      // Creating or updating a user: they can write only their own document if they set their role as 'user',
+      // OR if they are a hardcoded default admin in their authenticated Google token,
+      // OR if they are already an admin in the database.
+      allow create, update: if request.auth != null && request.auth.uid == userId && (
         request.resource.data.role == 'user' || 
-        isAdmin() || 
-        isDefaultAdmin()
-      );
-      
-      // Updating a user: allowed if they don't change their role, OR if they are an admin, OR if they are a default admin
-      allow update: if isOwner(userId) && (
-        request.resource.data.role == resource.data.role || 
-        isAdmin() || 
-        isDefaultAdmin()
+        (request.resource.data.role == 'admin' && 
+         (request.auth.token.email.toLowerCase() == 'wbddwd55@gmail.com' || 
+          request.auth.token.email.toLowerCase() == 'wbddw2013@gmail.com')) ||
+        isAdmin()
       ) || isAdmin();
       
       // Deleting a user: only admins can delete users
