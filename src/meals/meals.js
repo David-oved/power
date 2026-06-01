@@ -172,7 +172,7 @@ export function renderMealsDashboard() {
   }
 }
 
-// Draw dynamic semi-circle gauges for each active metric
+// Draw dynamic progress gauges (concentric, semicircle, or squares) for each active metric
 export function renderGauges() {
   const container = document.getElementById('meals-gauges-container');
   if (!container) return;
@@ -185,10 +185,11 @@ export function renderGauges() {
   // Group metrics
   const coreMetrics = state.mealMetrics.filter(m => !m.isCustom);
   const customMetrics = state.mealMetrics.filter(m => m.isCustom);
+  const allMetrics = state.mealMetrics;
 
-  // Calculate values
+  // Calculate totals
   const totals = {};
-  state.mealMetrics.forEach(m => {
+  allMetrics.forEach(m => {
     totals[m.key] = 0;
     todayMeals.forEach(meal => {
       totals[m.key] += Number(meal[m.key] || 0);
@@ -196,123 +197,234 @@ export function renderGauges() {
   });
 
   const getPercentage = (key) => {
-    const metric = state.mealMetrics.find(m => m.key === key);
+    const metric = allMetrics.find(m => m.key === key);
     if (!metric || metric.goal <= 0) return 0;
     return Math.min(100, Math.round((totals[key] / metric.goal) * 100));
   };
 
-  const calGoal = state.mealMetrics.find(m => m.key === 'calories')?.goal || 2200;
-  const proGoal = state.mealMetrics.find(m => m.key === 'protein')?.goal || 150;
-  const carbGoal = state.mealMetrics.find(m => m.key === 'carbs')?.goal || 220;
-  const fatGoal = state.mealMetrics.find(m => m.key === 'fat')?.goal || 70;
+  const style = state.mealsDisplayStyle || 'concentric';
 
-  const calPct = getPercentage('calories');
-  const proPct = getPercentage('protein');
-  const carbPct = getPercentage('carbs');
-  const fatPct = getPercentage('fat');
+  if (style === 'concentric') {
+    // Render Concentric Rings
+    const calGoal = allMetrics.find(m => m.key === 'calories')?.goal || 2200;
+    const proGoal = allMetrics.find(m => m.key === 'protein')?.goal || 150;
+    const carbGoal = allMetrics.find(m => m.key === 'carbs')?.goal || 220;
+    const fatGoal = allMetrics.find(m => m.key === 'fat')?.goal || 70;
 
-  // Circs for Concentric Rings
-  const offsetCal = 596.9 - (calPct / 100) * 596.9;
-  const offsetPro = 483.8 - (proPct / 100) * 483.8;
-  const offsetCarb = 377.0 - (carbPct / 100) * 377.0;
-  const offsetFat = 270.2 - (fatPct / 100) * 270.2;
+    const calPct = getPercentage('calories');
+    const proPct = getPercentage('protein');
+    const carbPct = getPercentage('carbs');
+    const fatPct = getPercentage('fat');
 
-  // Build the unified hi-tech rings dashboard
-  const ringsHTML = `
-    <div class="hitech-rings-dashboard">
-      <div class="rings-svg-container">
-        <svg viewBox="0 0 220 220" class="hitech-rings-svg">
-          <defs>
-            <linearGradient id="cal-grad" x1="0%" y1="100%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#ff9500" /><stop offset="100%" stop-color="#ff3b30" />
-            </linearGradient>
-            <linearGradient id="pro-grad" x1="0%" y1="100%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#ec4899" /><stop offset="100%" stop-color="#e11d48" />
-            </linearGradient>
-            <linearGradient id="carb-grad" x1="0%" y1="100%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#34c759" /><stop offset="100%" stop-color="#30db5b" />
-            </linearGradient>
-            <linearGradient id="fat-grad" x1="0%" y1="100%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#a855f7" /><stop offset="100%" stop-color="#7c3aed" />
-            </linearGradient>
-            <filter id="glow-cal"><feGaussianBlur stdDeviation="3" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-            <filter id="glow-pro"><feGaussianBlur stdDeviation="2" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-            <filter id="glow-carb"><feGaussianBlur stdDeviation="2" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-            <filter id="glow-fat"><feGaussianBlur stdDeviation="2" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-          </defs>
-          <!-- Background Circles -->
-          <circle cx="110" cy="110" r="95" class="ring-bg" stroke="rgba(255,255,255,0.04)" stroke-width="12" fill="none" />
-          <circle cx="110" cy="110" r="77" class="ring-bg" stroke="rgba(255,255,255,0.04)" stroke-width="10" fill="none" />
-          <circle cx="110" cy="110" r="60" class="ring-bg" stroke="rgba(255,255,255,0.04)" stroke-width="10" fill="none" />
-          <circle cx="110" cy="110" r="43" class="ring-bg" stroke="rgba(255,255,255,0.04)" stroke-width="10" fill="none" />
-          
-          <!-- Progress Circles (Active) -->
-          <circle id="ring-cal" cx="110" cy="110" r="95" stroke="url(#cal-grad)" stroke-width="12" stroke-linecap="round" fill="none" stroke-dasharray="596.9" stroke-dashoffset="596.9" transform="rotate(-90 110 110)" filter="url(#glow-cal)" style="transition: stroke-dashoffset 1s cubic-bezier(0.16, 1, 0.3, 1);" />
-          <circle id="ring-pro" cx="110" cy="110" r="77" stroke="url(#pro-grad)" stroke-width="10" stroke-linecap="round" fill="none" stroke-dasharray="483.8" stroke-dashoffset="483.8" transform="rotate(-90 110 110)" filter="url(#glow-pro)" style="transition: stroke-dashoffset 1s cubic-bezier(0.16, 1, 0.3, 1);" />
-          <circle id="ring-carb" cx="110" cy="110" r="60" stroke="url(#carb-grad)" stroke-width="10" stroke-linecap="round" fill="none" stroke-dasharray="377.0" stroke-dashoffset="377.0" transform="rotate(-90 110 110)" filter="url(#glow-carb)" style="transition: stroke-dashoffset 1s cubic-bezier(0.16, 1, 0.3, 1);" />
-          <circle id="ring-fat" cx="110" cy="110" r="43" stroke="url(#fat-grad)" stroke-width="10" stroke-linecap="round" fill="none" stroke-dasharray="270.2" stroke-dashoffset="270.2" transform="rotate(-90 110 110)" filter="url(#glow-fat)" style="transition: stroke-dashoffset 1s cubic-bezier(0.16, 1, 0.3, 1);" />
-        </svg>
-        <div class="rings-center-text">
-          <span class="center-cal-value" id="center-cal-value">${totals.calories.toLocaleString()}</span>
-          <span class="center-cal-label">קק"ל / <span id="center-cal-goal">${calGoal.toLocaleString()}</span></span>
-          <span class="center-cal-percentage" style="font-size:0.75rem; color:#ff453a; font-weight:700;">${calPct}%</span>
+    const offsetCal = 596.9 - (calPct / 100) * 596.9;
+    const offsetPro = 483.8 - (proPct / 100) * 483.8;
+    const offsetCarb = 377.0 - (carbPct / 100) * 377.0;
+    const offsetFat = 270.2 - (fatPct / 100) * 270.2;
+
+    const ringsHTML = `
+      <div class="hitech-rings-dashboard">
+        <div class="rings-svg-container">
+          <svg viewBox="0 0 220 220" class="hitech-rings-svg">
+            <defs>
+              <linearGradient id="cal-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#ff9500" /><stop offset="100%" stop-color="#ff3b30" />
+              </linearGradient>
+              <linearGradient id="pro-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#ec4899" /><stop offset="100%" stop-color="#e11d48" />
+              </linearGradient>
+              <linearGradient id="carb-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#34c759" /><stop offset="100%" stop-color="#30db5b" />
+              </linearGradient>
+              <linearGradient id="fat-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#a855f7" /><stop offset="100%" stop-color="#7c3aed" />
+              </linearGradient>
+              <filter id="glow-cal"><feGaussianBlur stdDeviation="3" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+              <filter id="glow-pro"><feGaussianBlur stdDeviation="2" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+              <filter id="glow-carb"><feGaussianBlur stdDeviation="2" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+              <filter id="glow-fat"><feGaussianBlur stdDeviation="2" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            </defs>
+            <circle cx="110" cy="110" r="95" class="ring-bg" stroke="rgba(255,255,255,0.04)" stroke-width="12" fill="none" />
+            <circle cx="110" cy="110" r="77" class="ring-bg" stroke="rgba(255,255,255,0.04)" stroke-width="10" fill="none" />
+            <circle cx="110" cy="110" r="60" class="ring-bg" stroke="rgba(255,255,255,0.04)" stroke-width="10" fill="none" />
+            <circle cx="110" cy="110" r="43" class="ring-bg" stroke="rgba(255,255,255,0.04)" stroke-width="10" fill="none" />
+            
+            <circle id="ring-cal" cx="110" cy="110" r="95" stroke="url(#cal-grad)" stroke-width="12" stroke-linecap="round" fill="none" stroke-dasharray="596.9" stroke-dashoffset="596.9" transform="rotate(-90 110 110)" filter="url(#glow-cal)" style="transition: stroke-dashoffset 1.2s cubic-bezier(0.16, 1, 0.3, 1);" />
+            <circle id="ring-pro" cx="110" cy="110" r="77" stroke="url(#pro-grad)" stroke-width="10" stroke-linecap="round" fill="none" stroke-dasharray="483.8" stroke-dashoffset="483.8" transform="rotate(-90 110 110)" filter="url(#glow-pro)" style="transition: stroke-dashoffset 1.2s cubic-bezier(0.16, 1, 0.3, 1);" />
+            <circle id="ring-carb" cx="110" cy="110" r="60" stroke="url(#carb-grad)" stroke-width="10" stroke-linecap="round" fill="none" stroke-dasharray="377.0" stroke-dashoffset="377.0" transform="rotate(-90 110 110)" filter="url(#glow-carb)" style="transition: stroke-dashoffset 1.2s cubic-bezier(0.16, 1, 0.3, 1);" />
+            <circle id="ring-fat" cx="110" cy="110" r="43" stroke="url(#fat-grad)" stroke-width="10" stroke-linecap="round" fill="none" stroke-dasharray="270.2" stroke-dashoffset="270.2" transform="rotate(-90 110 110)" filter="url(#glow-fat)" style="transition: stroke-dashoffset 1.2s cubic-bezier(0.16, 1, 0.3, 1);" />
+          </svg>
+          <div class="rings-center-text">
+            <span class="center-cal-value" id="center-cal-value">${totals.calories.toLocaleString()}</span>
+            <span class="center-cal-label">קק"ל / <span id="center-cal-goal">${calGoal.toLocaleString()}</span></span>
+            <span class="center-cal-percentage" style="font-size:0.75rem; color:#ff453a; font-weight:700;">${calPct}%</span>
+          </div>
+        </div>
+        
+        <div class="rings-legend-container">
+          <div class="legend-item" data-key="calories">
+            <div class="legend-dot color-cal"></div>
+            <div class="legend-info">
+              <span class="legend-name">🔥 קלוריות</span>
+              <span class="legend-values"><strong id="legend-val-calories">${totals.calories.toLocaleString()}</strong> / <span id="legend-goal-calories">${calGoal.toLocaleString()}</span></span>
+            </div>
+          </div>
+          <div class="legend-item" data-key="protein">
+            <div class="legend-dot color-pro"></div>
+            <div class="legend-info">
+              <span class="legend-name">🥩 חלבון</span>
+              <span class="legend-values"><strong id="legend-val-protein">${totals.protein}</strong> / <span id="legend-goal-protein">${proGoal}</span>g</span>
+            </div>
+          </div>
+          <div class="legend-item" data-key="carbs">
+            <div class="legend-dot color-carb"></div>
+            <div class="legend-info">
+              <span class="legend-name">🌾 פחמימות</span>
+              <span class="legend-values"><strong id="legend-val-carbs">${totals.carbs}</strong> / <span id="legend-goal-carbs">${carbGoal}</span>g</span>
+            </div>
+          </div>
+          <div class="legend-item" data-key="fat">
+            <div class="legend-dot color-fat"></div>
+            <div class="legend-info">
+              <span class="legend-name">🥑 שומן</span>
+              <span class="legend-values"><strong id="legend-val-fat">${totals.fat}</strong> / <span id="legend-goal-fat">${fatGoal}</span>g</span>
+            </div>
+          </div>
         </div>
       </div>
+    `;
+
+    const dashboardWrapper = document.createElement('div');
+    dashboardWrapper.innerHTML = ringsHTML.trim();
+    container.appendChild(dashboardWrapper.firstChild);
+
+    setTimeout(() => {
+      const elCal = document.getElementById('ring-cal');
+      const elPro = document.getElementById('ring-pro');
+      const elCarb = document.getElementById('ring-carb');
+      const elFat = document.getElementById('ring-fat');
+
+      if (elCal) elCal.style.strokeDashoffset = offsetCal;
+      if (elPro) elPro.style.strokeDashoffset = offsetPro;
+      if (elCarb) elCarb.style.strokeDashoffset = offsetCarb;
+      if (elFat) elFat.style.strokeDashoffset = offsetFat;
+    }, 50);
+
+  } else if (style === 'semicircle') {
+    // Render Semicircle Gauges Grid
+    const semicircleContainer = document.createElement('div');
+    semicircleContainer.className = 'semicircles-dashboard-grid';
+    semicircleContainer.style.cssText = 'display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; direction: rtl; width: 100%;';
+    container.appendChild(semicircleContainer);
+
+    coreMetrics.forEach(metric => {
+      const val = totals[metric.key] || 0;
+      const pct = getPercentage(metric.key);
+      const arcLength = 141.37; // Math.PI * r(45)
+      const offset = arcLength - (pct / 100) * arcLength;
       
-      <div class="rings-legend-container">
-        <div class="legend-item" data-key="calories">
-          <div class="legend-dot color-cal"></div>
-          <div class="legend-info">
-            <span class="legend-name">🔥 קלוריות</span>
-            <span class="legend-values"><strong id="legend-val-calories">${totals.calories.toLocaleString()}</strong> / <span id="legend-goal-calories">${calGoal.toLocaleString()}</span></span>
-          </div>
-        </div>
-        <div class="legend-item" data-key="protein">
-          <div class="legend-dot color-pro"></div>
-          <div class="legend-info">
-            <span class="legend-name">🥩 חלבון</span>
-            <span class="legend-values"><strong id="legend-val-protein">${totals.protein}</strong> / <span id="legend-goal-protein">${proGoal}</span>g</span>
-          </div>
-        </div>
-        <div class="legend-item" data-key="carbs">
-          <div class="legend-dot color-carb"></div>
-          <div class="legend-info">
-            <span class="legend-name">🌾 פחמימות</span>
-            <span class="legend-values"><strong id="legend-val-carbs">${totals.carbs}</strong> / <span id="legend-goal-carbs">${carbGoal}</span>g</span>
-          </div>
-        </div>
-        <div class="legend-item" data-key="fat">
-          <div class="legend-dot color-fat"></div>
-          <div class="legend-info">
-            <span class="legend-name">🥑 שומן</span>
-            <span class="legend-values"><strong id="legend-val-fat">${totals.fat}</strong> / <span id="legend-goal-fat">${fatGoal}</span>g</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
+      let gradColor = '#ff9500';
+      if (metric.key === 'protein') gradColor = '#ec4899';
+      if (metric.key === 'carbs') gradColor = '#34c759';
+      if (metric.key === 'fat') gradColor = '#a855f7';
 
-  const dashboardWrapper = document.createElement('div');
-  dashboardWrapper.innerHTML = ringsHTML.trim();
-  container.appendChild(dashboardWrapper.firstChild);
+      const card = document.createElement('div');
+      card.className = 'semicircle-gauge-card';
+      card.style.cssText = 'background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; padding: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden;';
+      card.innerHTML = `
+        <div style="width: 120px; height: 75px; position: relative; display: flex; justify-content: center; align-items: flex-end;">
+          <svg viewBox="0 0 120 70" style="width: 100%; height: 100%;">
+            <defs>
+              <linearGradient id="semi-grad-${metric.key}" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="${gradColor}33" />
+                <stop offset="100%" stop-color="${gradColor}" />
+              </linearGradient>
+              <filter id="glow-semi-${metric.key}"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+            </defs>
+            <!-- Background Arc -->
+            <path d="M 15 60 A 45 45 0 0 1 105 60" fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="8" stroke-linecap="round" />
+            <!-- Active Arc -->
+            <path id="semi-arc-${metric.key}" d="M 15 60 A 45 45 0 0 1 105 60" fill="none" stroke="url(#semi-grad-${metric.key})" stroke-width="8" stroke-linecap="round" stroke-dasharray="${arcLength}" stroke-dashoffset="${arcLength}" filter="url(#glow-semi-${metric.key})" style="transition: stroke-dashoffset 1.2s cubic-bezier(0.16, 1, 0.3, 1);" />
+          </svg>
+          <div style="position: absolute; bottom: 4px; display: flex; flex-direction: column; align-items: center;">
+            <span style="font-size: 1.1rem; font-weight: 900; color: #ffffff; line-height: 1;">${pct}%</span>
+          </div>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center; margin-top: 8px; text-align: center;">
+          <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); display: flex; align-items: center; gap: 4px;">
+            <span>${metric.emoji}</span>
+            <span>${metric.name}</span>
+          </span>
+          <span style="font-size: 0.85rem; font-weight: 800; color: #ffffff; margin-top: 2px;">${val.toLocaleString()} / ${metric.goal.toLocaleString()}${metric.unit === 'קק"ל' ? '' : 'g'}</span>
+        </div>
+      `;
 
-  // Trigger SVG concentric animations
-  setTimeout(() => {
-    const elCal = document.getElementById('ring-cal');
-    const elPro = document.getElementById('ring-pro');
-    const elCarb = document.getElementById('ring-carb');
-    const elFat = document.getElementById('ring-fat');
+      semicircleContainer.appendChild(card);
 
-    if (elCal) elCal.style.strokeDashoffset = offsetCal;
-    if (elPro) elPro.style.strokeDashoffset = offsetPro;
-    if (elCarb) elCarb.style.strokeDashoffset = offsetCarb;
-    if (elFat) elFat.style.strokeDashoffset = offsetFat;
-  }, 50);
+      setTimeout(() => {
+        const arc = document.getElementById(`semi-arc-${metric.key}`);
+        if (arc) arc.style.strokeDashoffset = offset;
+      }, 50);
+    });
+
+  } else if (style === 'squares') {
+    // Render Glassmorphic Squares Grid
+    const squaresContainer = document.createElement('div');
+    squaresContainer.className = 'squares-dashboard-grid';
+    squaresContainer.style.cssText = 'display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; direction: rtl; width: 100%;';
+    container.appendChild(squaresContainer);
+
+    coreMetrics.forEach(metric => {
+      const val = totals[metric.key] || 0;
+      const pct = getPercentage(metric.key);
+      
+      let themeColor = '#ff9500';
+      if (metric.key === 'protein') themeColor = '#ec4899';
+      if (metric.key === 'carbs') themeColor = '#34c759';
+      if (metric.key === 'fat') themeColor = '#a855f7';
+
+      const card = document.createElement('div');
+      card.className = 'square-metric-card';
+      card.style.cssText = `
+        background: rgba(255,255,255,0.03); 
+        border: 1px solid rgba(255,255,255,0.06); 
+        border-radius: 22px; 
+        padding: 16px; 
+        display: flex; 
+        flex-direction: column; 
+        align-items: flex-start; 
+        position: relative; 
+        overflow: hidden; 
+        transition: transform 0.3s ease, border-color 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      `;
+      card.innerHTML = `
+        <div style="font-size: 0.8rem; font-weight: 700; color: var(--text-muted); display: flex; align-items: center; gap: 6px; width: 100%;">
+          <span style="font-size: 1.15rem;">${metric.emoji}</span>
+          <span style="color: var(--text-heading); font-size: 0.82rem; font-weight: 800;">${metric.name}</span>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: flex-start; width: 100%; margin-top: 10px;">
+          <span style="font-size: 1.25rem; font-weight: 900; color: #ffffff;">${val.toLocaleString()} ${metric.unit}</span>
+          <span style="font-size: 0.68rem; color: var(--text-muted); margin-top: 1px;">מתוך ${metric.goal.toLocaleString()}</span>
+        </div>
+        <div class="squares-progress-bar-track" style="width: 100%; height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; margin-top: 12px;">
+          <div class="squares-progress-bar-fill-${metric.key}" style="width: 0%; height: 100%; background: ${themeColor}; box-shadow: 0 0 8px ${themeColor}cc; border-radius: 3px; transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1);"></div>
+        </div>
+        <span style="position: absolute; top: 16px; left: 16px; font-size: 0.72rem; padding: 2px 7px; background: rgba(${metric.key === 'calories' ? '255,149,0' : metric.key === 'protein' ? '236,72,153' : metric.key === 'carbs' ? '52,199,89' : '168,85,247'}, 0.1); color: ${themeColor}; border-radius: 6px; font-weight: 800;">${pct}%</span>
+      `;
+
+      squaresContainer.appendChild(card);
+
+      setTimeout(() => {
+        const fillBar = card.querySelector(`.squares-progress-bar-fill-${metric.key}`);
+        if (fillBar) fillBar.style.width = `${pct}%`;
+      }, 50);
+    });
+  }
 
   // If there are custom metrics, render them below in a beautiful dynamic list
   if (customMetrics.length > 0) {
     const customTitle = document.createElement('div');
-    customTitle.style.cssText = 'font-size: 0.9rem; font-weight: 800; color: #ffffff; text-align: right; direction: rtl; margin-top: 10px; margin-bottom: 4px;';
+    customTitle.style.cssText = 'font-size: 0.9rem; font-weight: 800; color: #ffffff; text-align: right; direction: rtl; margin-top: 16px; margin-bottom: 8px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 12px;';
     customTitle.textContent = '📊 מדדים אישיים נוספים';
     container.appendChild(customTitle);
 
@@ -514,6 +626,21 @@ export function renderMealSettings() {
       });
     }
   }
+
+  // Initialize style selectors in Settings with the current saved style
+  const currentStyle = state.mealsDisplayStyle || 'concentric';
+  document.querySelectorAll('.style-selector-segmented').forEach(sel => {
+    const hiddenInput = sel.querySelector('input[type="hidden"]');
+    if (hiddenInput) hiddenInput.value = currentStyle;
+    
+    sel.querySelectorAll('.style-select-btn').forEach(btn => {
+      if (btn.getAttribute('data-style') === currentStyle) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+  });
 }
 
 // Delete Custom Metric
@@ -577,9 +704,6 @@ let mealsEventsBound = false;
 export function bindMealsEvents() {
   if (mealsEventsBound) return;
   
-  const triggerBtn = document.getElementById('add-meal-trigger-btn');
-  const addModal = document.getElementById('add-meal-modal');
-  const closeBtn = document.getElementById('close-add-meal-modal-btn');
   const addForm = document.getElementById('add-meal-form');
   
   // Settings modal buttons
@@ -603,50 +727,8 @@ export function bindMealsEvents() {
     });
   }
   
-  // Open add-meal modal
-  if (triggerBtn && addModal) {
-    triggerBtn.addEventListener('click', () => {
-      const nameInput = document.getElementById('new-meal-name');
-      if (nameInput) nameInput.value = '✍️ ארוחה מותאמת';
-      
-      // Reset preset active state
-      const presetButtons = document.querySelectorAll('#add-meal-modal .preset-btn');
-      presetButtons.forEach(b => {
-        b.classList.remove('active');
-        if (b.getAttribute('data-name') === '✍️ ארוחה מותאמת') {
-          b.classList.add('active');
-        }
-      });
-
-      // Reset segmented control to lunch by default
-      const hiddenType = document.getElementById('new-meal-type');
-      if (hiddenType) hiddenType.value = 'צהריים';
-
-      const typeBtns = document.querySelectorAll('#add-meal-modal .segmented-item');
-      typeBtns.forEach(b => {
-        b.classList.remove('active');
-        if (b.getAttribute('data-value') === 'צהריים') {
-          b.classList.add('active');
-        }
-      });
-      
-      // Reset sliders to default values
-      renderAddMealSliders();
-      
-      addModal.classList.remove('hide');
-      if (navigator.vibrate) navigator.vibrate(10);
-    });
-  }
-  
-  // Close add-meal modal
-  if (closeBtn && addModal) {
-    closeBtn.addEventListener('click', () => {
-      addModal.classList.add('hide');
-    });
-  }
-  
   // Preset Buttons Click Handler (Zero Typing)
-  const presetButtons = document.querySelectorAll('#add-meal-modal .preset-btn');
+  const presetButtons = document.querySelectorAll('.presets-quick-grid .preset-btn');
   presetButtons.forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
@@ -667,7 +749,7 @@ export function bindMealsEvents() {
       const hiddenTypeInput = document.getElementById('new-meal-type');
       if (hiddenTypeInput) hiddenTypeInput.value = type;
       
-      const segmentedItems = document.querySelectorAll('#add-meal-modal .segmented-item');
+      const segmentedItems = document.querySelectorAll('.meals-segmented-control .segmented-item');
       segmentedItems.forEach(b => {
         b.classList.remove('active');
         if (b.getAttribute('data-value') === type) {
@@ -692,7 +774,7 @@ export function bindMealsEvents() {
   });
 
   // Segmented Control Item Clicks (Meal Type)
-  const segmentedItems = document.querySelectorAll('#add-meal-modal .segmented-item');
+  const segmentedItems = document.querySelectorAll('.meals-segmented-control .segmented-item');
   const hiddenTypeInput = document.getElementById('new-meal-type');
   segmentedItems.forEach(item => {
     item.addEventListener('click', (e) => {
@@ -710,8 +792,46 @@ export function bindMealsEvents() {
     });
   });
 
+  // Display Style Selector buttons (real-time sync across modals and sub-tabs)
+  const bindStyleSelectors = () => {
+    const styleBtns = document.querySelectorAll('.style-selector-segmented .style-select-btn');
+    styleBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const style = btn.getAttribute('data-style');
+
+        if (navigator.vibrate) navigator.vibrate(10); // Haptic feed
+
+        state.mealsDisplayStyle = style;
+        state.saveMealMetrics();
+
+        // Update all style segmented controls in DOM
+        document.querySelectorAll('.style-selector-segmented').forEach(sel => {
+          const sInput = sel.querySelector('input[type="hidden"]');
+          if (sInput) sInput.value = style;
+
+          sel.querySelectorAll('.style-select-btn').forEach(b => {
+            if (b.getAttribute('data-style') === style) {
+              b.classList.add('active');
+            } else {
+              b.classList.remove('active');
+            }
+          });
+        });
+
+        // Re-render
+        renderMealsDashboard();
+        if (typeof window.renderMealsAnalytics === 'function') window.renderMealsAnalytics();
+      });
+    });
+  };
+
+  bindStyleSelectors();
+
   // Handle form submission
-  if (addForm && addModal) {
+  if (addForm) {
     addForm.addEventListener('submit', (e) => {
       e.preventDefault();
       
@@ -728,9 +848,30 @@ export function bindMealsEvents() {
       });
       
       logMeal(name, type, values);
-      
-      addModal.classList.add('hide');
+
+      // Reset form controls
+      const nameInput = document.getElementById('new-meal-name');
+      if (nameInput) nameInput.value = '✍️ ארוחה מותאמת';
+
+      presetButtons.forEach(b => {
+        b.classList.remove('active');
+        if (b.getAttribute('data-name') === '✍️ ארוחה מותאמת') {
+          b.classList.add('active');
+        }
+      });
+
+      if (hiddenTypeInput) hiddenTypeInput.value = 'צהריים';
+      segmentedItems.forEach(b => {
+        b.classList.remove('active');
+        if (b.getAttribute('data-value') === 'צהריים') {
+          b.classList.add('active');
+        }
+      });
+
+      // Reset sliders to default values
+      renderAddMealSliders();
     });
+  }
   }
   
   // Save Settings Modal Button
