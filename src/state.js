@@ -66,8 +66,6 @@ export const state = {
       const displayStyle = SafeStorage.getItem(`aura-meals-display-style_${this.currentUser.uid}`);
       if (displayStyle) {
         this.mealsDisplayStyle = displayStyle;
-      } else {
-        this.mealsDisplayStyle = 'concentric';
       }
       const data = SafeStorage.getItem(`aura-meal-metrics_${this.currentUser.uid}`);
       if (data) {
@@ -80,7 +78,9 @@ export const state = {
       }
     }
     this.mealMetrics = JSON.parse(JSON.stringify(DEFAULT_MEAL_METRICS));
-    this.mealsDisplayStyle = 'concentric';
+    if (!this.mealsDisplayStyle) {
+      this.mealsDisplayStyle = 'concentric';
+    }
   },
 
   saveMealMetrics() {
