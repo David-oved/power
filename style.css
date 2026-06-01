@@ -8361,4 +8361,213 @@ html, body {
   text-shadow: 0 0 4px rgba(0, 240, 255, 0.4);
 }
 
+/* ==========================================================================
+   18. PREMIUM iOS ADMIN DASHBOARD & USER MANAGEMENT SYSTEM STYLES
+   ========================================================================== */
+
+#settings-admin-view {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+#settings-admin-view.hide {
+  display: none !important;
+}
+
+.admin-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.admin-stat-card {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  padding: 14px 10px;
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s ease;
+}
+
+.admin-stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.admin-users-list-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 0.5px solid #e5e5ea;
+  background: #ffffff;
+  transition: background-color 0.15s ease;
+  direction: rtl;
+  text-align: right;
+  gap: 12px;
+}
+
+.admin-users-list-item:hover {
+  background-color: #f9f9fb;
+}
+
+.admin-users-list-item:last-child {
+  border-bottom: none;
+}
+
+.admin-user-info-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.admin-user-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+.admin-user-details {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.admin-user-name {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: #1c1c1e;
+}
+
+.admin-user-email {
+  font-size: 0.8rem;
+  color: #8e8e93;
+  word-break: break-all;
+}
+
+.admin-user-meta-sub {
+  font-size: 0.72rem;
+  color: #c7c7cc;
+  margin-top: 1px;
+}
+
+/* iOS Role Dropdown Selector */
+.ios-role-select-wrapper {
+  position: relative;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.ios-role-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background: #f2f2f7;
+  border: 1px solid #e5e5ea;
+  border-radius: 8px;
+  padding: 5px 12px 5px 24px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #007aff;
+  cursor: pointer;
+  outline: none;
+  font-family: inherit;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.ios-role-select:focus {
+  border-color: #007aff;
+  background-color: #e5f2ff;
+}
+
+.ios-role-select-wrapper::before {
+  content: "▾";
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-55%);
+  color: #007aff;
+  font-size: 0.8rem;
+  pointer-events: none;
+}
+
+/* Admin Role badge variants for visual clarity */
+.ios-role-select.role-admin {
+  background: rgba(255, 149, 0, 0.12);
+  color: #ff9500;
+  border-color: rgba(255, 149, 0, 0.25);
+}
+
+.ios-role-select.role-admin:focus {
+  background-color: rgba(255, 149, 0, 0.2);
+}
+
+.ios-role-select-wrapper.admin-role::before {
+  color: #ff9500;
+}
+
+/* DARK THEME STYLINGS FOR ADMIN DASHBOARD */
+.dark-theme #settings-admin-view {
+  color: #f2f2f7;
+}
+
+.dark-theme .admin-stat-card {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.dark-theme .admin-stat-card .admin-stat-total-users {
+  color: #ffffff;
+}
+
+.dark-theme .admin-users-list-item {
+  background: rgba(255, 255, 255, 0.01);
+  border-bottom: 0.5px solid rgba(255, 255, 255, 0.05);
+}
+
+.dark-theme .admin-users-list-item:hover {
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.dark-theme .admin-user-name {
+  color: #ffffff;
+}
+
+.dark-theme .admin-user-email {
+  color: #a1a1aa;
+}
+
+.dark-theme .admin-user-meta-sub {
+  color: #71717a;
+}
+
+.dark-theme .ios-role-select {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+  color: #30d158; /* iOS dark theme default accent */
+}
+
+.dark-theme .ios-role-select-wrapper::before {
+  color: #30d158;
+}
+
+.dark-theme .ios-role-select.role-admin {
+  background: rgba(255, 159, 10, 0.15); /* Dark mode orange */
+  color: #ff9f0a;
+  border-color: rgba(255, 159, 10, 0.25);
+}
+
+.dark-theme .ios-role-select-wrapper.admin-role::before {
+  color: #ff9f0a;
+}
+
+
 
