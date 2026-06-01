@@ -19,16 +19,34 @@ service cloud.firestore {
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
+    // Check if the authenticated Google user is a hardcoded default admin
+    function isDefaultAdmin() {
+      return isAuthenticated() && 
+        request.auth.token != null && 
+        request.auth.token.email != null && (
+          request.auth.token.email.toLowerCase() == 'wbddwd55@gmail.com' || 
+          request.auth.token.email.toLowerCase() == 'wbddw2013@gmail.com'
+        );
+    }
+
     // Rules for the users collection
     match /users/{userId} {
       // Any authenticated user can read their own profile, or admins can read any profile
       allow read: if isOwner(userId) || isAdmin();
       
-      // Creating a new user: they can write only their own document if they set their role as 'user', OR if they are an admin
-      allow create: if isOwner(userId) && (request.resource.data.role == 'user' || isAdmin());
+      // Creating a user: allowed if they write their own document with role 'user', OR if they are an admin, OR if they are a default admin
+      allow create: if isOwner(userId) && (
+        request.resource.data.role == 'user' || 
+        isAdmin() || 
+        isDefaultAdmin()
+      );
       
-      // Updating a user: they can only update their own profile, but they cannot change their role unless they are already an admin
-      allow update: if isOwner(userId) && (request.resource.data.role == resource.data.role || isAdmin()) || isAdmin();
+      // Updating a user: allowed if they don't change their role, OR if they are an admin, OR if they are a default admin
+      allow update: if isOwner(userId) && (
+        request.resource.data.role == resource.data.role || 
+        isAdmin() || 
+        isDefaultAdmin()
+      ) || isAdmin();
       
       // Deleting a user: only admins can delete users
       allow delete: if isAdmin();
