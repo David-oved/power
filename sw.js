@@ -1,4 +1,6 @@
-const CACHE_NAME = '7.2';
+const USER_VERSION = '7.2';
+const ADMIN_VERSION = '7.2';
+const CACHE_NAME = USER_VERSION;
 const ASSETS = [
   './',
   './index.html',
@@ -187,6 +189,15 @@ self.addEventListener('message', (event) => {
     if (event.ports && event.ports[0]) {
       const cleanVer = CACHE_NAME.replace('aura-app-', '').replace(/^v/, '');
       event.ports[0].postMessage({ version: cleanVer });
+    }
+  }
+  if (event.data && event.data.action === 'getVersionInfo') {
+    if (event.ports && event.ports[0]) {
+      event.ports[0].postMessage({
+        action: 'versionInfo',
+        userVersion: USER_VERSION,
+        adminVersion: ADMIN_VERSION
+      });
     }
   }
 });
