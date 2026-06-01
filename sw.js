@@ -1,4 +1,4 @@
-const USER_VERSION = '7.2';
+const USER_VERSION = '7.4';
 const ADMIN_VERSION = '7.2';
 const CACHE_NAME = USER_VERSION;
 const ASSETS = [
