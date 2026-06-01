@@ -8,6 +8,13 @@ import {
   signOut, 
   onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { 
+  getFirestore, 
+  doc, 
+  setDoc, 
+  getDoc, 
+  serverTimestamp 
+} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { state } from "../state.js";
 import { SafeStorage } from "../utils/storage.js";
 import { triggerLocalNotification, getInitialsAvatar, showPremiumToast } from "../utils/helpers.js";
@@ -32,6 +39,7 @@ const setElText = (id, text) => {
 // Reset DOM fields safely on Logout to avoid credential leakage
 export function clearUserSession() {
   state.currentUser = null;
+  state.currentUserRole = 'user';
   SafeStorage._fallbackMem = {};
   SafeStorage._failedKeys = {};
 
@@ -46,8 +54,13 @@ export function clearUserSession() {
   
   const mainView = document.getElementById('settings-main-view');
   const accountView = document.getElementById('settings-account-view');
+  const adminView = document.getElementById('settings-admin-view');
+  const adminRowGroup = document.getElementById('row-settings-admin-group');
+
   if (mainView) mainView.classList.remove('hide');
   if (accountView) accountView.classList.add('hide');
+  if (adminView) adminView.classList.add('hide');
+  if (adminRowGroup) adminRowGroup.classList.add('hide');
 
   const initialsFallback = getInitialsAvatar('User');
   if (navUserPhoto) navUserPhoto.src = initialsFallback;
@@ -212,6 +225,68 @@ export function detectEnvironmentAndWarn() {
   }
 }
 
+// Authorized Admin Accounts (Developer / Owner email addresses)
+export const ADMIN_EMAILS = [
+  "wbddw2013@gmail.com",
+  "admin@example.com",
+  "wbddw@example.com"
+];
+
+// Secure Firestore User Profile Synchronization & Role Resolution
+export async function syncUserProfileAndRole(user) {
+  if (!state.db) {
+    console.warn("Firestore db instance not available. Defaulting to user role.");
+    state.currentUserRole = 'user';
+    return;
+  }
+
+  const userDocRef = doc(state.db, "users", user.uid);
+  try {
+    const userDoc = await getDoc(userDocRef);
+    let resolvedRole = 'user';
+    const isDefaultAdmin = ADMIN_EMAILS.includes(user.email.toLowerCase());
+
+    if (!userDoc.exists()) {
+      // User is logging in for the very first time (create profile)
+      resolvedRole = isDefaultAdmin ? 'admin' : 'user';
+      await setDoc(userDocRef, {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName || 'משתמש',
+        photoURL: user.photoURL || '',
+        createdAt: serverTimestamp(),
+        lastLogin: serverTimestamp(),
+        role: resolvedRole
+      });
+      console.log(`Created new profile for ${user.displayName} (${user.email}). Assigned role: ${resolvedRole}`);
+    } else {
+      // User already exists in the Firestore database
+      const existingData = userDoc.data();
+      
+      // Auto-promote to admin if email matches hardcoded array and DB role is outdated
+      if (isDefaultAdmin && existingData.role !== 'admin') {
+        resolvedRole = 'admin';
+      } else {
+        resolvedRole = existingData.role || 'user';
+      }
+
+      await setDoc(userDocRef, {
+        lastLogin: serverTimestamp(),
+        displayName: user.displayName || existingData.displayName || 'משתמש',
+        photoURL: user.photoURL || existingData.photoURL || '',
+        role: resolvedRole
+      }, { merge: true });
+      
+      console.log(`Synced profile for ${user.displayName}. Resolved role: ${resolvedRole}`);
+    }
+
+    state.currentUserRole = resolvedRole;
+  } catch (err) {
+    console.error("Failed to sync profile with Firestore:", err);
+    throw err;
+  }
+}
+
 // Initialize Auth
 export function initAuth() {
   authScreen = document.getElementById('auth-screen');
@@ -232,10 +307,11 @@ export function initAuth() {
     try {
       state.app = initializeApp(window.firebaseConfig);
       state.auth = getAuth(state.app);
+      state.db = getFirestore(state.app);
       state.googleProvider = new GoogleAuthProvider();
       state.googleProvider.setCustomParameters({ prompt: 'select_account' });
       state.firebaseEnabled = true;
-      console.log("Firebase Auth initialized successfully.");
+      console.log("Firebase Auth & Firestore initialized successfully.");
     } catch (error) {
       console.error("Failed to initialize Firebase Auth module:", error);
     }
@@ -347,23 +423,33 @@ export function initAuth() {
         console.log("User signed in successfully:", user.displayName);
         state.currentUser = user;
 
-        updateAuthUI();
-        
-        // Dynamic initializers
-        if (window.initWorkouts) window.initWorkouts();
-        
-        switchScreen(true);
+        syncUserProfileAndRole(user).then(() => {
+          updateAuthUI();
+          
+          // Dynamic initializers
+          if (window.initWorkouts) window.initWorkouts();
+          if (window.checkAdminViewAccessibility) window.checkAdminViewAccessibility();
+          
+          switchScreen(true);
 
-        const hasBeenWelcomed = sessionStorage.getItem('aura_session_welcomed');
-        if (isLoginTransition && !hasBeenWelcomed && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-          triggerLocalNotification(
-            "התחברת בהצלחה! 👋",
-            `ברוך הבא ל-Aura, ${user.displayName || 'משתמש'}!`
-          );
-          sessionStorage.setItem('aura_session_welcomed', 'true');
-        } else {
-          sessionStorage.setItem('aura_session_welcomed', 'true');
-        }
+          const hasBeenWelcomed = sessionStorage.getItem('aura_session_welcomed');
+          if (isLoginTransition && !hasBeenWelcomed && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+            triggerLocalNotification(
+              "התחברת בהצלחה! 👋",
+              `ברוך הבא ל-Aura, ${user.displayName || 'משתמש'}!`
+            );
+            sessionStorage.setItem('aura_session_welcomed', 'true');
+          } else {
+            sessionStorage.setItem('aura_session_welcomed', 'true');
+          }
+        }).catch(err => {
+          console.error("Failed to resolve user database profile, falling back to offline mode:", err);
+          state.currentUserRole = 'user';
+          updateAuthUI();
+          if (window.initWorkouts) window.initWorkouts();
+          if (window.checkAdminViewAccessibility) window.checkAdminViewAccessibility();
+          switchScreen(true);
+        });
       } else {
         console.log("No authenticated user active.");
         const prevUser = state.currentUser;
