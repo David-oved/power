@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 const CACHE_NAME = '6.0';
+=======
+const CACHE_NAME = '5.2';
+>>>>>>> 15fe555cbc2f4bb0fdbcbac3240e59f5d79defcd
 const ASSETS = [
   './',
   './index.html',
