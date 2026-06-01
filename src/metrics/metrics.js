@@ -720,7 +720,6 @@ export function renderAccordionHistoryView() {
               </div>
             `;
           }).join('')}
-        </div>
         <button class="btn btn-secondary edit-w-accordion-btn" style="width: 100%; padding: 8px !important; font-size: 0.8rem !important; border-radius: 10px;">🛠️ ערוך פרטי אימון</button>
       </div>
     `;
@@ -756,6 +755,499 @@ export function renderAccordionHistoryView() {
   });
 }
 
+const CSS_STYLES = `
+/* Premium Glassmorphic Workout Cards Styles */
+.premium-workout-card {
+  background: rgba(20, 20, 24, 0.65) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border-radius: 20px !important;
+  padding: 1.25rem !important;
+  cursor: pointer !important;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease !important;
+  direction: rtl !important;
+  text-align: right !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  backdrop-filter: blur(12px) !important;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.03), 0 8px 32px rgba(0, 0, 0, 0.4) !important;
+}
+
+.premium-workout-card:hover {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05), 0 12px 40px rgba(0, 0, 0, 0.5) !important;
+}
+
+.premium-workout-card.expanded {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.03), 0 16px 48px rgba(0, 0, 0, 0.6) !important;
+}
+
+.premium-workout-card.expanded:hover {
+  transform: none !important;
+}
+
+.premium-compact-info-bar {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border-radius: 12px !important;
+  padding: 8px 12px !important;
+  font-size: 0.8rem !important;
+  font-weight: 600 !important;
+  color: var(--text-main) !important;
+  direction: rtl !important;
+  backdrop-filter: blur(8px) !important;
+  flex-wrap: wrap !important;
+  gap: 8px 12px !important;
+}
+
+.premium-info-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+}
+
+.premium-info-icon {
+  opacity: 0.85 !important;
+}
+
+.premium-info-text {
+  color: #e2e8f0 !important;
+}
+
+.premium-info-divider {
+  width: 1px !important;
+  height: 12px !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.premium-muscle-dot {
+  width: 9px !important;
+  height: 9px !important;
+  border-radius: 50% !important;
+  display: inline-block !important;
+  cursor: pointer !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.premium-muscle-dot:hover {
+  transform: scale(1.3) !important;
+}
+
+/* Premium Exercise Card inside Expanded details */
+.premium-exercise-card {
+  background: rgba(255, 255, 255, 0.015) !important;
+  border: 1px solid rgba(255, 255, 255, 0.04) !important;
+  border-radius: 16px !important;
+  padding: 14px 16px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 14px !important;
+  backdrop-filter: blur(10px) !important;
+  transition: all 0.3s ease !important;
+}
+
+.premium-exercise-card:hover {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: rgba(255, 255, 255, 0.07) !important;
+}
+
+.premium-exercise-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04) !important;
+  padding-bottom: 8px !important;
+}
+
+.premium-exercise-info {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.premium-exercise-name {
+  font-size: 0.95rem !important;
+  font-weight: 800 !important;
+  color: #ffffff !important;
+}
+
+.premium-exercise-cat-badge {
+  font-size: 0.68rem !important;
+  font-weight: 800 !important;
+  padding: 2px 6px !important;
+  border-radius: 6px !important;
+}
+
+.premium-exercise-stats-grid {
+  display: grid !important;
+  grid-template-columns: auto 1fr !important;
+  gap: 16px !important;
+  align-items: center !important;
+}
+
+@media (max-width: 380px) {
+  .premium-exercise-stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+.premium-exercise-rings-panel {
+  display: flex !important;
+  gap: 16px !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+
+.premium-ring-wrapper {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 4px !important;
+}
+
+.premium-ring-svg {
+  overflow: visible !important;
+}
+
+.premium-ring-label-text {
+  font-size: 0.68rem !important;
+  font-weight: 700 !important;
+  color: var(--text-muted) !important;
+}
+
+.premium-ring-pr-text {
+  font-size: 0.62rem !important;
+  font-weight: 600 !important;
+  color: var(--text-muted) !important;
+  opacity: 0.8 !important;
+}
+
+.premium-exercise-comparison-panel {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+}
+
+/* Horizontal line graph comparison */
+.premium-comparison-bar-row {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+}
+
+.premium-comparison-meta {
+  display: flex !important;
+  justify-content: space-between !important;
+  font-size: 0.76rem !important;
+  font-weight: 700 !important;
+}
+
+.premium-comparison-label {
+  color: #cbd5e1 !important;
+}
+
+.premium-comparison-delta {
+  font-size: 0.72rem !important;
+  font-weight: 800 !important;
+  padding: 1px 6px !important;
+  border-radius: 6px !important;
+}
+
+.premium-comparison-delta.delta-plus {
+  background: rgba(48, 209, 88, 0.15) !important;
+  color: #30d158 !important;
+}
+
+.premium-comparison-delta.delta-minus {
+  background: rgba(255, 69, 58, 0.15) !important;
+  color: #ff453a !important;
+}
+
+.premium-comparison-delta.delta-neutral {
+  background: rgba(59, 130, 246, 0.15) !important;
+  color: #60a5fa !important;
+}
+
+.premium-comparison-track {
+  position: relative !important;
+  width: 100% !important;
+  height: 8px !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-radius: 4px !important;
+  overflow: visible !important;
+}
+
+.premium-comparison-fill {
+  height: 100% !important;
+  border-radius: 4px !important;
+  transition: width 0.6s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+
+.premium-comparison-marker {
+  position: absolute !important;
+  top: -2px;
+  width: 4px !important;
+  height: 12px !important;
+  background: #ffffff !important;
+  border-radius: 2px !important;
+  box-shadow: 0 0 6px #ffffff !important;
+  transform: translateX(-50%) !important;
+  z-index: 2 !important;
+}
+
+.premium-comparison-values {
+  display: flex !important;
+  justify-content: space-between !important;
+  font-size: 0.7rem !important;
+  color: var(--text-muted) !important;
+  font-weight: 600 !important;
+  margin-top: 2px !important;
+}
+
+/* Stylized sets capsule container */
+.premium-exercise-sets-section {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.04) !important;
+  padding-top: 10px !important;
+}
+
+.premium-exercise-sets-title {
+  font-size: 0.76rem !important;
+  font-weight: 700 !important;
+  color: var(--text-muted) !important;
+}
+
+.premium-exercise-sets-container {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  direction: rtl !important;
+}
+
+.premium-set-capsule {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-radius: 30px !important;
+  padding: 4px 10px 4px 12px !important;
+  font-size: 0.8rem !important;
+  font-weight: 700 !important;
+  backdrop-filter: blur(8px) !important;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1), 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+  transition: all 0.2s ease !important;
+}
+
+.premium-set-capsule:hover {
+  transform: translateY(-1px) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.premium-set-badge {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 18px !important;
+  height: 18px !important;
+  border-radius: 50% !important;
+  color: #ffffff !important;
+  font-size: 0.68rem !important;
+  font-weight: 900 !important;
+}
+
+.premium-set-content {
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  color: #f1f5f9 !important;
+}
+
+.premium-set-val-neon {
+  font-weight: 800 !important;
+}
+
+.premium-set-unit {
+  font-size: 0.72rem !important;
+  color: var(--text-muted) !important;
+  font-weight: 600 !important;
+}
+
+/* Bottom Muscle Splits breakdown */
+.premium-muscle-breakdown-card {
+  background: rgba(255, 255, 255, 0.02) !important;
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border-radius: 16px !important;
+  padding: 14px 16px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+  backdrop-filter: blur(8px) !important;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05) !important;
+  margin-top: 8px !important;
+}
+
+.premium-muscle-breakdown-title {
+  font-size: 0.88rem !important;
+  font-weight: 800 !important;
+  color: #ffffff !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+  padding-bottom: 8px !important;
+}
+
+.premium-muscle-breakdown-grid {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+}
+
+.premium-muscle-split-row {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+}
+
+.premium-muscle-split-meta {
+  display: flex !important;
+  justify-content: space-between !important;
+  font-size: 0.8rem !important;
+  align-items: center !important;
+}
+
+.premium-muscle-split-track {
+  width: 100% !important;
+  height: 6px !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-radius: 3px !important;
+  overflow: hidden !important;
+}
+
+.premium-muscle-split-fill {
+  height: 100% !important;
+  border-radius: 3px !important;
+  transition: width 0.6s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+}
+`;
+
+const categoryColorMap = {
+  'חזה': { color: '#ef4444', glow: 'rgba(239, 68, 68, 0.4)' },
+  'דחיפה': { color: '#ef4444', glow: 'rgba(239, 68, 68, 0.4)' },
+  'גב': { color: '#3b82f6', glow: 'rgba(59, 130, 246, 0.4)' },
+  'מתח': { color: '#3b82f6', glow: 'rgba(59, 130, 246, 0.4)' },
+  'כתפיים': { color: '#a855f7', glow: 'rgba(168, 85, 247, 0.4)' },
+  'רגליים': { color: '#22c55e', glow: 'rgba(34, 197, 94, 0.4)' },
+  'ידיים': { color: '#fb923c', glow: 'rgba(251, 146, 60, 0.4)' },
+  'בטן': { color: '#facc15', glow: 'rgba(250, 204, 21, 0.4)' },
+  'ליבה': { color: '#facc15', glow: 'rgba(250, 204, 21, 0.4)' },
+  'ליבה ואירובי': { color: '#2dd4bf', glow: 'rgba(45, 212, 191, 0.4)' },
+  'אירובי': { color: '#2dd4bf', glow: 'rgba(45, 212, 191, 0.4)' },
+  'מותאם אישית': { color: '#38bdf8', glow: 'rgba(56, 189, 248, 0.4)' },
+  'אחר': { color: '#94a3b8', glow: 'rgba(148, 163, 184, 0.4)' }
+};
+
+export function getMuscleCategoryStyle(cat) {
+  const norm = (cat || '').trim();
+  if (categoryColorMap[norm]) {
+    return categoryColorMap[norm];
+  }
+  if (norm.includes('חזה') || norm.includes('דחיפה')) return categoryColorMap['חזה'];
+  if (norm.includes('גב') || norm.includes('מתח')) return categoryColorMap['גב'];
+  if (norm.includes('כתף') || norm.includes('כתפיים')) return categoryColorMap['כתפיים'];
+  if (norm.includes('רגל') || norm.includes('רגליים')) return categoryColorMap['רגליים'];
+  if (norm.includes('יד') || norm.includes('ידיים')) return categoryColorMap['ידיים'];
+  if (norm.includes('בטן') || norm.includes('ליבה')) return categoryColorMap['בטן'];
+  if (norm.includes('אירובי') || norm.includes('סיבולת')) return categoryColorMap['אירובי'];
+  return categoryColorMap['אחר'];
+}
+
+export function renderProgressRing(pct, peakVal, unit, label, allTimePR, color, glow) {
+  const r = 22;
+  const c = 2 * Math.PI * r; // 138.23
+  const strokeDashoffset = c - (c * Math.min(100, Math.max(0, pct))) / 100;
+  return `
+    <div class="premium-ring-wrapper">
+      <svg class="premium-ring-svg" width="60" height="60" viewBox="0 0 60 60">
+        <circle cx="30" cy="30" r="${r}" fill="none" stroke="rgba(255, 255, 255, 0.05)" stroke-width="3.5" />
+        <circle cx="30" cy="30" r="${r}" fill="none" stroke="${color}" stroke-width="3.5" 
+          stroke-dasharray="${c}" stroke-dashoffset="${strokeDashoffset}" stroke-linecap="round"
+          transform="rotate(-90 30 30)" style="filter: drop-shadow(0 0 5px ${glow}); transition: stroke-dashoffset 0.6s ease-in-out;" />
+        <text x="30" y="31" font-family="var(--font-sans)" font-size="11" font-weight="900" text-anchor="middle" fill="#ffffff">${peakVal}</text>
+        <text x="30" y="42" font-family="var(--font-sans)" font-size="7" font-weight="700" text-anchor="middle" fill="var(--text-muted)">${unit}</text>
+      </svg>
+      <div class="premium-ring-label-text">${label}</div>
+      <div class="premium-ring-pr-text">שיא: ${allTimePR} ${unit}</div>
+    </div>
+  `;
+}
+
+export function renderComparisonBar(currentVal, prevVal, allTimePR, unit, label, color, glow, hasPrev) {
+  let deltaText = 'חדש! 🔥';
+  let deltaClass = 'delta-neutral';
+  let barColor = '#00F0FF';
+  let barGlow = 'rgba(0, 240, 255, 0.4)';
+  let diff = 0;
+
+  if (hasPrev) {
+    diff = currentVal - prevVal;
+    if (diff > 0) {
+      deltaText = `+${diff} ${unit} 📈`;
+      deltaClass = 'delta-plus';
+      barColor = '#22c55e'; // Green
+      barGlow = 'rgba(34, 197, 94, 0.4)';
+    } else if (diff < 0) {
+      deltaText = `${diff} ${unit} 📉`;
+      deltaClass = 'delta-minus';
+      barColor = '#ef4444'; // Red
+      barGlow = 'rgba(239, 68, 68, 0.4)';
+    } else {
+      deltaText = 'ללא שינוי';
+      deltaClass = 'delta-neutral';
+      barColor = '#3b82f6'; // Blue / neutral
+      barGlow = 'rgba(59, 130, 246, 0.4)';
+    }
+  }
+
+  // Percentages relative to all-time PR
+  const currentPct = allTimePR > 0 ? Math.min(100, Math.round((currentVal / allTimePR) * 100)) : 100;
+  const previousPct = allTimePR > 0 && hasPrev ? Math.min(100, Math.round((prevVal / allTimePR) * 100)) : 0;
+
+  const markerHtml = (hasPrev && previousPct > 0) ? `
+    <div class="premium-comparison-marker" style="left: ${previousPct}%;" title="אימון קודם: ${prevVal} ${unit}"></div>
+  ` : '';
+
+  const prevText = hasPrev ? `${prevVal} ${unit}` : '--';
+
+  return `
+    <div class="premium-comparison-bar-row">
+      <div class="premium-comparison-meta">
+        <span class="premium-comparison-label">${label}</span>
+        <span class="premium-comparison-delta ${deltaClass}">${deltaText}</span>
+      </div>
+      <div class="premium-comparison-track">
+        <div class="premium-comparison-fill" style="width: ${currentPct}%; background-color: ${barColor}; box-shadow: 0 0 8px ${barGlow};"></div>
+        ${markerHtml}
+      </div>
+      <div class="premium-comparison-values">
+        <span>קודם: ${prevText}</span>
+        <span>נוכחי: ${currentVal} ${unit}</span>
+      </div>
+    </div>
+  `;
+}
+
 // Workouts Chronological Card list
 export function renderWorkoutsLog() {
   const container = document.getElementById('workouts-log-container');
@@ -763,9 +1255,19 @@ export function renderWorkoutsLog() {
 
   container.innerHTML = '';
 
+  // Inject CSS Styles if not already present
+  if (!document.getElementById('premium-workout-log-styles')) {
+    const styleEl = document.createElement('style');
+    styleEl.id = 'premium-workout-log-styles';
+    styleEl.textContent = CSS_STYLES;
+    document.head.appendChild(styleEl);
+  }
+
   let filtered = getFilteredHistory();
 
+  // Compute all-time PR values (max weights and max reps)
   const maxWeights = {};
+  const maxReps = {};
   state.workoutHistory.forEach(w => {
     if (!w.exercises) return;
     w.exercises.forEach(ex => {
@@ -775,6 +1277,10 @@ export function renderWorkoutsLog() {
           const weight = parseFloat(s.weight) || 0;
           if (!maxWeights[ex.name] || weight > maxWeights[ex.name]) {
             maxWeights[ex.name] = weight;
+          }
+          const reps = parseInt(s.reps, 10) || 0;
+          if (!maxReps[ex.name] || reps > maxReps[ex.name]) {
+            maxReps[ex.name] = reps;
           }
         }
       });
@@ -841,10 +1347,20 @@ export function renderWorkoutsLog() {
     const w = item.workout;
     const duration = w.duration ? Math.round(w.duration / 60) : 0;
     const dateObj = new Date(w.date);
-    const dateStr = dateObj.toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric', year: 'numeric' });
+    
+    // Format date as DD/MM/YYYY
+    const dd = String(dateObj.getDate()).padStart(2, '0');
+    const mm = String(dateObj.getMonth() + 1).padStart(2, '0');
+    const yyyy = dateObj.getFullYear();
+    const formattedDate = `${dd}/${mm}/${yyyy}`;
+
+    // Extract start time HH:MM
+    const startHours = String(dateObj.getHours()).padStart(2, '0');
+    const startMinutes = String(dateObj.getMinutes()).padStart(2, '0');
+    const startTimeStr = `${startHours}:${startMinutes}`;
 
     const card = document.createElement('div');
-    card.className = 'workout-log-card';
+    card.className = 'premium-workout-card'; // Redesigned class with premium styling
 
     const prBadgeHtml = item.prCount > 0 ? `<span class="workout-log-pr-badge">🏆 שיא אישי x${item.prCount}</span>` : '';
     const dispName = w.locationName || (w.location === 'gym' ? 'חדר כושר' : 'פארק');
@@ -852,16 +1368,56 @@ export function renderWorkoutsLog() {
 
     // 1. Calculate Single Workout Muscle Splits (חלוקת אזורי גוף לאימון הנוכחי)
     const muscleCounts = {};
+    const muscleGroupsTrained = new Set();
+
     w.exercises.forEach(ex => {
       const compSetsCount = ex.sets.filter(s => s.completed).length;
       if (compSetsCount > 0) {
         let cat = 'אחר';
         const matched = getAllExercises().find(x => x.name === ex.name);
         if (matched) cat = matched.category || 'אחר';
+        
         muscleCounts[cat] = (muscleCounts[cat] || 0) + compSetsCount;
+        muscleGroupsTrained.add(cat);
       }
     });
 
+    // 2. Generate Muscle Dots for Collapsed State
+    const muscleDotsHtml = Array.from(muscleGroupsTrained).map(cat => {
+      const style = getMuscleCategoryStyle(cat);
+      return `<span class="premium-muscle-dot" style="background-color: ${style.color}; box-shadow: 0 0 8px 2px ${style.glow};" title="${cat}"></span>`;
+    }).join('');
+
+    // 3. Compact Info Bar inside/right below header
+    const compactInfoBarHtml = `
+      <div class="premium-compact-info-bar">
+        <div class="premium-info-item">
+          <span class="premium-info-icon">${dispEmoji}</span>
+          <span class="premium-info-text">${dispName}</span>
+        </div>
+        <div class="premium-info-divider"></div>
+        <div class="premium-info-item">
+          <span class="premium-info-icon">📅</span>
+          <span class="premium-info-text">${formattedDate}</span>
+        </div>
+        <div class="premium-info-divider"></div>
+        <div class="premium-info-item">
+          <span class="premium-info-icon">🕒</span>
+          <span class="premium-info-text">${startTimeStr}</span>
+        </div>
+        <div class="premium-info-divider"></div>
+        <div class="premium-info-item">
+          <span class="premium-info-icon">⏱️</span>
+          <span class="premium-info-text">${duration} דק׳</span>
+        </div>
+        <div style="flex-grow: 1;"></div>
+        <div class="premium-muscle-dots-container" style="display: flex; gap: 6px; align-items: center;">
+          ${muscleDotsHtml}
+        </div>
+      </div>
+    `;
+
+    // 4. Calculate Muscle Splits percentages breakdown
     const totalCompSets = Object.values(muscleCounts).reduce((sum, v) => sum + v, 0);
     let muscleSplitHtml = '';
     if (totalCompSets > 0) {
@@ -869,37 +1425,40 @@ export function renderWorkoutsLog() {
         .sort((a, b) => b[1] - a[1])
         .map(([muscle, count]) => {
           const pct = Math.round((count / totalCompSets) * 100);
+          const style = getMuscleCategoryStyle(muscle);
           return `
-            <div class="workout-log-muscle-row">
-              <div class="workout-log-muscle-meta">
-                <span>${muscle}</span>
-                <span>${pct}% (${count} סטים)</span>
+            <div class="premium-muscle-split-row">
+              <div class="premium-muscle-split-meta">
+                <span class="premium-muscle-split-name" style="color: #ffffff; font-weight: 800;">${muscle}</span>
+                <span class="premium-muscle-split-pct" style="color: ${style.color}; text-shadow: 0 0 5px ${style.glow}; font-weight: 800;">${pct}% <span style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600;">(${count} סטים)</span></span>
               </div>
-              <div class="workout-log-muscle-bar-track">
-                <div class="workout-log-muscle-bar-fill" style="width: ${pct}%;"></div>
+              <div class="premium-muscle-split-track">
+                <div class="premium-muscle-split-fill" style="width: ${pct}%; background-color: ${style.color}; box-shadow: 0 0 8px 1px ${style.glow};"></div>
               </div>
             </div>
           `;
         }).join('');
 
       muscleSplitHtml = `
-        <div class="workout-log-muscle-breakdown">
-          <div class="workout-log-muscle-title">
-            <span>🍗</span>
-            <span>אזורי גוף שעבדת עליהם</span>
+        <div class="premium-muscle-breakdown-card">
+          <div class="premium-muscle-breakdown-title">
+            <span style="font-size: 1.1rem; filter: drop-shadow(0 0 4px var(--electric-blue-glow));">📊</span>
+            <span>חלוקת עומסי שרירים באימון</span>
           </div>
-          <div class="workout-log-muscle-grid">
+          <div class="premium-muscle-breakdown-grid">
             ${splitRowsHtml}
           </div>
         </div>
       `;
     }
 
-    // 2. Render premium exercise sub-cards with progress comparison from the previous workout
+    // 5. Render premium exercise sub-cards
     const premiumExercisesHtml = w.exercises.map(ex => {
       let cat = 'אחר';
       const matched = getAllExercises().find(x => x.name === ex.name);
       if (matched) cat = matched.category || 'אחר';
+
+      const muscleStyle = getMuscleCategoryStyle(cat);
 
       // Look back for a previous workout containing this exercise
       const pastWorkouts = state.workoutHistory
@@ -910,119 +1469,96 @@ export function renderWorkoutsLog() {
         w2.exercises && w2.exercises.some(e => e.name === ex.name && e.sets && e.sets.some(s => s.completed))
       );
 
-      let trendHtml = '<span class="workout-log-trend-badge trend-neutral">פעם ראשונה</span>';
+      const completedSets = ex.sets.filter(s => s.completed);
+      const peakWeight = completedSets.length > 0 ? Math.max(...completedSets.map(s => parseFloat(s.weight) || 0)) : 0;
+      const peakReps = completedSets.length > 0 ? Math.max(...completedSets.map(s => parseInt(s.reps, 10) || 0)) : 0;
 
+      const allTimePRWeight = maxWeights[ex.name] || 0;
+      const allTimePRReps = maxReps[ex.name] || 0;
+
+      const weightPct = allTimePRWeight > 0 ? Math.min(100, Math.round((peakWeight / allTimePRWeight) * 100)) : 0;
+      const repsPct = allTimePRReps > 0 ? Math.min(100, Math.round((peakReps / allTimePRReps) * 100)) : 0;
+
+      const metricType = ex.metricType || 'both';
+
+      // Find previous max weight & reps
+      let prevMaxW = 0;
+      let prevMaxR = 0;
       if (prevW) {
         const prevEx = prevW.exercises.find(e => e.name === ex.name);
-        const currCompleted = ex.sets.filter(s => s.completed);
-        const prevCompleted = prevEx.sets.filter(s => s.completed);
-
-        const currMaxW = Math.max(...currCompleted.map(s => parseFloat(s.weight) || 0));
-        const prevMaxW = Math.max(...prevCompleted.map(s => parseFloat(s.weight) || 0));
-
-        const currMaxR = Math.max(...currCompleted.map(s => parseInt(s.reps, 10) || 0));
-        const prevMaxR = Math.max(...prevCompleted.map(s => parseInt(s.reps, 10) || 0));
-
-        const currVol = currCompleted.reduce((sum, s) => sum + (parseFloat(s.weight) || 0) * (parseInt(s.reps, 10) || 0), 0);
-        const prevVol = prevCompleted.reduce((sum, s) => sum + (parseFloat(s.weight) || 0) * (parseInt(s.reps, 10) || 0), 0);
-
-        const type = ex.metricType || 'both';
-
-        if (type === 'reps') {
-          const diffR = currMaxR - prevMaxR;
-          if (diffR > 0) {
-            trendHtml = `<span class="workout-log-trend-badge trend-up">📈 +${diffR} חזרות</span>`;
-          } else if (diffR < 0) {
-            trendHtml = `<span class="workout-log-trend-badge trend-down">📉 ${diffR} חזרות</span>`;
-          } else {
-            trendHtml = `<span class="workout-log-trend-badge trend-neutral">ללא שינוי</span>`;
-          }
-        } else if (type === 'weight') {
-          const diffW = currMaxW - prevMaxW;
-          if (diffW > 0) {
-            trendHtml = `<span class="workout-log-trend-badge trend-up">📈 +${diffW} ק״ג</span>`;
-          } else if (diffW < 0) {
-            trendHtml = `<span class="workout-log-trend-badge trend-down">📉 ${diffW} ק״ג</span>`;
-          } else {
-            trendHtml = `<span class="workout-log-trend-badge trend-neutral">ללא שינוי</span>`;
-          }
-        } else { // 'both'
-          const diffW = currMaxW - prevMaxW;
-          if (diffW > 0) {
-            trendHtml = `<span class="workout-log-trend-badge trend-up">📈 +${diffW} ק״ג</span>`;
-          } else if (diffW < 0) {
-            trendHtml = `<span class="workout-log-trend-badge trend-down">📉 ${diffW} ק״ג</span>`;
-          } else {
-            // Compare volume if weight is identical
-            const diffV = currVol - prevVol;
-            if (diffV > 0) {
-              trendHtml = `<span class="workout-log-trend-badge trend-up">📈 +${Math.round(diffV)} ק״ג נפח</span>`;
-            } else if (diffV < 0) {
-              trendHtml = `<span class="workout-log-trend-badge trend-down">📉 ${Math.round(diffV)} ק״ג נפח</span>`;
-            } else {
-              trendHtml = `<span class="workout-log-trend-badge trend-neutral">ללא שינוי</span>`;
-            }
-          }
-        }
+        const prevCompleted = prevEx ? prevEx.sets.filter(s => s.completed) : [];
+        prevMaxW = prevCompleted.length > 0 ? Math.max(...prevCompleted.map(s => parseFloat(s.weight) || 0)) : 0;
+        prevMaxR = prevCompleted.length > 0 ? Math.max(...prevCompleted.map(s => parseInt(s.reps, 10) || 0)) : 0;
       }
 
-      // Format sets as styled bubbles
-      const setBubblesHtml = ex.sets.filter(s => s.completed).map((s, idx) => {
+      // Generate Progress Rings (Mini Gauges)
+      let ringsHtml = '';
+      if (metricType === 'weight') {
+        ringsHtml = renderProgressRing(weightPct, peakWeight, 'ק״ג', 'משקל שיא', allTimePRWeight, muscleStyle.color, muscleStyle.glow);
+      } else if (metricType === 'reps') {
+        ringsHtml = renderProgressRing(repsPct, peakReps, 'חזרות', 'חזרות שיא', allTimePRReps, muscleStyle.color, muscleStyle.glow);
+      } else {
+        ringsHtml = `
+          ${renderProgressRing(weightPct, peakWeight, 'ק״ג', 'משקל שיא', allTimePRWeight, muscleStyle.color, muscleStyle.glow)}
+          ${renderProgressRing(repsPct, peakReps, 'חזרות', 'חזרות שיא', allTimePRReps, muscleStyle.color, muscleStyle.glow)}
+        `;
+      }
+
+      // Generate Previous Workout Progress Comparison (Horizontal Single Line Graph)
+      let comparisonBarsHtml = '';
+      if (metricType === 'weight') {
+        comparisonBarsHtml = renderComparisonBar(peakWeight, prevMaxW, allTimePRWeight, 'ק״ג', 'השוואת משקל', muscleStyle.color, muscleStyle.glow, prevW !== undefined);
+      } else if (metricType === 'reps') {
+        comparisonBarsHtml = renderComparisonBar(peakReps, prevMaxR, allTimePRReps, 'חזרות', 'השוואת חזרות', muscleStyle.color, muscleStyle.glow, prevW !== undefined);
+      } else {
+        comparisonBarsHtml = `
+          ${renderComparisonBar(peakWeight, prevMaxW, allTimePRWeight, 'ק״ג', 'השוואת משקל', muscleStyle.color, muscleStyle.glow, prevW !== undefined)}
+          ${renderComparisonBar(peakReps, prevMaxR, allTimePRReps, 'חזרות', 'השוואת חזרות', muscleStyle.color, muscleStyle.glow, prevW !== undefined)}
+        `;
+      }
+
+      // Format sets as premium stylized bubbles/capsules
+      const setBubblesHtml = completedSets.map((s, idx) => {
         let valText = '';
         if (ex.metricType === 'reps') {
-          valText = `${s.reps} חזרות`;
+          valText = `<span class="premium-set-val-neon" style="color: ${muscleStyle.color}; text-shadow: 0 0 5px ${muscleStyle.glow};">${s.reps}</span> <span class="premium-set-unit">חזרות</span>`;
         } else if (ex.metricType === 'weight') {
-          valText = `${s.weight} ק״ג`;
+          valText = `<span class="premium-set-val-neon" style="color: ${muscleStyle.color}; text-shadow: 0 0 5px ${muscleStyle.glow};">${s.weight}</span> <span class="premium-set-unit">ק״ג</span>`;
         } else {
-          valText = `${s.weight}ק״ג × ${s.reps}`;
+          valText = `<span class="premium-set-val-neon" style="color: ${muscleStyle.color}; text-shadow: 0 0 5px ${muscleStyle.glow};">${s.weight}</span><span class="premium-set-unit">ק״ג</span> × <span class="premium-set-val-neon" style="color: ${muscleStyle.color}; text-shadow: 0 0 5px ${muscleStyle.glow};">${s.reps}</span><span class="premium-set-unit">חזרות</span>`;
         }
         return `
-          <span class="workout-log-set-bubble">
-            <span class="workout-log-set-num">סט ${idx + 1}:</span>
-            <span>${valText}</span>
-          </span>
+          <div class="premium-set-capsule">
+            <div class="premium-set-badge" style="background-color: ${muscleStyle.color}; box-shadow: 0 0 6px ${muscleStyle.glow};">${idx + 1}</div>
+            <div class="premium-set-content">${valText}</div>
+          </div>
         `;
       }).join('');
 
       return `
-        <div class="workout-log-exercise-card">
-          <div class="workout-log-exercise-title-row">
-            <div class="workout-log-exercise-name-badge">
-              <span class="workout-log-ex-name">${ex.name}</span>
-              <span class="workout-log-ex-category">${cat}</span>
+        <div class="premium-exercise-card" style="border-left: 3.5px solid ${muscleStyle.color}; box-shadow: inset 5px 0 15px -5px ${muscleStyle.glow};">
+          <div class="premium-exercise-header">
+            <div class="premium-exercise-info">
+              <span class="premium-exercise-name">${ex.name}</span>
+              <span class="premium-exercise-cat-badge" style="background-color: ${muscleStyle.glow}; color: ${muscleStyle.color}; border: 1px solid rgba(255,255,255,0.08);">${cat}</span>
             </div>
-            ${trendHtml}
           </div>
-          <div class="workout-log-sets-bubbles">
-            ${setBubblesHtml}
+          
+          <div class="premium-exercise-stats-grid">
+            <div class="premium-exercise-rings-panel">
+              ${ringsHtml}
+            </div>
+            <div class="premium-exercise-comparison-panel">
+              ${comparisonBarsHtml}
+            </div>
           </div>
-        </div>
-      `;
-    }).join('');
-
-    // 3. Render compact preview chips when collapsed (תצוגה מקדימה פרימיום כשהכרטיסייה סגורה)
-    const previewChipsHtml = w.exercises.map(ex => {
-      let cat = 'אחר';
-      const matched = getAllExercises().find(x => x.name === ex.name);
-      if (matched) cat = matched.category || 'אחר';
-
-      // Get category color for dot
-      let dotColor = '#94a3b8'; // gray
-      if (cat === 'חזה' || cat === 'דחיפה') dotColor = '#ef4444'; // red
-      else if (cat === 'גב' || cat === 'מתח') dotColor = '#3b82f6'; // blue
-      else if (cat === 'כתפיים') dotColor = '#a855f7'; // purple
-      else if (cat === 'רגליים') dotColor = '#22c55e'; // green
-      else if (cat === 'ידיים') dotColor = '#fb923c'; // orange
-      else if (cat === 'בטן' || cat === 'ליבה' || cat === 'ליבה ואירובי') dotColor = '#facc15'; // yellow/gold
-      else if (cat === 'אירובי') dotColor = '#2dd4bf'; // teal
-
-      const compSetsCount = ex.sets.filter(s => s.completed).length;
-
-      return `
-        <div class="workout-log-exercise-preview-chip">
-          <span class="workout-log-preview-dot" style="background-color: ${dotColor}; box-shadow: 0 0 6px ${dotColor};"></span>
-          <span class="workout-log-preview-name">${ex.name}</span>
-          <span class="workout-log-preview-sets-badge">${compSetsCount} סטים</span>
+          
+          <div class="premium-exercise-sets-section">
+            <div class="premium-exercise-sets-title">סטים שבוצעו:</div>
+            <div class="premium-exercise-sets-container">
+              ${setBubblesHtml}
+            </div>
+          </div>
         </div>
       `;
     }).join('');
@@ -1033,7 +1569,6 @@ export function renderWorkoutsLog() {
           <span class="workout-log-emoji">${dispEmoji}</span>
           <div>
             <h4 class="workout-log-name">${dispName}</h4>
-            <span class="workout-log-date">${dateStr} • ${duration} דק׳</span>
           </div>
         </div>
         <div class="workout-log-stats">
@@ -1043,26 +1578,27 @@ export function renderWorkoutsLog() {
         </div>
       </div>
       
-      <!-- Summary compact exercises list when collapsed -->
-      <div class="workout-log-exercises">
-        ${previewChipsHtml}
-      </div>
+      <!-- Redesigned High-end info bar replacing old chips preview -->
+      ${compactInfoBarHtml}
 
       <!-- Expanded detailed information sheet -->
       <div class="workout-log-expanded-details">
-        ${muscleSplitHtml}
         <div class="workout-log-exercises-premium">
           ${premiumExercisesHtml}
         </div>
+        
+        <!-- Stunning Muscle split percentages breakdown at the bottom of expanded card -->
+        ${muscleSplitHtml}
+        
         <button class="workout-log-edit-btn">
           <span>✏️</span> ערוך פרטי אימון
         </button>
       </div>
     `;
 
-    // Collapsible toggle on clicking card (excluding the edit button)
+    // Collapsible toggle on clicking card (excluding the edit button or interactions inside expanded card)
     card.addEventListener('click', (e) => {
-      if (e.target.closest('.workout-log-edit-btn')) return;
+      if (e.target.closest('.workout-log-edit-btn') || e.target.closest('.premium-exercise-card') || e.target.closest('.premium-muscle-breakdown-card') || e.target.closest('.premium-compact-info-bar')) return;
       card.classList.toggle('expanded');
     });
 
@@ -1345,6 +1881,176 @@ export function renderExercisesManager() {
   });
 }
 
+// Dynamic helper to update inspector statistics
+export function updateInspectorStatistics(exerciseName) {
+  const prVal = document.getElementById('inspector-pr-val');
+  const rmVal = document.getElementById('inspector-1rm-val');
+  const volVal = document.getElementById('inspector-vol-val');
+  const performedVal = document.getElementById('inspector-performed-val');
+
+  const prCard = prVal ? prVal.closest('.stat-mini-card') : null;
+  const rmCard = rmVal ? rmVal.closest('.stat-mini-card') : null;
+  const volCard = volVal ? volVal.closest('.stat-mini-card') : null;
+  
+  const isReps = (state.activeInspectorMetric === 'reps');
+
+  const chronological = [...state.workoutHistory]
+    .filter(w => w.date && w.exercises)
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  let timesPerformed = 0;
+  let totalSets = 0;
+  let maxWeight = 0;
+  let max1RM = 0;
+  let peakVolume = 0;
+  
+  let maxReps = 0;
+  let totalRepsCompleted = 0;
+  let latestPeakReps = 0;
+
+  chronological.forEach(w => {
+    const ex = w.exercises.find(e => e.name === exerciseName);
+    if (ex && ex.sets) {
+      const completedSets = ex.sets.filter(s => s.completed);
+      if (completedSets.length > 0) {
+        timesPerformed++;
+        totalSets += completedSets.length;
+        
+        let sessionVolume = 0;
+        let sessionMaxReps = 0;
+        completedSets.forEach(s => {
+          const wVal = parseFloat(s.weight) || 0;
+          const rVal = parseInt(s.reps, 10) || 0;
+
+          if (wVal > maxWeight) maxWeight = wVal;
+          const oneRM = rVal === 1 ? wVal : wVal * (1 + rVal / 30);
+          if (oneRM > max1RM) max1RM = oneRM;
+          sessionVolume += (wVal * rVal);
+
+          if (rVal > maxReps) maxReps = rVal;
+          if (rVal > sessionMaxReps) sessionMaxReps = rVal;
+          totalRepsCompleted += rVal;
+        });
+
+        if (sessionVolume > peakVolume) peakVolume = sessionVolume;
+        latestPeakReps = sessionMaxReps;
+      }
+    }
+  });
+
+  if (isReps) {
+    if (prCard) {
+      const prLbl = prCard.querySelector('.stat-label');
+      if (prLbl) prLbl.textContent = 'שיא אישי (PR) 🔢';
+      prVal.textContent = maxReps > 0 ? `${maxReps} חזרות` : '--';
+    }
+    if (rmCard) {
+      const rmLbl = rmCard.querySelector('.stat-label');
+      if (rmLbl) rmLbl.textContent = 'אימון אחרון 🏆';
+      rmVal.textContent = latestPeakReps > 0 ? `${latestPeakReps} חזרות` : '--';
+    }
+    if (volCard) {
+      const volLbl = volCard.querySelector('.stat-label');
+      if (volLbl) volLbl.textContent = 'סה״כ חזרות 📊';
+      volVal.textContent = totalRepsCompleted > 0 ? `${totalRepsCompleted} חזרות` : '--';
+    }
+  } else {
+    if (prCard) {
+      const prLbl = prCard.querySelector('.stat-label');
+      if (prLbl) prLbl.textContent = 'שיא אישי (PR) 🏋️‍♂️';
+      prVal.textContent = maxWeight > 0 ? `${maxWeight} ק״ג` : '--';
+    }
+    if (rmCard) {
+      const rmLbl = rmCard.querySelector('.stat-label');
+      if (rmLbl) rmLbl.textContent = '1RM משוער 🏆';
+      rmVal.textContent = max1RM > 0 ? `${Math.round(max1RM)} ק״ג` : '--';
+    }
+    if (volCard) {
+      const volLbl = volCard.querySelector('.stat-label');
+      if (volLbl) volLbl.textContent = 'נפח אימון שיא 📊';
+      volVal.textContent = peakVolume > 0 ? `${peakVolume} ק״ג` : '--';
+    }
+  }
+
+  if (performedVal) {
+    performedVal.textContent = `${timesPerformed} פעמים • ${totalSets} סטים`;
+  }
+}
+
+// Dynamic helper to update inspector timeline
+export function updateInspectorTimeline(exerciseName) {
+  const timelineContainer = document.getElementById('pr-history-timeline-tab3');
+  if (!timelineContainer) return;
+  timelineContainer.innerHTML = '';
+  
+  const chronological = [...state.workoutHistory]
+    .filter(w => w.date)
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
+  
+  const brokenPRs = [];
+  const isReps = (state.activeInspectorMetric === 'reps');
+
+  if (isReps) {
+    let runningMaxReps = 0;
+    chronological.forEach(w => {
+      if (!w.exercises) return;
+      const ex = w.exercises.find(e => e.name === exerciseName);
+      if (ex && ex.sets) {
+        const completedSets = ex.sets.filter(s => s.completed);
+        if (completedSets.length > 0) {
+          const sessionMaxReps = Math.max(...completedSets.map(s => parseInt(s.reps, 10) || 0));
+          if (sessionMaxReps > runningMaxReps) {
+            runningMaxReps = sessionMaxReps;
+            brokenPRs.push({
+              date: new Date(w.date),
+              value: sessionMaxReps,
+              unit: 'חזרות'
+            });
+          }
+        }
+      }
+    });
+  } else {
+    let runningMaxWeight = 0;
+    chronological.forEach(w => {
+      if (!w.exercises) return;
+      const ex = w.exercises.find(e => e.name === exerciseName);
+      if (ex && ex.sets) {
+        const completedSets = ex.sets.filter(s => s.completed);
+        if (completedSets.length > 0) {
+          const sessionMaxWeight = Math.max(...completedSets.map(s => parseFloat(s.weight) || 0));
+          if (sessionMaxWeight > runningMaxWeight) {
+            runningMaxWeight = sessionMaxWeight;
+            brokenPRs.push({
+              date: new Date(w.date),
+              value: sessionMaxWeight,
+              unit: 'ק״ג'
+            });
+          }
+        }
+      }
+    });
+  }
+
+  if (brokenPRs.length === 0) {
+    timelineContainer.innerHTML = '<div style="color: var(--text-muted); font-size: 0.82rem; text-align: center; padding: 10px;">לא נרשמו שיאים אישיים עדיין</div>';
+  } else {
+    [...brokenPRs].reverse().forEach(pr => {
+      const item = document.createElement('div');
+      item.className = 'pr-timeline-item';
+      const dateStr = pr.date.toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric', year: '2-digit' });
+      item.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span class="pr-timeline-badge">PR שבור!</span>
+          <span class="pr-timeline-val">${pr.value} ${pr.unit}</span>
+        </div>
+        <span class="pr-timeline-date">${dateStr}</span>
+      `;
+      timelineContainer.appendChild(item);
+    });
+  }
+}
+
 // Open exercise detailed overlay (Inspector)
 export function openExerciseInspector(exerciseName) {
   state.currentInspectorExercise = exerciseName;
@@ -1373,65 +2079,43 @@ export function openExerciseInspector(exerciseName) {
     inspectorFavBtn.innerHTML = isFav ? '⭐' : '☆';
   }
 
-  const stats = getExerciseStats(exerciseName);
+  // Smart-detect if exercise is bodyweight/reps only:
+  let defaultMetric = 'weight';
   
-  const prVal = document.getElementById('inspector-pr-val');
-  const rmVal = document.getElementById('inspector-1rm-val');
-  const volVal = document.getElementById('inspector-vol-val');
-  const performedVal = document.getElementById('inspector-performed-val');
-
-  if (prVal) prVal.textContent = stats.maxWeight > 0 ? `${stats.maxWeight} ק״ג` : '--';
-  if (rmVal) rmVal.textContent = stats.max1RM > 0 ? `${Math.round(stats.max1RM)} ק״ג` : '--';
-  if (volVal) volVal.textContent = stats.peakVolume > 0 ? `${stats.peakVolume} ק״ג` : '--';
-  if (performedVal) performedVal.textContent = `${stats.timesPerformed} פעמים • ${stats.totalSets} סטים`;
-
-  // History timeline PRs breaker
-  const timelineContainer = document.getElementById('pr-history-timeline-tab3');
-  if (timelineContainer) {
-    timelineContainer.innerHTML = '';
-    
-    const chronological = [...state.workoutHistory]
-      .filter(w => w.date)
-      .sort((a, b) => new Date(a.date) - new Date(b.date));
-    let runningMaxWeight = 0;
-    const brokenPRs = [];
-
-    chronological.forEach(w => {
-      if (!w.exercises) return;
-      const ex = w.exercises.find(e => e.name === exerciseName);
-      if (ex && ex.sets) {
-        const completedSets = ex.sets.filter(s => s.completed);
-        if (completedSets.length > 0) {
-          const sessionMaxWeight = Math.max(...completedSets.map(s => parseFloat(s.weight) || 0));
-          if (sessionMaxWeight > runningMaxWeight) {
-            runningMaxWeight = sessionMaxWeight;
-            brokenPRs.push({
-              date: new Date(w.date),
-              weight: sessionMaxWeight
-            });
-          }
-        }
-      }
-    });
-
-    if (brokenPRs.length === 0) {
-      timelineContainer.innerHTML = '<div style="color: var(--text-muted); font-size: 0.82rem; text-align: center; padding: 10px;">לא נרשמו שיאים אישיים עדיין</div>';
-    } else {
-      [...brokenPRs].reverse().forEach(pr => {
-        const item = document.createElement('div');
-        item.className = 'pr-timeline-item';
-        const dateStr = pr.date.toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric', year: '2-digit' });
-        item.innerHTML = `
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span class="pr-timeline-badge">PR שבור!</span>
-            <span class="pr-timeline-val">${pr.weight} ק״ג</span>
-          </div>
-          <span class="pr-timeline-date">${dateStr}</span>
-        `;
-        timelineContainer.appendChild(item);
-      });
+  const reverseHistory = [...state.workoutHistory].sort((a, b) => b.date - a.date);
+  const latestSession = reverseHistory.find(w => w.exercises && w.exercises.some(e => e.name === exerciseName && e.sets && e.sets.some(s => s.completed)));
+  if (latestSession) {
+    const exInSession = latestSession.exercises.find(e => e.name === exerciseName);
+    if (exInSession && exInSession.metricType === 'reps') {
+      defaultMetric = 'reps';
+    }
+  } else {
+    const category = exDetails.category || '';
+    if (category === 'בטן' || category === 'אירובי' || category === 'ליבה' || category === 'מתח' || category === 'ליבה ואירובי') {
+      defaultMetric = 'reps';
     }
   }
+
+  state.activeInspectorMetric = defaultMetric;
+
+  // Update DOM active toggles
+  const btnWeight = document.getElementById('inspector-toggle-weight');
+  const btnReps = document.getElementById('inspector-toggle-reps');
+  if (btnWeight && btnReps) {
+    if (defaultMetric === 'reps') {
+      btnWeight.classList.remove('active');
+      btnReps.classList.add('active');
+    } else {
+      btnWeight.classList.add('active');
+      btnReps.classList.remove('active');
+    }
+  }
+
+  // Update statistics
+  updateInspectorStatistics(exerciseName);
+
+  // Update timeline
+  updateInspectorTimeline(exerciseName);
 
   state.activeChartTypeTab3 = '1rm';
   const tabs = document.querySelectorAll('[data-chart-tab3]');
@@ -1473,13 +2157,27 @@ export function renderExerciseInspectorChart() {
     }
   });
 
+  // Toggle visibility of weight-based progression chart tabs in reps mode
+  const chartTabsContainer = document.querySelector('.chart-tabs-tab3');
+  const isReps = (state.activeInspectorMetric === 'reps');
+  if (chartTabsContainer) {
+    if (isReps) {
+      chartTabsContainer.style.display = 'none';
+    } else {
+      chartTabsContainer.style.display = 'flex';
+    }
+  }
+
   if (exerciseSessions.length === 0) {
     if (noDataEl) noDataEl.style.display = 'flex';
     if (fillPath) fillPath.setAttribute('stroke-dashoffset', '251.3');
     if (valueDisplay) valueDisplay.textContent = '--';
     if (subtextDisplay) subtextDisplay.textContent = 'אין נתונים';
-    if (limitLeft) limitLeft.textContent = 'בסיס: --';
-    if (limitRight) limitRight.textContent = 'שיא: --';
+    if (limitLeft) limitLeft.textContent = isReps ? 'בסיס: -- חזרות' : 'בסיס: -- ק״ג';
+    if (limitRight) limitRight.textContent = isReps ? 'שיא: -- חזרות' : 'שיא: -- ק״ג';
+    
+    const premiumPanel = document.getElementById('inspector-premium-panel');
+    if (premiumPanel) premiumPanel.style.display = 'none';
     return;
   }
 
@@ -1487,29 +2185,35 @@ export function renderExerciseInspectorChart() {
 
   const values = [];
   exerciseSessions.forEach(session => {
-    let sessionMaxWeight = 0;
-    let sessionMax1RM = 0;
-    let sessionVolume = 0;
-
-    session.sets.forEach(s => {
-      const w = parseFloat(s.weight) || 0;
-      const r = parseInt(s.reps, 10) || 0;
-
-      if (w > sessionMaxWeight) sessionMaxWeight = w;
-      const oneRM = r === 1 ? w : w * (1 + r / 30);
-      if (oneRM > sessionMax1RM) sessionMax1RM = oneRM;
-      sessionVolume += (w * r);
-    });
-
-    let yValue = 0;
-    if (state.activeChartTypeTab3 === '1rm') {
-      yValue = sessionMax1RM;
-    } else if (state.activeChartTypeTab3 === 'weight') {
-      yValue = sessionMaxWeight;
+    if (isReps) {
+      // Find peak reps in a single completed set in this session
+      const sessionMaxReps = Math.max(...session.sets.map(s => parseInt(s.reps, 10) || 0));
+      values.push(sessionMaxReps);
     } else {
-      yValue = sessionVolume;
+      let sessionMaxWeight = 0;
+      let sessionMax1RM = 0;
+      let sessionVolume = 0;
+
+      session.sets.forEach(s => {
+        const w = parseFloat(s.weight) || 0;
+        const r = parseInt(s.reps, 10) || 0;
+
+        if (w > sessionMaxWeight) sessionMaxWeight = w;
+        const oneRM = r === 1 ? w : w * (1 + r / 30);
+        if (oneRM > sessionMax1RM) sessionMax1RM = oneRM;
+        sessionVolume += (w * r);
+      });
+
+      let yValue = 0;
+      if (state.activeChartTypeTab3 === '1rm') {
+        yValue = sessionMax1RM;
+      } else if (state.activeChartTypeTab3 === 'weight') {
+        yValue = sessionMaxWeight;
+      } else {
+        yValue = sessionVolume;
+      }
+      values.push(yValue);
     }
-    values.push(yValue);
   });
 
   const baseVal = Math.round(values[0]);
@@ -1523,7 +2227,13 @@ export function renderExerciseInspectorChart() {
     fillPath.setAttribute('stroke-dashoffset', strokeDashoffset.toFixed(1));
   }
 
-  const unit = state.activeChartTypeTab3 === 'volume' ? ' ק״ג' : ' ק״ג';
+  let unit = ' ק״ג';
+  if (isReps) {
+    unit = ' חזרות';
+  } else if (state.activeChartTypeTab3 === 'volume') {
+    unit = ' ק״ג';
+  }
+
   if (valueDisplay) {
     valueDisplay.textContent = `${currentVal}${unit}`;
   }
@@ -1541,10 +2251,137 @@ export function renderExerciseInspectorChart() {
   }
 
   if (limitLeft) {
-    limitLeft.textContent = `בסיס: ${baseVal} ק״ג`;
+    limitLeft.textContent = isReps ? `בסיס: ${baseVal} חזרות` : `בסיס: ${baseVal} ק״ג`;
   }
   if (limitRight) {
-    limitRight.textContent = `שיא אישי: ${maxVal} ק״ג`;
+    limitRight.textContent = isReps ? `שיא אישי: ${maxVal} חזרות` : `שיא אישי: ${maxVal} ק״ג`;
+  }
+
+  // Premium record progression (previous PRs + visual other sets)
+  const chronologicalPRs = [];
+  if (isReps) {
+    let runningMax = 0;
+    chronological.forEach(w => {
+      if (!w.exercises) return;
+      const ex = w.exercises.find(e => e.name === exerciseName);
+      if (ex && ex.sets) {
+        const completedSets = ex.sets.filter(s => s.completed);
+        if (completedSets.length > 0) {
+          const sessionMax = Math.max(...completedSets.map(s => parseInt(s.reps, 10) || 0));
+          if (sessionMax > runningMax) {
+            runningMax = sessionMax;
+            chronologicalPRs.push({
+              date: new Date(w.date),
+              val: sessionMax
+            });
+          }
+        }
+      }
+    });
+  } else {
+    let runningMax = 0;
+    chronological.forEach(w => {
+      if (!w.exercises) return;
+      const ex = w.exercises.find(e => e.name === exerciseName);
+      if (ex && ex.sets) {
+        const completedSets = ex.sets.filter(s => s.completed);
+        if (completedSets.length > 0) {
+          const sessionMax = Math.max(...completedSets.map(s => parseFloat(s.weight) || 0));
+          if (sessionMax > runningMax) {
+            runningMax = sessionMax;
+            chronologicalPRs.push({
+              date: new Date(w.date),
+              val: sessionMax
+            });
+          }
+        }
+      }
+    });
+  }
+
+  const unitLabel = isReps ? 'חזרות' : 'ק״ג';
+
+  let peaksHtml = '';
+  if (chronologicalPRs.length > 1) {
+    const peaksToShow = [];
+    if (chronologicalPRs.length >= 2) {
+      peaksToShow.push(chronologicalPRs[chronologicalPRs.length - 2]);
+    }
+    if (chronologicalPRs.length >= 3) {
+      peaksToShow.push(chronologicalPRs[chronologicalPRs.length - 3]);
+    }
+    
+    peaksHtml = `
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <span style="font-size: 0.82rem; font-weight: 700; color: var(--text-muted);">⏮️ שיאים קודמים:</span>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          ${peaksToShow.map((p, idx) => {
+            const dStr = p.date.toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric', year: '2-digit' });
+            return `
+              <div style="flex: 1; min-width: 100px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 8px; border-radius: 10px; text-align: center; font-size: 0.78rem;">
+                <span style="display: block; color: var(--text-muted); font-size: 0.7rem; font-weight: 600;">שיא קודם ${idx + 1}</span>
+                <strong style="color: #fb7185; font-size: 0.88rem;">${p.val} ${unitLabel}</strong>
+                <span style="display: block; font-size: 0.68rem; color: rgba(255,255,255,0.4); margin-top: 2px;">${dStr}</span>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  // Extract sets of the latest session
+  const latestSession = exerciseSessions[exerciseSessions.length - 1];
+  let setsHtml = '';
+  if (latestSession && latestSession.sets && latestSession.sets.length > 0) {
+    let peakSetIdx = -1;
+    let maxSetVal = -1;
+    latestSession.sets.forEach((s, idx) => {
+      const val = isReps ? (parseInt(s.reps, 10) || 0) : (parseFloat(s.weight) || 0);
+      if (val > maxSetVal) {
+        maxSetVal = val;
+        peakSetIdx = idx;
+      }
+    });
+
+    setsHtml = `
+      <div style="display: flex; flex-direction: column; gap: 6px;">
+        <span style="font-size: 0.82rem; font-weight: 700; color: var(--text-muted);">⚡ סטים מאימון אחרון:</span>
+        <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; direction: rtl;">
+          ${latestSession.sets.map((s, idx) => {
+            const isPeak = (idx === peakSetIdx);
+            const val = isReps ? `${s.reps} חזרות` : `${s.weight} ק״ג × ${s.reps}`;
+            
+            const bg = isPeak ? 'linear-gradient(135deg, rgba(0, 240, 255, 0.15) 0%, rgba(0, 255, 135, 0.15) 100%)' : 'rgba(255,255,255,0.03)';
+            const border = isPeak ? '1px solid rgba(0, 240, 255, 0.3)' : '1px solid rgba(255,255,255,0.06)';
+            const textColor = isPeak ? '#00FF87' : 'var(--text-muted)';
+            const shadow = isPeak ? 'box-shadow: 0 0 8px rgba(0, 240, 255, 0.15);' : '';
+            const labelColor = isPeak ? '#00F0FF' : 'rgba(255,255,255,0.3)';
+
+            return `
+              <div style="flex: 0 0 auto; min-width: 80px; background: ${bg}; border: ${border}; ${shadow} padding: 6px 8px; border-radius: 10px; text-align: center;">
+                <span style="display: block; font-size: 0.65rem; color: ${labelColor}; font-weight: 700; margin-bottom: 2px;">סט ${idx + 1}${isPeak ? ' 🏆' : ''}</span>
+                <strong style="color: ${textColor}; font-size: 0.82rem; white-space: nowrap;">${val}</strong>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  const premiumPanel = document.getElementById('inspector-premium-panel');
+  if (premiumPanel) {
+    if (peaksHtml || setsHtml) {
+      premiumPanel.style.display = 'flex';
+      premiumPanel.innerHTML = `
+        ${peaksHtml}
+        ${peaksHtml && setsHtml ? '<div style="height: 1px; background: rgba(255,255,255,0.05); margin: 4px 0;"></div>' : ''}
+        ${setsHtml}
+      `;
+    } else {
+      premiumPanel.style.display = 'none';
+    }
   }
 }
 
@@ -2047,6 +2884,40 @@ export function initAnalyticsTab() {
     });
     inspectorModal.addEventListener('click', (e) => {
       if (e.target === inspectorModal) inspectorModal.classList.add('hide');
+    });
+  }
+
+  // Handle inspector metric toggle click events
+  const btnWeight = document.getElementById('inspector-toggle-weight');
+  const btnReps = document.getElementById('inspector-toggle-reps');
+  if (btnWeight && btnReps) {
+    const handleMetricChange = (metric) => {
+      if (state.activeInspectorMetric === metric) return;
+      state.activeInspectorMetric = metric;
+      
+      if (metric === 'reps') {
+        btnWeight.classList.remove('active');
+        btnReps.classList.add('active');
+      } else {
+        btnWeight.classList.add('active');
+        btnReps.classList.remove('active');
+      }
+      
+      const exName = state.currentInspectorExercise;
+      if (exName) {
+        updateInspectorStatistics(exName);
+        updateInspectorTimeline(exName);
+        renderExerciseInspectorChart();
+      }
+    };
+
+    btnWeight.addEventListener('click', (e) => {
+      e.stopPropagation();
+      handleMetricChange('weight');
+    });
+    btnReps.addEventListener('click', (e) => {
+      e.stopPropagation();
+      handleMetricChange('reps');
     });
   }
 
