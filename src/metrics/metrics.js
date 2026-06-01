@@ -827,17 +827,24 @@ const CSS_STYLES = `
   background: rgba(255, 255, 255, 0.1) !important;
 }
 
-.premium-muscle-dot {
-  width: 9px !important;
-  height: 9px !important;
-  border-radius: 50% !important;
-  display: inline-block !important;
+.premium-muscle-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 3px 10px !important;
+  border-radius: 20px !important;
+  font-size: 0.72rem !important;
+  font-weight: 800 !important;
+  color: #ffffff !important;
   cursor: pointer !important;
-  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+  transition: all 0.2s ease, box-shadow 0.2s ease !important;
+  backdrop-filter: blur(6px) !important;
+  white-space: nowrap !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3) !important;
 }
 
-.premium-muscle-dot:hover {
-  transform: scale(1.3) !important;
+.premium-muscle-badge:hover {
+  transform: scale(1.05) !important;
 }
 
 /* Premium Exercise Card inside Expanded details */
@@ -851,6 +858,7 @@ const CSS_STYLES = `
   gap: 14px !important;
   backdrop-filter: blur(10px) !important;
   transition: all 0.3s ease !important;
+  cursor: pointer !important;
 }
 
 .premium-exercise-card:hover {
@@ -1382,10 +1390,14 @@ export function renderWorkoutsLog() {
       }
     });
 
-    // 2. Generate Muscle Dots for Collapsed State
+    // 2. Generate Muscle Badges for Collapsed State
     const muscleDotsHtml = Array.from(muscleGroupsTrained).map(cat => {
       const style = getMuscleCategoryStyle(cat);
-      return `<span class="premium-muscle-dot" style="background-color: ${style.color}; box-shadow: 0 0 8px 2px ${style.glow};" title="${cat}"></span>`;
+      return `
+        <span class="premium-muscle-badge" style="background: ${style.glow}; border: 1px solid ${style.color}; box-shadow: 0 0 10px ${style.glow};" title="${cat}">
+          ${cat}
+        </span>
+      `;
     }).join('');
 
     // 3. Compact Info Bar inside/right below header
@@ -1611,6 +1623,19 @@ export function renderWorkoutsLog() {
     }
 
     container.appendChild(card);
+
+    // Bind click events on premium exercise cards to open inspector
+    const exCards = card.querySelectorAll('.premium-exercise-card');
+    exCards.forEach(exCard => {
+      exCard.addEventListener('click', (e) => {
+        e.stopPropagation(); // prevent parent card toggling
+        const nameEl = exCard.querySelector('.premium-exercise-name');
+        if (nameEl) {
+          const exName = nameEl.textContent.trim();
+          openExerciseInspector(exName);
+        }
+      });
+    });
   });
 }
 
