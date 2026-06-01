@@ -5979,7 +5979,8 @@ body.authenticated .ios-bottom-nav {
   display: inline-block;
 }
 
-.workout-log-card.expanded .workout-log-chevron {
+.workout-log-card.expanded .workout-log-chevron,
+.premium-workout-card.expanded .workout-log-chevron {
   transform: rotate(-180deg);
   color: var(--electric-blue-light);
 }
@@ -5996,7 +5997,8 @@ body.authenticated .ios-bottom-nav {
   direction: rtl;
 }
 
-.workout-log-card.expanded .workout-log-exercises {
+.workout-log-card.expanded .workout-log-exercises,
+.premium-workout-card.expanded .workout-log-exercises {
   display: none;
 }
 
@@ -6050,8 +6052,9 @@ body.authenticated .ios-bottom-nav {
   gap: 16px;
 }
 
-.workout-log-card.expanded .workout-log-expanded-details {
-  max-height: 3500px;
+.workout-log-card.expanded .workout-log-expanded-details,
+.premium-workout-card.expanded .workout-log-expanded-details {
+  max-height: 5000px;
   opacity: 1;
   border-top-width: 1px;
   margin-top: 12px;
