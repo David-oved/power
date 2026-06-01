@@ -6612,32 +6612,19 @@ html, body {
 
 /* Glass Section Card — wraps each major section */
 .meals-section-card {
-  background: linear-gradient(135deg, rgba(30, 30, 40, 0.4) 0%, rgba(15, 15, 20, 0.6) 100%);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 24px;
-  padding: 24px 20px;
   position: relative;
-  overflow: hidden;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.05);
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s;
+  padding: 12px 0px;
+  overflow: visible;
+  margin-bottom: 24px;
 }
 
 .meals-section-card:hover {
-  transform: translateY(-2px);
-  border-color: rgba(255, 255, 255, 0.12);
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.08);
+  transform: none;
+  box-shadow: none;
 }
 
 .meals-section-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);
+  display: none;
 }
 
 /* Section Header — icon + title + optional badge */
@@ -7212,20 +7199,20 @@ html, body {
    Light Theme overrides for Premium Meals tab
    ========================================================================== */
 .tab-pane:not(.dark-theme) .meals-section-card {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.7) 0%, rgba(240, 240, 245, 0.8) 100%) !important;
-  backdrop-filter: blur(20px) !important;
-  -webkit-backdrop-filter: blur(20px) !important;
-  border: 1px solid rgba(0, 0, 0, 0.06) !important;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.04), inset 0 1px 1px rgba(255, 255, 255, 0.8) !important;
+  background: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
 .tab-pane:not(.dark-theme) .meals-section-card:hover {
-  border-color: rgba(0, 0, 0, 0.1) !important;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.06), inset 0 1px 1px rgba(255, 255, 255, 0.9) !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
 }
 
 .tab-pane:not(.dark-theme) .meals-section-card::before {
-  background: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.04) 50%, transparent 100%) !important;
+  display: none !important;
 }
 
 .tab-pane:not(.dark-theme) .meals-section-header {
