@@ -6,7 +6,6 @@ import { SafeStorage } from "./src/utils/storage.js";
 import { triggerLocalNotification, showPremiumToast } from "./src/utils/helpers.js";
 import { initAuth } from "./src/auth/auth.js";
 import { initWorkoutsModule } from "./src/workouts/workouts.js";
-import { initMealsModule } from "./src/meals/meals.js";
 import { initAnalyticsModule, initAnalyticsTab } from "./src/metrics/metrics.js";
 import { initSettingsModule, initPremiumSettings, showUpdateStateInSettings } from "./src/settings/settings.js";
 
@@ -229,40 +228,20 @@ onDOMReady(() => {
       if (targetTab === 'analytics') {
         const mainNav = document.querySelector('.ios-bottom-nav');
         const workoutsSubNav = document.getElementById('metrics-sub-nav');
-        const mealsSubNav = document.getElementById('meals-metrics-sub-nav');
         
         if (mainNav) mainNav.classList.add('nav-hidden');
         
-        const activeSegment = state.activeAnalyticsSegment || 'workouts';
-        
-        if (activeSegment === 'meals') {
-          if (workoutsSubNav) workoutsSubNav.classList.add('nav-hidden');
-          if (mealsSubNav) {
-            mealsSubNav.classList.remove('nav-hidden');
-            if (mealsSubNav.classList.contains('collapsed')) {
-              mealsSubNav.classList.remove('collapsed');
-            }
+        if (workoutsSubNav) {
+          workoutsSubNav.classList.remove('nav-hidden');
+          if (workoutsSubNav.classList.contains('collapsed')) {
+            workoutsSubNav.classList.remove('collapsed');
           }
-          const defaultMealsSubTab = document.querySelector(`#meals-metrics-sub-nav .nav-tab[data-meals-sub-tab="${state.activeMealsSubTab || 'meals-log'}"]`);
-          if (defaultMealsSubTab) {
-            defaultMealsSubTab.click();
-          } else {
-            if (window.renderMealsAnalytics) window.renderMealsAnalytics();
-          }
+        }
+        const defaultSubTab = document.querySelector(`#metrics-sub-nav .nav-tab[data-sub-tab="${state.activeSubTab || 'workouts'}"]`);
+        if (defaultSubTab) {
+          defaultSubTab.click();
         } else {
-          if (mealsSubNav) mealsSubNav.classList.add('nav-hidden');
-          if (workoutsSubNav) {
-            workoutsSubNav.classList.remove('nav-hidden');
-            if (workoutsSubNav.classList.contains('collapsed')) {
-              workoutsSubNav.classList.remove('collapsed');
-            }
-          }
-          const defaultSubTab = document.querySelector(`#metrics-sub-nav .nav-tab[data-sub-tab="${state.activeSubTab || 'workouts'}"]`);
-          if (defaultSubTab) {
-            defaultSubTab.click();
-          } else {
-            if (window.renderWorkoutsLog) window.renderWorkoutsLog();
-          }
+          if (window.renderWorkoutsLog) window.renderWorkoutsLog();
         }
       }
 
@@ -356,7 +335,6 @@ window.addEventListener('load', () => {
 // Binds Modules and Run initializers on Startup
 // ==========================================================================
 initWorkoutsModule();
-initMealsModule();
 initAnalyticsModule();
 initSettingsModule();
 
