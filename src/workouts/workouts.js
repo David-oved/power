@@ -1387,6 +1387,13 @@ export function initWorkoutsModule() {
     });
   }
 
+  const searchInput = document.getElementById('exercise-search-input');
+  if (searchInput) {
+    searchInput.addEventListener('input', () => {
+      renderExercisePickerList();
+    });
+  }
+
   const metricModal = document.getElementById('metric-selector-modal');
   if (metricModal) {
     metricModal.addEventListener('click', (e) => {
