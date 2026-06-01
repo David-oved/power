@@ -139,6 +139,7 @@ export function initPremiumSettings() {
 
   // Initialize the admin panel elements
   initAdminPanel();
+  checkAdminViewAccessibility();
 }
 
 // Binds global configurations
