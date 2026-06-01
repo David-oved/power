@@ -224,6 +224,22 @@
               </div>
             </div>
 
+            <!-- iOS Settings Card Group: Admin Administration (ניהול מערכת) - hidden by default, shown for admin users -->
+            <div class="ios-settings-card-group hide" id="row-settings-admin-group">
+              <div class="ios-settings-group-title">ניהול ומנהלה</div>
+              
+              <!-- Row: Admin Panel Trigger -->
+              <button id="go-to-admin-btn" class="ios-setting-row">
+                <div class="ios-row-left">
+                  <span class="ios-row-chevron">←</span>
+                </div>
+                <div class="ios-row-right">
+                  <span class="ios-row-icon-badge bg-ios-orange" style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%) !important;">🛠️</span>
+                  <span class="ios-row-label" style="font-weight: 700;">פאנל מנהל מערכת</span>
+                </div>
+              </button>
+            </div>
+
             <!-- iOS Settings Card Group: System (מערכת) -->
             <div class="ios-settings-card-group">
               <div class="ios-settings-group-title">מערכת</div>
@@ -300,6 +316,60 @@
               <button id="app-logout-btn" class="btn btn-logout hide" style="width: 100%; max-width: 240px;">
                 <span class="btn-icon">🚪</span> יציאה מהחשבון
               </button>
+            </div>
+          </div>
+
+          <!-- Sub-view 3: Admin Dashboard Screen (Hidden by default) -->
+          <div id="settings-admin-view" class="hide">
+            <div class="ios-settings-header">
+              <button id="back-to-settings-from-admin-btn" class="ios-back-btn">
+                חזרה <span class="back-arrow">→</span>
+              </button>
+              <h2 class="settings-sub-title">ניהול מערכת</h2>
+            </div>
+            
+            <div class="ios-account-profile-card" style="margin-bottom: 1rem;">
+              <h3 class="welcome-text" style="font-size: 1.4rem;">לוח בקרה למנהל</h3>
+              <p class="settings-subtitle">צפייה וניהול של משתמשי האפליקציה</p>
+            </div>
+
+            <!-- Stats Dashboard Group -->
+            <div class="admin-stats-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; direction: rtl;">
+              <div class="admin-stat-card" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 12px; border-radius: 16px; text-align: center;">
+                <div style="font-size: 1.5rem; margin-bottom: 4px;">👥</div>
+                <div id="admin-stat-total-users" style="font-size: 1.3rem; font-weight: 800; color: #fff; font-family: var(--font-sans);">0</div>
+                <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600;">סה״כ רשומים</div>
+              </div>
+              <div class="admin-stat-card" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 12px; border-radius: 16px; text-align: center;">
+                <div style="font-size: 1.5rem; margin-bottom: 4px;">⚡</div>
+                <div id="admin-stat-active-today" style="font-size: 1.3rem; font-weight: 800; color: #34c759; font-family: var(--font-sans);">0</div>
+                <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600;">פעילים היום</div>
+              </div>
+              <div class="admin-stat-card" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 12px; border-radius: 16px; text-align: center;">
+                <div style="font-size: 1.5rem; margin-bottom: 4px;">🛡️</div>
+                <div id="admin-stat-admins" style="font-size: 1.3rem; font-weight: 800; color: #f97316; font-family: var(--font-sans);">0</div>
+                <div style="font-size: 0.72rem; color: var(--text-muted); font-weight: 600;">מנהלים</div>
+              </div>
+            </div>
+
+            <!-- Users List Card Group -->
+            <div class="ios-settings-card-group">
+              <div class="ios-settings-group-title" style="display: flex; justify-content: space-between; align-items: center; width: 100%; direction: rtl;">
+                <span>מאגר משתמשים</span>
+                <span id="admin-users-loader" class="ios-spinner hide" style="width: 14px; height: 14px; margin-left: 8px;"></span>
+              </div>
+              
+              <!-- Search and Filter in Admin Panel -->
+              <div style="padding: 10px 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); display: flex; gap: 10px; align-items: center; direction: rtl;">
+                <input type="text" id="admin-search-users-input" placeholder="🔍 חיפוש משתמש לפי שם או אימייל..." style="width: 100%; padding: 10px 12px; border-radius: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: #fff; text-align: right; font-size: 0.88rem; outline: none; font-family: var(--font-sans);">
+              </div>
+
+              <!-- Users Container -->
+              <div id="admin-users-list-container" style="max-height: 420px; overflow-y: auto; display: flex; flex-direction: column; direction: rtl; -webkit-overflow-scrolling: touch;">
+                <div style="padding: 20px; text-align: center; color: var(--text-muted); font-size: 0.9rem;">
+                  טוען משתמשים...
+                </div>
+              </div>
             </div>
           </div>
 
