@@ -1610,7 +1610,7 @@ export function renderWorkoutsLog() {
 
     // Collapsible toggle on clicking card (excluding the edit button or interactions inside expanded card)
     card.addEventListener('click', (e) => {
-      if (e.target.closest('.workout-log-edit-btn') || e.target.closest('.premium-exercise-card') || e.target.closest('.premium-muscle-breakdown-card') || e.target.closest('.premium-compact-info-bar')) return;
+      if (e.target.closest('.workout-log-edit-btn') || e.target.closest('.premium-exercise-card') || e.target.closest('.premium-muscle-breakdown-card')) return;
       card.classList.toggle('expanded');
     });
 
