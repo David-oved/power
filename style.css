@@ -1372,7 +1372,7 @@ body.authenticated .workout-summary-modal.active {
 
 .ios-bottom-nav {
   position: fixed;
-  bottom: calc(24px + env(safe-area-inset-bottom, 24px));
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
   left: 50%;
   transform: translateX(-50%);
   width: calc(100% - 48px);
@@ -7512,7 +7512,7 @@ html, body {
 }
 
 #metric-selector-modal .workout-modal-card {
-  height: auto !important;
+  height: 80vh !important;
   max-height: 85vh !important;
   display: flex !important;
   flex-direction: column !important;
