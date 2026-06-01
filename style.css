@@ -4311,12 +4311,16 @@ body.authenticated .ios-bottom-nav {
 
 /* Ensure the outer card supports flex column without height collapse */
 .exercise-picker-card {
-  height: 85vh !important;
-  max-height: 85vh !important;
+  height: 80% !important;
+  max-height: 80% !important;
   display: flex !important;
   flex-direction: column !important;
   overflow: hidden !important;
   border-radius: 28px 28px 0 0 !important;
+}
+
+#exercise-search-input {
+  font-size: 16px !important;
 }
 
 /* Perfect inner scrollbar and area scroll control */
@@ -8306,4 +8310,52 @@ html, body {
   border-color: rgba(0, 0, 0, 0.1) !important;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06) !important;
 }
+
+/* Sleek Glassmorphic Inspector Toggle */
+.inspector-metric-toggle {
+  display: flex;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  padding: 4px;
+  gap: 4px;
+  direction: rtl;
+  box-sizing: border-box;
+  width: 100%;
+  margin-bottom: 8px;
+  backdrop-filter: blur(10px);
+}
+
+.inspector-toggle-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  font-weight: 700;
+  padding: 10px 8px;
+  border-radius: 11px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: center;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.inspector-toggle-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.inspector-toggle-btn.active {
+  background: linear-gradient(135deg, rgba(0, 240, 255, 0.15) 0%, rgba(0, 255, 135, 0.15) 100%);
+  color: #00F0FF;
+  border: 1px solid rgba(0, 240, 255, 0.25);
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
+  text-shadow: 0 0 4px rgba(0, 240, 255, 0.4);
+}
+
 
