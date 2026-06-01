@@ -5888,7 +5888,7 @@ body.authenticated .ios-bottom-nav {
   border-radius: 20px;
   padding: 1.2rem;
   cursor: pointer;
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s ease, border-color 0.2s ease;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
   direction: rtl;
   text-align: right;
   display: flex;
@@ -5902,8 +5902,18 @@ body.authenticated .ios-bottom-nav {
   transform: translateY(-2px);
 }
 
+.workout-log-card.expanded {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.workout-log-card.expanded:hover {
+  transform: none; /* Do not shift up when already expanded */
+}
+
 .workout-log-card:active {
-  transform: scale(0.98) translateY(0);
+  transform: scale(0.99) translateY(0);
 }
 
 .workout-log-header {
@@ -5956,12 +5966,32 @@ body.authenticated .ios-bottom-nav {
   box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
 }
 
+/* Collapsible Arrow chevron */
+.workout-log-chevron {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  margin-right: 6px;
+  display: inline-block;
+}
+
+.workout-log-card.expanded .workout-log-chevron {
+  transform: rotate(-180deg);
+  color: var(--electric-blue-light);
+}
+
+/* Compact exercise preview (visible only when collapsed) */
 .workout-log-exercises {
   display: flex;
   flex-direction: column;
   gap: 6px;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
   padding-top: 10px;
+  transition: opacity 0.25s ease;
+}
+
+.workout-log-card.expanded .workout-log-exercises {
+  display: none;
 }
 
 .workout-log-exercise-item {
@@ -5980,6 +6010,210 @@ body.authenticated .ios-bottom-nav {
   color: var(--text-muted);
   font-size: 0.8rem;
   direction: ltr;
+}
+
+/* Collapsible Expanded Details Area */
+.workout-log-expanded-details {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease, margin-top 0.3s ease;
+  border-top: 0 solid rgba(255, 255, 255, 0.05);
+  margin-top: 0;
+  padding-top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.workout-log-card.expanded .workout-log-expanded-details {
+  max-height: 3500px;
+  opacity: 1;
+  border-top-width: 1px;
+  margin-top: 12px;
+  padding-top: 16px;
+}
+
+/* Muscle split breakdown panel inside card */
+.workout-log-muscle-breakdown {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 16px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.workout-log-muscle-title {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.workout-log-muscle-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.workout-log-muscle-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.workout-log-muscle-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.workout-log-muscle-bar-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.workout-log-muscle-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--electric-blue) 0%, var(--electric-blue-light) 100%);
+  box-shadow: 0 0 6px rgba(0, 122, 255, 0.4);
+}
+
+/* Premium exercises lists */
+.workout-log-exercises-premium {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.workout-log-exercise-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.workout-log-exercise-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.workout-log-exercise-name-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.workout-log-ex-name {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.workout-log-ex-category {
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: rgba(255,255,255,0.06);
+  color: var(--text-muted);
+}
+
+/* Neon trend badges for comparative progress */
+.workout-log-trend-badge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.workout-log-trend-badge.trend-up {
+  background: rgba(48, 209, 88, 0.12);
+  color: #30d158;
+  border: 1px solid rgba(48, 209, 88, 0.25);
+  text-shadow: 0 0 4px rgba(48, 209, 88, 0.3);
+}
+
+.workout-log-trend-badge.trend-down {
+  background: rgba(255, 69, 58, 0.12);
+  color: #ff453a;
+  border: 1px solid rgba(255, 69, 58, 0.25);
+  text-shadow: 0 0 4px rgba(255, 69, 58, 0.3);
+}
+
+.workout-log-trend-badge.trend-neutral {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Sets bubbles layout */
+.workout-log-sets-bubbles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  direction: rtl;
+}
+
+.workout-log-set-bubble {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 5px 10px;
+  font-size: 0.78rem;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+}
+
+.workout-log-set-num {
+  color: var(--electric-blue-light);
+  font-weight: 800;
+}
+
+/* Edit Workout Button inside history card */
+.workout-log-edit-btn {
+  width: 100%;
+  padding: 10px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  cursor: pointer;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  margin-top: 4px;
+}
+
+.workout-log-edit-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
 }
 
 /* Schedule Future Workout Premium Styles */
