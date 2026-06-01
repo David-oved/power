@@ -239,6 +239,7 @@ export function detectEnvironmentAndWarn() {
 
 // Authorized Admin Accounts (Developer / Owner email addresses)
 export const ADMIN_EMAILS = [
+  "wbddwd55@gmail.com",
   "wbddw2013@gmail.com",
   "admin@example.com",
   "wbddw@example.com"
@@ -256,7 +257,15 @@ export async function syncUserProfileAndRole(user) {
   try {
     const userDoc = await getDoc(userDocRef);
     let resolvedRole = 'user';
-    const isDefaultAdmin = ADMIN_EMAILS.includes(user.email.toLowerCase());
+    const cleanEmail = user.email ? user.email.trim().toLowerCase() : '';
+    const isDefaultAdmin = ADMIN_EMAILS.some(email => email.trim().toLowerCase() === cleanEmail);
+
+    console.log("AuraApp Role Resolver Diagnostic:", {
+      providedEmail: user.email,
+      cleanedEmail: cleanEmail,
+      isDefaultAdmin: isDefaultAdmin,
+      adminEmailsList: ADMIN_EMAILS
+    });
 
     if (!userDoc.exists()) {
       // User is logging in for the very first time (create profile)
