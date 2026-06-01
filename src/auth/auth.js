@@ -464,12 +464,15 @@ export function initAuth() {
             sessionStorage.setItem('aura_session_welcomed', 'true');
           }
         }).catch(err => {
-          console.error("Failed to resolve user database profile, falling back to offline mode:", err);
+          console.log("Failed to resolve user database profile, falling back to offline mode:", err);
           state.currentUserRole = 'user';
           updateAuthUI();
           if (window.initWorkouts) window.initWorkouts();
           if (window.checkAdminViewAccessibility) window.checkAdminViewAccessibility();
           switchScreen(true);
+          
+          // Visual toast with Firestore diagnostic details
+          showPremiumToast("שגיאת סנכרון: " + (err.message || err), "error");
         });
       } else {
         console.log("No authenticated user active.");
