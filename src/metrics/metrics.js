@@ -851,6 +851,156 @@ export function renderWorkoutsLog() {
     const dispName = w.locationName || (w.location === 'gym' ? 'חדר כושר' : 'פארק');
     const dispEmoji = w.locationEmoji || (w.location === 'gym' ? '🏋️‍♂️' : '🌳');
 
+    // 1. Calculate Single Workout Muscle Splits (חלוקת אזורי גוף לאימון הנוכחי)
+    const muscleCounts = {};
+    w.exercises.forEach(ex => {
+      const compSetsCount = ex.sets.filter(s => s.completed).length;
+      if (compSetsCount > 0) {
+        let cat = 'אחר';
+        const matched = getAllExercises().find(x => x.name === ex.name);
+        if (matched) cat = matched.category || 'אחר';
+        muscleCounts[cat] = (muscleCounts[cat] || 0) + compSetsCount;
+      }
+    });
+
+    const totalCompSets = Object.values(muscleCounts).reduce((sum, v) => sum + v, 0);
+    let muscleSplitHtml = '';
+    if (totalCompSets > 0) {
+      const splitRowsHtml = Object.entries(muscleCounts)
+        .sort((a, b) => b[1] - a[1])
+        .map(([muscle, count]) => {
+          const pct = Math.round((count / totalCompSets) * 100);
+          return `
+            <div class="workout-log-muscle-row">
+              <div class="workout-log-muscle-meta">
+                <span>${muscle}</span>
+                <span>${pct}% (${count} סטים)</span>
+              </div>
+              <div class="workout-log-muscle-bar-track">
+                <div class="workout-log-muscle-bar-fill" style="width: ${pct}%;"></div>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+      muscleSplitHtml = `
+        <div class="workout-log-muscle-breakdown">
+          <div class="workout-log-muscle-title">
+            <span>🍗</span>
+            <span>אזורי גוף שעבדת עליהם</span>
+          </div>
+          <div class="workout-log-muscle-grid">
+            ${splitRowsHtml}
+          </div>
+        </div>
+      `;
+    }
+
+    // 2. Render premium exercise sub-cards with progress comparison from the previous workout
+    const premiumExercisesHtml = w.exercises.map(ex => {
+      let cat = 'אחר';
+      const matched = getAllExercises().find(x => x.name === ex.name);
+      if (matched) cat = matched.category || 'אחר';
+
+      // Look back for a previous workout containing this exercise
+      const pastWorkouts = state.workoutHistory
+        .filter(w2 => w2.id !== w.id && w2.date < w.date)
+        .sort((a, b) => b.date - a.date);
+
+      const prevW = pastWorkouts.find(w2 => 
+        w2.exercises && w2.exercises.some(e => e.name === ex.name && e.sets && e.sets.some(s => s.completed))
+      );
+
+      let trendHtml = '<span class="workout-log-trend-badge trend-neutral">פעם ראשונה</span>';
+
+      if (prevW) {
+        const prevEx = prevW.exercises.find(e => e.name === ex.name);
+        const currCompleted = ex.sets.filter(s => s.completed);
+        const prevCompleted = prevEx.sets.filter(s => s.completed);
+
+        const currMaxW = Math.max(...currCompleted.map(s => parseFloat(s.weight) || 0));
+        const prevMaxW = Math.max(...prevCompleted.map(s => parseFloat(s.weight) || 0));
+
+        const currMaxR = Math.max(...currCompleted.map(s => parseInt(s.reps, 10) || 0));
+        const prevMaxR = Math.max(...prevCompleted.map(s => parseInt(s.reps, 10) || 0));
+
+        const currVol = currCompleted.reduce((sum, s) => sum + (parseFloat(s.weight) || 0) * (parseInt(s.reps, 10) || 0), 0);
+        const prevVol = prevCompleted.reduce((sum, s) => sum + (parseFloat(s.weight) || 0) * (parseInt(s.reps, 10) || 0), 0);
+
+        const type = ex.metricType || 'both';
+
+        if (type === 'reps') {
+          const diffR = currMaxR - prevMaxR;
+          if (diffR > 0) {
+            trendHtml = `<span class="workout-log-trend-badge trend-up">📈 +${diffR} חזרות</span>`;
+          } else if (diffR < 0) {
+            trendHtml = `<span class="workout-log-trend-badge trend-down">📉 ${diffR} חזרות</span>`;
+          } else {
+            trendHtml = `<span class="workout-log-trend-badge trend-neutral">ללא שינוי</span>`;
+          }
+        } else if (type === 'weight') {
+          const diffW = currMaxW - prevMaxW;
+          if (diffW > 0) {
+            trendHtml = `<span class="workout-log-trend-badge trend-up">📈 +${diffW} ק״ג</span>`;
+          } else if (diffW < 0) {
+            trendHtml = `<span class="workout-log-trend-badge trend-down">📉 ${diffW} ק״ג</span>`;
+          } else {
+            trendHtml = `<span class="workout-log-trend-badge trend-neutral">ללא שינוי</span>`;
+          }
+        } else { // 'both'
+          const diffW = currMaxW - prevMaxW;
+          if (diffW > 0) {
+            trendHtml = `<span class="workout-log-trend-badge trend-up">📈 +${diffW} ק״ג</span>`;
+          } else if (diffW < 0) {
+            trendHtml = `<span class="workout-log-trend-badge trend-down">📉 ${diffW} ק״ג</span>`;
+          } else {
+            // Compare volume if weight is identical
+            const diffV = currVol - prevVol;
+            if (diffV > 0) {
+              trendHtml = `<span class="workout-log-trend-badge trend-up">📈 +${Math.round(diffV)} ק״ג נפח</span>`;
+            } else if (diffV < 0) {
+              trendHtml = `<span class="workout-log-trend-badge trend-down">📉 ${Math.round(diffV)} ק״ג נפח</span>`;
+            } else {
+              trendHtml = `<span class="workout-log-trend-badge trend-neutral">ללא שינוי</span>`;
+            }
+          }
+        }
+      }
+
+      // Format sets as styled bubbles
+      const setBubblesHtml = ex.sets.filter(s => s.completed).map((s, idx) => {
+        let valText = '';
+        if (ex.metricType === 'reps') {
+          valText = `${s.reps} חזרות`;
+        } else if (ex.metricType === 'weight') {
+          valText = `${s.weight} ק״ג`;
+        } else {
+          valText = `${s.weight}ק״ג × ${s.reps}`;
+        }
+        return `
+          <span class="workout-log-set-bubble">
+            <span class="workout-log-set-num">סט ${idx + 1}:</span>
+            <span>${valText}</span>
+          </span>
+        `;
+      }).join('');
+
+      return `
+        <div class="workout-log-exercise-card">
+          <div class="workout-log-exercise-title-row">
+            <div class="workout-log-exercise-name-badge">
+              <span class="workout-log-ex-name">${ex.name}</span>
+              <span class="workout-log-ex-category">${cat}</span>
+            </div>
+            ${trendHtml}
+          </div>
+          <div class="workout-log-sets-bubbles">
+            ${setBubblesHtml}
+          </div>
+        </div>
+      `;
+    }).join('');
+
     card.innerHTML = `
       <div class="workout-log-header">
         <div class="workout-log-location">
@@ -863,8 +1013,11 @@ export function renderWorkoutsLog() {
         <div class="workout-log-stats">
           <span class="workout-log-volume">${item.totalVolume.toLocaleString()} ק״ג</span>
           ${prBadgeHtml}
+          <span class="workout-log-chevron">▼</span>
         </div>
       </div>
+      
+      <!-- Summary compact exercises list when collapsed -->
       <div class="workout-log-exercises">
         ${w.exercises.map(ex => {
           const exSetsText = formatExerciseSetsText(ex);
@@ -876,11 +1029,32 @@ export function renderWorkoutsLog() {
           `;
         }).join('')}
       </div>
+
+      <!-- Expanded detailed information sheet -->
+      <div class="workout-log-expanded-details">
+        ${muscleSplitHtml}
+        <div class="workout-log-exercises-premium">
+          ${premiumExercisesHtml}
+        </div>
+        <button class="workout-log-edit-btn">
+          <span>✏️</span> ערוך פרטי אימון
+        </button>
+      </div>
     `;
 
-    card.addEventListener('click', () => {
-      openEditModal(w.id);
+    // Collapsible toggle on clicking card (excluding the edit button)
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.workout-log-edit-btn')) return;
+      card.classList.toggle('expanded');
     });
+
+    const editBtn = card.querySelector('.workout-log-edit-btn');
+    if (editBtn) {
+      editBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openEditModal(w.id);
+      });
+    }
 
     container.appendChild(card);
   });
