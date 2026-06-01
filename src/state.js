@@ -1,12 +1,5 @@
 import { SafeStorage } from "./utils/storage.js";
 
-export const DEFAULT_MEAL_METRICS = [
-  { key: 'calories', name: 'קלוריות', unit: 'קק"ל', goal: 2200, emoji: '🔥', isCustom: false },
-  { key: 'protein', name: 'חלבון', unit: 'g', goal: 150, emoji: '🥩', isCustom: false },
-  { key: 'carbs', name: 'פחמימות', unit: 'g', goal: 220, emoji: '🌾', isCustom: false },
-  { key: 'fat', name: 'שומן', unit: 'g', goal: 70, emoji: '🥑', isCustom: false }
-];
-
 // AuraApp Shared State Container
 export const state = {
   // Authentication State
@@ -53,41 +46,6 @@ export const state = {
   activeLogsSubView: 'calendar',
   currentCalendarDate: new Date(),
   filterSortSelection: 'date-desc',
-  activeAnalyticsSegment: 'workouts', // 'workouts' or 'meals'
-  activeMealsSubTab: 'meals-log', // 'meals-log', 'meals-calendar', 'meals-settings', 'meals-ai'
-
-  // Meals State
-  loggedMeals: [],
-  mealMetrics: [...DEFAULT_MEAL_METRICS],
-  mealsDisplayStyle: 'concentric', // 'concentric', 'semicircle', or 'squares'
-
-  loadMealMetrics() {
-    if (this.currentUser) {
-      const displayStyle = SafeStorage.getItem(`aura-meals-display-style_${this.currentUser.uid}`);
-      if (displayStyle) {
-        this.mealsDisplayStyle = displayStyle;
-      }
-      const data = SafeStorage.getItem(`aura-meal-metrics_${this.currentUser.uid}`);
-      if (data) {
-        try {
-          this.mealMetrics = JSON.parse(data);
-          return;
-        } catch (e) {
-          console.error("Failed to parse meal metrics:", e);
-        }
-      }
-    }
-    this.mealMetrics = JSON.parse(JSON.stringify(DEFAULT_MEAL_METRICS));
-    if (!this.mealsDisplayStyle) {
-      this.mealsDisplayStyle = 'concentric';
-    }
-  },
-
-  saveMealMetrics() {
-    if (this.currentUser) {
-      SafeStorage.setItem(`aura-meal-metrics_${this.currentUser.uid}`, JSON.stringify(this.mealMetrics));
-      SafeStorage.setItem(`aura-meals-display-style_${this.currentUser.uid}`, this.mealsDisplayStyle);
-    }
-  }
+  activeAnalyticsSegment: 'workouts' // Only workouts is supported now
 };
 
