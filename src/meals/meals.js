@@ -872,7 +872,6 @@ export function bindMealsEvents() {
       renderAddMealSliders();
     });
   }
-  }
   
   // Save Settings Modal Button
   const saveSettingsBtn = document.getElementById('save-meal-settings-btn');
