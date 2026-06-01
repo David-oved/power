@@ -1,6 +1,4 @@
-const USER_VERSION = '9.6';
-const ADMIN_VERSION = '9.2';
-const CACHE_NAME = USER_VERSION;
+const CACHE_NAME = '7.2';
 const ASSETS = [
   './',
   './index.html',
@@ -62,11 +60,11 @@ self.addEventListener('fetch', (event) => {
   const isGoogleFont = url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com';
   const isAuthOrFirebase = 
     !isGoogleFont && (
-      url.hostname.startsWith('identitytoolkit.') ||
-      url.hostname.startsWith('securetoken.') ||
-      url.hostname.startsWith('firestore.') ||
-      url.hostname.startsWith('firebasestorage.') ||
-      url.hostname === 'accounts.google.com' ||
+      url.hostname.endsWith('firebaseapp.com') ||
+      url.hostname.endsWith('firebaseio.com') ||
+      url.hostname.endsWith('web.app') ||
+      url.hostname.endsWith('googleapis.com') ||
+      url.hostname.endsWith('google.com') ||
       url.hostname === 'ssl.gstatic.com' ||
       url.hostname === 'www.gstatic.com' ||
       event.request.url.includes('/__/auth/') ||
@@ -189,15 +187,6 @@ self.addEventListener('message', (event) => {
     if (event.ports && event.ports[0]) {
       const cleanVer = CACHE_NAME.replace('aura-app-', '').replace(/^v/, '');
       event.ports[0].postMessage({ version: cleanVer });
-    }
-  }
-  if (event.data && event.data.action === 'getVersionInfo') {
-    if (event.ports && event.ports[0]) {
-      event.ports[0].postMessage({
-        action: 'versionInfo',
-        userVersion: USER_VERSION,
-        adminVersion: ADMIN_VERSION
-      });
     }
   }
 });
