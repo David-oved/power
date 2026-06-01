@@ -144,6 +144,18 @@ export function updateAuthUI() {
     floatingUserPhoto.src = photoURL;
     floatingUserPhoto.onerror = () => { floatingUserPhoto.src = initialsFallback; };
   }
+
+  // Populate system role diagnostic field
+  const roleField = document.getElementById('settings-user-role-field');
+  if (roleField) {
+    if (state.currentUserRole === 'admin') {
+      roleField.textContent = "מנהל מערכת 👑";
+      roleField.style.color = "#ff9500";
+    } else {
+      roleField.textContent = "משתמש רגיל 👥";
+      roleField.style.color = "#8e8e93";
+    }
+  }
 }
 
 // Translate auth error codes into friendly Hebrew
