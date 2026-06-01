@@ -40,18 +40,84 @@ if ('serviceWorker' in navigator) {
       
       const messageChannel = new MessageChannel();
       messageChannel.port1.onmessage = (event) => {
-        if (event.data && event.data.version) {
-          const badge = document.getElementById('app-version-display');
-          if (badge) {
-            badge.textContent = `v${event.data.version}`;
+        if (event.data) {
+          let ver = event.data.version;
+          if (event.data.action === 'versionInfo') {
+            const isAdmin = state.currentUserRole === 'admin';
+            ver = isAdmin ? event.data.adminVersion : event.data.userVersion;
           }
-          const settingsVer = document.getElementById('settings-system-version');
-          if (settingsVer) {
-            settingsVer.textContent = `v${event.data.version}`;
+          if (ver) {
+            const badge = document.getElementById('app-version-display');
+            if (badge) badge.textContent = `v${ver}`;
+            const settingsVer = document.getElementById('settings-system-version');
+            if (settingsVer) settingsVer.textContent = `v${ver}`;
           }
         }
       };
-      activeWorker.postMessage({ action: 'getVersion' }, [messageChannel.port2]);
+      
+      activeWorker.postMessage({ action: 'getVersionInfo' }, [messageChannel.port2]);
+      
+      const fallbackChannel = new MessageChannel();
+      fallbackChannel.port1.onmessage = (e) => {
+        if (e.data && e.data.version) {
+          const badge = document.getElementById('app-version-display');
+          if (badge && (!badge.textContent || badge.textContent === 'v1.1')) {
+            badge.textContent = `v${e.data.version}`;
+          }
+          const settingsVer = document.getElementById('settings-system-version');
+          if (settingsVer && (!settingsVer.textContent || settingsVer.textContent === 'v1.2')) {
+            settingsVer.textContent = `v${e.data.version}`;
+          }
+        }
+      };
+      activeWorker.postMessage({ action: 'getVersion' }, [fallbackChannel.port2]);
+    };
+
+    const checkIfUpdateAppliesAndShow = (newWorker) => {
+      const activeWorker = navigator.serviceWorker.controller;
+      if (!activeWorker) {
+        newWorker.postMessage({ action: 'skipWaiting' });
+        return;
+      }
+
+      const channelForNew = new MessageChannel();
+      channelForNew.port1.onmessage = (eventNew) => {
+        if (eventNew.data && eventNew.data.action === 'versionInfo') {
+          const newU = eventNew.data.userVersion;
+          const newA = eventNew.data.adminVersion;
+
+          const channelForActive = new MessageChannel();
+          channelForActive.port1.onmessage = (eventActive) => {
+            if (eventActive.data && eventActive.data.action === 'versionInfo') {
+              const activeU = eventActive.data.userVersion;
+              const activeA = eventActive.data.adminVersion;
+
+              const isAdmin = state.currentUserRole === 'admin';
+              let updateNeeded = false;
+
+              if (isAdmin) {
+                updateNeeded = (newA !== activeA) || (newU !== activeU);
+              } else {
+                updateNeeded = (newU !== activeU);
+              }
+
+              if (updateNeeded) {
+                console.log(`Update applies to role ${state.currentUserRole}. Showing update toast.`);
+                showUpdateToast(newWorker);
+              } else {
+                console.log(`Update does NOT apply to role ${state.currentUserRole}. Skipping waiting silently.`);
+                newWorker.postMessage({ action: 'downloadAndActivate' });
+              }
+            } else {
+              showUpdateToast(newWorker);
+            }
+          };
+          activeWorker.postMessage({ action: 'getVersionInfo' }, [channelForActive.port2]);
+        } else {
+          showUpdateToast(newWorker);
+        }
+      };
+      newWorker.postMessage({ action: 'getVersionInfo' }, [channelForNew.port2]);
     };
 
     window.addEventListener('load', () => {
@@ -82,7 +148,7 @@ if ('serviceWorker' in navigator) {
           }, 5 * 60 * 1000);
 
           if (registration.waiting) {
-            showUpdateToast(registration.waiting);
+            checkIfUpdateAppliesAndShow(registration.waiting);
           }
 
           registration.addEventListener('updatefound', () => {
@@ -90,7 +156,7 @@ if ('serviceWorker' in navigator) {
             if (newWorker) {
               newWorker.addEventListener('statechange', () => {
                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                  showUpdateToast(newWorker);
+                  checkIfUpdateAppliesAndShow(newWorker);
                 }
               });
             }
