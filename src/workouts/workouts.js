@@ -202,6 +202,73 @@ export function initWorkouts() {
       state.activeWorkout = null;
     }
   }
+
+  // Update dynamic quick stats dashboard on workouts tab
+  updateWorkoutDashboardStats();
+}
+
+// Calculate and update dynamic Quick Stats on the main workouts tab
+export function updateWorkoutDashboardStats() {
+  if (!state.currentUser) return;
+
+  const history = state.workoutHistory || [];
+
+  // 1. Weekly Workouts (workouts within last 7 days)
+  const now = Date.now();
+  const oneWeekAgo = now - 7 * 24 * 60 * 60 * 1000;
+  const weeklyCount = history.filter(w => w.date >= oneWeekAgo).length;
+
+  // 2. Total duration in minutes
+  const totalMinutes = Math.round(history.reduce((sum, w) => sum + (w.duration || 0), 0) / 60);
+
+  // 3. Monthly Workouts (current calendar month)
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+  const monthlyCount = history.filter(w => {
+    const d = new Date(w.date);
+    return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+  }).length;
+
+  // 4. Last workout details
+  let lastWorkoutText = "אין";
+  if (history.length > 0) {
+    const sorted = [...history].sort((a, b) => b.date - a.date);
+    const last = sorted[0];
+    const diffMs = now - last.date;
+    const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
+
+    let timeAgo = "";
+    if (diffDays === 0) timeAgo = "היום";
+    else if (diffDays === 1) timeAgo = "אתמול";
+    else if (diffDays === 2) timeAgo = "שלשום";
+    else timeAgo = `לפני ${diffDays} ימים`;
+
+    lastWorkoutText = `${last.locationEmoji || '💪'} ${timeAgo}`;
+  }
+
+  // Update DOM elements safely
+  const weeklyEl = document.getElementById('workout-stats-weekly');
+  const minutesEl = document.getElementById('workout-stats-minutes');
+  const monthlyEl = document.getElementById('workout-stats-monthly');
+  const lastEl = document.getElementById('workout-stats-last');
+  const userNameEl = document.getElementById('workout-user-name');
+  const quoteEl = document.getElementById('workout-daily-quote');
+
+  if (weeklyEl) weeklyEl.textContent = weeklyCount;
+  if (minutesEl) minutesEl.textContent = totalMinutes;
+  if (monthlyEl) monthlyEl.textContent = monthlyCount;
+  if (lastEl) lastEl.textContent = lastWorkoutText;
+
+  if (userNameEl && state.currentUser) {
+    userNameEl.textContent = state.currentUser.displayName || "מתאמן";
+  }
+
+  // Set a random Hebrew quote if not already set for this session
+  if (quoteEl && !quoteEl.dataset.initialized) {
+    const randIdx = Math.floor(Math.random() * HEBREW_QUOTES.length);
+    quoteEl.textContent = `"${HEBREW_QUOTES[randIdx]}"`;
+    quoteEl.dataset.initialized = "true";
+  }
 }
 
 // Clear workout session on logout
@@ -395,6 +462,9 @@ export function resumeWorkoutTimer() {
   updateActiveTimer();
   
   renderExercises();
+  
+  // Restore active rest timer if running
+  recoverRestTimer();
 }
 
 export function updateActiveTimer() {
@@ -612,6 +682,15 @@ export function renderExercises() {
   
   container.innerHTML = '';
   
+  // Update Dynamic Progress Bar
+  const totalExercises = state.activeWorkout.exercises.length;
+  const completedExercises = state.activeWorkout.exercises.filter(ex => ex.completed).length;
+  const pct = totalExercises > 0 ? (completedExercises / totalExercises) * 100 : 0;
+  const progressBar = document.getElementById('active-workout-progress-bar');
+  if (progressBar) {
+    progressBar.style.width = `${pct}%`;
+  }
+
   const hasUncompleted = state.activeWorkout.exercises.some(ex => !ex.completed && ex.sets.some(s => s.completed));
   const addExerciseBtn = document.getElementById('add-exercise-btn');
   
@@ -629,9 +708,12 @@ export function renderExercises() {
   
   state.activeWorkout.exercises.forEach((ex, exIdx) => {
     const card = document.createElement('div');
-    card.className = `exercise-card ${ex.completed ? 'saved' : ''}`;
+    card.className = `exercise-card ${ex.completed ? 'saved collapsed' : 'active-ex-card'}`;
     
-    const metricType = ex.metricType || 'both';
+    // Check enabled metrics
+    const showWeight = ex.metrics ? ex.metrics.includes('weight') : (ex.metricType === 'both' || ex.metricType === 'weight');
+    const showReps = ex.metrics ? ex.metrics.includes('reps') : (ex.metricType === 'both' || ex.metricType === 'reps');
+    const showTime = ex.metrics ? ex.metrics.includes('time') : (ex.metricType === 'time');
     
     const header = document.createElement('div');
     header.className = 'exercise-card-header';
@@ -660,9 +742,12 @@ export function renderExercises() {
     nameLabel.textContent = ex.name;
     titleContainer.appendChild(nameLabel);
     
-    let metricLabel = '⚖️ משקל וחזרות';
-    if (metricType === 'reps') metricLabel = '🔢 חזרות בלבד';
-    if (metricType === 'weight') metricLabel = '🏋️‍♂️ משקל בלבד';
+    // Format dynamic Hebrew badge label
+    const parts = [];
+    if (showWeight) parts.push('משקל ⚖️');
+    if (showReps) parts.push('חזרות 🔢');
+    if (showTime) parts.push('זמן ⏱️');
+    const metricLabel = parts.join(' + ');
     
     const metricBadge = document.createElement('span');
     metricBadge.className = 'badge-mini';
@@ -783,14 +868,12 @@ export function renderExercises() {
         chip.style.color = '#ffffff';
         chip.style.gap = '6px';
         
-        let valueStr = '';
-        if (metricType === 'both') {
-          valueStr = `${set.weight || 0} ק״ג × ${set.reps || 0}`;
-        } else if (metricType === 'weight') {
-          valueStr = `${set.weight || 0} ק״ג`;
-        } else {
-          valueStr = `${set.reps || 0} חזרות`;
-        }
+        // Format values string dynamically based on showWeight, showReps, showTime
+        const valParts = [];
+        if (showWeight) valParts.push(`${set.weight || 0} ק״ג`);
+        if (showReps) valParts.push(`${set.reps || 0} חזרות`);
+        if (showTime) valParts.push(`${set.time || 0} ש׳`);
+        const valueStr = valParts.join(' × ');
         
         const realIdx = ex.sets.indexOf(set);
         chip.innerHTML = `
@@ -928,6 +1011,88 @@ export function updateRestTimerUI() {
   }
 }
 
+export function recoverRestTimer() {
+  if (!state.activeWorkout) {
+    if (state.restTimerInterval) {
+      stopRestTimer();
+    } else {
+      SafeStorage.removeItem('aura-rest-timer-end-time');
+    }
+    return;
+  }
+
+  const endTimeStr = SafeStorage.getItem('aura-rest-timer-end-time');
+  if (!endTimeStr) return;
+
+  const endTime = parseInt(endTimeStr, 10);
+  const remaining = Math.round((endTime - Date.now()) / 1000);
+
+  const bubble = document.getElementById('rest-timer-bubble');
+
+  if (remaining > 0) {
+    if (bubble) {
+      bubble.classList.remove('hide');
+      bubble.classList.remove('expired');
+    }
+    state.restTimerSecondsLeft = remaining;
+    state.restTimerTotalDuration = Math.max(state.restTimerTotalDuration || 90, remaining);
+    updateRestTimerUI();
+
+    if (!state.restTimerInterval) {
+      const quoteEl = document.getElementById('rest-timer-quote');
+      if (quoteEl && !quoteEl.textContent) {
+        const randIdx = Math.floor(Math.random() * HEBREW_QUOTES.length);
+        quoteEl.textContent = `"${HEBREW_QUOTES[randIdx]}"`;
+      }
+
+      state.restTimerInterval = setInterval(() => {
+        state.restTimerSecondsLeft--;
+        if (state.restTimerSecondsLeft <= 0) {
+          state.restTimerSecondsLeft = 0;
+          updateRestTimerUI();
+          handleRestTimerExpiration();
+        } else {
+          updateRestTimerUI();
+        }
+      }, 1000);
+    }
+  } else {
+    // Timer expired while app was closed / backgrounded
+    const timeSinceExpiry = -remaining;
+    if (timeSinceExpiry < 300) { // less than 5 minutes ago
+      if (bubble) {
+        bubble.classList.remove('hide');
+        bubble.classList.add('expired');
+      }
+      state.restTimerSecondsLeft = 0;
+      updateRestTimerUI();
+      handleRestTimerExpiration();
+    } else {
+      stopRestTimer();
+    }
+  }
+}
+
+export function updateRestTimerRecoveryState() {
+  if (state.restTimerSecondsLeft > 0) {
+    const newEndTime = Date.now() + state.restTimerSecondsLeft * 1000;
+    SafeStorage.setItem('aura-rest-timer-end-time', String(newEndTime));
+    
+    // Update Service Worker notification
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({
+        action: 'scheduleRestNotification',
+        delayMs: state.restTimerSecondsLeft * 1000
+      });
+    }
+  } else {
+    SafeStorage.removeItem('aura-rest-timer-end-time');
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      navigator.serviceWorker.controller.postMessage({ action: 'cancelRestNotification' });
+    }
+  }
+}
+
 export function playRestAlarmSynth() {
   try {
     const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -1015,23 +1180,25 @@ export function openSetLoggingModal(ex) {
   if (nameDisplay) nameDisplay.textContent = ex.name;
   if (setNumDisplay) setNumDisplay.textContent = `סט ${state.currentLoggingSetIndex + 1}`;
 
+  const showWeight = ex.metrics ? ex.metrics.includes('weight') : (ex.metricType === 'both' || ex.metricType === 'weight');
+  const showReps = ex.metrics ? ex.metrics.includes('reps') : (ex.metricType === 'both' || ex.metricType === 'reps');
+  const showTime = ex.metrics ? ex.metrics.includes('time') : (ex.metricType === 'time');
+
   const weightGroup = document.getElementById('set-log-weight-group');
   const repsGroup = document.getElementById('set-log-reps-group');
-  const metricType = ex.metricType || 'both';
+  const timeGroup = document.getElementById('set-log-time-group');
 
   if (weightGroup) {
-    if (metricType === 'reps') {
-      weightGroup.classList.add('slider-group-hidden');
-    } else {
-      weightGroup.classList.remove('slider-group-hidden');
-    }
+    if (showWeight) weightGroup.classList.remove('slider-group-hidden');
+    else weightGroup.classList.add('slider-group-hidden');
   }
   if (repsGroup) {
-    if (metricType === 'weight') {
-      repsGroup.classList.add('slider-group-hidden');
-    } else {
-      repsGroup.classList.remove('slider-group-hidden');
-    }
+    if (showReps) repsGroup.classList.remove('slider-group-hidden');
+    else repsGroup.classList.add('slider-group-hidden');
+  }
+  if (timeGroup) {
+    if (showTime) timeGroup.classList.remove('slider-group-hidden');
+    else timeGroup.classList.add('slider-group-hidden');
   }
 
   const completedSets = ex.sets.filter(s => s.completed);
@@ -1039,16 +1206,20 @@ export function openSetLoggingModal(ex) {
 
   let initialWeight = 60;
   let initialReps = 10;
+  let initialTime = 30;
 
   if (previousSet) {
     initialWeight = parseFloat(previousSet.weight) || 60;
     initialReps = parseInt(previousSet.reps, 10) || 10;
+    initialTime = parseInt(previousSet.time, 10) || 30;
   }
 
   const weightSlider = document.getElementById('weight-range-slider');
   const weightValueText = document.getElementById('weight-slider-value');
   const repsSlider = document.getElementById('reps-range-slider');
   const repsValueText = document.getElementById('reps-slider-value');
+  const timeSlider = document.getElementById('time-range-slider');
+  const timeValueText = document.getElementById('time-slider-value');
 
   if (weightSlider) {
     weightSlider.value = initialWeight;
@@ -1057,6 +1228,10 @@ export function openSetLoggingModal(ex) {
   if (repsSlider) {
     repsSlider.value = initialReps;
     if (repsValueText) repsValueText.textContent = initialReps;
+  }
+  if (timeSlider) {
+    timeSlider.value = initialTime;
+    if (timeValueText) timeValueText.textContent = initialTime;
   }
 
   const setLogModal = document.getElementById('set-log-modal');
@@ -1342,6 +1517,8 @@ export function deleteWorkoutFromHistory(workoutId) {
   
   if (window.renderWorkoutHistory) window.renderWorkoutHistory();
   
+  updateWorkoutDashboardStats();
+  
   const editModal = document.getElementById('workout-edit-modal');
   if (editModal) editModal.classList.add('hide');
   state.editingWorkout = null;
@@ -1354,6 +1531,8 @@ export function initWorkoutsModule() {
   window.clearWorkoutSession = clearWorkoutSession;
   window.startRestTimer = startRestTimer;
   window.stopRestTimer = stopRestTimer;
+  window.recoverRestTimer = recoverRestTimer;
+  window.updateRestTimerRecoveryState = updateRestTimerRecoveryState;
   window.renderExercises = renderExercises;
   window.openEditModal = openEditModal;
   window.renderModalExercises = renderModalExercises;
@@ -1612,12 +1791,11 @@ export function initWorkoutsModule() {
     });
   }
 
-  // Handle click on premium metric selector cards to make them statefully selectable
+  // Handle click on premium metric selector cards to make them multi-selectable (checkbox style)
   const metricCards = document.querySelectorAll('.premium-metric-card');
   metricCards.forEach(card => {
     card.addEventListener('click', () => {
-      metricCards.forEach(c => c.classList.remove('active'));
-      card.classList.add('active');
+      card.classList.toggle('active');
     });
   });
 
@@ -1634,9 +1812,26 @@ export function initWorkoutsModule() {
       
       if (!state.activeWorkout) return;
       
-      // Extract active metric type from selection
-      const activeCard = document.querySelector('.premium-metric-card.active');
-      const metricType = activeCard ? activeCard.getAttribute('data-metric') : 'both';
+      // Extract active metrics list from selection
+      const activeCards = document.querySelectorAll('.premium-metric-card.active');
+      const activeMetrics = Array.from(activeCards).map(c => c.getAttribute('data-metric'));
+      
+      if (activeMetrics.length === 0) {
+        alert('אנא בחר לפחות מדד אחד למדידה.');
+        return;
+      }
+      
+      // Map selection to a metricType string for backward compatibility
+      let metricType = 'both';
+      if (activeMetrics.includes('weight') && !activeMetrics.includes('reps') && !activeMetrics.includes('time')) {
+        metricType = 'weight';
+      } else if (!activeMetrics.includes('weight') && activeMetrics.includes('reps') && !activeMetrics.includes('time')) {
+        metricType = 'reps';
+      } else if (!activeMetrics.includes('weight') && !activeMetrics.includes('reps') && activeMetrics.includes('time')) {
+        metricType = 'time';
+      } else {
+        metricType = 'custom';
+      }
       
       // Extract rest time
       const activeRestChip = document.querySelector('#rest-time-chips-container .rest-option-chip.active');
@@ -1648,6 +1843,7 @@ export function initWorkoutsModule() {
 
       const newExercise = {
         name: state.selectedExerciseForAdding,
+        metrics: activeMetrics,
         metricType: metricType,
         restTime: seconds,
         targetSetsCount: targetSets,
@@ -1658,6 +1854,7 @@ export function initWorkoutsModule() {
       state.activeWorkout.exercises.push(newExercise);
       saveActiveWorkoutState();
       
+      const metricModal = document.getElementById('metric-selector-modal');
       if (metricModal) metricModal.classList.add('hide');
       state.selectedExerciseForAdding = null;
       
@@ -1792,6 +1989,8 @@ export function initWorkoutsModule() {
       
       if (window.renderWorkoutHistory) window.renderWorkoutHistory();
       
+      updateWorkoutDashboardStats();
+      
       const analyticsTabBtn = document.querySelector('.ios-bottom-nav .nav-tab[data-tab="analytics"]');
       if (analyticsTabBtn) {
         analyticsTabBtn.click();
@@ -1863,6 +2062,8 @@ export function initWorkoutsModule() {
         
         if (window.renderWorkoutHistory) window.renderWorkoutHistory();
         
+        updateWorkoutDashboardStats();
+        
         if (editModal) editModal.classList.add('hide');
         state.editingWorkout = null;
       }
@@ -1889,6 +2090,9 @@ export function initWorkoutsModule() {
     plus30Btn.addEventListener('click', () => {
       state.restTimerSecondsLeft += 30;
       state.restTimerTotalDuration = Math.max(state.restTimerTotalDuration, state.restTimerSecondsLeft);
+      
+      updateRestTimerRecoveryState();
+      
       if (state.restTimerSecondsLeft > 0 && !state.restTimerInterval) {
         const bubble = document.getElementById('rest-timer-bubble');
         if (bubble) bubble.classList.remove('expired');
@@ -1911,6 +2115,9 @@ export function initWorkoutsModule() {
   if (minus30Btn) {
     minus30Btn.addEventListener('click', () => {
       state.restTimerSecondsLeft = Math.max(0, state.restTimerSecondsLeft - 30);
+      
+      updateRestTimerRecoveryState();
+      
       updateRestTimerUI();
       if (state.restTimerSecondsLeft === 0) {
         handleRestTimerExpiration();
@@ -1924,11 +2131,15 @@ export function initWorkoutsModule() {
   const weightValueText = document.getElementById('weight-slider-value');
   const repsSlider = document.getElementById('reps-range-slider');
   const repsValueText = document.getElementById('reps-slider-value');
+  const timeSlider = document.getElementById('time-range-slider');
+  const timeValueText = document.getElementById('time-slider-value');
 
   const weightMinusBtn = document.getElementById('weight-minus-btn');
   const weightPlusBtn = document.getElementById('weight-plus-btn');
   const repsMinusBtn = document.getElementById('reps-minus-btn');
   const repsPlusBtn = document.getElementById('reps-plus-btn');
+  const timeMinusBtn = document.getElementById('time-minus-btn');
+  const timePlusBtn = document.getElementById('time-plus-btn');
 
   const confirmSetBtn = document.getElementById('set-log-confirm-btn');
   const cancelSetBtn = document.getElementById('set-log-cancel-btn');
@@ -1941,6 +2152,11 @@ export function initWorkoutsModule() {
   if (repsSlider && repsValueText) {
     repsSlider.addEventListener('input', () => {
       repsValueText.textContent = repsSlider.value;
+    });
+  }
+  if (timeSlider && timeValueText) {
+    timeSlider.addEventListener('input', () => {
+      timeValueText.textContent = timeSlider.value;
     });
   }
 
@@ -1980,6 +2196,23 @@ export function initWorkoutsModule() {
     });
   }
 
+  if (timeMinusBtn && timeSlider && timeValueText) {
+    timeMinusBtn.addEventListener('click', () => {
+      let val = parseInt(timeSlider.value, 10) || 0;
+      val = Math.max(0, val - 5);
+      timeSlider.value = val;
+      timeValueText.textContent = val;
+    });
+  }
+  if (timePlusBtn && timeSlider && timeValueText) {
+    timePlusBtn.addEventListener('click', () => {
+      let val = parseInt(timeSlider.value, 10) || 0;
+      val = Math.min(600, val + 5);
+      timeSlider.value = val;
+      timeValueText.textContent = val;
+    });
+  }
+
   if (setLogModal) {
     setLogModal.addEventListener('click', (e) => {
       if (e.target === setLogModal) {
@@ -1995,19 +2228,28 @@ export function initWorkoutsModule() {
       if (!state.currentLoggingExercise) return;
 
       const metricType = state.currentLoggingExercise.metricType || 'both';
+      const showWeight = state.currentLoggingExercise.metrics ? state.currentLoggingExercise.metrics.includes('weight') : (metricType === 'both' || metricType === 'weight');
+      const showReps = state.currentLoggingExercise.metrics ? state.currentLoggingExercise.metrics.includes('reps') : (metricType === 'both' || metricType === 'reps');
+      const showTime = state.currentLoggingExercise.metrics ? state.currentLoggingExercise.metrics.includes('time') : (metricType === 'time');
+
       let repsVal = '';
       let weightVal = '';
+      let timeVal = '';
 
-      if (metricType === 'both' || metricType === 'reps') {
+      if (showReps) {
         repsVal = repsSlider ? repsSlider.value : '10';
       }
-      if (metricType === 'both' || metricType === 'weight') {
+      if (showWeight) {
         weightVal = weightSlider ? weightSlider.value : '60';
+      }
+      if (showTime) {
+        timeVal = timeSlider ? timeSlider.value : '30';
       }
 
       const loggedSet = {
         reps: repsVal,
         weight: weightVal,
+        time: timeVal,
         completed: true
       };
 
@@ -2100,6 +2342,28 @@ export function initRestTimerInteraction() {
   let initialDistance = 0;
   let initialScale = 1;
 
+  function snapToEdge() {
+    const bubbleRect = bubble.getBoundingClientRect();
+    const bubbleWidth = bubbleRect.width;
+    const screenWidth = window.innerWidth;
+    
+    // centerX relative to window
+    const centerX = (screenWidth / 2) + currentX;
+    const padding = 16;
+    let targetX = 0;
+    
+    if (centerX < screenWidth / 2) {
+      // Snap to left edge
+      targetX = padding + (bubbleWidth / 2) - (screenWidth / 2);
+    } else {
+      // Snap to right edge
+      targetX = screenWidth - padding - (bubbleWidth / 2) - (screenWidth / 2);
+    }
+    
+    currentX = targetX;
+    updateBubbleTransform();
+  }
+
   // Touch handlers for mobile dragging & pinch-to-size
   bubble.addEventListener('touchstart', (e) => {
     if (e.touches.length === 1) {
@@ -2139,7 +2403,8 @@ export function initRestTimerInteraction() {
 
   bubble.addEventListener('touchend', () => {
     isDragging = false;
-    bubble.style.transition = 'transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.1)';
+    bubble.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.15)';
+    snapToEdge();
   });
 
   // Mouse drag handlers for desktop accessibility
@@ -2164,8 +2429,9 @@ export function initRestTimerInteraction() {
   document.addEventListener('mouseup', () => {
     if (isDragging) {
       isDragging = false;
-      bubble.style.transition = 'transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.1)';
+      bubble.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.15)';
       bubble.style.cursor = 'grab';
+      snapToEdge();
     }
   });
 
@@ -2180,34 +2446,7 @@ export function initRestTimerInteraction() {
   // PWA Background rest timer recovery logic
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
-      const endTimeStr = SafeStorage.getItem('aura-rest-timer-end-time');
-      if (endTimeStr) {
-        const endTime = parseInt(endTimeStr, 10);
-        const remaining = Math.round((endTime - Date.now()) / 1000);
-        if (remaining > 0) {
-          state.restTimerSecondsLeft = remaining;
-          updateRestTimerUI();
-          
-          if (!state.restTimerInterval) {
-            state.restTimerInterval = setInterval(() => {
-              state.restTimerSecondsLeft--;
-              if (state.restTimerSecondsLeft <= 0) {
-                state.restTimerSecondsLeft = 0;
-                updateRestTimerUI();
-                handleRestTimerExpiration();
-              } else {
-                updateRestTimerUI();
-              }
-            }, 1000);
-          }
-        } else {
-          // Timer expired in the background
-          SafeStorage.removeItem('aura-rest-timer-end-time');
-          state.restTimerSecondsLeft = 0;
-          updateRestTimerUI();
-          handleRestTimerExpiration();
-        }
-      }
+      recoverRestTimer();
     }
   });
 
