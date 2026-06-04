@@ -361,11 +361,11 @@
 
             <!-- Active Workout Control Buttons -->
             <div class="active-workout-controls">
-              <button id="add-exercise-btn" class="btn btn-secondary add-ex-btn" style="flex: 1;">
-                <span>➕</span> הוספת תרגיל
+              <button id="add-exercise-btn" class="btn add-ex-btn">
+                <span class="btn-ex-icon">🏋️</span> הוספת תרגיל
               </button>
-              <button id="finish-workout-btn" class="btn btn-primary finish-workout-btn" style="flex: 1; background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%) !important; box-shadow: 0 4px 15px rgba(22, 163, 74, 0.3) !important;">
-                <span>✓</span> סיום אימון
+              <button id="finish-workout-btn" class="btn finish-workout-btn">
+                <span>✓</span> סיום
               </button>
             </div>
           </div>
@@ -449,32 +449,32 @@
                 <!-- 3. Measurement Type (Stateful Selectable Cards) -->
                 <h4 style="font-size: 1.02rem; font-weight: 800; margin-bottom: 12px; color: #ffffff; text-align: right; direction: rtl;">⚖️ סוג המדדים למדידה</h4>
                 <div class="premium-metric-card-grid">
-                  <!-- Weight and Reps Card -->
-                  <div class="premium-metric-card active" data-metric="both">
-                    <div class="premium-metric-icon">⚖️</div>
-                    <div class="premium-metric-details">
-                      <span class="premium-metric-title">משקל וחזרות</span>
-                      <span class="premium-metric-desc">מומלץ לתרגילי התנגדות, משקולות ומכונות</span>
-                    </div>
-                    <div class="premium-metric-badge">✓</div>
-                  </div>
-
-                  <!-- Reps Only Card -->
-                  <div class="premium-metric-card" data-metric="reps">
-                    <div class="premium-metric-icon">🔢</div>
-                    <div class="premium-metric-details">
-                      <span class="premium-metric-title">חזרות בלבד</span>
-                      <span class="premium-metric-desc">מתאים למשקל גוף (מתח, שכיבות סמיכה) או אירובי</span>
-                    </div>
-                    <div class="premium-metric-badge">✓</div>
-                  </div>
-
-                  <!-- Weight Only Card -->
-                  <div class="premium-metric-card" data-metric="weight">
+                  <!-- Weight Card -->
+                  <div class="premium-metric-card active" data-metric="weight">
                     <div class="premium-metric-icon">🏋️‍♂️</div>
                     <div class="premium-metric-details">
-                      <span class="premium-metric-title">משקל בלבד</span>
-                      <span class="premium-metric-desc">להרמות כוח טהור או בדיקות התנגדות סטטיות</span>
+                      <span class="premium-metric-title">משקל</span>
+                      <span class="premium-metric-desc">מעקב אחר המשקל המורם בסט (ק״ג)</span>
+                    </div>
+                    <div class="premium-metric-badge">✓</div>
+                  </div>
+
+                  <!-- Reps Card -->
+                  <div class="premium-metric-card active" data-metric="reps">
+                    <div class="premium-metric-icon">🔢</div>
+                    <div class="premium-metric-details">
+                      <span class="premium-metric-title">חזרות</span>
+                      <span class="premium-metric-desc">מעקב אחר מספר החזרות שבוצעו בסט</span>
+                    </div>
+                    <div class="premium-metric-badge">✓</div>
+                  </div>
+
+                  <!-- Time Card -->
+                  <div class="premium-metric-card" data-metric="time">
+                    <div class="premium-metric-icon">⏱️</div>
+                    <div class="premium-metric-details">
+                      <span class="premium-metric-title">זמן</span>
+                      <span class="premium-metric-desc">מעקב אחר משך הזמן בשניות</span>
                     </div>
                     <div class="premium-metric-badge">✓</div>
                   </div>
@@ -569,6 +569,19 @@
                   </div>
                 </div>
 
+                <!-- Time Slider Row -->
+                <div class="slider-group-container" id="set-log-time-group" style="display: flex; flex-direction: column; gap: 8px;">
+                  <div class="slider-header" style="display: flex; justify-content: space-between; align-items: center; direction: rtl;">
+                    <span style="font-size: 0.95rem; font-weight: 700; color: var(--text-muted);">זמן</span>
+                    <span class="slider-display-value" style="font-size: 1.3rem; font-weight: 800; color: #ffffff;"><span id="time-slider-value">30</span> שניות</span>
+                  </div>
+                  <div class="slider-control-row" style="display: flex; align-items: center; gap: 10px; direction: ltr;">
+                    <button type="button" id="time-minus-btn" class="slider-adjust-btn" style="width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.3rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center;">-</button>
+                    <input type="range" id="time-range-slider" class="premium-range-slider" min="0" max="300" step="5" value="30" style="flex: 1; height: 6px; border-radius: 3px; outline: none; background: rgba(255,255,255,0.1);">
+                    <button type="button" id="time-plus-btn" class="slider-adjust-btn" style="width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.3rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center;">+</button>
+                  </div>
+                </div>
+
               </div>
 
               <!-- Action Buttons -->
@@ -632,42 +645,38 @@
                 <!-- Category Selector (Muscle Group Cards Grid) -->
                 <div class="custom-ex-field-group">
                   <label class="custom-ex-field-label">קטגוריה (בחר קבוצת שריר)</label>
-                  <div id="custom-ex-category-selector" class="custom-ex-category-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 8px;">
-                    <button class="muscle-card active" data-category="חזה" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); color: #fff; cursor: pointer; transition: all 0.2s;">
-                      <span style="font-size: 1.5rem; margin-bottom: 4px;">🍒</span>
-                      <span style="font-size: 0.85rem; font-weight: 700;">חזה</span>
+                  <div id="custom-ex-category-selector" class="custom-ex-category-grid">
+                    <button class="muscle-card active" data-category="חזה">
+                      <span>🍒</span>
+                      <span>חזה</span>
                     </button>
-                    <button class="muscle-card" data-category="גב" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); color: #fff; cursor: pointer; transition: all 0.2s;">
-                      <span style="font-size: 1.5rem; margin-bottom: 4px;">🦅</span>
-                      <span style="font-size: 0.85rem; font-weight: 700;">גב</span>
+                    <button class="muscle-card" data-category="גב">
+                      <span>🦅</span>
+                      <span>גב</span>
                     </button>
-                    <button class="muscle-card" data-category="כתפיים" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); color: #fff; cursor: pointer; transition: all 0.2s;">
-                      <span style="font-size: 1.5rem; margin-bottom: 4px;">🛡️</span>
-                      <span style="font-size: 0.85rem; font-weight: 700;">כתפיים</span>
+                    <button class="muscle-card" data-category="כתפיים">
+                      <span>🛡️</span>
+                      <span>כתפיים</span>
                     </button>
-                    <button class="muscle-card" data-category="רגליים" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); color: #fff; cursor: pointer; transition: all 0.2s;">
-                      <span style="font-size: 1.5rem; margin-bottom: 4px;">🦵</span>
-                      <span style="font-size: 0.85rem; font-weight: 700;">רגליים</span>
+                    <button class="muscle-card" data-category="רגליים">
+                      <span>🦵</span>
+                      <span>רגליים</span>
                     </button>
-                    <button class="muscle-card" data-category="ידיים" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); color: #fff; cursor: pointer; transition: all 0.2s;">
-                      <span style="font-size: 1.5rem; margin-bottom: 4px;">💪</span>
-                      <span style="font-size: 0.85rem; font-weight: 700;">ידיים</span>
+                    <button class="muscle-card" data-category="ידיים">
+                      <span>💪</span>
+                      <span>ידיים</span>
                     </button>
-                    <button class="muscle-card" data-category="בטן" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); color: #fff; cursor: pointer; transition: all 0.2s;">
-                      <span style="font-size: 1.5rem; margin-bottom: 4px;">🍫</span>
-                      <span style="font-size: 0.85rem; font-weight: 700;">בטן</span>
+                    <button class="muscle-card" data-category="בטן וליבה">
+                      <span>🧘‍♂️</span>
+                      <span>בטן וליבה</span>
                     </button>
-                    <button class="muscle-card" data-category="אירובי" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); color: #fff; cursor: pointer; transition: all 0.2s;">
-                      <span style="font-size: 1.5rem; margin-bottom: 4px;">🏃</span>
-                      <span style="font-size: 0.85rem; font-weight: 700;">אירובי</span>
+                    <button class="muscle-card" data-category="אירובי">
+                      <span>🏃</span>
+                      <span>אירובי</span>
                     </button>
-                    <button class="muscle-card" data-category="ליבה" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); color: #fff; cursor: pointer; transition: all 0.2s;">
-                      <span style="font-size: 1.5rem; margin-bottom: 4px;">🧘</span>
-                      <span style="font-size: 0.85rem; font-weight: 700;">ליבה</span>
-                    </button>
-                  <button class="muscle-card" data-category="מותאם אישית" style="display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03); color: #fff; cursor: pointer; transition: all 0.2s;">
-                      <span style="font-size: 1.5rem; margin-bottom: 4px;">✨</span>
-                      <span style="font-size: 0.85rem; font-weight: 700;">מותאם אישית</span>
+                    <button class="muscle-card" data-category="מותאם אישית">
+                      <span>✨</span>
+                      <span>מותאם אישית</span>
                     </button>
                   </div>
                 </div>
@@ -749,9 +758,8 @@
                       <option value="כתפיים">כתפיים</option>
                       <option value="רגליים">רגליים</option>
                       <option value="ידיים">ידיים</option>
-                      <option value="בטן">בטן</option>
+                      <option value="בטן וליבה">בטן וליבה</option>
                       <option value="אירובי">אירובי</option>
-                      <option value="ליבה">ליבה</option>
                       <option value="אחר">אחר</option>
                     </select>
                   </div>
@@ -851,9 +859,8 @@
                     <option value="כתפיים">🛡️ כתפיים</option>
                     <option value="רגליים">🦵 רגליים</option>
                     <option value="ידיים">💪 ידיים</option>
-                    <option value="בטן">🍫 בטן</option>
+                    <option value="בטן וליבה">🧘‍♂️ בטן וליבה</option>
                     <option value="אירובי">🏃‍♂️ אירובי</option>
-                    <option value="ליבה">🧘‍♂️ ליבה</option>
                     <option value="אחר">🧩 אחר</option>
                   </select>
                 </div>
@@ -984,6 +991,11 @@
                     <!-- Dynamically populated in app.js -->
                   </div>
 
+                  <!-- Edit Global Exercise Button -->
+                  <button id="edit-global-exercise-btn" class="btn btn-primary" style="width: 100%; padding: 14px; font-weight: 800; border-radius: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 1rem; background: linear-gradient(135deg, var(--electric-blue) 0%, var(--electric-blue-light) 100%); border: none; box-shadow: 0 4px 15px var(--electric-blue-glow-subtle); cursor: pointer; color: #fff; margin-top: 15px;">
+                    ✏️ ערוך פרטי תרגיל
+                  </button>
+
                   <!-- Delete Global Exercise Button -->
                   <button id="delete-global-exercise-btn" class="btn btn-logout" style="width: 100%; background: var(--color-danger); box-shadow: 0 4px 15px var(--color-danger-glow); margin-top: 15px; border: none; font-weight: 700; color: white;">
                     🗑️ מחק תרגיל זה לנצח
@@ -995,45 +1007,150 @@
 
             <!-- Simple Add New Exercise Modal -->
             <div id="add-global-exercise-modal" class="workout-modal-overlay hide" style="z-index: 1600; align-items: center; justify-content: center;">
-              <div class="workout-modal-card glass-modal-card" style="max-width: 400px; width: 92%; border-radius: 28px; padding: 1.5rem 1.5rem 0 1.5rem; border: 1px solid rgba(255, 255, 255, 0.1); max-height: 90vh; display: flex; flex-direction: column; overflow: hidden;">
-                <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; direction: rtl;">
+              <div class="workout-modal-card glass-modal-card" style="max-width: 420px; width: 95%; border-radius: 28px; border: 1px solid rgba(255, 255, 255, 0.1); max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; animation: slide-up-sheet 0.4s cubic-bezier(0.16, 1, 0.3, 1);">
+                <div class="modal-header" style="padding: 18px 1.5rem 14px 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.06); direction: rtl;">
                   <h3 style="font-size: 1.25rem; font-weight: 800; color: #ffffff; margin: 0;">הוספת תרגיל לנצח ✨</h3>
                   <button id="close-add-global-exercise-modal-btn" class="btn-cancel-link" style="background: none; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; padding: 0 4px; line-height: 1;">&times;</button>
                 </div>
                 
-                <div style="display: flex; flex-direction: column; gap: 1.2rem; direction: rtl; text-align: right; overflow-y: auto; flex: 1; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; padding-bottom: 1.5rem;">
-                  <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
-                    <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">שם התרגיל</label>
-                    <input type="text" id="new-global-exercise-name" placeholder="למשל: כפיפות ברכיים בשכיבה" class="analytics-search-input" style="width: 100%; margin: 0; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; padding: 12px; text-align: right;" required>
+                <div class="modal-body" style="padding: 1.25rem 1.5rem 1.5rem 1.5rem; display: flex; flex-direction: column; gap: 18px; direction: rtl; text-align: right; overflow-y: auto; flex: 1; -webkit-overflow-scrolling: touch; scroll-behavior: smooth;">
+                  <!-- Save Button (top for visibility) -->
+                  <button id="save-new-global-exercise-btn" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 1.05rem; font-weight: 800; border-radius: 14px; background: linear-gradient(135deg, var(--electric-blue) 0%, var(--electric-blue-light) 100%); border: none; color: #fff;">💾 שמור תרגיל לנצח</button>
+
+                  <div class="custom-ex-field-group">
+                    <label class="custom-ex-field-label" style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">שם התרגיל</label>
+                    <input type="text" id="new-global-exercise-name" placeholder="למשל: כפיפות ברכיים בשכיבה" class="custom-ex-name-input" style="width: 100%; margin: 0;" autocomplete="off" required>
                   </div>
                   
-                  <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
-                    <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">קבוצת שריר</label>
-                    <select id="new-global-exercise-muscle" class="premium-filter-select" style="width: 100%;">
-                      <option value="חזה">🍒 חזה</option>
-                      <option value="גב">🦅 גב</option>
-                      <option value="כתפיים">🛡️ כתפיים</option>
-                      <option value="רגליים">🦵 רגליים</option>
-                      <option value="ידיים">💪 ידיים</option>
-                      <option value="בטן">🍫 בטן</option>
-                      <option value="אירובי">🏃‍♂️ אירובי</option>
-                      <option value="ליבה">🧘‍♂️ ליבה</option>
-                      <option value="אחר" selected>🧩 אחר</option>
-                    </select>
+                  <div class="custom-ex-field-group">
+                    <label class="custom-ex-field-label" style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">קטגוריה (בחר קבוצת שריר)</label>
+                    <div id="new-global-exercise-muscle-selector" class="custom-ex-category-grid">
+                      <button class="muscle-card active" data-category="חזה">
+                        <span>🍒</span>
+                        <span>חזה</span>
+                      </button>
+                      <button class="muscle-card" data-category="גב">
+                        <span>🦅</span>
+                        <span>גב</span>
+                      </button>
+                      <button class="muscle-card" data-category="כתפיים">
+                        <span>🛡️</span>
+                        <span>כתפיים</span>
+                      </button>
+                      <button class="muscle-card" data-category="רגליים">
+                        <span>🦵</span>
+                        <span>רגליים</span>
+                      </button>
+                      <button class="muscle-card" data-category="ידיים">
+                        <span>💪</span>
+                        <span>ידיים</span>
+                      </button>
+                      <button class="muscle-card" data-category="בטן וליבה">
+                        <span>🧘‍♂️</span>
+                        <span>בטן וליבה</span>
+                      </button>
+                      <button class="muscle-card" data-category="אירובי">
+                        <span>🏃</span>
+                        <span>אירובי</span>
+                      </button>
+                      <button class="muscle-card" data-category="אחר">
+                        <span>🧩</span>
+                        <span>אחר</span>
+                      </button>
+                    </div>
                   </div>
 
-                  <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
-                    <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">אייקון (emoji)</label>
-                    <input type="text" id="new-global-exercise-emoji" placeholder="למשל: 🦵" class="analytics-search-input" style="width: 100%; margin: 0; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; color: #fff; padding: 12px; text-align: right;">
+                  <div class="custom-ex-field-group">
+                    <label class="custom-ex-field-label" style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">אייקון (אופציונלי)</label>
+                    <div id="new-global-exercise-emoji-selector" class="custom-ex-emoji-row">
+                      <button class="emoji-pick-btn active" data-emoji="">ללא</button>
+                      <button class="emoji-pick-btn" data-emoji="💪">💪</button>
+                      <button class="emoji-pick-btn" data-emoji="🏋️">🏋️</button>
+                      <button class="emoji-pick-btn" data-emoji="🔥">🔥</button>
+                      <button class="emoji-pick-btn" data-emoji="⚡">⚡</button>
+                      <button class="emoji-pick-btn" data-emoji="🎯">🎯</button>
+                      <button class="emoji-pick-btn" data-emoji="🏃">🏃</button>
+                      <button class="emoji-pick-btn" data-emoji="🤸">🤸</button>
+                      <button class="emoji-pick-btn" data-emoji="🧘">🧘</button>
+                    </div>
                   </div>
-
-                  <button id="save-new-global-exercise-btn" class="btn btn-primary" style="width: 100%; padding: 14px; font-weight: bold; border-radius: 14px; margin-top: 0.5rem; background: linear-gradient(135deg, var(--electric-blue) 0%, var(--electric-blue-light) 100%); border: none;">
-                    💾 שמור תרגיל לנצח
-                  </button>
                 </div>
               </div>
             </div>
           </div>
+
+            <!-- Edit Global Exercise Modal -->
+            <div id="edit-global-exercise-modal" class="workout-modal-overlay hide" style="z-index: 1600; align-items: center; justify-content: center;">
+              <div class="workout-modal-card glass-modal-card" style="max-width: 420px; width: 95%; border-radius: 28px; border: 1px solid rgba(255, 255, 255, 0.1); max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; animation: slide-up-sheet 0.4s cubic-bezier(0.16, 1, 0.3, 1);">
+                <div class="modal-header" style="padding: 18px 1.5rem 14px 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.06); direction: rtl;">
+                  <h3 style="font-size: 1.25rem; font-weight: 800; color: #ffffff; margin: 0;">עריכת פרטי תרגיל ✏️</h3>
+                  <button id="close-edit-global-exercise-modal-btn" class="btn-cancel-link" style="background: none; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; padding: 0 4px; line-height: 1;">&times;</button>
+                </div>
+                
+                <div class="modal-body" style="padding: 1.25rem 1.5rem 1.5rem 1.5rem; display: flex; flex-direction: column; gap: 18px; direction: rtl; text-align: right; overflow-y: auto; flex: 1; -webkit-overflow-scrolling: touch; scroll-behavior: smooth;">
+                  <!-- Save Button (top for visibility) -->
+                  <button id="save-edited-global-exercise-btn" class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 1.05rem; font-weight: 800; border-radius: 14px; background: linear-gradient(135deg, var(--electric-blue) 0%, var(--electric-blue-light) 100%); border: none; color: #fff;">💾 שמור שינויים</button>
+
+                  <div class="custom-ex-field-group">
+                    <label class="custom-ex-field-label" style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">שם התרגיל</label>
+                    <input type="text" id="edit-global-exercise-name" placeholder="למשל: כפיפות ברכיים בשכיבה" class="custom-ex-name-input" style="width: 100%; margin: 0;" autocomplete="off" required>
+                  </div>
+                  
+                  <div class="custom-ex-field-group">
+                    <label class="custom-ex-field-label" style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">קטגוריה (בחר קבוצת שריר)</label>
+                    <div id="edit-global-exercise-muscle-selector" class="custom-ex-category-grid">
+                      <button class="muscle-card" data-category="חזה">
+                        <span>🍒</span>
+                        <span>חזה</span>
+                      </button>
+                      <button class="muscle-card" data-category="גב">
+                        <span>🦅</span>
+                        <span>גב</span>
+                      </button>
+                      <button class="muscle-card" data-category="כתפיים">
+                        <span>🛡️</span>
+                        <span>כתפיים</span>
+                      </button>
+                      <button class="muscle-card" data-category="רגליים">
+                        <span>🦵</span>
+                        <span>רגליים</span>
+                      </button>
+                      <button class="muscle-card" data-category="ידיים">
+                        <span>💪</span>
+                        <span>ידיים</span>
+                      </button>
+                      <button class="muscle-card" data-category="בטן וליבה">
+                        <span>🧘‍♂️</span>
+                        <span>בטן וליבה</span>
+                      </button>
+                      <button class="muscle-card" data-category="אירובי">
+                        <span>🏃</span>
+                        <span>אירובי</span>
+                      </button>
+                      <button class="muscle-card" data-category="אחר">
+                        <span>🧩</span>
+                        <span>אחר</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="custom-ex-field-group">
+                    <label class="custom-ex-field-label" style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted);">אייקון (אופציונלי)</label>
+                    <div id="edit-global-exercise-emoji-selector" class="custom-ex-emoji-row">
+                      <button class="emoji-pick-btn" data-emoji="">ללא</button>
+                      <button class="emoji-pick-btn" data-emoji="💪">💪</button>
+                      <button class="emoji-pick-btn" data-emoji="🏋️">🏋️</button>
+                      <button class="emoji-pick-btn" data-emoji="🔥">🔥</button>
+                      <button class="emoji-pick-btn" data-emoji="⚡">⚡</button>
+                      <button class="emoji-pick-btn" data-emoji="🎯">🎯</button>
+                      <button class="emoji-pick-btn" data-emoji="🏃">🏃</button>
+                      <button class="emoji-pick-btn" data-emoji="🤸">🤸</button>
+                      <button class="emoji-pick-btn" data-emoji="🧘">🧘</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
 
           <!-- Sub-Tab 4: AI Coach -->
           <div id="sub-tab-ai" class="sub-tab-pane" style="width: 100%; height: 100%; display: none; flex-direction: column; overflow: hidden; align-items: center; justify-content: center; padding: 1.5rem; box-sizing: border-box;">

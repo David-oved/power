@@ -1,7 +1,7 @@
 import { state } from "../state.js";
 import { SafeStorage } from "../utils/storage.js";
 import { triggerLocalNotification, showAuraToast, safeFormatDate, requestNotificationPermissionSafely } from "../utils/helpers.js";
-import { getAllExercises, saveAllExercises, GYM_EXERCISES, PARK_EXERCISES, openEditModal } from "../workouts/workouts.js";
+import { getAllExercises, saveAllExercises, GYM_EXERCISES, PARK_EXERCISES, openEditModal, saveActiveWorkoutState } from "../workouts/workouts.js";
 
 // DOM Elements & Configurations
 const HEBREW_QUOTES = [
@@ -577,7 +577,7 @@ export function renderMuscleSplitView() {
 
   const filtered = getFilteredHistory(true);
   const volumeByMuscle = {
-    'חזה': 0, 'גב': 0, 'כתפיים': 0, 'רגליים': 0, 'ידיים': 0, 'בטן': 0, 'אירובי': 0, 'ליבה': 0, 'אחר': 0
+    'חזה': 0, 'גב': 0, 'כתפיים': 0, 'רגליים': 0, 'ידיים': 0, 'בטן וליבה': 0, 'אירובי': 0, 'אחר': 0
   };
 
   let totalOverallVolume = 0;
@@ -1167,6 +1167,7 @@ const categoryColorMap = {
   'ידיים': { color: '#fb923c', glow: 'rgba(251, 146, 60, 0.4)' },
   'בטן': { color: '#facc15', glow: 'rgba(250, 204, 21, 0.4)' },
   'ליבה': { color: '#facc15', glow: 'rgba(250, 204, 21, 0.4)' },
+  'בטן וליבה': { color: '#facc15', glow: 'rgba(250, 204, 21, 0.4)' },
   'ליבה ואירובי': { color: '#2dd4bf', glow: 'rgba(45, 212, 191, 0.4)' },
   'אירובי': { color: '#2dd4bf', glow: 'rgba(45, 212, 191, 0.4)' },
   'מותאם אישית': { color: '#38bdf8', glow: 'rgba(56, 189, 248, 0.4)' },
@@ -1183,7 +1184,7 @@ export function getMuscleCategoryStyle(cat) {
   if (norm.includes('כתף') || norm.includes('כתפיים')) return categoryColorMap['כתפיים'];
   if (norm.includes('רגל') || norm.includes('רגליים')) return categoryColorMap['רגליים'];
   if (norm.includes('יד') || norm.includes('ידיים')) return categoryColorMap['ידיים'];
-  if (norm.includes('בטן') || norm.includes('ליבה')) return categoryColorMap['בטן'];
+  if (norm.includes('בטן') || norm.includes('ליבה')) return categoryColorMap['בטן וליבה'];
   if (norm.includes('אירובי') || norm.includes('סיבולת')) return categoryColorMap['אירובי'];
   return categoryColorMap['אחר'];
 }
@@ -1537,47 +1538,31 @@ export function renderWorkoutsLog() {
 
       // Generate Progress Rings (Mini Gauges)
       let ringsHtml = '';
-      if (metricType === 'time') {
-        ringsHtml = renderProgressRing(timePct, peakTime, 'שניות', 'זמן שיא', allTimePRTime, muscleStyle.color, muscleStyle.glow);
-      } else if (metricType === 'weight') {
-        ringsHtml = renderProgressRing(weightPct, peakWeight, 'ק״ג', 'משקל שיא', allTimePRWeight, muscleStyle.color, muscleStyle.glow);
-      } else if (metricType === 'reps') {
-        ringsHtml = renderProgressRing(repsPct, peakReps, 'חזרות', 'חזרות שיא', allTimePRReps, muscleStyle.color, muscleStyle.glow);
-      } else {
-        const parts = [];
-        if (showWeight) {
-          parts.push(renderProgressRing(weightPct, peakWeight, 'ק״ג', 'משקל שיא', allTimePRWeight, muscleStyle.color, muscleStyle.glow));
-        }
-        if (showReps) {
-          parts.push(renderProgressRing(repsPct, peakReps, 'חזרות', 'חזרות שיא', allTimePRReps, muscleStyle.color, muscleStyle.glow));
-        }
-        if (showTime) {
-          parts.push(renderProgressRing(timePct, peakTime, 'שניות', 'זמן שיא', allTimePRTime, muscleStyle.color, muscleStyle.glow));
-        }
-        ringsHtml = parts.join('');
+      const ringParts = [];
+      if (showWeight) {
+        ringParts.push(renderProgressRing(weightPct, peakWeight, 'ק״ג', 'משקל שיא', allTimePRWeight, muscleStyle.color, muscleStyle.glow));
       }
+      if (showReps) {
+        ringParts.push(renderProgressRing(repsPct, peakReps, 'חזרות', 'חזרות שיא', allTimePRReps, muscleStyle.color, muscleStyle.glow));
+      }
+      if (showTime) {
+        ringParts.push(renderProgressRing(timePct, peakTime, 'שניות', 'זמן שיא', allTimePRTime, muscleStyle.color, muscleStyle.glow));
+      }
+      ringsHtml = ringParts.join('');
 
       // Generate Previous Workout Progress Comparison (Horizontal Single Line Graph)
       let comparisonBarsHtml = '';
-      if (metricType === 'time') {
-        comparisonBarsHtml = renderComparisonBar(peakTime, prevMaxT, allTimePRTime, 'שניות', 'השוואת זמן', muscleStyle.color, muscleStyle.glow, prevW !== undefined);
-      } else if (metricType === 'weight') {
-        comparisonBarsHtml = renderComparisonBar(peakWeight, prevMaxW, allTimePRWeight, 'ק״ג', 'השוואת משקל', muscleStyle.color, muscleStyle.glow, prevW !== undefined);
-      } else if (metricType === 'reps') {
-        comparisonBarsHtml = renderComparisonBar(peakReps, prevMaxR, allTimePRReps, 'חזרות', 'השוואת חזרות', muscleStyle.color, muscleStyle.glow, prevW !== undefined);
-      } else {
-        const parts = [];
-        if (showWeight) {
-          parts.push(renderComparisonBar(peakWeight, prevMaxW, allTimePRWeight, 'ק״ג', 'השוואת משקל', muscleStyle.color, muscleStyle.glow, prevW !== undefined));
-        }
-        if (showReps) {
-          parts.push(renderComparisonBar(peakReps, prevMaxR, allTimePRReps, 'חזרות', 'השוואת חזרות', muscleStyle.color, muscleStyle.glow, prevW !== undefined));
-        }
-        if (showTime) {
-          parts.push(renderComparisonBar(peakTime, prevMaxT, allTimePRTime, 'שניות', 'השוואת זמן', muscleStyle.color, muscleStyle.glow, prevW !== undefined));
-        }
-        comparisonBarsHtml = parts.join('');
+      const compParts = [];
+      if (showWeight) {
+        compParts.push(renderComparisonBar(peakWeight, prevMaxW, allTimePRWeight, 'ק״ג', 'השוואת משקל', muscleStyle.color, muscleStyle.glow, prevW !== undefined));
       }
+      if (showReps) {
+        compParts.push(renderComparisonBar(peakReps, prevMaxR, allTimePRReps, 'חזרות', 'השוואת חזרות', muscleStyle.color, muscleStyle.glow, prevW !== undefined));
+      }
+      if (showTime) {
+        compParts.push(renderComparisonBar(peakTime, prevMaxT, allTimePRTime, 'שניות', 'השוואת זמן', muscleStyle.color, muscleStyle.glow, prevW !== undefined));
+      }
+      comparisonBarsHtml = compParts.join('');
 
       // Format sets as premium stylized bubbles/capsules
       const setBubblesHtml = completedSets.map((s, idx) => {
@@ -1815,6 +1800,7 @@ const categoryColorsTab3 = {
   'רגליים':    { bg: 'rgba(34,197,94,0.15)',   color: '#4ade80' },
   'ידיים':    { bg: 'rgba(251,146,60,0.15)',  color: '#fb923c' },
   'בטן':      { bg: 'rgba(234,179,8,0.15)',   color: '#facc15' },
+  'בטן וליבה':{ bg: 'rgba(234,179,8,0.15)',   color: '#facc15' },
   'אירובי':    { bg: 'rgba(20,184,166,0.15)',  color: '#2dd4bf' },
   'ליבה':      { bg: 'rgba(100,116,139,0.15)', color: '#94a3b8' },
   'מתח':      { bg: 'rgba(100,116,139,0.15)', color: '#94a3b8' },
@@ -1950,6 +1936,19 @@ export function renderExercisesManager() {
     });
     
     actionsContainer.appendChild(starBtn);
+
+    const configBtn = document.createElement('button');
+    configBtn.className = 'btn btn-mini btn-workout-settings';
+    configBtn.innerHTML = '⚙️ הגדרות אימון';
+    configBtn.style.cssText = 'padding: 4px 8px; font-size: 0.8rem; border-radius: 8px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #fff; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;';
+    configBtn.title = 'הגדרות ברירת מחדל לאימון';
+    configBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (typeof window.openMetricSelectorForConfig === 'function') {
+        window.openMetricSelectorForConfig(ex.name);
+      }
+    });
+    actionsContainer.appendChild(configBtn);
 
     card.addEventListener('click', () => {
       openExerciseInspector(ex.name);
@@ -2233,7 +2232,7 @@ export function openExerciseInspector(exerciseName) {
       defaultMetric = 'time';
     } else {
       const category = exDetails.category || '';
-      if (category === 'בטן' || category === 'אירובי' || category === 'ליבה' || category === 'מתח' || category === 'ליבה ואירובי') {
+      if (category === 'בטן וליבה' || category === 'בטן' || category === 'ליבה' || category === 'אירובי' || category === 'מתח' || category === 'ליבה ואירובי') {
         defaultMetric = 'reps';
       }
     }
@@ -2580,8 +2579,6 @@ export function deleteGlobalExercise(exerciseName) {
 
 export function addGlobalExercise() {
   const nameInput = document.getElementById('new-global-exercise-name');
-  const muscleSelect = document.getElementById('new-global-exercise-muscle');
-  const emojiInput = document.getElementById('new-global-exercise-emoji');
 
   if (!nameInput || !nameInput.value.trim()) {
     alert('אנא הזן שם לתרגיל החדש.');
@@ -2590,8 +2587,12 @@ export function addGlobalExercise() {
   }
 
   const name = nameInput.value.trim();
-  const category = muscleSelect ? muscleSelect.value : 'אחר';
-  const emoji = emojiInput ? emojiInput.value.trim() : '';
+  
+  const activeMuscleCard = document.querySelector('#new-global-exercise-muscle-selector .muscle-card.active');
+  const category = activeMuscleCard ? activeMuscleCard.dataset.category : 'אחר';
+  
+  const activeEmojiBtn = document.querySelector('#new-global-exercise-emoji-selector .emoji-pick-btn.active');
+  const emoji = activeEmojiBtn ? activeEmojiBtn.dataset.emoji : '';
 
   let allExs = getAllExercises();
 
@@ -2615,7 +2616,6 @@ export function addGlobalExercise() {
   }
 
   nameInput.value = '';
-  if (emojiInput) emojiInput.value = '';
 
   const modal = document.getElementById('add-global-exercise-modal');
   if (modal) modal.classList.add('hide');
@@ -2624,6 +2624,132 @@ export function addGlobalExercise() {
   if (typeof window.renderExercisePickerList === 'function') window.renderExercisePickerList();
 
   alert(`התרגיל "${name}" נוסף לנצח בהצלחה! ✨`);
+}
+
+export function saveEditedGlobalExercise(oldName) {
+  const nameInput = document.getElementById('edit-global-exercise-name');
+  if (!nameInput || !nameInput.value.trim()) {
+    alert('אנא הזן שם לתרגיל.');
+    if (nameInput) nameInput.focus();
+    return;
+  }
+
+  const newName = nameInput.value.trim();
+  
+  const activeMuscleCard = document.querySelector('#edit-global-exercise-muscle-selector .muscle-card.active');
+  const category = activeMuscleCard ? activeMuscleCard.dataset.category : 'אחר';
+  
+  const activeEmojiBtn = document.querySelector('#edit-global-exercise-emoji-selector .emoji-pick-btn.active');
+  const emoji = activeEmojiBtn ? activeEmojiBtn.dataset.emoji : '';
+
+  let allExs = getAllExercises();
+
+  // If the name changed, check for conflict with other exercises
+  if (oldName.trim().toLowerCase() !== newName.trim().toLowerCase()) {
+    if (allExs.some(ex => ex.name.trim().toLowerCase() === newName.toLowerCase())) {
+      alert('תרגיל בשם זה כבר קיים במערכת!');
+      return;
+    }
+  }
+
+  // 1. Update in allExs
+  let found = false;
+  allExs.forEach(ex => {
+    if (ex.name.trim().toLowerCase() === oldName.trim().toLowerCase()) {
+      ex.name = newName;
+      ex.category = category;
+      ex.emoji = emoji || '💪';
+      found = true;
+    }
+  });
+
+  if (!found) {
+    allExs.push({
+      name: newName,
+      category,
+      emoji: emoji || '💪'
+    });
+  }
+  saveAllExercises(allExs);
+
+  // 2. Update in state.customExercises
+  if (state.currentUser) {
+    let customFound = false;
+    state.customExercises.forEach(ex => {
+      if (ex.name.trim().toLowerCase() === oldName.trim().toLowerCase()) {
+        ex.name = newName;
+        ex.category = category;
+        ex.emoji = emoji || '💪';
+        customFound = true;
+      }
+    });
+    if (customFound) {
+      SafeStorage.setItem(`aura-custom-exercises_${state.currentUser.uid}`, JSON.stringify(state.customExercises));
+    }
+  }
+
+  // 3. Update in state.favoriteExercises
+  const favIdx = state.favoriteExercises.indexOf(oldName);
+  if (favIdx > -1) {
+    state.favoriteExercises[favIdx] = newName;
+    if (state.currentUser) {
+      SafeStorage.setItem(`aura-favorite-exercises_${state.currentUser.uid}`, JSON.stringify(state.favoriteExercises));
+    }
+  }
+
+  // 4. Update in state.workoutHistory (renaming all occurrences to preserve log history/PR graphs)
+  if (state.currentUser && state.workoutHistory) {
+    let historyModified = false;
+    state.workoutHistory.forEach(w => {
+      if (w.exercises) {
+        w.exercises.forEach(ex => {
+          if (ex.name === oldName) {
+            ex.name = newName;
+            historyModified = true;
+          }
+        });
+      }
+    });
+    if (historyModified) {
+      SafeStorage.setItem(`aura-workout-history_${state.currentUser.uid}`, JSON.stringify(state.workoutHistory));
+      if (typeof window.renderWorkoutHistory === 'function') {
+        window.renderWorkoutHistory();
+      }
+    }
+  }
+
+  // 5. Update in activeWorkout if it contains this exercise
+  if (state.activeWorkout && state.activeWorkout.exercises) {
+    let activeModified = false;
+    state.activeWorkout.exercises.forEach(ex => {
+      if (ex.name === oldName) {
+        ex.name = newName;
+        activeModified = true;
+      }
+    });
+    if (activeModified) {
+      saveActiveWorkoutState();
+      if (typeof window.renderExercises === 'function') {
+        window.renderExercises();
+      }
+    }
+  }
+
+  // 6. Close edit modal
+  const editModal = document.getElementById('edit-global-exercise-modal');
+  if (editModal) editModal.classList.add('hide');
+
+  // 7. Refresh UIs
+  renderExercisesManager();
+  if (typeof window.renderExercisePickerList === 'function') window.renderExercisePickerList();
+
+  // 8. Update inspector context if displaying the renamed exercise
+  if (state.currentInspectorExercise === oldName) {
+    state.currentInspectorExercise = newName;
+    openExerciseInspector(newName);
+  }
+
+  alert(`התרגיל "${newName}" עודכן בהצלחה! ✏️`);
 }
 
 // Orchestrator for subtab rendering
@@ -3024,7 +3150,51 @@ export function initAnalyticsTab() {
   if (addExGlobalBtn && addExGlobalModal) {
     addExGlobalBtn.addEventListener('click', (e) => {
       e.stopPropagation();
+      
+      // Reset inputs & selectors on open
+      const nameInput = document.getElementById('new-global-exercise-name');
+      if (nameInput) nameInput.value = '';
+      
+      const muscleSelector = document.getElementById('new-global-exercise-muscle-selector');
+      if (muscleSelector) {
+        muscleSelector.querySelectorAll('.muscle-card').forEach(btn => {
+          btn.classList.remove('active');
+          if (btn.dataset.category === 'חזה') btn.classList.add('active');
+        });
+      }
+      
+      const emojiSelector = document.getElementById('new-global-exercise-emoji-selector');
+      if (emojiSelector) {
+        emojiSelector.querySelectorAll('.emoji-pick-btn').forEach(btn => {
+          btn.classList.remove('active');
+          if (btn.dataset.emoji === '') btn.classList.add('active');
+        });
+      }
+      
       addExGlobalModal.classList.remove('hide');
+      if (nameInput) setTimeout(() => nameInput.focus(), 100);
+    });
+  }
+
+  // Setup click bindings for muscle cards in global modal
+  const globalMuscleSelector = document.getElementById('new-global-exercise-muscle-selector');
+  if (globalMuscleSelector) {
+    globalMuscleSelector.addEventListener('click', (e) => {
+      const pill = e.target.closest('.muscle-card');
+      if (!pill) return;
+      globalMuscleSelector.querySelectorAll('.muscle-card').forEach(b => b.classList.remove('active'));
+      pill.classList.add('active');
+    });
+  }
+
+  // Setup click bindings for emoji picker in global modal
+  const globalEmojiSelector = document.getElementById('new-global-exercise-emoji-selector');
+  if (globalEmojiSelector) {
+    globalEmojiSelector.addEventListener('click', (e) => {
+      const emojiBtn = e.target.closest('.emoji-pick-btn');
+      if (!emojiBtn) return;
+      globalEmojiSelector.querySelectorAll('.emoji-pick-btn').forEach(b => b.classList.remove('active'));
+      emojiBtn.classList.add('active');
     });
   }
 
@@ -3104,6 +3274,90 @@ export function initAnalyticsTab() {
       e.stopPropagation();
       if (state.currentInspectorExercise) {
         deleteGlobalExercise(state.currentInspectorExercise);
+      }
+    });
+  }
+
+  // Edit Global Exercise Modal Event Listeners
+  const editExGlobalBtn = document.getElementById('edit-global-exercise-btn');
+  const editExGlobalModal = document.getElementById('edit-global-exercise-modal');
+  const closeEditExGlobalModalBtn = document.getElementById('close-edit-global-exercise-modal-btn');
+  
+  if (editExGlobalBtn && editExGlobalModal) {
+    editExGlobalBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      
+      const currentName = state.currentInspectorExercise;
+      if (!currentName) return;
+      
+      const allExs = getAllExercises();
+      const exDetails = allExs.find(ex => ex.name === currentName) || { name: currentName, category: 'אחר', emoji: '💪' };
+      
+      // Populate inputs & selectors in edit modal
+      const nameInput = document.getElementById('edit-global-exercise-name');
+      if (nameInput) nameInput.value = exDetails.name;
+      
+      const muscleSelector = document.getElementById('edit-global-exercise-muscle-selector');
+      if (muscleSelector) {
+        muscleSelector.querySelectorAll('.muscle-card').forEach(btn => {
+          btn.classList.remove('active');
+          if (btn.dataset.category === exDetails.category) btn.classList.add('active');
+        });
+      }
+      
+      const emojiSelector = document.getElementById('edit-global-exercise-emoji-selector');
+      if (emojiSelector) {
+        emojiSelector.querySelectorAll('.emoji-pick-btn').forEach(btn => {
+          btn.classList.remove('active');
+          const targetEmoji = exDetails.emoji === '💪' ? '' : exDetails.emoji;
+          if (btn.dataset.emoji === exDetails.emoji || (exDetails.emoji === '💪' && btn.dataset.emoji === '') || (!exDetails.emoji && btn.dataset.emoji === '')) {
+            btn.classList.add('active');
+          }
+        });
+      }
+      
+      editExGlobalModal.classList.remove('hide');
+      if (nameInput) setTimeout(() => nameInput.focus(), 100);
+    });
+  }
+
+  // Setup click bindings for muscle cards in edit modal
+  const editMuscleSelector = document.getElementById('edit-global-exercise-muscle-selector');
+  if (editMuscleSelector) {
+    editMuscleSelector.addEventListener('click', (e) => {
+      const pill = e.target.closest('.muscle-card');
+      if (!pill) return;
+      editMuscleSelector.querySelectorAll('.muscle-card').forEach(b => b.classList.remove('active'));
+      pill.classList.add('active');
+    });
+  }
+
+  // Setup click bindings for emoji picker in edit modal
+  const editEmojiSelector = document.getElementById('edit-global-exercise-emoji-selector');
+  if (editEmojiSelector) {
+    editEmojiSelector.addEventListener('click', (e) => {
+      const emojiBtn = e.target.closest('.emoji-pick-btn');
+      if (!emojiBtn) return;
+      editEmojiSelector.querySelectorAll('.emoji-pick-btn').forEach(b => b.classList.remove('active'));
+      emojiBtn.classList.add('active');
+    });
+  }
+
+  if (closeEditExGlobalModalBtn && editExGlobalModal) {
+    closeEditExGlobalModalBtn.addEventListener('click', () => {
+      editExGlobalModal.classList.add('hide');
+    });
+    editExGlobalModal.addEventListener('click', (e) => {
+      if (e.target === editExGlobalModal) editExGlobalModal.classList.add('hide');
+    });
+  }
+
+  const saveExEditedBtn = document.getElementById('save-edited-global-exercise-btn');
+  if (saveExEditedBtn) {
+    saveExEditedBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (state.currentInspectorExercise) {
+        saveEditedGlobalExercise(state.currentInspectorExercise);
       }
     });
   }

@@ -25,6 +25,8 @@ export const state = {
   favoriteExercises: [],
   selectedExerciseForAdding: null,
   currentActiveCategoryFilter: 'הכל',
+  editingActiveExerciseIndex: null,
+  configuringExerciseDefaults: null,
 
   // Rest Timer State
   restTimerInterval: null,
