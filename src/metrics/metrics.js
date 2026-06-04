@@ -649,15 +649,22 @@ export function renderMuscleSplitView() {
 
 // Helper to format exercise sets text nicely depending on metricType
 function formatExerciseSetsText(ex) {
-  const type = ex.metricType || 'both';
+  const showWeight = ex.metrics ? ex.metrics.includes('weight') : (ex.metricType === 'both' || ex.metricType === 'weight' || !ex.metricType);
+  const showReps = ex.metrics ? ex.metrics.includes('reps') : (ex.metricType === 'both' || ex.metricType === 'reps' || !ex.metricType);
+  const showTime = ex.metrics ? ex.metrics.includes('time') : (ex.metricType === 'time');
+  
   return ex.sets.map(s => {
-    if (type === 'reps') {
-      return `${s.reps} חזרות`;
-    } else if (type === 'weight') {
-      return `${s.weight} ק״ג`;
-    } else {
-      return `${s.weight}ק״ג×${s.reps}`;
+    const parts = [];
+    if (showWeight) {
+      parts.push(`${s.weight || 0} ק״ג`);
     }
+    if (showReps) {
+      parts.push(`${s.reps || 0} חזרות`);
+    }
+    if (showTime) {
+      parts.push(`${s.time || 0} ש׳`);
+    }
+    return parts.join(' × ');
   }).join(', ');
 }
 
@@ -1273,9 +1280,10 @@ export function renderWorkoutsLog() {
 
   let filtered = getFilteredHistory();
 
-  // Compute all-time PR values (max weights and max reps)
+  // Compute all-time PR values (max weights, max reps, and max times)
   const maxWeights = {};
   const maxReps = {};
+  const maxTimes = {};
   state.workoutHistory.forEach(w => {
     if (!w.exercises) return;
     w.exercises.forEach(ex => {
@@ -1290,6 +1298,10 @@ export function renderWorkoutsLog() {
           if (!maxReps[ex.name] || reps > maxReps[ex.name]) {
             maxReps[ex.name] = reps;
           }
+          const time = parseInt(s.time, 10) || 0;
+          if (!maxTimes[ex.name] || time > maxTimes[ex.name]) {
+            maxTimes[ex.name] = time;
+          }
         }
       });
     });
@@ -1303,6 +1315,8 @@ export function renderWorkoutsLog() {
     if (w.exercises) {
       w.exercises.forEach(ex => {
         const maxW = maxWeights[ex.name] || 0;
+        const maxR = maxReps[ex.name] || 0;
+        const maxT = maxTimes[ex.name] || 0;
         let exerciseHasPR = false;
 
         ex.sets.forEach(s => {
@@ -1311,7 +1325,17 @@ export function renderWorkoutsLog() {
             const wVal = parseFloat(s.weight) || 0;
             totalVolume += wVal * (parseInt(s.reps, 10) || 0);
 
-            if (maxW > 0 && wVal === maxW) {
+            const showWeight = ex.metrics ? ex.metrics.includes('weight') : (ex.metricType === 'both' || ex.metricType === 'weight' || !ex.metricType);
+            const showReps = ex.metrics ? ex.metrics.includes('reps') : (ex.metricType === 'both' || ex.metricType === 'reps' || !ex.metricType);
+            const showTime = ex.metrics ? ex.metrics.includes('time') : (ex.metricType === 'time');
+
+            if (showWeight && maxW > 0 && wVal === maxW) {
+              exerciseHasPR = true;
+            }
+            if (showReps && maxR > 0 && (parseInt(s.reps, 10) || 0) === maxR) {
+              exerciseHasPR = true;
+            }
+            if (showTime && maxT > 0 && (parseInt(s.time, 10) || 0) === maxT) {
               exerciseHasPR = true;
             }
           }
@@ -1484,61 +1508,90 @@ export function renderWorkoutsLog() {
       const completedSets = ex.sets.filter(s => s.completed);
       const peakWeight = completedSets.length > 0 ? Math.max(...completedSets.map(s => parseFloat(s.weight) || 0)) : 0;
       const peakReps = completedSets.length > 0 ? Math.max(...completedSets.map(s => parseInt(s.reps, 10) || 0)) : 0;
+      const peakTime = completedSets.length > 0 ? Math.max(...completedSets.map(s => parseInt(s.time, 10) || 0)) : 0;
 
       const allTimePRWeight = maxWeights[ex.name] || 0;
       const allTimePRReps = maxReps[ex.name] || 0;
+      const allTimePRTime = maxTimes ? (maxTimes[ex.name] || 0) : 0;
 
       const weightPct = allTimePRWeight > 0 ? Math.min(100, Math.round((peakWeight / allTimePRWeight) * 100)) : 0;
       const repsPct = allTimePRReps > 0 ? Math.min(100, Math.round((peakReps / allTimePRReps) * 100)) : 0;
+      const timePct = allTimePRTime > 0 ? Math.min(100, Math.round((peakTime / allTimePRTime) * 100)) : 0;
 
       const metricType = ex.metricType || 'both';
+      const showWeight = ex.metrics ? ex.metrics.includes('weight') : (metricType === 'both' || metricType === 'weight');
+      const showReps = ex.metrics ? ex.metrics.includes('reps') : (metricType === 'both' || metricType === 'reps');
+      const showTime = ex.metrics ? ex.metrics.includes('time') : (metricType === 'time');
 
-      // Find previous max weight & reps
+      // Find previous max weight, reps & time
       let prevMaxW = 0;
       let prevMaxR = 0;
+      let prevMaxT = 0;
       if (prevW) {
         const prevEx = prevW.exercises.find(e => e.name === ex.name);
         const prevCompleted = prevEx ? prevEx.sets.filter(s => s.completed) : [];
         prevMaxW = prevCompleted.length > 0 ? Math.max(...prevCompleted.map(s => parseFloat(s.weight) || 0)) : 0;
         prevMaxR = prevCompleted.length > 0 ? Math.max(...prevCompleted.map(s => parseInt(s.reps, 10) || 0)) : 0;
+        prevMaxT = prevCompleted.length > 0 ? Math.max(...prevCompleted.map(s => parseInt(s.time, 10) || 0)) : 0;
       }
 
       // Generate Progress Rings (Mini Gauges)
       let ringsHtml = '';
-      if (metricType === 'weight') {
+      if (metricType === 'time') {
+        ringsHtml = renderProgressRing(timePct, peakTime, 'שניות', 'זמן שיא', allTimePRTime, muscleStyle.color, muscleStyle.glow);
+      } else if (metricType === 'weight') {
         ringsHtml = renderProgressRing(weightPct, peakWeight, 'ק״ג', 'משקל שיא', allTimePRWeight, muscleStyle.color, muscleStyle.glow);
       } else if (metricType === 'reps') {
         ringsHtml = renderProgressRing(repsPct, peakReps, 'חזרות', 'חזרות שיא', allTimePRReps, muscleStyle.color, muscleStyle.glow);
       } else {
-        ringsHtml = `
-          ${renderProgressRing(weightPct, peakWeight, 'ק״ג', 'משקל שיא', allTimePRWeight, muscleStyle.color, muscleStyle.glow)}
-          ${renderProgressRing(repsPct, peakReps, 'חזרות', 'חזרות שיא', allTimePRReps, muscleStyle.color, muscleStyle.glow)}
-        `;
+        const parts = [];
+        if (showWeight) {
+          parts.push(renderProgressRing(weightPct, peakWeight, 'ק״ג', 'משקל שיא', allTimePRWeight, muscleStyle.color, muscleStyle.glow));
+        }
+        if (showReps) {
+          parts.push(renderProgressRing(repsPct, peakReps, 'חזרות', 'חזרות שיא', allTimePRReps, muscleStyle.color, muscleStyle.glow));
+        }
+        if (showTime) {
+          parts.push(renderProgressRing(timePct, peakTime, 'שניות', 'זמן שיא', allTimePRTime, muscleStyle.color, muscleStyle.glow));
+        }
+        ringsHtml = parts.join('');
       }
 
       // Generate Previous Workout Progress Comparison (Horizontal Single Line Graph)
       let comparisonBarsHtml = '';
-      if (metricType === 'weight') {
+      if (metricType === 'time') {
+        comparisonBarsHtml = renderComparisonBar(peakTime, prevMaxT, allTimePRTime, 'שניות', 'השוואת זמן', muscleStyle.color, muscleStyle.glow, prevW !== undefined);
+      } else if (metricType === 'weight') {
         comparisonBarsHtml = renderComparisonBar(peakWeight, prevMaxW, allTimePRWeight, 'ק״ג', 'השוואת משקל', muscleStyle.color, muscleStyle.glow, prevW !== undefined);
       } else if (metricType === 'reps') {
         comparisonBarsHtml = renderComparisonBar(peakReps, prevMaxR, allTimePRReps, 'חזרות', 'השוואת חזרות', muscleStyle.color, muscleStyle.glow, prevW !== undefined);
       } else {
-        comparisonBarsHtml = `
-          ${renderComparisonBar(peakWeight, prevMaxW, allTimePRWeight, 'ק״ג', 'השוואת משקל', muscleStyle.color, muscleStyle.glow, prevW !== undefined)}
-          ${renderComparisonBar(peakReps, prevMaxR, allTimePRReps, 'חזרות', 'השוואת חזרות', muscleStyle.color, muscleStyle.glow, prevW !== undefined)}
-        `;
+        const parts = [];
+        if (showWeight) {
+          parts.push(renderComparisonBar(peakWeight, prevMaxW, allTimePRWeight, 'ק״ג', 'השוואת משקל', muscleStyle.color, muscleStyle.glow, prevW !== undefined));
+        }
+        if (showReps) {
+          parts.push(renderComparisonBar(peakReps, prevMaxR, allTimePRReps, 'חזרות', 'השוואת חזרות', muscleStyle.color, muscleStyle.glow, prevW !== undefined));
+        }
+        if (showTime) {
+          parts.push(renderComparisonBar(peakTime, prevMaxT, allTimePRTime, 'שניות', 'השוואת זמן', muscleStyle.color, muscleStyle.glow, prevW !== undefined));
+        }
+        comparisonBarsHtml = parts.join('');
       }
 
       // Format sets as premium stylized bubbles/capsules
       const setBubblesHtml = completedSets.map((s, idx) => {
-        let valText = '';
-        if (ex.metricType === 'reps') {
-          valText = `<span class="premium-set-val-neon" style="color: ${muscleStyle.color}; text-shadow: 0 0 5px ${muscleStyle.glow};">${s.reps}</span> <span class="premium-set-unit">חזרות</span>`;
-        } else if (ex.metricType === 'weight') {
-          valText = `<span class="premium-set-val-neon" style="color: ${muscleStyle.color}; text-shadow: 0 0 5px ${muscleStyle.glow};">${s.weight}</span> <span class="premium-set-unit">ק״ג</span>`;
-        } else {
-          valText = `<span class="premium-set-val-neon" style="color: ${muscleStyle.color}; text-shadow: 0 0 5px ${muscleStyle.glow};">${s.weight}</span><span class="premium-set-unit">ק״ג</span> × <span class="premium-set-val-neon" style="color: ${muscleStyle.color}; text-shadow: 0 0 5px ${muscleStyle.glow};">${s.reps}</span><span class="premium-set-unit">חזרות</span>`;
+        const parts = [];
+        if (showWeight) {
+          parts.push(`<span class="premium-set-val-neon" style="color: ${muscleStyle.color}; text-shadow: 0 0 5px ${muscleStyle.glow};">${s.weight || 0}</span> <span class="premium-set-unit">ק״ג</span>`);
         }
+        if (showReps) {
+          parts.push(`<span class="premium-set-val-neon" style="color: ${muscleStyle.color}; text-shadow: 0 0 5px ${muscleStyle.glow};">${s.reps || 0}</span> <span class="premium-set-unit">חזרות</span>`);
+        }
+        if (showTime) {
+          parts.push(`<span class="premium-set-val-neon" style="color: ${muscleStyle.color}; text-shadow: 0 0 5px ${muscleStyle.glow};">${s.time || 0}</span> <span class="premium-set-unit">ש׳</span>`);
+        }
+        const valText = parts.join(' × ');
         return `
           <div class="premium-set-capsule">
             <div class="premium-set-badge" style="background-color: ${muscleStyle.color}; box-shadow: 0 0 6px ${muscleStyle.glow};">${idx + 1}</div>
@@ -1918,6 +1971,7 @@ export function updateInspectorStatistics(exerciseName) {
   const volCard = volVal ? volVal.closest('.stat-mini-card') : null;
   
   const isReps = (state.activeInspectorMetric === 'reps');
+  const isTime = (state.activeInspectorMetric === 'time');
 
   const chronological = [...state.workoutHistory]
     .filter(w => w.date && w.exercises)
@@ -1933,6 +1987,10 @@ export function updateInspectorStatistics(exerciseName) {
   let totalRepsCompleted = 0;
   let latestPeakReps = 0;
 
+  let maxTime = 0;
+  let totalTimeCompleted = 0;
+  let latestPeakTime = 0;
+
   chronological.forEach(w => {
     const ex = w.exercises.find(e => e.name === exerciseName);
     if (ex && ex.sets) {
@@ -1943,9 +2001,11 @@ export function updateInspectorStatistics(exerciseName) {
         
         let sessionVolume = 0;
         let sessionMaxReps = 0;
+        let sessionMaxTime = 0;
         completedSets.forEach(s => {
           const wVal = parseFloat(s.weight) || 0;
           const rVal = parseInt(s.reps, 10) || 0;
+          const tVal = parseInt(s.time, 10) || 0;
 
           if (wVal > maxWeight) maxWeight = wVal;
           const oneRM = rVal === 1 ? wVal : wVal * (1 + rVal / 30);
@@ -1955,15 +2015,36 @@ export function updateInspectorStatistics(exerciseName) {
           if (rVal > maxReps) maxReps = rVal;
           if (rVal > sessionMaxReps) sessionMaxReps = rVal;
           totalRepsCompleted += rVal;
+
+          if (tVal > maxTime) maxTime = tVal;
+          if (tVal > sessionMaxTime) sessionMaxTime = tVal;
+          totalTimeCompleted += tVal;
         });
 
         if (sessionVolume > peakVolume) peakVolume = sessionVolume;
         latestPeakReps = sessionMaxReps;
+        latestPeakTime = sessionMaxTime;
       }
     }
   });
 
-  if (isReps) {
+  if (isTime) {
+    if (prCard) {
+      const prLbl = prCard.querySelector('.stat-label');
+      if (prLbl) prLbl.textContent = 'שיא אישי (PR) ⏱️';
+      prVal.textContent = maxTime > 0 ? `${maxTime} שניות` : '--';
+    }
+    if (rmCard) {
+      const rmLbl = rmCard.querySelector('.stat-label');
+      if (rmLbl) rmLbl.textContent = 'אימון אחרון 🏆';
+      rmVal.textContent = latestPeakTime > 0 ? `${latestPeakTime} שניות` : '--';
+    }
+    if (volCard) {
+      const volLbl = volCard.querySelector('.stat-label');
+      if (volLbl) volLbl.textContent = 'סה״כ זמן 📊';
+      volVal.textContent = totalTimeCompleted > 0 ? `${totalTimeCompleted} שניות` : '--';
+    }
+  } else if (isReps) {
     if (prCard) {
       const prLbl = prCard.querySelector('.stat-label');
       if (prLbl) prLbl.textContent = 'שיא אישי (PR) 🔢';
@@ -1992,7 +2073,7 @@ export function updateInspectorStatistics(exerciseName) {
     }
     if (volCard) {
       const volLbl = volCard.querySelector('.stat-label');
-      if (volLbl) volLbl.textContent = 'נפח אימון שיא 📊';
+      if (volLbl) volLbl.textContent = 'ננפח אימון שיא 📊';
       volVal.textContent = peakVolume > 0 ? `${peakVolume} ק״ג` : '--';
     }
   }
@@ -2014,8 +2095,29 @@ export function updateInspectorTimeline(exerciseName) {
   
   const brokenPRs = [];
   const isReps = (state.activeInspectorMetric === 'reps');
+  const isTime = (state.activeInspectorMetric === 'time');
 
-  if (isReps) {
+  if (isTime) {
+    let runningMaxTime = 0;
+    chronological.forEach(w => {
+      if (!w.exercises) return;
+      const ex = w.exercises.find(e => e.name === exerciseName);
+      if (ex && ex.sets) {
+        const completedSets = ex.sets.filter(s => s.completed);
+        if (completedSets.length > 0) {
+          const sessionMaxTime = Math.max(...completedSets.map(s => parseInt(s.time, 10) || 0));
+          if (sessionMaxTime > runningMaxTime) {
+            runningMaxTime = sessionMaxTime;
+            brokenPRs.push({
+              date: new Date(w.date),
+              value: sessionMaxTime,
+              unit: 'שניות'
+            });
+          }
+        }
+      }
+    });
+  } else if (isReps) {
     let runningMaxReps = 0;
     chronological.forEach(w => {
       if (!w.exercises) return;
@@ -2104,20 +2206,36 @@ export function openExerciseInspector(exerciseName) {
     inspectorFavBtn.innerHTML = isFav ? '⭐' : '☆';
   }
 
-  // Smart-detect if exercise is bodyweight/reps only:
+  // Smart-detect if exercise is bodyweight/reps only or time:
   let defaultMetric = 'weight';
   
   const reverseHistory = [...state.workoutHistory].sort((a, b) => b.date - a.date);
   const latestSession = reverseHistory.find(w => w.exercises && w.exercises.some(e => e.name === exerciseName && e.sets && e.sets.some(s => s.completed)));
   if (latestSession) {
     const exInSession = latestSession.exercises.find(e => e.name === exerciseName);
-    if (exInSession && exInSession.metricType === 'reps') {
-      defaultMetric = 'reps';
+    if (exInSession) {
+      if (exInSession.metrics && exInSession.metrics.includes('time') && !exInSession.metrics.includes('weight') && !exInSession.metrics.includes('reps')) {
+        defaultMetric = 'time';
+      } else if (exInSession.metricType === 'time') {
+        defaultMetric = 'time';
+      } else if (exInSession.metricType === 'reps') {
+        defaultMetric = 'reps';
+      }
     }
   } else {
-    const category = exDetails.category || '';
-    if (category === 'בטן' || category === 'אירובי' || category === 'ליבה' || category === 'מתח' || category === 'ליבה ואירובי') {
-      defaultMetric = 'reps';
+    if (exDetails.metrics) {
+      if (exDetails.metrics.includes('time') && !exDetails.metrics.includes('weight') && !exDetails.metrics.includes('reps')) {
+        defaultMetric = 'time';
+      } else if (exDetails.metrics.includes('reps') && !exDetails.metrics.includes('weight')) {
+        defaultMetric = 'reps';
+      }
+    } else if (exDetails.metricType === 'time') {
+      defaultMetric = 'time';
+    } else {
+      const category = exDetails.category || '';
+      if (category === 'בטן' || category === 'אירובי' || category === 'ליבה' || category === 'מתח' || category === 'ליבה ואירובי') {
+        defaultMetric = 'reps';
+      }
     }
   }
 
@@ -2126,15 +2244,10 @@ export function openExerciseInspector(exerciseName) {
   // Update DOM active toggles
   const btnWeight = document.getElementById('inspector-toggle-weight');
   const btnReps = document.getElementById('inspector-toggle-reps');
-  if (btnWeight && btnReps) {
-    if (defaultMetric === 'reps') {
-      btnWeight.classList.remove('active');
-      btnReps.classList.add('active');
-    } else {
-      btnWeight.classList.add('active');
-      btnReps.classList.remove('active');
-    }
-  }
+  const btnTime = document.getElementById('inspector-toggle-time');
+  if (btnWeight) btnWeight.classList.toggle('active', defaultMetric === 'weight');
+  if (btnReps) btnReps.classList.toggle('active', defaultMetric === 'reps');
+  if (btnTime) btnTime.classList.toggle('active', defaultMetric === 'time');
 
   // Update statistics
   updateInspectorStatistics(exerciseName);
@@ -2182,11 +2295,12 @@ export function renderExerciseInspectorChart() {
     }
   });
 
-  // Toggle visibility of weight-based progression chart tabs in reps mode
+  // Toggle visibility of weight-based progression chart tabs in reps/time mode
   const chartTabsContainer = document.querySelector('.chart-tabs-tab3');
   const isReps = (state.activeInspectorMetric === 'reps');
+  const isTime = (state.activeInspectorMetric === 'time');
   if (chartTabsContainer) {
-    if (isReps) {
+    if (isReps || isTime) {
       chartTabsContainer.style.display = 'none';
     } else {
       chartTabsContainer.style.display = 'flex';
@@ -2198,8 +2312,8 @@ export function renderExerciseInspectorChart() {
     if (fillPath) fillPath.setAttribute('stroke-dashoffset', '251.3');
     if (valueDisplay) valueDisplay.textContent = '--';
     if (subtextDisplay) subtextDisplay.textContent = 'אין נתונים';
-    if (limitLeft) limitLeft.textContent = isReps ? 'בסיס: -- חזרות' : 'בסיס: -- ק״ג';
-    if (limitRight) limitRight.textContent = isReps ? 'שיא: -- חזרות' : 'שיא: -- ק״ג';
+    if (limitLeft) limitLeft.textContent = isReps ? 'בסיס: -- חזרות' : (isTime ? 'בסיס: -- שניות' : 'בסיס: -- ק״ג');
+    if (limitRight) limitRight.textContent = isReps ? 'שיא: -- חזרות' : (isTime ? 'שיא: -- שניות' : 'שיא: -- ק״ג');
     
     const premiumPanel = document.getElementById('inspector-premium-panel');
     if (premiumPanel) premiumPanel.style.display = 'none';
@@ -2210,7 +2324,10 @@ export function renderExerciseInspectorChart() {
 
   const values = [];
   exerciseSessions.forEach(session => {
-    if (isReps) {
+    if (isTime) {
+      const sessionMaxTime = Math.max(...session.sets.map(s => parseInt(s.time, 10) || 0));
+      values.push(sessionMaxTime);
+    } else if (isReps) {
       // Find peak reps in a single completed set in this session
       const sessionMaxReps = Math.max(...session.sets.map(s => parseInt(s.reps, 10) || 0));
       values.push(sessionMaxReps);
@@ -2253,7 +2370,9 @@ export function renderExerciseInspectorChart() {
   }
 
   let unit = ' ק״ג';
-  if (isReps) {
+  if (isTime) {
+    unit = ' שניות';
+  } else if (isReps) {
     unit = ' חזרות';
   } else if (state.activeChartTypeTab3 === 'volume') {
     unit = ' ק״ג';
@@ -2276,15 +2395,34 @@ export function renderExerciseInspectorChart() {
   }
 
   if (limitLeft) {
-    limitLeft.textContent = isReps ? `בסיס: ${baseVal} חזרות` : `בסיס: ${baseVal} ק״ג`;
+    limitLeft.textContent = isTime ? `בסיס: ${baseVal} שניות` : (isReps ? `בסיס: ${baseVal} חזרות` : `בסיס: ${baseVal} ק״ג`);
   }
   if (limitRight) {
-    limitRight.textContent = isReps ? `שיא אישי: ${maxVal} חזרות` : `שיא אישי: ${maxVal} ק״ג`;
+    limitRight.textContent = isTime ? `שיא אישי: ${maxVal} שניות` : (isReps ? `שיא אישי: ${maxVal} חזרות` : `שיא אישי: ${maxVal} ק״ג`);
   }
 
   // Premium record progression (previous PRs + visual other sets)
   const chronologicalPRs = [];
-  if (isReps) {
+  if (isTime) {
+    let runningMax = 0;
+    chronological.forEach(w => {
+      if (!w.exercises) return;
+      const ex = w.exercises.find(e => e.name === exerciseName);
+      if (ex && ex.sets) {
+        const completedSets = ex.sets.filter(s => s.completed);
+        if (completedSets.length > 0) {
+          const sessionMax = Math.max(...completedSets.map(s => parseInt(s.time, 10) || 0));
+          if (sessionMax > runningMax) {
+            runningMax = sessionMax;
+            chronologicalPRs.push({
+              date: new Date(w.date),
+              val: sessionMax
+            });
+          }
+        }
+      }
+    });
+  } else if (isReps) {
     let runningMax = 0;
     chronological.forEach(w => {
       if (!w.exercises) return;
@@ -2324,7 +2462,7 @@ export function renderExerciseInspectorChart() {
     });
   }
 
-  const unitLabel = isReps ? 'חזרות' : 'ק״ג';
+  const unitLabel = isTime ? 'שניות' : (isReps ? 'חזרות' : 'ק״ג');
 
   let peaksHtml = '';
   if (chronologicalPRs.length > 1) {
@@ -2362,7 +2500,7 @@ export function renderExerciseInspectorChart() {
     let peakSetIdx = -1;
     let maxSetVal = -1;
     latestSession.sets.forEach((s, idx) => {
-      const val = isReps ? (parseInt(s.reps, 10) || 0) : (parseFloat(s.weight) || 0);
+      const val = isTime ? (parseInt(s.time, 10) || 0) : (isReps ? (parseInt(s.reps, 10) || 0) : (parseFloat(s.weight) || 0));
       if (val > maxSetVal) {
         maxSetVal = val;
         peakSetIdx = idx;
@@ -2375,7 +2513,14 @@ export function renderExerciseInspectorChart() {
         <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; direction: rtl;">
           ${latestSession.sets.map((s, idx) => {
             const isPeak = (idx === peakSetIdx);
-            const val = isReps ? `${s.reps} חזרות` : `${s.weight} ק״ג × ${s.reps}`;
+            let val = '';
+            if (isTime) {
+              val = `${s.time || 0} ש׳`;
+            } else if (isReps) {
+              val = `${s.reps || 0} חזרות`;
+            } else {
+              val = `${s.weight || 0} ק״ג × ${s.reps || 0}`;
+            }
             
             const bg = isPeak ? 'linear-gradient(135deg, rgba(0, 240, 255, 0.15) 0%, rgba(0, 255, 135, 0.15) 100%)' : 'rgba(255,255,255,0.03)';
             const border = isPeak ? '1px solid rgba(0, 240, 255, 0.3)' : '1px solid rgba(255,255,255,0.06)';
@@ -2915,18 +3060,15 @@ export function initAnalyticsTab() {
   // Handle inspector metric toggle click events
   const btnWeight = document.getElementById('inspector-toggle-weight');
   const btnReps = document.getElementById('inspector-toggle-reps');
-  if (btnWeight && btnReps) {
+  const btnTime = document.getElementById('inspector-toggle-time');
+  if (btnWeight || btnReps || btnTime) {
     const handleMetricChange = (metric) => {
       if (state.activeInspectorMetric === metric) return;
       state.activeInspectorMetric = metric;
       
-      if (metric === 'reps') {
-        btnWeight.classList.remove('active');
-        btnReps.classList.add('active');
-      } else {
-        btnWeight.classList.add('active');
-        btnReps.classList.remove('active');
-      }
+      if (btnWeight) btnWeight.classList.toggle('active', metric === 'weight');
+      if (btnReps) btnReps.classList.toggle('active', metric === 'reps');
+      if (btnTime) btnTime.classList.toggle('active', metric === 'time');
       
       const exName = state.currentInspectorExercise;
       if (exName) {
@@ -2936,14 +3078,24 @@ export function initAnalyticsTab() {
       }
     };
 
-    btnWeight.addEventListener('click', (e) => {
-      e.stopPropagation();
-      handleMetricChange('weight');
-    });
-    btnReps.addEventListener('click', (e) => {
-      e.stopPropagation();
-      handleMetricChange('reps');
-    });
+    if (btnWeight) {
+      btnWeight.addEventListener('click', (e) => {
+        e.stopPropagation();
+        handleMetricChange('weight');
+      });
+    }
+    if (btnReps) {
+      btnReps.addEventListener('click', (e) => {
+        e.stopPropagation();
+        handleMetricChange('reps');
+      });
+    }
+    if (btnTime) {
+      btnTime.addEventListener('click', (e) => {
+        e.stopPropagation();
+        handleMetricChange('time');
+      });
+    }
   }
 
   const deleteExGlobalBtn = document.getElementById('delete-global-exercise-btn');
@@ -3087,14 +3239,21 @@ function checkAndShowPreviousPerformance(exerciseName) {
       const row = document.createElement('div');
       row.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; margin-bottom: 6px; font-size: 0.9rem; color: #ffffff;';
       
-      let valText = '';
-      if (prevEx.metricType === 'both') {
-        valText = `<strong>${s.weight} ק״ג</strong> × <strong>${s.reps} חזרות</strong>`;
-      } else if (prevEx.metricType === 'weight') {
-        valText = `<strong>${s.weight} ק״ג</strong>`;
-      } else {
-        valText = `<strong>${s.reps} חזרות</strong>`;
+      const showWeight = prevEx.metrics ? prevEx.metrics.includes('weight') : (prevEx.metricType === 'both' || prevEx.metricType === 'weight' || !prevEx.metricType);
+      const showReps = prevEx.metrics ? prevEx.metrics.includes('reps') : (prevEx.metricType === 'both' || prevEx.metricType === 'reps' || !prevEx.metricType);
+      const showTime = prevEx.metrics ? prevEx.metrics.includes('time') : (prevEx.metricType === 'time');
+
+      const parts = [];
+      if (showWeight) {
+        parts.push(`<strong>${s.weight || 0} ק״ג</strong>`);
       }
+      if (showReps) {
+        parts.push(`<strong>${s.reps || 0} חזרות</strong>`);
+      }
+      if (showTime) {
+        parts.push(`<strong>${s.time || 0} ש׳</strong>`);
+      }
+      const valText = parts.join(' × ');
 
       row.innerHTML = `
         <span style="font-weight: 700; color: #ef4444;">סט ${idx + 1}</span>
