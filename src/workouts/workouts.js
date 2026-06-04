@@ -676,6 +676,106 @@ export function renderExercisePickerList() {
   });
 }
 
+export function calculateWorkoutProgress() {
+  if (!state.activeWorkout || !state.activeWorkout.exercises || state.activeWorkout.exercises.length === 0) return 0;
+
+  let totalTargetSets = 0;
+  let totalCompletedSets = 0;
+
+  state.activeWorkout.exercises.forEach(ex => {
+    const target = Math.max(ex.targetSetsCount || 3, ex.sets ? ex.sets.length : 0);
+    totalTargetSets += target;
+    totalCompletedSets += ex.sets ? ex.sets.filter(s => s.completed).length : 0;
+  });
+
+  return totalTargetSets > 0 ? (totalCompletedSets / totalTargetSets) * 100 : 0;
+}
+
+export function addNewSetToCard(exIdx) {
+  const ex = state.activeWorkout.exercises[exIdx];
+  if (!ex) return;
+
+  if (!ex.sets) ex.sets = [];
+
+  let defaultWeight = '';
+  let defaultReps = '';
+  let defaultTime = '';
+
+  const completedSets = ex.sets.filter(s => s.completed);
+  const previousSet = completedSets[completedSets.length - 1] || ex.sets[ex.sets.length - 1];
+
+  if (previousSet) {
+    defaultWeight = previousSet.weight;
+    defaultReps = previousSet.reps;
+    defaultTime = previousSet.time;
+  }
+
+  ex.sets.push({
+    weight: defaultWeight,
+    reps: defaultReps,
+    time: defaultTime,
+    completed: false,
+    justAdded: true
+  });
+  
+  ex.targetSetsCount = Math.max(ex.targetSetsCount || 3, ex.sets.length);
+  saveActiveWorkoutState();
+  renderExercises();
+}
+
+export function deleteSetFromCard(exIdx, setIdx) {
+  const ex = state.activeWorkout.exercises[exIdx];
+  if (!ex) return;
+
+  const performDelete = () => {
+    ex.sets.splice(setIdx, 1);
+    ex.targetSetsCount = Math.max(1, ex.sets.length);
+    saveActiveWorkoutState();
+    renderExercises();
+  };
+
+  const row = document.getElementById(`set-row-${exIdx}-${setIdx}`);
+  if (row) {
+    row.classList.add('set-row-animated-delete');
+    row.addEventListener('animationend', performDelete, { once: true });
+    // Fallback
+    setTimeout(() => {
+      if (ex.sets && ex.sets[setIdx]) {
+        performDelete();
+      }
+    }, 400);
+  } else {
+    performDelete();
+  }
+}
+
+export function toggleInlineSetComplete(exIdx, setIdx) {
+  const ex = state.activeWorkout.exercises[exIdx];
+  if (!ex || !ex.sets || !ex.sets[setIdx]) return;
+
+  const set = ex.sets[setIdx];
+  set.completed = !set.completed;
+
+  if (set.completed) {
+    set.justCompleted = true;
+    const restSeconds = ex.restTime || 90;
+    startRestTimer(restSeconds);
+    showPremiumToast(`סט ${setIdx + 1} הושלם! מנוחה: ${restSeconds} שניות ⏱️`, "success");
+  } else {
+    stopRestTimer();
+  }
+
+  const allCompleted = ex.sets.length >= (ex.targetSetsCount || 3) && ex.sets.every(s => s.completed);
+  if (allCompleted) {
+    ex.completed = true;
+    startRestTimer(120);
+    showPremiumToast(`התרגיל הושלם בהצלחה! 2 דקות מנוחה בין תרגילים ⏱️🏆`, "success");
+  }
+
+  saveActiveWorkoutState();
+  renderExercises();
+}
+
 export function renderExercises() {
   const container = document.getElementById('exercises-container');
   if (!container || !state.activeWorkout) return;
@@ -683,15 +783,13 @@ export function renderExercises() {
   container.innerHTML = '';
   
   // Update Dynamic Progress Bar
-  const totalExercises = state.activeWorkout.exercises.length;
-  const completedExercises = state.activeWorkout.exercises.filter(ex => ex.completed).length;
-  const pct = totalExercises > 0 ? (completedExercises / totalExercises) * 100 : 0;
+  const pct = calculateWorkoutProgress();
   const progressBar = document.getElementById('active-workout-progress-bar');
   if (progressBar) {
     progressBar.style.width = `${pct}%`;
   }
 
-  const hasUncompleted = state.activeWorkout.exercises.some(ex => !ex.completed && ex.sets.some(s => s.completed));
+  const hasUncompleted = state.activeWorkout.exercises.some(ex => !ex.completed && ex.sets && ex.sets.some(s => s.completed));
   const addExerciseBtn = document.getElementById('add-exercise-btn');
   
   if (addExerciseBtn) {
@@ -775,7 +873,7 @@ export function renderExercises() {
       actionBtn.className = 'btn save-exercise-btn';
       actionBtn.textContent = 'סיום תרגיל ✓';
       actionBtn.addEventListener('click', () => {
-        const hasCompletedSets = ex.sets.some(s => s.completed);
+        const hasCompletedSets = ex.sets && ex.sets.some(s => s.completed);
         if (!hasCompletedSets) {
           alert('אנא השלם לפחות סט אחד.');
           return;
@@ -789,6 +887,22 @@ export function renderExercises() {
     header.appendChild(actionBtn);
     card.appendChild(header);
     
+    // Ensure sets array exists and pre-populate if needed
+    if (!ex.sets || !Array.isArray(ex.sets)) {
+      ex.sets = [];
+    }
+    if (!ex.completed && ex.sets.length === 0) {
+      const targetSets = ex.targetSetsCount || 3;
+      for (let i = 0; i < targetSets; i++) {
+        ex.sets.push({
+          weight: '',
+          reps: '',
+          time: '',
+          completed: false
+        });
+      }
+    }
+
     // Inline targetSetsCount stepper for active exercise card
     if (!ex.completed) {
       const targetSets = ex.targetSetsCount || 3;
@@ -808,6 +922,9 @@ export function renderExercises() {
       minusBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         ex.targetSetsCount = Math.max(1, (ex.targetSetsCount || 3) - 1);
+        if (ex.sets.length > ex.targetSetsCount) {
+          ex.sets = ex.sets.slice(0, ex.targetSetsCount);
+        }
         saveActiveWorkoutState();
         renderExercises();
       });
@@ -825,6 +942,23 @@ export function renderExercises() {
       plusBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         ex.targetSetsCount = Math.min(12, (ex.targetSetsCount || 3) + 1);
+        while (ex.sets.length < ex.targetSetsCount) {
+          let defaultWeight = '';
+          let defaultReps = '';
+          let defaultTime = '';
+          if (ex.sets.length > 0) {
+            const last = ex.sets[ex.sets.length - 1];
+            defaultWeight = last.weight;
+            defaultReps = last.reps;
+            defaultTime = last.time;
+          }
+          ex.sets.push({
+            weight: defaultWeight,
+            reps: defaultReps,
+            time: defaultTime,
+            completed: false
+          });
+        }
         saveActiveWorkoutState();
         renderExercises();
       });
@@ -845,81 +979,203 @@ export function renderExercises() {
     const setsArea = document.createElement('div');
     setsArea.className = 'sets-area';
     
-    const completedSets = ex.sets.filter(s => s.completed);
-    if (completedSets.length > 0) {
-      const chipsContainer = document.createElement('div');
-      chipsContainer.className = 'completed-sets-chips-container';
-      chipsContainer.style.display = 'flex';
-      chipsContainer.style.flexWrap = 'wrap';
-      chipsContainer.style.gap = '8px';
-      chipsContainer.style.marginTop = '10px';
-      chipsContainer.style.direction = 'rtl';
-      
-      completedSets.forEach((set, idx) => {
-        const chip = document.createElement('div');
-        chip.className = 'completed-set-chip';
-        chip.style.display = 'inline-flex';
-        chip.style.alignItems = 'center';
-        chip.style.background = 'rgba(255,255,255,0.06)';
-        chip.style.border = '1px solid rgba(255,255,255,0.08)';
-        chip.style.padding = '6px 12px';
-        chip.style.borderRadius = '12px';
-        chip.style.fontSize = '0.88rem';
-        chip.style.color = '#ffffff';
-        chip.style.gap = '6px';
+    if (ex.completed) {
+      // Completed/saved state: render completed sets as chips
+      const completedSets = ex.sets.filter(s => s.completed);
+      if (completedSets.length > 0) {
+        const chipsContainer = document.createElement('div');
+        chipsContainer.className = 'completed-sets-chips-container';
+        chipsContainer.style.display = 'flex';
+        chipsContainer.style.flexWrap = 'wrap';
+        chipsContainer.style.gap = '8px';
+        chipsContainer.style.marginTop = '10px';
+        chipsContainer.style.direction = 'rtl';
         
-        // Format values string dynamically based on showWeight, showReps, showTime
-        const valParts = [];
-        if (showWeight) valParts.push(`${set.weight || 0} ק״ג`);
-        if (showReps) valParts.push(`${set.reps || 0} חזרות`);
-        if (showTime) valParts.push(`${set.time || 0} ש׳`);
-        const valueStr = valParts.join(' × ');
+        completedSets.forEach((set, idx) => {
+          const chip = document.createElement('div');
+          chip.className = 'completed-set-chip';
+          chip.style.display = 'inline-flex';
+          chip.style.alignItems = 'center';
+          chip.style.background = 'rgba(255,255,255,0.06)';
+          chip.style.border = '1px solid rgba(255,255,255,0.08)';
+          chip.style.padding = '6px 12px';
+          chip.style.borderRadius = '12px';
+          chip.style.fontSize = '0.88rem';
+          chip.style.color = '#ffffff';
+          chip.style.gap = '6px';
+          
+          const valParts = [];
+          if (showWeight) valParts.push(`${set.weight || 0} ק״ג`);
+          if (showReps) valParts.push(`${set.reps || 0} חזרות`);
+          if (showTime) valParts.push(`${set.time || 0} ש׳`);
+          const valueStr = valParts.join(' × ');
+          
+          const realIdx = ex.sets.indexOf(set);
+          chip.innerHTML = `
+            <span style="font-weight: 700; color: var(--electric-blue);">סט ${realIdx + 1}:</span>
+            <span>${valueStr}</span>
+          `;
+          chipsContainer.appendChild(chip);
+        });
+        setsArea.appendChild(chipsContainer);
+      }
+    } else {
+      // Active state: render full inline set table
+      let gridTemplate = '40px ';
+      let headerHtml = '<div>סט</div>';
+      if (showWeight) {
+        gridTemplate += '1fr ';
+        headerHtml += '<div>משקל</div>';
+      }
+      if (showReps) {
+        gridTemplate += '1fr ';
+        headerHtml += '<div>חזרות</div>';
+      }
+      if (showTime) {
+        gridTemplate += '1fr ';
+        headerHtml += '<div>זמן</div>';
+      }
+      gridTemplate += '50px 40px';
+      headerHtml += '<div>בוצע</div><div>מחק</div>';
+
+      const tableHeader = document.createElement('div');
+      tableHeader.className = 'inline-set-header-row';
+      tableHeader.style.gridTemplateColumns = gridTemplate;
+      tableHeader.innerHTML = headerHtml;
+      setsArea.appendChild(tableHeader);
+
+      ex.sets.forEach((set, setIdx) => {
+        const row = document.createElement('div');
+        row.className = `inline-set-row ${set.completed ? 'completed' : ''}`;
+        row.id = `set-row-${exIdx}-${setIdx}`;
+        row.style.gridTemplateColumns = gridTemplate;
         
-        const realIdx = ex.sets.indexOf(set);
-        chip.innerHTML = `
-          <span style="font-weight: 700; color: var(--electric-blue);">סט ${realIdx + 1}:</span>
-          <span>${valueStr}</span>
-        `;
-        
-        if (!ex.completed) {
-          chip.style.cursor = 'pointer';
-          chip.title = 'לחץ לביטול הסט';
-          chip.addEventListener('click', () => {
-            if (confirm(`האם ברצונך לבטל את סט ${realIdx + 1}?`)) {
-              set.completed = false;
-              saveActiveWorkoutState();
-              renderExercises();
-            }
-          });
+        if (set.justAdded) {
+          row.classList.add('set-row-animated-add');
+          delete set.justAdded;
         }
-        chipsContainer.appendChild(chip);
+
+        // 1. Set number
+        const setNum = document.createElement('span');
+        setNum.className = 'inline-set-num';
+        setNum.textContent = setIdx + 1;
+        row.appendChild(setNum);
+
+        // Fetch placeholder/default values
+        const completedBefore = ex.sets.slice(0, setIdx).filter(s => s.completed);
+        const previousSet = completedBefore[completedBefore.length - 1] || ex.sets.filter(s => s.completed)[0];
+
+        let defaultWeight = previousSet ? (previousSet.weight || 60) : 60;
+        let defaultReps = previousSet ? (previousSet.reps || 10) : 10;
+        let defaultTime = previousSet ? (previousSet.time || 30) : 30;
+
+        // 2. Weight input
+        if (showWeight) {
+          const weightInput = document.createElement('input');
+          weightInput.type = 'number';
+          weightInput.pattern = '[0-9]*';
+          weightInput.inputMode = 'decimal';
+          weightInput.className = 'inline-set-input weight-input';
+          weightInput.value = set.weight;
+          weightInput.placeholder = defaultWeight;
+          weightInput.disabled = set.completed;
+          weightInput.addEventListener('input', (e) => {
+            set.weight = e.target.value;
+            saveActiveWorkoutState();
+          });
+          row.appendChild(weightInput);
+        }
+
+        // 3. Reps input
+        if (showReps) {
+          const repsInput = document.createElement('input');
+          repsInput.type = 'number';
+          repsInput.pattern = '[0-9]*';
+          repsInput.inputMode = 'numeric';
+          repsInput.className = 'inline-set-input reps-input';
+          repsInput.value = set.reps;
+          repsInput.placeholder = defaultReps;
+          repsInput.disabled = set.completed;
+          repsInput.addEventListener('input', (e) => {
+            set.reps = e.target.value;
+            saveActiveWorkoutState();
+          });
+          row.appendChild(repsInput);
+        }
+
+        // 4. Time input
+        if (showTime) {
+          const timeInput = document.createElement('input');
+          timeInput.type = 'number';
+          timeInput.pattern = '[0-9]*';
+          timeInput.inputMode = 'numeric';
+          timeInput.className = 'inline-set-input time-input';
+          timeInput.value = set.time;
+          timeInput.placeholder = defaultTime;
+          timeInput.disabled = set.completed;
+          timeInput.addEventListener('input', (e) => {
+            set.time = e.target.value;
+            saveActiveWorkoutState();
+          });
+          row.appendChild(timeInput);
+        }
+
+        // 5. Complete toggle button
+        const completeBtn = document.createElement('button');
+        completeBtn.type = 'button';
+        completeBtn.className = `inline-set-complete-btn ${set.completed ? 'active' : ''}`;
+        completeBtn.innerHTML = set.completed ? '✓' : '';
+        completeBtn.addEventListener('click', () => {
+          if (!set.completed) {
+            if (showWeight && (set.weight === undefined || set.weight === '')) {
+              set.weight = defaultWeight;
+              const input = row.querySelector('.weight-input');
+              if (input) input.value = defaultWeight;
+            }
+            if (showReps && (set.reps === undefined || set.reps === '')) {
+              set.reps = defaultReps;
+              const input = row.querySelector('.reps-input');
+              if (input) input.value = defaultReps;
+            }
+            if (showTime && (set.time === undefined || set.time === '')) {
+              set.time = defaultTime;
+              const input = row.querySelector('.time-input');
+              if (input) input.value = defaultTime;
+            }
+          }
+          toggleInlineSetComplete(exIdx, setIdx);
+        });
+
+        if (set.justCompleted) {
+          completeBtn.classList.add('set-complete-pulse');
+          delete set.justCompleted;
+        }
+
+        row.appendChild(completeBtn);
+
+        // 6. Delete set button
+        const deleteBtn = document.createElement('button');
+        deleteBtn.type = 'button';
+        deleteBtn.className = 'inline-set-delete-btn';
+        deleteBtn.innerHTML = '✕';
+        deleteBtn.addEventListener('click', () => {
+          deleteSetFromCard(exIdx, setIdx);
+        });
+        row.appendChild(deleteBtn);
+
+        setsArea.appendChild(row);
       });
-      setsArea.appendChild(chipsContainer);
-    }
-    
-    if (!ex.completed) {
-      const enterSetBtn = document.createElement('button');
-      enterSetBtn.className = 'enter-set-data-btn';
-      enterSetBtn.style.width = '100%';
-      enterSetBtn.style.padding = '12px';
-      enterSetBtn.style.borderRadius = '14px';
-      enterSetBtn.style.background = 'var(--electric-blue, #4f46e5)';
-      enterSetBtn.style.color = '#ffffff';
-      enterSetBtn.style.border = 'none';
-      enterSetBtn.style.fontWeight = '700';
-      enterSetBtn.style.fontSize = '0.95rem';
-      enterSetBtn.style.cursor = 'pointer';
-      enterSetBtn.style.marginTop = '12px';
-      enterSetBtn.style.display = 'block';
-      
-      const nextIncompleteIdx = ex.sets.findIndex(s => !s.completed);
-      const activeSetIdx = nextIncompleteIdx !== -1 ? nextIncompleteIdx : ex.sets.length;
-      
-      enterSetBtn.textContent = `➕ רישום סט ${activeSetIdx + 1}`;
-      enterSetBtn.addEventListener('click', () => {
-        openSetLoggingModal(ex);
+
+      // 7. Add set button at bottom of active card
+      const addSetBtn = document.createElement('button');
+      addSetBtn.type = 'button';
+      addSetBtn.className = 'inline-add-set-btn';
+      addSetBtn.innerHTML = '➕ הוספת סט';
+      addSetBtn.style.cssText = 'width: 100%; padding: 10px; border-radius: 12px; border: 1px dashed rgba(255,255,255,0.15); background: transparent; color: var(--text-muted); font-weight: 700; cursor: pointer; margin-top: 10px; transition: all 0.2s;';
+      addSetBtn.addEventListener('click', () => {
+        addNewSetToCard(exIdx);
       });
-      setsArea.appendChild(enterSetBtn);
+      setsArea.appendChild(addSetBtn);
     }
     
     card.appendChild(setsArea);
@@ -1539,6 +1795,10 @@ export function initWorkoutsModule() {
   window.deleteWorkoutFromHistory = deleteWorkoutFromHistory;
   window.exercisesList = getAllExercises();
   window.renderExercisePickerList = renderExercisePickerList;
+  window.addNewSetToCard = addNewSetToCard;
+  window.deleteSetFromCard = deleteSetFromCard;
+  window.toggleInlineSetComplete = toggleInlineSetComplete;
+  window.calculateWorkoutProgress = calculateWorkoutProgress;
 
   // Setup click bindings on DOM
   const startWorkoutBtn = document.getElementById('start-workout-btn');
@@ -1850,6 +2110,15 @@ export function initWorkoutsModule() {
         completed: false,
         sets: []
       };
+
+      for (let i = 0; i < targetSets; i++) {
+        newExercise.sets.push({
+          weight: '',
+          reps: '',
+          time: '',
+          completed: false
+        });
+      }
 
       state.activeWorkout.exercises.push(newExercise);
       saveActiveWorkoutState();

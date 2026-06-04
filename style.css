@@ -8565,3 +8565,224 @@ html, body {
 .slider-group-hidden {
   display: none !important;
 }
+
+/* ==========================================================================
+   Milestone 2: R1 Premium Active Workout UI
+   ========================================================================== */
+
+/* Glassmorphic Exercise Cards */
+.active-ex-card {
+  background: rgba(255, 255, 255, 0.03) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.05);
+  animation: premiumCardPulse 4s infinite ease-in-out;
+}
+
+@keyframes premiumCardPulse {
+  0% { border-color: rgba(255, 255, 255, 0.08); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25); }
+  50% { border-color: rgba(0, 162, 255, 0.2); box-shadow: 0 10px 35px rgba(0, 162, 255, 0.1); }
+  100% { border-color: rgba(255, 255, 255, 0.08); box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25); }
+}
+
+/* Lava Glow Progress Bar */
+.active-workout-progress-container {
+  height: 8px !important;
+  background: rgba(0, 0, 0, 0.4) !important;
+}
+
+.active-workout-progress-bar {
+  background: linear-gradient(90deg, #ff3b30 0%, #ff9500 50%, #ffcc00 100%) !important;
+  box-shadow: 0 0 12px rgba(255, 59, 48, 0.8), 0 0 24px rgba(255, 149, 0, 0.4) !important;
+  background-size: 200% 200%;
+  animation: lavaShimmer 3s ease infinite;
+}
+
+@keyframes lavaShimmer {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* Inline Set List Table Styling */
+.inline-set-header-row {
+  display: grid;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-align: center;
+  direction: ltr;
+  margin-bottom: 6px;
+}
+
+.inline-set-row {
+  display: grid;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 6px;
+  background: rgba(255, 255, 255, 0.01);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  border-radius: 12px;
+  margin-bottom: 6px;
+  direction: ltr;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.inline-set-row.completed {
+  background: rgba(34, 197, 94, 0.04) !important;
+  border-color: rgba(34, 197, 94, 0.2) !important;
+}
+
+.inline-set-num {
+  font-weight: 700;
+  color: var(--text-muted);
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.inline-set-input {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1.5px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  color: #ffffff;
+  padding: 6px 4px;
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+  font-family: 'Inter', sans-serif;
+}
+
+.inline-set-input:focus:not(:disabled) {
+  border-color: var(--electric-blue-light);
+  box-shadow: 0 0 6px rgba(0, 162, 255, 0.2);
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.inline-set-input:disabled {
+  opacity: 0.5;
+  background: rgba(0, 0, 0, 0.1);
+  border-color: rgba(255, 255, 255, 0.02);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Glowing Checkmark Button */
+.inline-set-complete-btn {
+  height: 30px;
+  width: 30px;
+  border-radius: 50%;
+  border: 2.5px solid rgba(255, 255, 255, 0.15);
+  background: transparent;
+  color: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin: 0 auto;
+  font-weight: 800;
+  font-size: 1rem;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
+}
+
+.inline-set-complete-btn:hover:not(:disabled) {
+  border-color: rgba(34, 197, 94, 0.5);
+  background: rgba(34, 197, 94, 0.05);
+}
+
+.inline-set-complete-btn.active {
+  background: #22c55e !important;
+  border-color: #22c55e !important;
+  color: #ffffff !important;
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.4);
+}
+
+.inline-set-complete-btn:disabled {
+  cursor: not-allowed;
+}
+
+.inline-set-delete-btn {
+  background: transparent;
+  border: none;
+  color: rgba(239, 68, 68, 0.4);
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s;
+  outline: none;
+  padding: 4px;
+}
+
+.inline-set-delete-btn:hover {
+  color: rgba(239, 68, 68, 1);
+}
+
+/* Row transition animations */
+@keyframes slideInRow {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-bottom: 0;
+    overflow: hidden;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 80px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    margin-bottom: 6px;
+  }
+}
+
+@keyframes slideOutRow {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+    max-height: 80px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+    margin-bottom: 6px;
+    overflow: hidden;
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-12px);
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    margin-bottom: 0;
+    overflow: hidden;
+  }
+}
+
+@keyframes pulseCheckmark {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.25); box-shadow: 0 0 15px rgba(34, 197, 94, 0.6); }
+  100% { transform: scale(1); }
+}
+
+.set-row-animated-add {
+  animation: slideInRow 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.set-row-animated-delete {
+  animation: slideOutRow 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.set-complete-pulse {
+  animation: pulseCheckmark 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
