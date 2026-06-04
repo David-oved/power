@@ -12,4 +12,4 @@ def search_file(filepath, pattern):
         if re.search(pattern, line, re.IGNORECASE):
             print(f"Line {idx+1}: {line.strip()}")
 
-search_file("c:/Users/wbddw/OneDrive/שולחן העבודה/power/index.html", r"set-log-time-group|time-range-slider")
+search_file("c:/Users/wbddw/OneDrive/שולחן העבודה/power/style.css", r"ex-fav-star-btn")
