@@ -321,17 +321,56 @@
         <!-- Tab 2: Workouts -->
         <div id="tab-workouts" class="tab-pane">
           
-          <!-- Idle View (Start Workout / Select Location) -->
-          <div id="workout-idle-view" class="workout-dashboard-card active" style="width: 100%; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 2rem;">
-            <h2 class="settings-main-title">אימונים</h2>
-            
-            <div class="workout-start-container" style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; max-width: 320px;">
+          <!-- Idle View (Premium Workout Dashboard) -->
+          <div id="workout-idle-view" class="workout-dashboard-container active">
+            <!-- Dynamic Greetings & Motivation -->
+            <div class="workout-welcome-section">
+              <div class="welcome-header">
+                <span class="welcome-emoji">⚡</span>
+                <div class="welcome-text-group">
+                  <h2 class="welcome-title">היי <span id="workout-user-name">מתאמן</span>,</h2>
+                  <p class="welcome-subtitle">בוא נשבור שיאים היום!</p>
+                </div>
+              </div>
+              <!-- Glassmorphic Quote Box -->
+              <div class="workout-quote-card">
+                <span class="quote-icon">🎯</span>
+                <p id="workout-daily-quote" class="quote-text">"אין קיצורי דרך למקומות ששווה להגיע אליהם!"</p>
+              </div>
+            </div>
+
+            <!-- Premium Quick Stats Grid (Always Visible) -->
+            <div class="workout-stats-dashboard">
+              <div class="workout-stat-card-premium">
+                <div class="stat-icon-wrapper red">🔥</div>
+                <span class="stat-value" id="workout-stats-weekly">0</span>
+                <span class="stat-label">אימונים השבוע</span>
+              </div>
+              <div class="workout-stat-card-premium">
+                <div class="stat-icon-wrapper blue">⏱️</div>
+                <span class="stat-value" id="workout-stats-minutes">0</span>
+                <span class="stat-label">דקות אימון</span>
+              </div>
+              <div class="workout-stat-card-premium">
+                <div class="stat-icon-wrapper purple">📊</div>
+                <span class="stat-value" id="workout-stats-monthly">0</span>
+                <span class="stat-label">החודש</span>
+              </div>
+              <div class="workout-stat-card-premium">
+                <div class="stat-icon-wrapper green">🌟</div>
+                <span class="stat-value" id="workout-stats-last" style="font-size: 0.88rem; white-space: nowrap;">אין</span>
+                <span class="stat-label">אימון אחרון</span>
+              </div>
+            </div>
+
+            <!-- Workout Start Button & Location Selection -->
+            <div class="workout-start-container">
               <!-- Initial Start Button -->
               <button id="start-workout-btn" class="btn btn-primary start-main-btn" style="width: 100%; padding: 16px; font-size: 1.1rem; box-shadow: 0 4px 20px var(--electric-blue-glow);">
                 <span>🏋️‍♂️</span> התחל אימון חדש
               </button>
 
-              <!-- Inline Location Selector (Hidden by default) -->
+              <!-- Inline Location Selector (Hidden by default, slides down smoothly) -->
               <div id="location-selector-grid" class="location-selector-grid hide" style="width: 100%; text-align: center;">
                 <h3 class="location-select-title" style="font-family: var(--font-display); font-size: 1.25rem; font-weight: 700; color: #ffffff; margin-bottom: 1.2rem;">איפה מתאמנים היום?</h3>
                 <div id="location-tiles-container" class="location-tiles" style="display: flex; flex-wrap: wrap; gap: 15px; width: 100%; margin-bottom: 1.5rem; justify-content: center;">
@@ -344,6 +383,11 @@
 
           <!-- Active Workout View (Live Tracking Console) -->
           <div id="workout-active-view" class="workout-active-view hide">
+            <!-- Dynamic Progress Bar -->
+            <div class="active-workout-progress-container" style="width: 100%; height: 4px; background: rgba(255,255,255,0.06); position: relative; overflow: hidden; z-index: 10;">
+              <div id="active-workout-progress-bar" class="active-workout-progress-bar" style="width: 0%; height: 100%; background: linear-gradient(90deg, var(--electric-blue) 0%, var(--neon-orange) 100%); box-shadow: 0 0 8px var(--electric-blue-glow); transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);"></div>
+            </div>
+
             <div class="active-workout-header-bar">
               <div class="active-location-badge">
                 <span id="active-location-icon">🏋️‍♂️</span>&nbsp;
@@ -449,32 +493,32 @@
                 <!-- 3. Measurement Type (Stateful Selectable Cards) -->
                 <h4 style="font-size: 1.02rem; font-weight: 800; margin-bottom: 12px; color: #ffffff; text-align: right; direction: rtl;">⚖️ סוג המדדים למדידה</h4>
                 <div class="premium-metric-card-grid">
-                  <!-- Weight and Reps Card -->
-                  <div class="premium-metric-card active" data-metric="both">
+                  <!-- Weight Card -->
+                  <div class="premium-metric-card active" data-metric="weight">
                     <div class="premium-metric-icon">⚖️</div>
                     <div class="premium-metric-details">
-                      <span class="premium-metric-title">משקל וחזרות</span>
-                      <span class="premium-metric-desc">מומלץ לתרגילי התנגדות, משקולות ומכונות</span>
+                      <span class="premium-metric-title">משקל</span>
+                      <span class="premium-metric-desc">מדידת התנגדות בקילוגרמים למשקולות ומכונות</span>
                     </div>
                     <div class="premium-metric-badge">✓</div>
                   </div>
 
-                  <!-- Reps Only Card -->
-                  <div class="premium-metric-card" data-metric="reps">
+                  <!-- Reps Card -->
+                  <div class="premium-metric-card active" data-metric="reps">
                     <div class="premium-metric-icon">🔢</div>
                     <div class="premium-metric-details">
-                      <span class="premium-metric-title">חזרות בלבד</span>
-                      <span class="premium-metric-desc">מתאים למשקל גוף (מתח, שכיבות סמיכה) או אירובי</span>
+                      <span class="premium-metric-title">חזרות</span>
+                      <span class="premium-metric-desc">ספירת מספר ביצועי התרגיל בכל סט</span>
                     </div>
                     <div class="premium-metric-badge">✓</div>
                   </div>
 
-                  <!-- Weight Only Card -->
-                  <div class="premium-metric-card" data-metric="weight">
-                    <div class="premium-metric-icon">🏋️‍♂️</div>
+                  <!-- Time Card -->
+                  <div class="premium-metric-card" data-metric="time">
+                    <div class="premium-metric-icon">⏱️</div>
                     <div class="premium-metric-details">
-                      <span class="premium-metric-title">משקל בלבד</span>
-                      <span class="premium-metric-desc">להרמות כוח טהור או בדיקות התנגדות סטטיות</span>
+                      <span class="premium-metric-title">זמן</span>
+                      <span class="premium-metric-desc">מדידת משך ביצוע בשניות (פלאנק, סקוואט סטטי)</span>
                     </div>
                     <div class="premium-metric-badge">✓</div>
                   </div>
@@ -566,6 +610,19 @@
                     <button type="button" id="reps-minus-btn" class="slider-adjust-btn" style="width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.3rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center;">-</button>
                     <input type="range" id="reps-range-slider" class="premium-range-slider" min="0" max="50" step="1" value="10" style="flex: 1; height: 6px; border-radius: 3px; outline: none; background: rgba(255,255,255,0.1);">
                     <button type="button" id="reps-plus-btn" class="slider-adjust-btn" style="width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.3rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center;">+</button>
+                  </div>
+                </div>
+
+                <!-- Time Slider Row -->
+                <div class="slider-group-container" id="set-log-time-group" style="display: flex; flex-direction: column; gap: 8px;">
+                  <div class="slider-header" style="display: flex; justify-content: space-between; align-items: center; direction: rtl;">
+                    <span style="font-size: 0.95rem; font-weight: 700; color: var(--text-muted);">זמן (שניות)</span>
+                    <span class="slider-display-value" style="font-size: 1.3rem; font-weight: 800; color: #ffffff;"><span id="time-slider-value">30</span> שניות</span>
+                  </div>
+                  <div class="slider-control-row" style="display: flex; align-items: center; gap: 10px; direction: ltr;">
+                    <button type="button" id="time-minus-btn" class="slider-adjust-btn" style="width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.3rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center;">-</button>
+                    <input type="range" id="time-range-slider" class="premium-range-slider" min="0" max="600" step="5" value="30" style="flex: 1; height: 6px; border-radius: 3px; outline: none; background: rgba(255,255,255,0.1);">
+                    <button type="button" id="time-plus-btn" class="slider-adjust-btn" style="width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.3rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center;">+</button>
                   </div>
                 </div>
 
@@ -916,6 +973,9 @@
                     </button>
                     <button id="inspector-toggle-reps" class="inspector-toggle-btn" data-inspector-metric="reps">
                       <span>🔢</span> חזרות
+                    </button>
+                    <button id="inspector-toggle-time" class="inspector-toggle-btn" data-inspector-metric="time">
+                      <span>⏱️</span> זמן
                     </button>
                   </div>
 
