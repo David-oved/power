@@ -202,73 +202,6 @@ export function initWorkouts() {
       state.activeWorkout = null;
     }
   }
-
-  // Update dynamic quick stats dashboard on workouts tab
-  updateWorkoutDashboardStats();
-}
-
-// Calculate and update dynamic Quick Stats on the main workouts tab
-export function updateWorkoutDashboardStats() {
-  if (!state.currentUser) return;
-
-  const history = state.workoutHistory || [];
-
-  // 1. Weekly Workouts (workouts within last 7 days)
-  const now = Date.now();
-  const oneWeekAgo = now - 7 * 24 * 60 * 60 * 1000;
-  const weeklyCount = history.filter(w => w.date >= oneWeekAgo).length;
-
-  // 2. Total duration in minutes
-  const totalMinutes = Math.round(history.reduce((sum, w) => sum + (w.duration || 0), 0) / 60);
-
-  // 3. Monthly Workouts (current calendar month)
-  const currentMonth = new Date().getMonth();
-  const currentYear = new Date().getFullYear();
-  const monthlyCount = history.filter(w => {
-    const d = new Date(w.date);
-    return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
-  }).length;
-
-  // 4. Last workout details
-  let lastWorkoutText = "אין";
-  if (history.length > 0) {
-    const sorted = [...history].sort((a, b) => b.date - a.date);
-    const last = sorted[0];
-    const diffMs = now - last.date;
-    const diffDays = Math.floor(diffMs / (24 * 60 * 60 * 1000));
-
-    let timeAgo = "";
-    if (diffDays === 0) timeAgo = "היום";
-    else if (diffDays === 1) timeAgo = "אתמול";
-    else if (diffDays === 2) timeAgo = "שלשום";
-    else timeAgo = `לפני ${diffDays} ימים`;
-
-    lastWorkoutText = `${last.locationEmoji || '💪'} ${timeAgo}`;
-  }
-
-  // Update DOM elements safely
-  const weeklyEl = document.getElementById('workout-stats-weekly');
-  const minutesEl = document.getElementById('workout-stats-minutes');
-  const monthlyEl = document.getElementById('workout-stats-monthly');
-  const lastEl = document.getElementById('workout-stats-last');
-  const userNameEl = document.getElementById('workout-user-name');
-  const quoteEl = document.getElementById('workout-daily-quote');
-
-  if (weeklyEl) weeklyEl.textContent = weeklyCount;
-  if (minutesEl) minutesEl.textContent = totalMinutes;
-  if (monthlyEl) monthlyEl.textContent = monthlyCount;
-  if (lastEl) lastEl.textContent = lastWorkoutText;
-
-  if (userNameEl && state.currentUser) {
-    userNameEl.textContent = state.currentUser.displayName || "מתאמן";
-  }
-
-  // Set a random Hebrew quote if not already set for this session
-  if (quoteEl && !quoteEl.dataset.initialized) {
-    const randIdx = Math.floor(Math.random() * HEBREW_QUOTES.length);
-    quoteEl.textContent = `"${HEBREW_QUOTES[randIdx]}"`;
-    quoteEl.dataset.initialized = "true";
-  }
 }
 
 // Clear workout session on logout
@@ -676,120 +609,13 @@ export function renderExercisePickerList() {
   });
 }
 
-export function calculateWorkoutProgress() {
-  if (!state.activeWorkout || !state.activeWorkout.exercises || state.activeWorkout.exercises.length === 0) return 0;
-
-  let totalTargetSets = 0;
-  let totalCompletedSets = 0;
-
-  state.activeWorkout.exercises.forEach(ex => {
-    const target = Math.max(ex.targetSetsCount || 3, ex.sets ? ex.sets.length : 0);
-    totalTargetSets += target;
-    totalCompletedSets += ex.sets ? ex.sets.filter(s => s.completed).length : 0;
-  });
-
-  return totalTargetSets > 0 ? (totalCompletedSets / totalTargetSets) * 100 : 0;
-}
-
-export function addNewSetToCard(exIdx) {
-  const ex = state.activeWorkout.exercises[exIdx];
-  if (!ex) return;
-
-  if (!ex.sets) ex.sets = [];
-
-  let defaultWeight = '';
-  let defaultReps = '';
-  let defaultTime = '';
-
-  const completedSets = ex.sets.filter(s => s.completed);
-  const previousSet = completedSets[completedSets.length - 1] || ex.sets[ex.sets.length - 1];
-
-  if (previousSet) {
-    defaultWeight = previousSet.weight;
-    defaultReps = previousSet.reps;
-    defaultTime = previousSet.time;
-  }
-
-  ex.sets.push({
-    weight: defaultWeight,
-    reps: defaultReps,
-    time: defaultTime,
-    completed: false,
-    justAdded: true
-  });
-  
-  ex.targetSetsCount = Math.max(ex.targetSetsCount || 3, ex.sets.length);
-  saveActiveWorkoutState();
-  renderExercises();
-}
-
-export function deleteSetFromCard(exIdx, setIdx) {
-  const ex = state.activeWorkout.exercises[exIdx];
-  if (!ex) return;
-
-  const performDelete = () => {
-    ex.sets.splice(setIdx, 1);
-    ex.targetSetsCount = Math.max(1, ex.sets.length);
-    saveActiveWorkoutState();
-    renderExercises();
-  };
-
-  const row = document.getElementById(`set-row-${exIdx}-${setIdx}`);
-  if (row) {
-    row.classList.add('set-row-animated-delete');
-    row.addEventListener('animationend', performDelete, { once: true });
-    // Fallback
-    setTimeout(() => {
-      if (ex.sets && ex.sets[setIdx]) {
-        performDelete();
-      }
-    }, 400);
-  } else {
-    performDelete();
-  }
-}
-
-export function toggleInlineSetComplete(exIdx, setIdx) {
-  const ex = state.activeWorkout.exercises[exIdx];
-  if (!ex || !ex.sets || !ex.sets[setIdx]) return;
-
-  const set = ex.sets[setIdx];
-  set.completed = !set.completed;
-
-  if (set.completed) {
-    set.justCompleted = true;
-    const restSeconds = ex.restTime || 90;
-    startRestTimer(restSeconds);
-    showPremiumToast(`סט ${setIdx + 1} הושלם! מנוחה: ${restSeconds} שניות ⏱️`, "success");
-  } else {
-    stopRestTimer();
-  }
-
-  const allCompleted = ex.sets.length >= (ex.targetSetsCount || 3) && ex.sets.every(s => s.completed);
-  if (allCompleted) {
-    ex.completed = true;
-    startRestTimer(120);
-    showPremiumToast(`התרגיל הושלם בהצלחה! 2 דקות מנוחה בין תרגילים ⏱️🏆`, "success");
-  }
-
-  saveActiveWorkoutState();
-  renderExercises();
-}
-
 export function renderExercises() {
   const container = document.getElementById('exercises-container');
   if (!container || !state.activeWorkout) return;
   
   container.innerHTML = '';
   
-  // Update Dynamic Progress Bar
-  const pct = calculateWorkoutProgress();
-  const progressBar = document.getElementById('active-workout-progress-bar');
-  if (progressBar) {
-    progressBar.style.width = `${pct}%`;
-  }
-
-  const hasUncompleted = state.activeWorkout.exercises.some(ex => !ex.completed && ex.sets && ex.sets.some(s => s.completed));
+  const hasUncompleted = state.activeWorkout.exercises.some(ex => !ex.completed && ex.sets.some(s => s.completed));
   const addExerciseBtn = document.getElementById('add-exercise-btn');
   
   if (addExerciseBtn) {
@@ -806,12 +632,9 @@ export function renderExercises() {
   
   state.activeWorkout.exercises.forEach((ex, exIdx) => {
     const card = document.createElement('div');
-    card.className = `exercise-card ${ex.completed ? 'saved collapsed' : 'active-ex-card'}`;
+    card.className = `exercise-card ${ex.completed ? 'saved' : ''}`;
     
-    // Check enabled metrics
-    const showWeight = ex.metrics ? ex.metrics.includes('weight') : (ex.metricType === 'both' || ex.metricType === 'weight');
-    const showReps = ex.metrics ? ex.metrics.includes('reps') : (ex.metricType === 'both' || ex.metricType === 'reps');
-    const showTime = ex.metrics ? ex.metrics.includes('time') : (ex.metricType === 'time');
+    const metricType = ex.metricType || 'both';
     
     const header = document.createElement('div');
     header.className = 'exercise-card-header';
@@ -840,12 +663,9 @@ export function renderExercises() {
     nameLabel.textContent = ex.name;
     titleContainer.appendChild(nameLabel);
     
-    // Format dynamic Hebrew badge label
-    const parts = [];
-    if (showWeight) parts.push('משקל ⚖️');
-    if (showReps) parts.push('חזרות 🔢');
-    if (showTime) parts.push('זמן ⏱️');
-    const metricLabel = parts.join(' + ');
+    let metricLabel = '⚖️ משקל וחזרות';
+    if (metricType === 'reps') metricLabel = '🔢 חזרות בלבד';
+    if (metricType === 'weight') metricLabel = '🏋️‍♂️ משקל בלבד';
     
     const metricBadge = document.createElement('span');
     metricBadge.className = 'badge-mini';
@@ -873,7 +693,7 @@ export function renderExercises() {
       actionBtn.className = 'btn save-exercise-btn';
       actionBtn.textContent = 'סיום תרגיל ✓';
       actionBtn.addEventListener('click', () => {
-        const hasCompletedSets = ex.sets && ex.sets.some(s => s.completed);
+        const hasCompletedSets = ex.sets.some(s => s.completed);
         if (!hasCompletedSets) {
           alert('אנא השלם לפחות סט אחד.');
           return;
@@ -887,22 +707,6 @@ export function renderExercises() {
     header.appendChild(actionBtn);
     card.appendChild(header);
     
-    // Ensure sets array exists and pre-populate if needed
-    if (!ex.sets || !Array.isArray(ex.sets)) {
-      ex.sets = [];
-    }
-    if (!ex.completed && ex.sets.length === 0) {
-      const targetSets = ex.targetSetsCount || 3;
-      for (let i = 0; i < targetSets; i++) {
-        ex.sets.push({
-          weight: '',
-          reps: '',
-          time: '',
-          completed: false
-        });
-      }
-    }
-
     // Inline targetSetsCount stepper for active exercise card
     if (!ex.completed) {
       const targetSets = ex.targetSetsCount || 3;
@@ -922,9 +726,6 @@ export function renderExercises() {
       minusBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         ex.targetSetsCount = Math.max(1, (ex.targetSetsCount || 3) - 1);
-        if (ex.sets.length > ex.targetSetsCount) {
-          ex.sets = ex.sets.slice(0, ex.targetSetsCount);
-        }
         saveActiveWorkoutState();
         renderExercises();
       });
@@ -942,23 +743,6 @@ export function renderExercises() {
       plusBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         ex.targetSetsCount = Math.min(12, (ex.targetSetsCount || 3) + 1);
-        while (ex.sets.length < ex.targetSetsCount) {
-          let defaultWeight = '';
-          let defaultReps = '';
-          let defaultTime = '';
-          if (ex.sets.length > 0) {
-            const last = ex.sets[ex.sets.length - 1];
-            defaultWeight = last.weight;
-            defaultReps = last.reps;
-            defaultTime = last.time;
-          }
-          ex.sets.push({
-            weight: defaultWeight,
-            reps: defaultReps,
-            time: defaultTime,
-            completed: false
-          });
-        }
         saveActiveWorkoutState();
         renderExercises();
       });
@@ -979,203 +763,83 @@ export function renderExercises() {
     const setsArea = document.createElement('div');
     setsArea.className = 'sets-area';
     
-    if (ex.completed) {
-      // Completed/saved state: render completed sets as chips
-      const completedSets = ex.sets.filter(s => s.completed);
-      if (completedSets.length > 0) {
-        const chipsContainer = document.createElement('div');
-        chipsContainer.className = 'completed-sets-chips-container';
-        chipsContainer.style.display = 'flex';
-        chipsContainer.style.flexWrap = 'wrap';
-        chipsContainer.style.gap = '8px';
-        chipsContainer.style.marginTop = '10px';
-        chipsContainer.style.direction = 'rtl';
+    const completedSets = ex.sets.filter(s => s.completed);
+    if (completedSets.length > 0) {
+      const chipsContainer = document.createElement('div');
+      chipsContainer.className = 'completed-sets-chips-container';
+      chipsContainer.style.display = 'flex';
+      chipsContainer.style.flexWrap = 'wrap';
+      chipsContainer.style.gap = '8px';
+      chipsContainer.style.marginTop = '10px';
+      chipsContainer.style.direction = 'rtl';
+      
+      completedSets.forEach((set, idx) => {
+        const chip = document.createElement('div');
+        chip.className = 'completed-set-chip';
+        chip.style.display = 'inline-flex';
+        chip.style.alignItems = 'center';
+        chip.style.background = 'rgba(255,255,255,0.06)';
+        chip.style.border = '1px solid rgba(255,255,255,0.08)';
+        chip.style.padding = '6px 12px';
+        chip.style.borderRadius = '12px';
+        chip.style.fontSize = '0.88rem';
+        chip.style.color = '#ffffff';
+        chip.style.gap = '6px';
         
-        completedSets.forEach((set, idx) => {
-          const chip = document.createElement('div');
-          chip.className = 'completed-set-chip';
-          chip.style.display = 'inline-flex';
-          chip.style.alignItems = 'center';
-          chip.style.background = 'rgba(255,255,255,0.06)';
-          chip.style.border = '1px solid rgba(255,255,255,0.08)';
-          chip.style.padding = '6px 12px';
-          chip.style.borderRadius = '12px';
-          chip.style.fontSize = '0.88rem';
-          chip.style.color = '#ffffff';
-          chip.style.gap = '6px';
-          
-          const valParts = [];
-          if (showWeight) valParts.push(`${set.weight || 0} ק״ג`);
-          if (showReps) valParts.push(`${set.reps || 0} חזרות`);
-          if (showTime) valParts.push(`${set.time || 0} ש׳`);
-          const valueStr = valParts.join(' × ');
-          
-          const realIdx = ex.sets.indexOf(set);
-          chip.innerHTML = `
-            <span style="font-weight: 700; color: var(--electric-blue);">סט ${realIdx + 1}:</span>
-            <span>${valueStr}</span>
-          `;
-          chipsContainer.appendChild(chip);
-        });
-        setsArea.appendChild(chipsContainer);
-      }
-    } else {
-      // Active state: render full inline set table
-      let gridTemplate = '40px ';
-      let headerHtml = '<div>סט</div>';
-      if (showWeight) {
-        gridTemplate += '1fr ';
-        headerHtml += '<div>משקל</div>';
-      }
-      if (showReps) {
-        gridTemplate += '1fr ';
-        headerHtml += '<div>חזרות</div>';
-      }
-      if (showTime) {
-        gridTemplate += '1fr ';
-        headerHtml += '<div>זמן</div>';
-      }
-      gridTemplate += '50px 40px';
-      headerHtml += '<div>בוצע</div><div>מחק</div>';
-
-      const tableHeader = document.createElement('div');
-      tableHeader.className = 'inline-set-header-row';
-      tableHeader.style.gridTemplateColumns = gridTemplate;
-      tableHeader.innerHTML = headerHtml;
-      setsArea.appendChild(tableHeader);
-
-      ex.sets.forEach((set, setIdx) => {
-        const row = document.createElement('div');
-        row.className = `inline-set-row ${set.completed ? 'completed' : ''}`;
-        row.id = `set-row-${exIdx}-${setIdx}`;
-        row.style.gridTemplateColumns = gridTemplate;
+        let valueStr = '';
+        if (metricType === 'both') {
+          valueStr = `${set.weight || 0} ק״ג × ${set.reps || 0}`;
+        } else if (metricType === 'weight') {
+          valueStr = `${set.weight || 0} ק״ג`;
+        } else {
+          valueStr = `${set.reps || 0} חזרות`;
+        }
         
-        if (set.justAdded) {
-          row.classList.add('set-row-animated-add');
-          delete set.justAdded;
-        }
-
-        // 1. Set number
-        const setNum = document.createElement('span');
-        setNum.className = 'inline-set-num';
-        setNum.textContent = setIdx + 1;
-        row.appendChild(setNum);
-
-        // Fetch placeholder/default values
-        const completedBefore = ex.sets.slice(0, setIdx).filter(s => s.completed);
-        const previousSet = completedBefore[completedBefore.length - 1] || ex.sets.filter(s => s.completed)[0];
-
-        let defaultWeight = previousSet ? (previousSet.weight || 60) : 60;
-        let defaultReps = previousSet ? (previousSet.reps || 10) : 10;
-        let defaultTime = previousSet ? (previousSet.time || 30) : 30;
-
-        // 2. Weight input
-        if (showWeight) {
-          const weightInput = document.createElement('input');
-          weightInput.type = 'number';
-          weightInput.pattern = '[0-9]*';
-          weightInput.inputMode = 'decimal';
-          weightInput.className = 'inline-set-input weight-input';
-          weightInput.value = set.weight;
-          weightInput.placeholder = defaultWeight;
-          weightInput.disabled = set.completed;
-          weightInput.addEventListener('input', (e) => {
-            set.weight = e.target.value;
-            saveActiveWorkoutState();
-          });
-          row.appendChild(weightInput);
-        }
-
-        // 3. Reps input
-        if (showReps) {
-          const repsInput = document.createElement('input');
-          repsInput.type = 'number';
-          repsInput.pattern = '[0-9]*';
-          repsInput.inputMode = 'numeric';
-          repsInput.className = 'inline-set-input reps-input';
-          repsInput.value = set.reps;
-          repsInput.placeholder = defaultReps;
-          repsInput.disabled = set.completed;
-          repsInput.addEventListener('input', (e) => {
-            set.reps = e.target.value;
-            saveActiveWorkoutState();
-          });
-          row.appendChild(repsInput);
-        }
-
-        // 4. Time input
-        if (showTime) {
-          const timeInput = document.createElement('input');
-          timeInput.type = 'number';
-          timeInput.pattern = '[0-9]*';
-          timeInput.inputMode = 'numeric';
-          timeInput.className = 'inline-set-input time-input';
-          timeInput.value = set.time;
-          timeInput.placeholder = defaultTime;
-          timeInput.disabled = set.completed;
-          timeInput.addEventListener('input', (e) => {
-            set.time = e.target.value;
-            saveActiveWorkoutState();
-          });
-          row.appendChild(timeInput);
-        }
-
-        // 5. Complete toggle button
-        const completeBtn = document.createElement('button');
-        completeBtn.type = 'button';
-        completeBtn.className = `inline-set-complete-btn ${set.completed ? 'active' : ''}`;
-        completeBtn.innerHTML = set.completed ? '✓' : '';
-        completeBtn.addEventListener('click', () => {
-          if (!set.completed) {
-            if (showWeight && (set.weight === undefined || set.weight === '')) {
-              set.weight = defaultWeight;
-              const input = row.querySelector('.weight-input');
-              if (input) input.value = defaultWeight;
+        const realIdx = ex.sets.indexOf(set);
+        chip.innerHTML = `
+          <span style="font-weight: 700; color: var(--electric-blue);">סט ${realIdx + 1}:</span>
+          <span>${valueStr}</span>
+        `;
+        
+        if (!ex.completed) {
+          chip.style.cursor = 'pointer';
+          chip.title = 'לחץ לביטול הסט';
+          chip.addEventListener('click', () => {
+            if (confirm(`האם ברצונך לבטל את סט ${realIdx + 1}?`)) {
+              set.completed = false;
+              saveActiveWorkoutState();
+              renderExercises();
             }
-            if (showReps && (set.reps === undefined || set.reps === '')) {
-              set.reps = defaultReps;
-              const input = row.querySelector('.reps-input');
-              if (input) input.value = defaultReps;
-            }
-            if (showTime && (set.time === undefined || set.time === '')) {
-              set.time = defaultTime;
-              const input = row.querySelector('.time-input');
-              if (input) input.value = defaultTime;
-            }
-          }
-          toggleInlineSetComplete(exIdx, setIdx);
-        });
-
-        if (set.justCompleted) {
-          completeBtn.classList.add('set-complete-pulse');
-          delete set.justCompleted;
+          });
         }
-
-        row.appendChild(completeBtn);
-
-        // 6. Delete set button
-        const deleteBtn = document.createElement('button');
-        deleteBtn.type = 'button';
-        deleteBtn.className = 'inline-set-delete-btn';
-        deleteBtn.innerHTML = '✕';
-        deleteBtn.addEventListener('click', () => {
-          deleteSetFromCard(exIdx, setIdx);
-        });
-        row.appendChild(deleteBtn);
-
-        setsArea.appendChild(row);
+        chipsContainer.appendChild(chip);
       });
-
-      // 7. Add set button at bottom of active card
-      const addSetBtn = document.createElement('button');
-      addSetBtn.type = 'button';
-      addSetBtn.className = 'inline-add-set-btn';
-      addSetBtn.innerHTML = '➕ הוספת סט';
-      addSetBtn.style.cssText = 'width: 100%; padding: 10px; border-radius: 12px; border: 1px dashed rgba(255,255,255,0.15); background: transparent; color: var(--text-muted); font-weight: 700; cursor: pointer; margin-top: 10px; transition: all 0.2s;';
-      addSetBtn.addEventListener('click', () => {
-        addNewSetToCard(exIdx);
+      setsArea.appendChild(chipsContainer);
+    }
+    
+    if (!ex.completed) {
+      const enterSetBtn = document.createElement('button');
+      enterSetBtn.className = 'enter-set-data-btn';
+      enterSetBtn.style.width = '100%';
+      enterSetBtn.style.padding = '12px';
+      enterSetBtn.style.borderRadius = '14px';
+      enterSetBtn.style.background = 'var(--electric-blue, #4f46e5)';
+      enterSetBtn.style.color = '#ffffff';
+      enterSetBtn.style.border = 'none';
+      enterSetBtn.style.fontWeight = '700';
+      enterSetBtn.style.fontSize = '0.95rem';
+      enterSetBtn.style.cursor = 'pointer';
+      enterSetBtn.style.marginTop = '12px';
+      enterSetBtn.style.display = 'block';
+      
+      const nextIncompleteIdx = ex.sets.findIndex(s => !s.completed);
+      const activeSetIdx = nextIncompleteIdx !== -1 ? nextIncompleteIdx : ex.sets.length;
+      
+      enterSetBtn.textContent = `➕ רישום סט ${activeSetIdx + 1}`;
+      enterSetBtn.addEventListener('click', () => {
+        openSetLoggingModal(ex);
       });
-      setsArea.appendChild(addSetBtn);
+      setsArea.appendChild(enterSetBtn);
     }
     
     card.appendChild(setsArea);
@@ -1436,25 +1100,23 @@ export function openSetLoggingModal(ex) {
   if (nameDisplay) nameDisplay.textContent = ex.name;
   if (setNumDisplay) setNumDisplay.textContent = `סט ${state.currentLoggingSetIndex + 1}`;
 
-  const showWeight = ex.metrics ? ex.metrics.includes('weight') : (ex.metricType === 'both' || ex.metricType === 'weight');
-  const showReps = ex.metrics ? ex.metrics.includes('reps') : (ex.metricType === 'both' || ex.metricType === 'reps');
-  const showTime = ex.metrics ? ex.metrics.includes('time') : (ex.metricType === 'time');
-
   const weightGroup = document.getElementById('set-log-weight-group');
   const repsGroup = document.getElementById('set-log-reps-group');
-  const timeGroup = document.getElementById('set-log-time-group');
+  const metricType = ex.metricType || 'both';
 
   if (weightGroup) {
-    if (showWeight) weightGroup.classList.remove('slider-group-hidden');
-    else weightGroup.classList.add('slider-group-hidden');
+    if (metricType === 'reps') {
+      weightGroup.classList.add('slider-group-hidden');
+    } else {
+      weightGroup.classList.remove('slider-group-hidden');
+    }
   }
   if (repsGroup) {
-    if (showReps) repsGroup.classList.remove('slider-group-hidden');
-    else repsGroup.classList.add('slider-group-hidden');
-  }
-  if (timeGroup) {
-    if (showTime) timeGroup.classList.remove('slider-group-hidden');
-    else timeGroup.classList.add('slider-group-hidden');
+    if (metricType === 'weight') {
+      repsGroup.classList.add('slider-group-hidden');
+    } else {
+      repsGroup.classList.remove('slider-group-hidden');
+    }
   }
 
   const completedSets = ex.sets.filter(s => s.completed);
@@ -1462,20 +1124,16 @@ export function openSetLoggingModal(ex) {
 
   let initialWeight = 60;
   let initialReps = 10;
-  let initialTime = 30;
 
   if (previousSet) {
     initialWeight = parseFloat(previousSet.weight) || 60;
     initialReps = parseInt(previousSet.reps, 10) || 10;
-    initialTime = parseInt(previousSet.time, 10) || 30;
   }
 
   const weightSlider = document.getElementById('weight-range-slider');
   const weightValueText = document.getElementById('weight-slider-value');
   const repsSlider = document.getElementById('reps-range-slider');
   const repsValueText = document.getElementById('reps-slider-value');
-  const timeSlider = document.getElementById('time-range-slider');
-  const timeValueText = document.getElementById('time-slider-value');
 
   if (weightSlider) {
     weightSlider.value = initialWeight;
@@ -1484,10 +1142,6 @@ export function openSetLoggingModal(ex) {
   if (repsSlider) {
     repsSlider.value = initialReps;
     if (repsValueText) repsValueText.textContent = initialReps;
-  }
-  if (timeSlider) {
-    timeSlider.value = initialTime;
-    if (timeValueText) timeValueText.textContent = initialTime;
   }
 
   const setLogModal = document.getElementById('set-log-modal');
@@ -1773,8 +1427,6 @@ export function deleteWorkoutFromHistory(workoutId) {
   
   if (window.renderWorkoutHistory) window.renderWorkoutHistory();
   
-  updateWorkoutDashboardStats();
-  
   const editModal = document.getElementById('workout-edit-modal');
   if (editModal) editModal.classList.add('hide');
   state.editingWorkout = null;
@@ -1795,10 +1447,6 @@ export function initWorkoutsModule() {
   window.deleteWorkoutFromHistory = deleteWorkoutFromHistory;
   window.exercisesList = getAllExercises();
   window.renderExercisePickerList = renderExercisePickerList;
-  window.addNewSetToCard = addNewSetToCard;
-  window.deleteSetFromCard = deleteSetFromCard;
-  window.toggleInlineSetComplete = toggleInlineSetComplete;
-  window.calculateWorkoutProgress = calculateWorkoutProgress;
 
   // Setup click bindings on DOM
   const startWorkoutBtn = document.getElementById('start-workout-btn');
@@ -2051,11 +1699,12 @@ export function initWorkoutsModule() {
     });
   }
 
-  // Handle click on premium metric selector cards to make them multi-selectable (checkbox style)
+  // Handle click on premium metric selector cards to make them statefully selectable
   const metricCards = document.querySelectorAll('.premium-metric-card');
   metricCards.forEach(card => {
     card.addEventListener('click', () => {
-      card.classList.toggle('active');
+      metricCards.forEach(c => c.classList.remove('active'));
+      card.classList.add('active');
     });
   });
 
@@ -2072,26 +1721,9 @@ export function initWorkoutsModule() {
       
       if (!state.activeWorkout) return;
       
-      // Extract active metrics list from selection
-      const activeCards = document.querySelectorAll('.premium-metric-card.active');
-      const activeMetrics = Array.from(activeCards).map(c => c.getAttribute('data-metric'));
-      
-      if (activeMetrics.length === 0) {
-        alert('אנא בחר לפחות מדד אחד למדידה.');
-        return;
-      }
-      
-      // Map selection to a metricType string for backward compatibility
-      let metricType = 'both';
-      if (activeMetrics.includes('weight') && !activeMetrics.includes('reps') && !activeMetrics.includes('time')) {
-        metricType = 'weight';
-      } else if (!activeMetrics.includes('weight') && activeMetrics.includes('reps') && !activeMetrics.includes('time')) {
-        metricType = 'reps';
-      } else if (!activeMetrics.includes('weight') && !activeMetrics.includes('reps') && activeMetrics.includes('time')) {
-        metricType = 'time';
-      } else {
-        metricType = 'custom';
-      }
+      // Extract active metric type from selection
+      const activeCard = document.querySelector('.premium-metric-card.active');
+      const metricType = activeCard ? activeCard.getAttribute('data-metric') : 'both';
       
       // Extract rest time
       const activeRestChip = document.querySelector('#rest-time-chips-container .rest-option-chip.active');
@@ -2103,7 +1735,6 @@ export function initWorkoutsModule() {
 
       const newExercise = {
         name: state.selectedExerciseForAdding,
-        metrics: activeMetrics,
         metricType: metricType,
         restTime: seconds,
         targetSetsCount: targetSets,
@@ -2111,19 +1742,9 @@ export function initWorkoutsModule() {
         sets: []
       };
 
-      for (let i = 0; i < targetSets; i++) {
-        newExercise.sets.push({
-          weight: '',
-          reps: '',
-          time: '',
-          completed: false
-        });
-      }
-
       state.activeWorkout.exercises.push(newExercise);
       saveActiveWorkoutState();
       
-      const metricModal = document.getElementById('metric-selector-modal');
       if (metricModal) metricModal.classList.add('hide');
       state.selectedExerciseForAdding = null;
       
@@ -2258,8 +1879,6 @@ export function initWorkoutsModule() {
       
       if (window.renderWorkoutHistory) window.renderWorkoutHistory();
       
-      updateWorkoutDashboardStats();
-      
       const analyticsTabBtn = document.querySelector('.ios-bottom-nav .nav-tab[data-tab="analytics"]');
       if (analyticsTabBtn) {
         analyticsTabBtn.click();
@@ -2331,8 +1950,6 @@ export function initWorkoutsModule() {
         
         if (window.renderWorkoutHistory) window.renderWorkoutHistory();
         
-        updateWorkoutDashboardStats();
-        
         if (editModal) editModal.classList.add('hide');
         state.editingWorkout = null;
       }
@@ -2400,15 +2017,11 @@ export function initWorkoutsModule() {
   const weightValueText = document.getElementById('weight-slider-value');
   const repsSlider = document.getElementById('reps-range-slider');
   const repsValueText = document.getElementById('reps-slider-value');
-  const timeSlider = document.getElementById('time-range-slider');
-  const timeValueText = document.getElementById('time-slider-value');
 
   const weightMinusBtn = document.getElementById('weight-minus-btn');
   const weightPlusBtn = document.getElementById('weight-plus-btn');
   const repsMinusBtn = document.getElementById('reps-minus-btn');
   const repsPlusBtn = document.getElementById('reps-plus-btn');
-  const timeMinusBtn = document.getElementById('time-minus-btn');
-  const timePlusBtn = document.getElementById('time-plus-btn');
 
   const confirmSetBtn = document.getElementById('set-log-confirm-btn');
   const cancelSetBtn = document.getElementById('set-log-cancel-btn');
@@ -2421,11 +2034,6 @@ export function initWorkoutsModule() {
   if (repsSlider && repsValueText) {
     repsSlider.addEventListener('input', () => {
       repsValueText.textContent = repsSlider.value;
-    });
-  }
-  if (timeSlider && timeValueText) {
-    timeSlider.addEventListener('input', () => {
-      timeValueText.textContent = timeSlider.value;
     });
   }
 
@@ -2465,23 +2073,6 @@ export function initWorkoutsModule() {
     });
   }
 
-  if (timeMinusBtn && timeSlider && timeValueText) {
-    timeMinusBtn.addEventListener('click', () => {
-      let val = parseInt(timeSlider.value, 10) || 0;
-      val = Math.max(0, val - 5);
-      timeSlider.value = val;
-      timeValueText.textContent = val;
-    });
-  }
-  if (timePlusBtn && timeSlider && timeValueText) {
-    timePlusBtn.addEventListener('click', () => {
-      let val = parseInt(timeSlider.value, 10) || 0;
-      val = Math.min(600, val + 5);
-      timeSlider.value = val;
-      timeValueText.textContent = val;
-    });
-  }
-
   if (setLogModal) {
     setLogModal.addEventListener('click', (e) => {
       if (e.target === setLogModal) {
@@ -2497,28 +2088,19 @@ export function initWorkoutsModule() {
       if (!state.currentLoggingExercise) return;
 
       const metricType = state.currentLoggingExercise.metricType || 'both';
-      const showWeight = state.currentLoggingExercise.metrics ? state.currentLoggingExercise.metrics.includes('weight') : (metricType === 'both' || metricType === 'weight');
-      const showReps = state.currentLoggingExercise.metrics ? state.currentLoggingExercise.metrics.includes('reps') : (metricType === 'both' || metricType === 'reps');
-      const showTime = state.currentLoggingExercise.metrics ? state.currentLoggingExercise.metrics.includes('time') : (metricType === 'time');
-
       let repsVal = '';
       let weightVal = '';
-      let timeVal = '';
 
-      if (showReps) {
+      if (metricType === 'both' || metricType === 'reps') {
         repsVal = repsSlider ? repsSlider.value : '10';
       }
-      if (showWeight) {
+      if (metricType === 'both' || metricType === 'weight') {
         weightVal = weightSlider ? weightSlider.value : '60';
-      }
-      if (showTime) {
-        timeVal = timeSlider ? timeSlider.value : '30';
       }
 
       const loggedSet = {
         reps: repsVal,
         weight: weightVal,
-        time: timeVal,
         completed: true
       };
 
@@ -2611,28 +2193,6 @@ export function initRestTimerInteraction() {
   let initialDistance = 0;
   let initialScale = 1;
 
-  function snapToEdge() {
-    const bubbleRect = bubble.getBoundingClientRect();
-    const bubbleWidth = bubbleRect.width;
-    const screenWidth = window.innerWidth;
-    
-    // centerX relative to window
-    const centerX = (screenWidth / 2) + currentX;
-    const padding = 16;
-    let targetX = 0;
-    
-    if (centerX < screenWidth / 2) {
-      // Snap to left edge
-      targetX = padding + (bubbleWidth / 2) - (screenWidth / 2);
-    } else {
-      // Snap to right edge
-      targetX = screenWidth - padding - (bubbleWidth / 2) - (screenWidth / 2);
-    }
-    
-    currentX = targetX;
-    updateBubbleTransform();
-  }
-
   // Touch handlers for mobile dragging & pinch-to-size
   bubble.addEventListener('touchstart', (e) => {
     if (e.touches.length === 1) {
@@ -2672,8 +2232,7 @@ export function initRestTimerInteraction() {
 
   bubble.addEventListener('touchend', () => {
     isDragging = false;
-    bubble.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.15)';
-    snapToEdge();
+    bubble.style.transition = 'transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.1)';
   });
 
   // Mouse drag handlers for desktop accessibility
@@ -2698,9 +2257,8 @@ export function initRestTimerInteraction() {
   document.addEventListener('mouseup', () => {
     if (isDragging) {
       isDragging = false;
-      bubble.style.transition = 'transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.15)';
+      bubble.style.transition = 'transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.1)';
       bubble.style.cursor = 'grab';
-      snapToEdge();
     }
   });
 
