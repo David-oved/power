@@ -1508,14 +1508,61 @@ export function renderModalExercises() {
     });
     titleContainer.appendChild(removeExBtn);
     
+    // Create a beautiful select dropdown to swap exercises
+    const nameSelect = document.createElement('select');
+    nameSelect.className = 'exercise-name-select';
+    
+    const allExs = getAllExercises();
+    const uniqueNames = Array.from(new Set(allExs.map(item => item.name)));
+    
+    // Ensure the current name is in the list
+    if (!uniqueNames.includes(ex.name)) {
+      uniqueNames.unshift(ex.name);
+    }
+    
+    uniqueNames.forEach(name => {
+      const opt = document.createElement('option');
+      opt.value = name;
+      opt.textContent = name;
+      if (name === ex.name) opt.selected = true;
+      nameSelect.appendChild(opt);
+    });
+    
+    // Custom option
+    const customOpt = document.createElement('option');
+    customOpt.value = '__custom__';
+    customOpt.textContent = '✍️ שם מותאם אישית...';
+    nameSelect.appendChild(customOpt);
+    
+    // Create hidden text input for custom name
     const nameInput = document.createElement('input');
     nameInput.type = 'text';
     nameInput.className = 'exercise-name-input';
-    nameInput.placeholder = 'שם התרגיל';
+    nameInput.placeholder = 'הזן שם מותאם אישית';
     nameInput.value = ex.name;
+    nameInput.style.cssText = 'flex: 1; padding: 8px 12px; border-radius: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; font-size: 0.95rem; outline: none; display: none;';
+    
+    nameSelect.addEventListener('change', (e) => {
+      if (e.target.value === '__custom__') {
+        nameInput.style.display = 'block';
+        nameInput.value = '';
+        nameInput.focus();
+      } else {
+        nameInput.style.display = 'none';
+        ex.name = e.target.value;
+        const found = allExs.find(item => item.name === ex.name);
+        if (found) {
+          ex.category = found.category || ex.category;
+          ex.emoji = found.emoji || ex.emoji;
+        }
+      }
+    });
+    
     nameInput.addEventListener('input', (e) => {
       ex.name = e.target.value;
     });
+    
+    titleContainer.appendChild(nameSelect);
     titleContainer.appendChild(nameInput);
     header.appendChild(titleContainer);
     
@@ -1941,6 +1988,7 @@ export function initWorkoutsModule() {
   const confirmAddExerciseBtn = document.getElementById('confirm-add-exercise-btn');
   if (confirmAddExerciseBtn) {
     confirmAddExerciseBtn.addEventListener('click', () => {
+      const metricModal = document.getElementById('metric-selector-modal');
       console.log("Confirm add exercise clicked. Selected exercise:", state.selectedExerciseForAdding, "Edit index:", state.editingActiveExerciseIndex, "Config exercise:", state.configuringExerciseDefaults);
       
       // Extract active metrics
