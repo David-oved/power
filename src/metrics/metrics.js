@@ -1,7 +1,7 @@
 import { state } from "../state.js";
 import { SafeStorage } from "../utils/storage.js";
 import { triggerLocalNotification, showAuraToast, safeFormatDate, requestNotificationPermissionSafely } from "../utils/helpers.js";
-import { getAllExercises, saveAllExercises, GYM_EXERCISES, PARK_EXERCISES, openEditModal, saveActiveWorkoutState } from "../workouts/workouts.js";
+import { getAllExercises, saveAllExercises, GYM_EXERCISES, PARK_EXERCISES, openEditModal, saveActiveWorkoutState, getExerciseDefaults } from "../workouts/workouts.js";
 
 // DOM Elements & Configurations
 const HEBREW_QUOTES = [
@@ -1938,9 +1938,8 @@ export function renderExercisesManager() {
     actionsContainer.appendChild(starBtn);
 
     const configBtn = document.createElement('button');
-    configBtn.className = 'btn btn-mini btn-workout-settings';
-    configBtn.innerHTML = '⚙️ הגדרות אימון';
-    configBtn.style.cssText = 'padding: 4px 8px; font-size: 0.8rem; border-radius: 8px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); color: #fff; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;';
+    configBtn.className = 'ex-settings-btn-manager';
+    configBtn.innerHTML = '⚙️';
     configBtn.title = 'הגדרות ברירת מחדל לאימון';
     configBtn.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -2205,48 +2204,112 @@ export function openExerciseInspector(exerciseName) {
     inspectorFavBtn.innerHTML = isFav ? '⭐' : '☆';
   }
 
-  // Smart-detect if exercise is bodyweight/reps only or time:
-  let defaultMetric = 'weight';
-  
-  const reverseHistory = [...state.workoutHistory].sort((a, b) => b.date - a.date);
-  const latestSession = reverseHistory.find(w => w.exercises && w.exercises.some(e => e.name === exerciseName && e.sets && e.sets.some(s => s.completed)));
-  if (latestSession) {
-    const exInSession = latestSession.exercises.find(e => e.name === exerciseName);
-    if (exInSession) {
-      if (exInSession.metrics && exInSession.metrics.includes('time') && !exInSession.metrics.includes('weight') && !exInSession.metrics.includes('reps')) {
-        defaultMetric = 'time';
-      } else if (exInSession.metricType === 'time') {
-        defaultMetric = 'time';
-      } else if (exInSession.metricType === 'reps') {
-        defaultMetric = 'reps';
-      }
-    }
-  } else {
-    if (exDetails.metrics) {
-      if (exDetails.metrics.includes('time') && !exDetails.metrics.includes('weight') && !exDetails.metrics.includes('reps')) {
-        defaultMetric = 'time';
-      } else if (exDetails.metrics.includes('reps') && !exDetails.metrics.includes('weight')) {
-        defaultMetric = 'reps';
-      }
-    } else if (exDetails.metricType === 'time') {
-      defaultMetric = 'time';
-    } else {
-      const category = exDetails.category || '';
-      if (category === 'בטן וליבה' || category === 'בטן' || category === 'ליבה' || category === 'אירובי' || category === 'מתח' || category === 'ליבה ואירובי') {
-        defaultMetric = 'reps';
-      }
-    }
+  // Smart-detect configured active metrics (fallback to all three if not configured)
+  const defaults = getExerciseDefaults(exerciseName);
+  let activeMetrics = ['weight', 'reps', 'time'];
+  if (defaults && defaults.metrics && defaults.metrics.length > 0) {
+    activeMetrics = defaults.metrics;
   }
 
-  state.activeInspectorMetric = defaultMetric;
-
-  // Update DOM active toggles
+  // Update tabs visibility dynamically
   const btnWeight = document.getElementById('inspector-toggle-weight');
   const btnReps = document.getElementById('inspector-toggle-reps');
   const btnTime = document.getElementById('inspector-toggle-time');
+  
+  if (btnWeight) btnWeight.style.display = activeMetrics.includes('weight') ? 'flex' : 'none';
+  if (btnReps) btnReps.style.display = activeMetrics.includes('reps') ? 'flex' : 'none';
+  if (btnTime) btnTime.style.display = activeMetrics.includes('time') ? 'flex' : 'none';
+
+  // Determine starting active tab
+  let defaultMetric = 'weight';
+  if (activeMetrics.includes('weight')) {
+    defaultMetric = 'weight';
+  } else if (activeMetrics.includes('reps')) {
+    defaultMetric = 'reps';
+  } else if (activeMetrics.includes('time')) {
+    defaultMetric = 'time';
+  }
+  
+  state.activeInspectorMetric = defaultMetric;
+
   if (btnWeight) btnWeight.classList.toggle('active', defaultMetric === 'weight');
   if (btnReps) btnReps.classList.toggle('active', defaultMetric === 'reps');
   if (btnTime) btnTime.classList.toggle('active', defaultMetric === 'time');
+
+  // Render Full Workout History List
+  const historyList = document.getElementById('inspector-full-history-list');
+  if (historyList) {
+    historyList.innerHTML = '';
+    
+    const exerciseHistory = [];
+    state.workoutHistory.forEach(workout => {
+      if (!workout.exercises) return;
+      const foundEx = workout.exercises.find(e => e.name === exerciseName);
+      if (foundEx && foundEx.sets && foundEx.sets.some(s => s.completed)) {
+        exerciseHistory.push({
+          date: workout.date,
+          workoutName: workout.name || 'אימון ללא שם',
+          sets: foundEx.sets.filter(s => s.completed),
+          metrics: foundEx.metrics || ['weight', 'reps']
+        });
+      }
+    });
+    
+    // Sort descending by date
+    exerciseHistory.sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    if (exerciseHistory.length === 0) {
+      historyList.innerHTML = '<div style="color: var(--text-muted); font-size: 0.85rem; text-align: center; padding: 12px; direction: rtl;">אין היסטוריית ביצועים לתרגיל זה</div>';
+    } else {
+      exerciseHistory.forEach(session => {
+        const dateStr = safeFormatDate(session.date);
+        
+        const sessionItem = document.createElement('div');
+        sessionItem.className = 'history-session-item';
+        sessionItem.style.cssText = 'padding: 10px; background: rgba(255, 255, 255, 0.03); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; gap: 6px;';
+        
+        const headerRow = document.createElement('div');
+        headerRow.style.cssText = 'display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; font-weight: 700; color: #fff; border-bottom: 1px solid rgba(255,255,255,0.04); padding-bottom: 4px; direction: rtl;';
+        headerRow.innerHTML = `
+          <span>${session.workoutName}</span>
+          <span style="color: var(--text-muted); font-weight: 600; font-size: 0.8rem;">${dateStr}</span>
+        `;
+        sessionItem.appendChild(headerRow);
+        
+        const setsRow = document.createElement('div');
+        setsRow.style.cssText = 'display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; direction: rtl;';
+        
+        session.sets.forEach((set, sIdx) => {
+          let parts = [];
+          if (session.metrics.includes('weight') && set.weight !== undefined && set.weight !== null) {
+            parts.push(`${set.weight} ק״ג`);
+          }
+          if (session.metrics.includes('reps') && set.reps !== undefined && set.reps !== null) {
+            parts.push(`${set.reps} חזרות`);
+          }
+          if (session.metrics.includes('time') && set.time !== undefined && set.time !== null) {
+            parts.push(`${set.time} ש׳`);
+          }
+          
+          // Fallback if parts is empty but they completed it
+          if (parts.length === 0) {
+            if (set.weight !== undefined && set.weight !== null) parts.push(`${set.weight} ק״ג`);
+            if (set.reps !== undefined && set.reps !== null) parts.push(`${set.reps} חזרות`);
+            if (set.time !== undefined && set.time !== null) parts.push(`${set.time} ש׳`);
+          }
+          
+          const setChip = document.createElement('span');
+          setChip.className = 'history-set-chip';
+          setChip.style.cssText = 'font-size: 0.78rem; padding: 4px 8px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; color: var(--text-muted); font-weight: 600;';
+          setChip.textContent = `סט ${sIdx + 1}: ${parts.join(' × ')}`;
+          setsRow.appendChild(setChip);
+        });
+        
+        sessionItem.appendChild(setsRow);
+        historyList.appendChild(sessionItem);
+      });
+    }
+  }
 
   // Update statistics
   updateInspectorStatistics(exerciseName);
