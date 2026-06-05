@@ -1317,7 +1317,42 @@ export function renderComparisonBar(currentVal, prevVal, allTimePR, unit, label,
       barColor = '#ef4444'; // Red
       barGlow = 'rgba(239, 68, 68, 0.4)';
     } else {
-      deltaText // Helper to update filter pills text on workouts tab
+      deltaText = 'ללא שינוי';
+      deltaClass = 'delta-neutral';
+      barColor = '#3b82f6'; // Blue / neutral
+      barGlow = 'rgba(59, 130, 246, 0.4)';
+    }
+  }
+
+  // Percentages relative to all-time PR
+  const currentPct = allTimePR > 0 ? Math.min(100, Math.round((currentVal / allTimePR) * 100)) : 100;
+  const previousPct = allTimePR > 0 && hasPrev ? Math.min(100, Math.round((prevVal / allTimePR) * 100)) : 0;
+
+  const markerHtml = (hasPrev && previousPct > 0) ? `
+    <div class="premium-comparison-marker" style="left: ${previousPct}%;" title="אימון קודם: ${prevVal} ${unit}"></div>
+  ` : '';
+
+  const prevText = hasPrev ? `${prevVal} ${unit}` : '--';
+
+  return `
+    <div class="premium-comparison-bar-row">
+      <div class="premium-comparison-meta">
+        <span class="premium-comparison-label">${label}</span>
+        <span class="premium-comparison-delta ${deltaClass}">${deltaText}</span>
+      </div>
+      <div class="premium-comparison-track">
+        <div class="premium-comparison-fill" style="width: ${currentPct}%; background-color: ${barColor}; box-shadow: 0 0 8px ${barGlow};"></div>
+        ${markerHtml}
+      </div>
+      <div class="premium-comparison-values">
+        <span>קודם: ${prevText}</span>
+        <span>נוכחי: ${currentVal} ${unit}</span>
+      </div>
+    </div>
+  `;
+}
+
+// Helper to update filter pills text on workouts tab
 export function updateFilterPillsText() {
   const pillLoc = document.getElementById('pill-location');
   const pillDate = document.getElementById('pill-date');
