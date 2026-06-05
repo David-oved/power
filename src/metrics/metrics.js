@@ -1,7 +1,7 @@
 import { state } from "../state.js";
 import { SafeStorage } from "../utils/storage.js";
 import { triggerLocalNotification, showAuraToast, safeFormatDate, requestNotificationPermissionSafely } from "../utils/helpers.js";
-import { getAllExercises, saveAllExercises, GYM_EXERCISES, PARK_EXERCISES, openEditModal, saveActiveWorkoutState, getExerciseDefaults } from "../workouts/workouts.js";
+import { getAllExercises, saveAllExercises, GYM_EXERCISES, PARK_EXERCISES, openEditModal, saveActiveWorkoutState, getExerciseDefaults, saveExerciseDefaults } from "../workouts/workouts.js";
 
 // DOM Elements & Configurations
 const HEBREW_QUOTES = [
@@ -1949,7 +1949,10 @@ export function renderExercisesManager() {
     });
     actionsContainer.appendChild(configBtn);
 
-    card.addEventListener('click', () => {
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.ex-settings-btn-manager') || e.target.closest('.ex-fav-star-btn')) {
+        return;
+      }
       openExerciseInspector(ex.name);
     });
 
@@ -2697,20 +2700,50 @@ export function addGlobalExercise() {
     SafeStorage.setItem(`aura-custom-exercises_${state.currentUser.uid}`, JSON.stringify(state.customExercises));
   }
 
+  // --- SAVE THE DEFAULTS CONFIGURED IN THE MODAL ---
+  const setsDisplay = document.getElementById('new-global-sets-display');
+  const targetSetsCount = setsDisplay ? parseInt(setsDisplay.textContent, 10) || 3 : 3;
+
+  const activeRestChip = document.querySelector('#new-global-rest-chips .new-global-rest-chip.active');
+  const restTime = activeRestChip ? parseInt(activeRestChip.dataset.rest, 10) || 90 : 90;
+
+  const activeMetricCards = document.querySelectorAll('#add-global-exercise-modal .new-global-metric-card.active');
+  const metrics = Array.from(activeMetricCards).map(card => card.dataset.metric || 'weight');
+  const finalMetrics = metrics.length > 0 ? metrics : ['weight', 'reps'];
+
+  saveExerciseDefaults(name, {
+    targetSetsCount,
+    restTime,
+    metrics: finalMetrics
+  });
+
+  // --- RESET INPUTS ---
   nameInput.value = '';
+  if (setsDisplay) setsDisplay.textContent = '3';
+  
+  const addSetsChips = document.querySelectorAll('#new-global-sets-chips .new-global-sets-chip');
+  addSetsChips.forEach(c => {
+    c.classList.remove('active');
+    if (parseInt(c.dataset.sets, 10) === 3) c.classList.add('active');
+  });
+
+  const addRestChips = document.querySelectorAll('#new-global-rest-chips .new-global-rest-chip');
+  addRestChips.forEach(c => {
+    c.classList.remove('active');
+    if (parseInt(c.dataset.rest, 10) === 90) c.classList.add('active');
+  });
+
+  const addMetricCards = document.querySelectorAll('#add-global-exercise-modal .new-global-metric-card');
+  addMetricCards.forEach(c => {
+    c.classList.remove('active');
+    if (c.dataset.metric === 'weight' || c.dataset.metric === 'reps') c.classList.add('active');
+  });
 
   const modal = document.getElementById('add-global-exercise-modal');
   if (modal) modal.classList.add('hide');
 
   renderExercisesManager();
   if (typeof window.renderExercisePickerList === 'function') window.renderExercisePickerList();
-
-  // Automatically open settings configuration for the newly created exercise
-  if (typeof window.openMetricSelectorForConfig === 'function') {
-    setTimeout(() => {
-      window.openMetricSelectorForConfig(name);
-    }, 300);
-  }
 }
 
 export function saveEditedGlobalExercise(oldName) {
@@ -2821,6 +2854,40 @@ export function saveEditedGlobalExercise(oldName) {
       }
     }
   }
+
+  // --- SAVE THE DEFAULTS CONFIGURED IN THE EDIT MODAL ---
+  const setsDisplay = document.getElementById('edit-global-sets-display');
+  const targetSetsCount = setsDisplay ? parseInt(setsDisplay.textContent, 10) || 3 : 3;
+
+  const activeRestChip = document.querySelector('#edit-global-rest-chips .edit-global-rest-chip.active');
+  const restTime = activeRestChip ? parseInt(activeRestChip.dataset.rest, 10) || 90 : 90;
+
+  const activeMetricCards = document.querySelectorAll('#edit-global-exercise-modal .edit-global-metric-card.active');
+  const metrics = Array.from(activeMetricCards).map(card => card.dataset.metric || 'weight');
+  const finalMetrics = metrics.length > 0 ? metrics : ['weight', 'reps'];
+
+  // If the name changed, rename/delete old defaults key in the parsed storage dictionary
+  if (state.currentUser) {
+    const defaultsKey = `aura-exercise-defaults_${state.currentUser.uid}`;
+    const defaultsData = SafeStorage.getItem(defaultsKey);
+    if (defaultsData) {
+      try {
+        const defaults = JSON.parse(defaultsData);
+        if (oldName in defaults) {
+          delete defaults[oldName];
+          SafeStorage.setItem(defaultsKey, JSON.stringify(defaults));
+        }
+      } catch (e) {
+        console.error("Failed to clean up old exercise name defaults entry:", e);
+      }
+    }
+  }
+
+  saveExerciseDefaults(newName, {
+    targetSetsCount,
+    restTime,
+    metrics: finalMetrics
+  });
 
   // 6. Close edit modal
   const editModal = document.getElementById('edit-global-exercise-modal');
@@ -3380,7 +3447,7 @@ export function initAnalyticsTab() {
       const allExs = getAllExercises();
       const exDetails = allExs.find(ex => ex.name === currentName) || { name: currentName, category: 'אחר', emoji: '💪' };
       
-      // Populate inputs & selectors in edit modal
+      // Populate name & category
       const nameInput = document.getElementById('edit-global-exercise-name');
       if (nameInput) nameInput.value = exDetails.name;
       
@@ -3403,6 +3470,41 @@ export function initAnalyticsTab() {
         });
       }
       
+      // --- POPULATE THE DEFAULTS CONFIG IN EDIT MODAL ---
+      const defaults = getExerciseDefaults(currentName) || { targetSetsCount: 3, restTime: 90, metrics: ['weight', 'reps'] };
+
+      const editSetsDisplay = document.getElementById('edit-global-sets-display');
+      if (editSetsDisplay) editSetsDisplay.textContent = defaults.targetSetsCount || 3;
+
+      const editSetsChips = document.querySelectorAll('#edit-global-sets-chips .edit-global-sets-chip');
+      editSetsChips.forEach(chip => {
+        chip.classList.remove('active');
+        if (parseInt(chip.dataset.sets, 10) === (defaults.targetSetsCount || 3)) {
+          chip.classList.add('active');
+        }
+      });
+
+      const editRestChips = document.querySelectorAll('#edit-global-rest-chips .edit-global-rest-chip');
+      editRestChips.forEach(chip => {
+        chip.classList.remove('active');
+        if (parseInt(chip.dataset.rest, 10) === (defaults.restTime || 90)) {
+          chip.classList.add('active');
+        }
+      });
+
+      const editMetricCards = document.querySelectorAll('#edit-global-exercise-modal .edit-global-metric-card');
+      const activeMetrics = defaults.metrics || ['weight', 'reps'];
+      editMetricCards.forEach(card => {
+        card.classList.remove('active');
+        if (activeMetrics.includes(card.dataset.metric)) {
+          card.classList.add('active');
+        }
+      });
+      
+      // Hide inspector overlay to prevent stacking conflicts
+      const inspectorModal = document.getElementById('exercise-inspector-modal');
+      if (inspectorModal) inspectorModal.classList.add('hide');
+
       editExGlobalModal.classList.remove('hide');
       if (nameInput) setTimeout(() => nameInput.focus(), 100);
     });
@@ -3430,12 +3532,22 @@ export function initAnalyticsTab() {
     });
   }
 
+  const restoreInspectorIfPossible = () => {
+    if (state.currentInspectorExercise) {
+      openExerciseInspector(state.currentInspectorExercise);
+    }
+  };
+
   if (closeEditExGlobalModalBtn && editExGlobalModal) {
     closeEditExGlobalModalBtn.addEventListener('click', () => {
       editExGlobalModal.classList.add('hide');
+      restoreInspectorIfPossible();
     });
     editExGlobalModal.addEventListener('click', (e) => {
-      if (e.target === editExGlobalModal) editExGlobalModal.classList.add('hide');
+      if (e.target === editExGlobalModal) {
+        editExGlobalModal.classList.add('hide');
+        restoreInspectorIfPossible();
+      }
     });
   }
 
@@ -3608,7 +3720,7 @@ function checkAndShowPreviousPerformance(exerciseName) {
   if (modal) modal.classList.remove('hide');
 }
 
-// Bind Prev Alert dismiss
+// Bind Prev Alert dismiss and global modal settings bindings
 onDOMReady(() => {
   const modal = document.getElementById('prev-workout-alert-modal');
   const closeBtn = document.getElementById('close-prev-workout-alert-btn');
@@ -3625,7 +3737,119 @@ onDOMReady(() => {
       if (e.target === modal) dismiss();
     });
   }
+
+  bindGlobalModalsSettingsListeners();
 });
+
+function bindGlobalModalsSettingsListeners() {
+  // --- ADD GLOBAL MODAL BINDINGS ---
+  const newSetsMinus = document.getElementById('new-global-sets-minus');
+  const newSetsPlus = document.getElementById('new-global-sets-plus');
+  const newSetsDisplay = document.getElementById('new-global-sets-display');
+  const newSetsChips = document.querySelectorAll('#new-global-sets-chips .new-global-sets-chip');
+
+  if (newSetsMinus && newSetsPlus && newSetsDisplay) {
+    newSetsMinus.addEventListener('click', (e) => {
+      e.stopPropagation();
+      let val = parseInt(newSetsDisplay.textContent, 10) || 3;
+      val = Math.max(1, val - 1);
+      newSetsDisplay.textContent = val;
+      newSetsChips.forEach(c => c.classList.remove('active'));
+      const matching = Array.from(newSetsChips).find(c => parseInt(c.dataset.sets, 10) === val);
+      if (matching) matching.classList.add('active');
+    });
+
+    newSetsPlus.addEventListener('click', (e) => {
+      e.stopPropagation();
+      let val = parseInt(newSetsDisplay.textContent, 10) || 3;
+      val = Math.min(12, val + 1);
+      newSetsDisplay.textContent = val;
+      newSetsChips.forEach(c => c.classList.remove('active'));
+      const matching = Array.from(newSetsChips).find(c => parseInt(c.dataset.sets, 10) === val);
+      if (matching) matching.classList.add('active');
+    });
+  }
+
+  newSetsChips.forEach(chip => {
+    chip.addEventListener('click', (e) => {
+      e.stopPropagation();
+      newSetsChips.forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      if (newSetsDisplay) newSetsDisplay.textContent = chip.dataset.sets;
+    });
+  });
+
+  const newRestChips = document.querySelectorAll('#new-global-rest-chips .new-global-rest-chip');
+  newRestChips.forEach(chip => {
+    chip.addEventListener('click', (e) => {
+      e.stopPropagation();
+      newRestChips.forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+    });
+  });
+
+  const newMetricCards = document.querySelectorAll('#add-global-exercise-modal .new-global-metric-card');
+  newMetricCards.forEach(card => {
+    card.addEventListener('click', (e) => {
+      e.stopPropagation();
+      card.classList.toggle('active');
+    });
+  });
+
+  // --- EDIT GLOBAL MODAL BINDINGS ---
+  const editSetsMinus = document.getElementById('edit-global-sets-minus');
+  const editSetsPlus = document.getElementById('edit-global-sets-plus');
+  const editSetsDisplay = document.getElementById('edit-global-sets-display');
+  const editSetsChips = document.querySelectorAll('#edit-global-sets-chips .edit-global-sets-chip');
+
+  if (editSetsMinus && editSetsPlus && editSetsDisplay) {
+    editSetsMinus.addEventListener('click', (e) => {
+      e.stopPropagation();
+      let val = parseInt(editSetsDisplay.textContent, 10) || 3;
+      val = Math.max(1, val - 1);
+      editSetsDisplay.textContent = val;
+      editSetsChips.forEach(c => c.classList.remove('active'));
+      const matching = Array.from(editSetsChips).find(c => parseInt(c.dataset.sets, 10) === val);
+      if (matching) matching.classList.add('active');
+    });
+
+    editSetsPlus.addEventListener('click', (e) => {
+      e.stopPropagation();
+      let val = parseInt(editSetsDisplay.textContent, 10) || 3;
+      val = Math.min(12, val + 1);
+      editSetsDisplay.textContent = val;
+      editSetsChips.forEach(c => c.classList.remove('active'));
+      const matching = Array.from(editSetsChips).find(c => parseInt(c.dataset.sets, 10) === val);
+      if (matching) matching.classList.add('active');
+    });
+  }
+
+  editSetsChips.forEach(chip => {
+    chip.addEventListener('click', (e) => {
+      e.stopPropagation();
+      editSetsChips.forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      if (editSetsDisplay) editSetsDisplay.textContent = chip.dataset.sets;
+    });
+  });
+
+  const editRestChips = document.querySelectorAll('#edit-global-rest-chips .edit-global-rest-chip');
+  editRestChips.forEach(chip => {
+    chip.addEventListener('click', (e) => {
+      e.stopPropagation();
+      editRestChips.forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+    });
+  });
+
+  const editMetricCards = document.querySelectorAll('#edit-global-exercise-modal .edit-global-metric-card');
+  editMetricCards.forEach(card => {
+    card.addEventListener('click', (e) => {
+      e.stopPropagation();
+      card.classList.toggle('active');
+    });
+  });
+}
 
 function onDOMReady(fn) {
   if (document.readyState === 'loading') {

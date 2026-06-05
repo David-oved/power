@@ -206,6 +206,9 @@ export function openMetricSelectorForEdit(exIdx) {
   const metrics = getExerciseMetrics(ex);
   setupMetricSelectorModal('עריכת הגדרות תרגיל', ex.targetSetsCount || 3, ex.restTime || 90, metrics);
 
+  const inspectorModal = document.getElementById('exercise-inspector-modal');
+  if (inspectorModal) inspectorModal.classList.add('hide');
+
   const metricModal = document.getElementById('metric-selector-modal');
   if (metricModal) {
     const confirmBtnSpan = document.querySelector('#confirm-add-exercise-btn span');
@@ -227,6 +230,9 @@ export function openMetricSelectorForConfig(exerciseName) {
     defaults.restTime || 90,
     defaults.metrics || ['weight', 'reps']
   );
+
+  const inspectorModal = document.getElementById('exercise-inspector-modal');
+  if (inspectorModal) inspectorModal.classList.add('hide');
 
   const metricModal = document.getElementById('metric-selector-modal');
   if (metricModal) {
@@ -817,109 +823,39 @@ export function renderExercises() {
     card.className = `exercise-card ${ex.completed ? 'saved' : ''}`;
     
     const metrics = getExerciseMetrics(ex);
-    
-    const header = document.createElement('div');
-    header.className = 'exercise-card-header';
-    
-    const titleContainer = document.createElement('div');
-    titleContainer.className = 'exercise-title-container';
-    
-    if (!ex.completed) {
-      const removeExBtn = document.createElement('button');
-      removeExBtn.className = 'remove-exercise-btn';
-      removeExBtn.innerHTML = '🗑️';
-      removeExBtn.title = 'מחק תרגיל';
-      removeExBtn.addEventListener('click', () => {
-        state.activeWorkout.exercises.splice(exIdx, 1);
-        saveActiveWorkoutState();
-        renderExercises();
-      });
-      titleContainer.appendChild(removeExBtn);
-
-      const settingsBtn = document.createElement('button');
-      settingsBtn.className = 'exercise-settings-btn';
-      settingsBtn.innerHTML = '⚙️';
-      settingsBtn.title = 'הגדרות תרגיל';
-      settingsBtn.style.cssText = 'background: none; border: none; font-size: 1.15rem; cursor: pointer; color: var(--text-muted); padding: 4px; margin-left: 8px; vertical-align: middle;';
-      settingsBtn.addEventListener('click', () => {
-        openMetricSelectorForEdit(exIdx);
-      });
-      titleContainer.appendChild(settingsBtn);
-    }
-    
-    const nameLabel = document.createElement('span');
-    nameLabel.className = 'exercise-name-label';
-    nameLabel.style.fontSize = '1.15rem';
-    nameLabel.style.fontWeight = '800';
-    nameLabel.style.color = '#ffffff';
-    nameLabel.textContent = ex.name;
-    titleContainer.appendChild(nameLabel);
-    
+    const completedCount = ex.sets ? ex.sets.filter(s => s.completed).length : 0;
+    const targetSets = ex.targetSetsCount || 3;
     const metricLabel = getMetricLabel(metrics);
-    
+
+    // 1. HEADER ROW (Redesigned to be vertical stack with full-width name and compact sub-row)
+    const headerRow = document.createElement('div');
+    headerRow.className = 'ex-card-header-row';
+
+    const nameRow = document.createElement('div');
+    nameRow.className = 'ex-card-name-row';
+    nameRow.textContent = ex.name;
+    headerRow.appendChild(nameRow);
+
+    const subRow = document.createElement('div');
+    subRow.className = 'ex-card-sub-row';
+
+    const badgesCol = document.createElement('div');
+    badgesCol.className = 'ex-card-badges-col';
+
     const metricBadge = document.createElement('span');
     metricBadge.className = 'badge-mini';
-    metricBadge.style.marginRight = '8px';
-    metricBadge.style.fontSize = '0.75rem';
-    metricBadge.style.background = 'rgba(255,255,255,0.06)';
-    metricBadge.style.color = 'var(--text-muted)';
-    metricBadge.style.padding = '3px 8px';
-    metricBadge.style.borderRadius = '20px';
+    metricBadge.style.cssText = 'font-size: 0.75rem; background: rgba(255,255,255,0.06); color: var(--text-muted); padding: 4px 10px; border-radius: 20px; font-weight: 700;';
     metricBadge.textContent = metricLabel;
-    titleContainer.appendChild(metricBadge);
-    
-    header.appendChild(titleContainer);
-    
-    const actionBtn = document.createElement('button');
-    if (ex.completed) {
-      actionBtn.className = 'btn edit-exercise-btn';
-      actionBtn.textContent = 'ערוך תרגיל ✏️';
-      actionBtn.addEventListener('click', () => {
-        ex.completed = false;
-        saveActiveWorkoutState();
-        renderExercises();
-      });
-    } else {
-      actionBtn.className = 'btn save-exercise-btn';
-      actionBtn.textContent = 'סיום תרגיל ✓';
-      actionBtn.addEventListener('click', () => {
-        const hasCompletedSets = ex.sets.some(s => s.completed);
-        if (!hasCompletedSets) {
-          alert('אנא השלם לפחות סט אחד.');
-          return;
-        }
-        ex.completed = true;
-        ex.sets = ex.sets.filter(s => s.completed);
-        saveActiveWorkoutState();
+    badgesCol.appendChild(metricBadge);
 
-        // Save its settings as defaults
-        saveExerciseDefaults(ex.name, {
-          targetSetsCount: ex.targetSetsCount || 3,
-          restTime: ex.restTime || 90,
-          metrics: getExerciseMetrics(ex)
-        });
-
-        renderExercises();
-      });
-    }
-    header.appendChild(actionBtn);
-    card.appendChild(header);
-    
-    // Inline targetSetsCount stepper for active exercise card
     if (!ex.completed) {
-      const targetSets = ex.targetSetsCount || 3;
-      
-      const stepperWrapper = document.createElement('div');
-      stepperWrapper.className = 'inline-sets-stepper-wrapper';
-      stepperWrapper.style.cssText = 'display: flex; align-items: center; gap: 8px; margin: 8px 12px 12px 12px; font-size: 0.9rem; color: var(--text-muted); font-weight: 600; direction: rtl;';
-      
-      const stepperLabel = document.createElement('span');
-      stepperLabel.textContent = 'סטים מתוכננים:';
-      stepperWrapper.appendChild(stepperLabel);
-      
+      // Compact Stepper: [-] X סטים [+]
+      const compactStepper = document.createElement('div');
+      compactStepper.className = 'compact-sets-stepper';
+
       const minusBtn = document.createElement('button');
       minusBtn.type = 'button';
-      minusBtn.style.cssText = 'width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); color: #fff; cursor: pointer; display: flex; justify-content: center; align-items: center; font-size: 1.1rem; font-weight: bold; line-height: 1; outline: none; transition: all 0.2s;';
+      minusBtn.className = 'compact-stepper-btn';
       minusBtn.textContent = '-';
       minusBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -927,16 +863,16 @@ export function renderExercises() {
         saveActiveWorkoutState();
         renderExercises();
       });
-      stepperWrapper.appendChild(minusBtn);
-      
+      compactStepper.appendChild(minusBtn);
+
       const countVal = document.createElement('span');
-      countVal.style.cssText = 'color: #ffffff; font-weight: 800; min-width: 16px; text-align: center; font-size: 1.05rem;';
-      countVal.textContent = targetSets;
-      stepperWrapper.appendChild(countVal);
-      
+      countVal.className = 'compact-stepper-val';
+      countVal.textContent = `${targetSets} סטים`;
+      compactStepper.appendChild(countVal);
+
       const plusBtn = document.createElement('button');
       plusBtn.type = 'button';
-      plusBtn.style.cssText = 'width: 28px; height: 28px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.15); background: rgba(255,255,255,0.06); color: #fff; cursor: pointer; display: flex; justify-content: center; align-items: center; font-size: 1.1rem; font-weight: bold; line-height: 1; outline: none; transition: all 0.2s;';
+      plusBtn.className = 'compact-stepper-btn';
       plusBtn.textContent = '+';
       plusBtn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -944,56 +880,88 @@ export function renderExercises() {
         saveActiveWorkoutState();
         renderExercises();
       });
-      stepperWrapper.appendChild(plusBtn);
-      
-      // Let's also display progress label
-      const progressLabel = document.createElement('span');
-      progressLabel.style.marginRight = '8px';
-      progressLabel.style.color = 'var(--electric-blue-light)';
-      progressLabel.style.fontSize = '0.85rem';
-      const completedCount = ex.sets ? ex.sets.filter(s => s.completed).length : 0;
-      progressLabel.textContent = `(${completedCount}/${targetSets} הושלמו)`;
-      stepperWrapper.appendChild(progressLabel);
-      
-      card.appendChild(stepperWrapper);
+      compactStepper.appendChild(plusBtn);
+
+      badgesCol.appendChild(compactStepper);
+    } else {
+      const progressBadge = document.createElement('span');
+      progressBadge.style.cssText = 'font-size: 0.75rem; color: #22c55e; font-weight: 700; background: rgba(34, 197, 94, 0.1); padding: 4px 10px; border-radius: 20px;';
+      progressBadge.textContent = `בוצעו: ${completedCount}/${targetSets} סטים`;
+      badgesCol.appendChild(progressBadge);
     }
-    
+
+    subRow.appendChild(badgesCol);
+
+    // Actions column (only if not completed)
+    if (!ex.completed) {
+      const actionsCol = document.createElement('div');
+      actionsCol.className = 'ex-card-actions-col';
+
+      // Settings gear button
+      const settingsBtn = document.createElement('button');
+      settingsBtn.className = 'ex-settings-btn-card';
+      settingsBtn.innerHTML = '⚙️';
+      settingsBtn.title = 'הגדרות תרגיל';
+      settingsBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openMetricSelectorForEdit(exIdx);
+      });
+      actionsCol.appendChild(settingsBtn);
+
+      // Delete trash button
+      const removeExBtn = document.createElement('button');
+      removeExBtn.className = 'ex-delete-btn-card';
+      removeExBtn.innerHTML = '🗑️';
+      removeExBtn.title = 'מחק תרגיל';
+      removeExBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (confirm('האם למחוק תרגיל זה מהאימון?')) {
+          state.activeWorkout.exercises.splice(exIdx, 1);
+          saveActiveWorkoutState();
+          renderExercises();
+        }
+      });
+      actionsCol.appendChild(removeExBtn);
+
+      subRow.appendChild(actionsCol);
+    }
+
+    headerRow.appendChild(subRow);
+    card.appendChild(headerRow);
+
+    // 2. VISUAL SETS DOTS PROGRESS BAR
+    const dotsRow = document.createElement('div');
+    dotsRow.className = 'ex-card-dots-row';
+    for (let i = 0; i < targetSets; i++) {
+      const dot = document.createElement('div');
+      dot.className = 'set-dot';
+      if (i < completedCount) {
+        dot.classList.add('completed');
+      }
+      dotsRow.appendChild(dot);
+    }
+    card.appendChild(dotsRow);
+
+    // 3. SETS AREA
     const setsArea = document.createElement('div');
     setsArea.className = 'sets-area';
-    
+    setsArea.style.width = '100%';
+
     const completedSets = ex.sets.filter(s => s.completed);
     if (completedSets.length > 0) {
       const chipsContainer = document.createElement('div');
       chipsContainer.className = 'completed-sets-chips-container';
-      chipsContainer.style.display = 'flex';
-      chipsContainer.style.flexWrap = 'wrap';
-      chipsContainer.style.gap = '8px';
-      chipsContainer.style.marginTop = '10px';
-      chipsContainer.style.direction = 'rtl';
+      chipsContainer.style.cssText = 'display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; direction: rtl;';
       
       completedSets.forEach((set, idx) => {
         const chip = document.createElement('div');
         chip.className = 'completed-set-chip';
-        chip.style.display = 'inline-flex';
-        chip.style.alignItems = 'center';
-        chip.style.background = 'rgba(255,255,255,0.06)';
-        chip.style.border = '1px solid rgba(255,255,255,0.08)';
-        chip.style.padding = '6px 12px';
-        chip.style.borderRadius = '12px';
-        chip.style.fontSize = '0.88rem';
-        chip.style.color = '#ffffff';
-        chip.style.gap = '6px';
+        chip.style.cssText = 'display: inline-flex; align-items: center; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); padding: 6px 12px; border-radius: 12px; font-size: 0.88rem; color: #ffffff; gap: 6px;';
         
         const parts = [];
-        if (metrics.includes('weight')) {
-          parts.push(`${set.weight || 0} ק״ג`);
-        }
-        if (metrics.includes('reps')) {
-          parts.push(`${set.reps || 0} חזרות`);
-        }
-        if (metrics.includes('time')) {
-          parts.push(`${set.time || 0} ש׳`);
-        }
+        if (metrics.includes('weight')) parts.push(`${set.weight || 0} ק״ג`);
+        if (metrics.includes('reps')) parts.push(`${set.reps || 0} חזרות`);
+        if (metrics.includes('time')) parts.push(`${set.time || 0} ש׳`);
         const valueStr = parts.join(' × ');
         
         const realIdx = ex.sets.indexOf(set);
@@ -1017,21 +985,17 @@ export function renderExercises() {
       });
       setsArea.appendChild(chipsContainer);
     }
+    card.appendChild(setsArea);
+
+    // 4. BOTTOM ACTIONS BAR
+    const bottomActions = document.createElement('div');
     
     if (!ex.completed) {
+      bottomActions.className = 'ex-card-bottom-actions';
+
+      // Deep purple/blue glowing Add Set Button
       const enterSetBtn = document.createElement('button');
-      enterSetBtn.className = 'enter-set-data-btn';
-      enterSetBtn.style.width = '100%';
-      enterSetBtn.style.padding = '12px';
-      enterSetBtn.style.borderRadius = '14px';
-      enterSetBtn.style.background = 'var(--electric-blue, #4f46e5)';
-      enterSetBtn.style.color = '#ffffff';
-      enterSetBtn.style.border = 'none';
-      enterSetBtn.style.fontWeight = '700';
-      enterSetBtn.style.fontSize = '0.95rem';
-      enterSetBtn.style.cursor = 'pointer';
-      enterSetBtn.style.marginTop = '12px';
-      enterSetBtn.style.display = 'block';
+      enterSetBtn.className = 'btn-add-set-action';
       
       const nextIncompleteIdx = ex.sets.findIndex(s => !s.completed);
       const activeSetIdx = nextIncompleteIdx !== -1 ? nextIncompleteIdx : ex.sets.length;
@@ -1040,10 +1004,48 @@ export function renderExercises() {
       enterSetBtn.addEventListener('click', () => {
         openSetLoggingModal(ex);
       });
-      setsArea.appendChild(enterSetBtn);
+      bottomActions.appendChild(enterSetBtn);
+
+      // Success Green End Exercise Button
+      const saveExBtn = document.createElement('button');
+      saveExBtn.className = 'btn-finish-ex-action';
+      saveExBtn.textContent = 'סיום ✓';
+      saveExBtn.addEventListener('click', () => {
+        const hasCompletedSets = ex.sets.some(s => s.completed);
+        if (!hasCompletedSets) {
+          alert('אנא השלם לפחות סט אחד.');
+          return;
+        }
+        ex.completed = true;
+        ex.sets = ex.sets.filter(s => s.completed);
+        saveActiveWorkoutState();
+
+        // Save its settings as defaults
+        saveExerciseDefaults(ex.name, {
+          targetSetsCount: ex.targetSetsCount || 3,
+          restTime: ex.restTime || 90,
+          metrics: getExerciseMetrics(ex)
+        });
+
+        renderExercises();
+      });
+      bottomActions.appendChild(saveExBtn);
+      
+    } else {
+      // Completed - show a clean Edit button at bottom of card
+      bottomActions.style.width = '100%';
+      const editExBtn = document.createElement('button');
+      editExBtn.className = 'btn-edit-ex-action';
+      editExBtn.textContent = 'ערוך תרגיל ✏️';
+      editExBtn.addEventListener('click', () => {
+        ex.completed = false;
+        saveActiveWorkoutState();
+        renderExercises();
+      });
+      bottomActions.appendChild(editExBtn);
     }
-    
-    card.appendChild(setsArea);
+
+    card.appendChild(bottomActions);
     container.appendChild(card);
   });
 }
