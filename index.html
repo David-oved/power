@@ -628,69 +628,61 @@
             <div class="ios-analytics-scroll-container" style="flex: 1; overflow-y: auto; padding: 1.5rem 1.5rem calc(100px + env(safe-area-inset-bottom)) 1.5rem;">
               <h2 class="settings-main-title" style="margin-bottom: 1.2rem; padding: 0;">📋 יומן אימונים</h2>
               
-              <!-- Collapsible Advanced Filters Trigger Button -->
-              <button id="toggle-filters-btn" class="toggle-filters-btn" style="margin-left: 0; margin-right: 0; width: 100%;">
-                <span>🔍 סינון ומיון מתקדם</span>
-                <span class="arrow-icon">▼</span>
-              </button>
-
-              <!-- Collapsible Advanced Filters Container -->
-              <div id="collapsible-filters-container" class="collapsible-filters-container">
-                <div class="filters-panel-card" style="background: rgba(20,20,24,0.6); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 1.2rem; display: flex; flex-direction: column; gap: 12px; direction: rtl; text-align: right; margin: 0 0 1rem 0 !important;">
-                  
-                  <!-- Filter Location -->
-                  <div class="filter-field">
-                    <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px;">📍 מיקום האימון</label>
-                    <select id="filter-location-select" class="premium-filter-select" style="width: 100%;">
-                      <option value="all">כל המיקומים 📍</option>
-                      <option value="gym">🏋️‍♂️ חדר כושר</option>
-                      <option value="park">🌳 פארק</option>
-                    </select>
-                  </div>
-                  
-                  <!-- Filter Date Range -->
-                  <div class="filter-field">
-                    <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px;">📅 טווח תאריכים</label>
-                    <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
-                      <button class="filter-chip active" data-time="all">הכל</button>
-                      <button class="filter-chip" data-time="7">7 ימים אחרונים</button>
-                      <button class="filter-chip" data-time="30">30 ימים אחרונים</button>
-                      <button class="filter-chip" data-time="custom">מותאם 📅</button>
-                    </div>
-                    <div id="custom-date-inputs" style="display: none; gap: 10px; align-items: center; margin-top: 8px;">
-                      <input type="date" id="filter-start-date" class="date-picker-input" style="flex: 1;">
-                      <span style="color: var(--text-muted); font-size: 0.85rem;">עד</span>
-                      <input type="date" id="filter-end-date" class="date-picker-input" style="flex: 1;">
-                    </div>
-                  </div>
-
-                  <!-- Filter Muscle Group -->
-                  <div class="filter-field">
-                    <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px;">💪 קבוצת שריר מטרה</label>
-                    <select id="filter-muscle-select" class="premium-filter-select" style="width: 100%;">
-                      <option value="all">כל השרירים 💪</option>
-                      <option value="חזה">חזה</option>
-                      <option value="גב">גב</option>
-                      <option value="כתפיים">כתפיים</option>
-                      <option value="רגליים">רגליים</option>
-                      <option value="ידיים">ידיים</option>
-                      <option value="בטן וליבה">בטן וליבה</option>
-                      <option value="אירובי">אירובי</option>
-                      <option value="אחר">אחר</option>
-                    </select>
-                  </div>
-
-                  <!-- Sort / Progress Preference -->
-                  <div class="filter-field">
-                    <label style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 6px;">💪 מיון לפי התקדמות ונפח</label>
-                    <select id="filter-sort-select" class="premium-filter-select" style="width: 100%;">
-                      <option value="date-desc">⏱️ כרונולוגי (חדש תחילה)</option>
-                      <option value="prs-first">🏆 שיאים אישיים (PRs) תחילה</option>
-                      <option value="volume-desc">📊 נפח עבודה גבוה תחילה</option>
-                    </select>
-                  </div>
-
+              <!-- Premium Horizontal Filter Bar -->
+              <div class="premium-filter-bar-container" style="position: relative; margin-bottom: 1.2rem; width: 100%; direction: rtl;">
+                <div class="premium-filter-scroll-row" style="display: flex; gap: 8px; overflow-x: auto; padding: 4px 4px 8px 4px; direction: rtl; white-space: nowrap; -webkit-overflow-scrolling: touch; scrollbar-width: none;">
+                  <button class="filter-pill-btn" id="pill-location" data-category="location">
+                    <span class="pill-label">📍 מיקום: הכל</span>
+                    <span class="pill-chevron">▼</span>
+                  </button>
+                  <button class="filter-pill-btn" id="pill-date" data-category="date">
+                    <span class="pill-label">📅 תאריך: הכל</span>
+                    <span class="pill-chevron">▼</span>
+                  </button>
+                  <button class="filter-pill-btn" id="pill-muscle" data-category="muscle">
+                    <span class="pill-label">💪 שריר: הכל</span>
+                    <span class="pill-chevron">▼</span>
+                  </button>
+                  <button class="filter-pill-btn" id="pill-sort" data-category="sort">
+                    <span class="pill-label">📊 מיון: כרונולוגי</span>
+                    <span class="pill-chevron">▼</span>
+                  </button>
                 </div>
+                <div id="filter-dropdown-panel" class="filter-dropdown-panel hide">
+                  <!-- Custom options loaded dynamically in JS -->
+                </div>
+              </div>
+
+              <!-- Hidden original selects for logic backward compatibility -->
+              <div style="display: none;">
+                <select id="filter-location-select">
+                  <option value="all">כל המיקומים 📍</option>
+                  <option value="gym">🏋️‍♂️ חדר כושר</option>
+                  <option value="park">🌳 פארק</option>
+                </select>
+                
+                <div id="custom-date-inputs">
+                  <input type="date" id="filter-start-date">
+                  <input type="date" id="filter-end-date">
+                </div>
+
+                <select id="filter-muscle-select">
+                  <option value="all">כל השרירים 💪</option>
+                  <option value="חזה">חזה</option>
+                  <option value="גב">גב</option>
+                  <option value="כתפיים">כתפיים</option>
+                  <option value="רגליים">רגליים</option>
+                  <option value="ידיים">ידיים</option>
+                  <option value="בטן וליבה">בטן וליבה</option>
+                  <option value="אירובי">אירובי</option>
+                  <option value="אחר">אחר</option>
+                </select>
+
+                <select id="filter-sort-select">
+                  <option value="date-desc">⏱️ כרונולוגי (חדש תחילה)</option>
+                  <option value="prs-first">🏆 שיאים אישיים (PRs) תחילה</option>
+                  <option value="volume-desc">📊 נפח עבודה גבוה תחילה</option>
+                </select>
               </div>
 
               <!-- Chronological Workouts List Container -->
