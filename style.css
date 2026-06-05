@@ -9058,4 +9058,42 @@ html, body {
   text-align: center !important;
 }
 
+/* Redesigned Card Header column-stacking and Marquee name ticker styles */
+.ex-card-header-row {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  width: 100% !important;
+  gap: 8px !important;
+  margin-bottom: 12px !important;
+}
+
+.ex-card-name-container {
+  width: 100% !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+  direction: rtl !important;
+  text-align: right !important;
+  position: relative !important;
+}
+
+.ex-card-name-label {
+  display: inline-block !important;
+  font-size: 1.25rem !important;
+  font-weight: 850 !important;
+  color: #ffffff !important;
+  position: relative !important;
+}
+
+.ex-card-name-label.marquee-scroll {
+  animation: ex-card-marquee-anim 8s linear infinite alternate !important;
+}
+
+@keyframes ex-card-marquee-anim {
+  0% { transform: translateX(0); }
+  15% { transform: translateX(0); }
+  85% { transform: translateX(var(--scroll-distance, 40px)); }
+  100% { transform: translateX(var(--scroll-distance, 40px)); }
+}
+
 
