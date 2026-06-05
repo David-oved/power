@@ -2204,12 +2204,31 @@ export function openExerciseInspector(exerciseName) {
     inspectorFavBtn.innerHTML = isFav ? '⭐' : '☆';
   }
 
-  // Smart-detect configured active metrics (fallback to all three if not configured)
+  // Smart-detect which metrics have ACTUAL DATA in history
   const defaults = getExerciseDefaults(exerciseName);
-  let activeMetrics = ['weight', 'reps', 'time'];
+  let configuredMetrics = ['weight', 'reps', 'time']; // fallback: show all
   if (defaults && defaults.metrics && defaults.metrics.length > 0) {
-    activeMetrics = defaults.metrics;
+    configuredMetrics = [...defaults.metrics];
   }
+  
+  // Scan history for metrics that have real data
+  const metricsWithData = new Set();
+  state.workoutHistory.forEach(workout => {
+    if (!workout.exercises) return;
+    const foundEx = workout.exercises.find(e => e.name === exerciseName);
+    if (foundEx && foundEx.sets) {
+      foundEx.sets.forEach(set => {
+        if (set.completed) {
+          if (set.weight !== undefined && set.weight !== null && set.weight > 0) metricsWithData.add('weight');
+          if (set.reps !== undefined && set.reps !== null && set.reps > 0) metricsWithData.add('reps');
+          if (set.time !== undefined && set.time !== null && set.time > 0) metricsWithData.add('time');
+        }
+      });
+    }
+  });
+  
+  // Merge: show tab if configured OR has historical data
+  const activeMetrics = [...new Set([...configuredMetrics, ...metricsWithData])];
 
   // Update tabs visibility dynamically
   const btnWeight = document.getElementById('inspector-toggle-weight');
@@ -2220,13 +2239,13 @@ export function openExerciseInspector(exerciseName) {
   if (btnReps) btnReps.style.display = activeMetrics.includes('reps') ? 'flex' : 'none';
   if (btnTime) btnTime.style.display = activeMetrics.includes('time') ? 'flex' : 'none';
 
-  // Determine starting active tab
+  // Determine starting active tab - prefer configured defaults first
   let defaultMetric = 'weight';
-  if (activeMetrics.includes('weight')) {
+  if (configuredMetrics.includes('weight')) {
     defaultMetric = 'weight';
-  } else if (activeMetrics.includes('reps')) {
+  } else if (configuredMetrics.includes('reps')) {
     defaultMetric = 'reps';
-  } else if (activeMetrics.includes('time')) {
+  } else if (configuredMetrics.includes('time')) {
     defaultMetric = 'time';
   }
   
@@ -2686,7 +2705,12 @@ export function addGlobalExercise() {
   renderExercisesManager();
   if (typeof window.renderExercisePickerList === 'function') window.renderExercisePickerList();
 
-  alert(`התרגיל "${name}" נוסף לנצח בהצלחה! ✨`);
+  // Automatically open settings configuration for the newly created exercise
+  if (typeof window.openMetricSelectorForConfig === 'function') {
+    setTimeout(() => {
+      window.openMetricSelectorForConfig(name);
+    }, 300);
+  }
 }
 
 export function saveEditedGlobalExercise(oldName) {
