@@ -1155,7 +1155,95 @@ const CSS_STYLES = `
   border-radius: 3px !important;
   transition: width 0.6s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
 }
+
+/* Accordion Active Filter Pill Glow */
+.filter-pill-btn.active-filter {
+  background: rgba(0, 240, 255, 0.05) !important;
+  border-color: rgba(0, 240, 255, 0.25) !important;
+  color: #00f0ff !important;
+}
+
+/* Exercise Accordion layout */
+.premium-exercise-card {
+  padding: 0 !important;
+  overflow: hidden !important;
+  transition: border-color 0.25s ease !important;
+}
+
+.premium-exercise-accordion-header {
+  padding: 12px 16px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 12px !important;
+  background: rgba(255, 255, 255, 0.015) !important;
+  transition: background 0.2s ease !important;
+  user-select: none !important;
+  cursor: pointer !important;
+}
+
+.premium-exercise-accordion-header:hover {
+  background: rgba(255, 255, 255, 0.035) !important;
+}
+
+.premium-exercise-accordion-info {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+  flex-grow: 1 !important;
+  text-align: right !important;
+}
+
+.premium-exercise-name-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+}
+
+.premium-exercise-sets-summary-row {
+  font-size: 0.74rem !important;
+  color: var(--text-muted) !important;
+  font-weight: 600 !important;
+  direction: rtl !important;
+  text-align: right !important;
+  line-height: 1.3 !important;
+}
+
+.premium-exercise-chevron {
+  font-size: 0.75rem !important;
+  color: var(--text-muted) !important;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  margin-left: 4px !important;
+}
+
+.premium-exercise-card.accordion-expanded .premium-exercise-chevron {
+  transform: rotate(180deg) !important;
+  color: var(--electric-blue-light) !important;
+}
+
+.premium-exercise-details-collapse {
+  max-height: 0 !important;
+  opacity: 0 !important;
+  overflow: hidden !important;
+  transition: max-height 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease !important;
+  border-top: 1px dashed rgba(255, 255, 255, 0.04) !important;
+}
+
+.premium-exercise-card.accordion-expanded .premium-exercise-details-collapse {
+  max-height: 1200px !important;
+  opacity: 1 !important;
+}
+
+.premium-exercise-details-content {
+  padding: 14px 16px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 14px !important;
+}
 `;
+
+
 
 const categoryColorMap = {
   'חזה': { color: '#ef4444', glow: 'rgba(239, 68, 68, 0.4)' },
@@ -1229,45 +1317,245 @@ export function renderComparisonBar(currentVal, prevVal, allTimePR, unit, label,
       barColor = '#ef4444'; // Red
       barGlow = 'rgba(239, 68, 68, 0.4)';
     } else {
-      deltaText = 'ללא שינוי';
-      deltaClass = 'delta-neutral';
-      barColor = '#3b82f6'; // Blue / neutral
-      barGlow = 'rgba(59, 130, 246, 0.4)';
+      deltaText // Helper to update filter pills text on workouts tab
+export function updateFilterPillsText() {
+  const pillLoc = document.getElementById('pill-location');
+  const pillDate = document.getElementById('pill-date');
+  const pillMuscle = document.getElementById('pill-muscle');
+  const pillSort = document.getElementById('pill-sort');
+
+  if (pillLoc) {
+    const label = pillLoc.querySelector('.pill-label');
+    if (label) {
+      if (state.filterLocation === 'all') {
+        label.textContent = '📍 מיקום: הכל';
+        pillLoc.classList.remove('active-filter');
+      } else if (state.filterLocation === 'gym') {
+        label.textContent = '🏋️‍♂️ חדר כושר';
+        pillLoc.classList.add('active-filter');
+      } else if (state.filterLocation === 'park') {
+        label.textContent = '🌳 פארק';
+        pillLoc.classList.add('active-filter');
+      } else {
+        const found = state.customLocations.find(l => l.id === state.filterLocation);
+        label.textContent = found ? `${found.emoji || '💪'} ${found.name}` : '📍 מיקום מותאם';
+        pillLoc.classList.add('active-filter');
+      }
     }
   }
 
-  // Percentages relative to all-time PR
-  const currentPct = allTimePR > 0 ? Math.min(100, Math.round((currentVal / allTimePR) * 100)) : 100;
-  const previousPct = allTimePR > 0 && hasPrev ? Math.min(100, Math.round((prevVal / allTimePR) * 100)) : 0;
+  if (pillDate) {
+    const label = pillDate.querySelector('.pill-label');
+    if (label) {
+      if (state.filterTimeSelection === 'all') {
+        label.textContent = '📅 תאריך: הכל';
+        pillDate.classList.remove('active-filter');
+      } else if (state.filterTimeSelection === '7') {
+        label.textContent = '📅 7 ימים אחרונים';
+        pillDate.classList.add('active-filter');
+      } else if (state.filterTimeSelection === '30') {
+        label.textContent = '📅 30 ימים אחרונים';
+        pillDate.classList.add('active-filter');
+      } else if (state.filterTimeSelection === 'custom') {
+        const startVal = state.filterStartDate ? `${state.filterStartDate.getDate()}/${state.filterStartDate.getMonth() + 1}` : 'התחלה';
+        const endVal = state.filterEndDate ? `${state.filterEndDate.getDate()}/${state.filterEndDate.getMonth() + 1}` : 'סוף';
+        label.textContent = `📅 ${startVal} - ${endVal}`;
+        pillDate.classList.add('active-filter');
+      }
+    }
+  }
 
-  const markerHtml = (hasPrev && previousPct > 0) ? `
-    <div class="premium-comparison-marker" style="left: ${previousPct}%;" title="אימון קודם: ${prevVal} ${unit}"></div>
-  ` : '';
+  if (pillMuscle) {
+    const label = pillMuscle.querySelector('.pill-label');
+    if (label) {
+      if (state.filterMuscleGroup === 'all') {
+        label.textContent = '💪 שריר: הכל';
+        pillMuscle.classList.remove('active-filter');
+      } else {
+        label.textContent = `💪 שריר: ${state.filterMuscleGroup}`;
+        pillMuscle.classList.add('active-filter');
+      }
+    }
+  }
 
-  const prevText = hasPrev ? `${prevVal} ${unit}` : '--';
+  if (pillSort) {
+    const label = pillSort.querySelector('.pill-label');
+    if (label) {
+      if (state.filterSortSelection === 'date-desc') {
+        label.textContent = '⏱️ כרונולוגי';
+        pillSort.classList.remove('active-filter');
+      } else if (state.filterSortSelection === 'prs-first') {
+        label.textContent = '🏆 שיאים אישיים';
+        pillSort.classList.add('active-filter');
+      } else if (state.filterSortSelection === 'volume-desc') {
+        label.textContent = '📊 נפח עבודה';
+        pillSort.classList.add('active-filter');
+      }
+    }
+  }
+}
 
-  return `
-    <div class="premium-comparison-bar-row">
-      <div class="premium-comparison-meta">
-        <span class="premium-comparison-label">${label}</span>
-        <span class="premium-comparison-delta ${deltaClass}">${deltaText}</span>
+// Helper to populate custom dropdown options
+export function populateFilterDropdown(category, container, pill) {
+  if (category === 'location') {
+    const originalSelect = document.getElementById('filter-location-select');
+    if (!originalSelect) return;
+    
+    Array.from(originalSelect.options).forEach(opt => {
+      const optionEl = document.createElement('div');
+      optionEl.className = `filter-dropdown-option ${state.filterLocation === opt.value ? 'selected' : ''}`;
+      optionEl.innerHTML = `
+        <span>${opt.text}</span>
+        ${state.filterLocation === opt.value ? '<span class="filter-dropdown-option-check">✓</span>' : ''}
+      `;
+      optionEl.addEventListener('click', () => {
+        state.filterLocation = opt.value;
+        originalSelect.value = opt.value;
+        originalSelect.dispatchEvent(new Event('change'));
+        container.classList.add('hide');
+        pill.classList.remove('active');
+      });
+      container.appendChild(optionEl);
+    });
+  } else if (category === 'date') {
+    const options = [
+      { value: 'all', text: 'הכל 📅' },
+      { value: '7', text: '7 ימים אחרונים ⏱️' },
+      { value: '30', text: '30 ימים אחרונים ⏱️' },
+      { value: 'custom', text: 'טווח מותאם אישית... 📅' }
+    ];
+
+    options.forEach(opt => {
+      const optionEl = document.createElement('div');
+      optionEl.className = `filter-dropdown-option ${state.filterTimeSelection === opt.value ? 'selected' : ''}`;
+      optionEl.innerHTML = `
+        <span>${opt.text}</span>
+        ${state.filterTimeSelection === opt.value ? '<span class="filter-dropdown-option-check">✓</span>' : ''}
+      `;
+      optionEl.addEventListener('click', (e) => {
+        if (opt.value === 'custom') {
+          e.stopPropagation();
+          renderCustomDateSelectors(container, pill);
+        } else {
+          state.filterTimeSelection = opt.value;
+          renderAnalytics();
+          container.classList.add('hide');
+          pill.classList.remove('active');
+        }
+      });
+      container.appendChild(optionEl);
+    });
+  } else if (category === 'muscle') {
+    const originalSelect = document.getElementById('filter-muscle-select');
+    if (!originalSelect) return;
+    
+    Array.from(originalSelect.options).forEach(opt => {
+      const optionEl = document.createElement('div');
+      optionEl.className = `filter-dropdown-option ${state.filterMuscleGroup === opt.value ? 'selected' : ''}`;
+      optionEl.innerHTML = `
+        <span>${opt.text}</span>
+        ${state.filterMuscleGroup === opt.value ? '<span class="filter-dropdown-option-check">✓</span>' : ''}
+      `;
+      optionEl.addEventListener('click', () => {
+        state.filterMuscleGroup = opt.value;
+        originalSelect.value = opt.value;
+        originalSelect.dispatchEvent(new Event('change'));
+        container.classList.add('hide');
+        pill.classList.remove('active');
+      });
+      container.appendChild(optionEl);
+    });
+  } else if (category === 'sort') {
+    const originalSelect = document.getElementById('filter-sort-select');
+    if (!originalSelect) return;
+    
+    Array.from(originalSelect.options).forEach(opt => {
+      const optionEl = document.createElement('div');
+      optionEl.className = `filter-dropdown-option ${state.filterSortSelection === opt.value ? 'selected' : ''}`;
+      optionEl.innerHTML = `
+        <span>${opt.text}</span>
+        ${state.filterSortSelection === opt.value ? '<span class="filter-dropdown-option-check">✓</span>' : ''}
+      `;
+      optionEl.addEventListener('click', () => {
+        state.filterSortSelection = opt.value;
+        originalSelect.value = opt.value;
+        renderAnalytics();
+        container.classList.add('hide');
+        pill.classList.remove('active');
+      });
+      container.appendChild(optionEl);
+    });
+  }
+}
+
+// Helper to render custom date selectors inside dropdown
+export function renderCustomDateSelectors(container, pill) {
+  container.innerHTML = '';
+
+  const title = document.createElement('div');
+  title.style.cssText = 'font-size: 0.85rem; font-weight: bold; padding: 6px 12px; color: var(--text-muted); text-align: right; direction: rtl;';
+  title.textContent = 'בחר טווח תאריכים:';
+  container.appendChild(title);
+
+  const form = document.createElement('div');
+  form.className = 'filter-dropdown-custom-dates';
+  form.style.cssText = 'direction: rtl;';
+
+  const startD = document.getElementById('filter-start-date');
+  const endD = document.getElementById('filter-end-date');
+  
+  const startVal = startD ? startD.value : '';
+  const endVal = endD ? endD.value : '';
+
+  form.innerHTML = `
+    <div class="filter-dropdown-custom-dates-inputs">
+      <div style="display: flex; flex-direction: column; gap: 4px; flex: 1; text-align: right;">
+        <span style="font-size: 0.75rem; color: var(--text-muted);">מתאריך:</span>
+        <input type="date" id="dropdown-start-date" value="${startVal}">
       </div>
-      <div class="premium-comparison-track">
-        <div class="premium-comparison-fill" style="width: ${currentPct}%; background-color: ${barColor}; box-shadow: 0 0 8px ${barGlow};"></div>
-        ${markerHtml}
-      </div>
-      <div class="premium-comparison-values">
-        <span>קודם: ${prevText}</span>
-        <span>נוכחי: ${currentVal} ${unit}</span>
+      <div style="display: flex; flex-direction: column; gap: 4px; flex: 1; text-align: right;">
+        <span style="font-size: 0.75rem; color: var(--text-muted);">עד תאריך:</span>
+        <input type="date" id="dropdown-end-date" value="${endVal}">
       </div>
     </div>
+    <button class="filter-dropdown-apply-btn" style="margin-top: 8px;">החל סינון</button>
   `;
+
+  form.addEventListener('click', (e) => {
+    e.stopPropagation();
+  });
+
+  const applyBtn = form.querySelector('.filter-dropdown-apply-btn');
+  applyBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const inputStart = document.getElementById('dropdown-start-date');
+    const inputEnd = document.getElementById('dropdown-end-date');
+
+    if (startD) {
+      startD.value = inputStart.value;
+      state.filterStartDate = inputStart.value ? new Date(inputStart.value) : null;
+    }
+    if (endD) {
+      endD.value = inputEnd.value;
+      state.filterEndDate = inputEnd.value ? new Date(inputEnd.value) : null;
+    }
+
+    state.filterTimeSelection = 'custom';
+    renderAnalytics();
+    container.classList.add('hide');
+    pill.classList.remove('active');
+  });
+
+  container.appendChild(form);
 }
 
 // Workouts Chronological Card list
 export function renderWorkoutsLog() {
   const container = document.getElementById('workouts-log-container');
   if (!container) return;
+
+  // Update filter pill labels
+  updateFilterPillsText();
 
   container.innerHTML = '';
 
@@ -1415,12 +1703,17 @@ export function renderWorkoutsLog() {
       }
     });
 
-    // 2. Generate Muscle Badges for Collapsed State
+    // Calculate total completed sets in this workout
+    const totalCompSetsInW = Object.values(muscleCounts).reduce((sum, v) => sum + v, 0);
+
+    // 2. Generate Muscle Badges for Collapsed State with percentages
     const muscleDotsHtml = Array.from(muscleGroupsTrained).map(cat => {
       const style = getMuscleCategoryStyle(cat);
+      const count = muscleCounts[cat] || 0;
+      const pct = totalCompSetsInW > 0 ? Math.round((count / totalCompSetsInW) * 100) : 0;
       return `
-        <span class="premium-muscle-badge" style="background: ${style.glow}; border: 1px solid ${style.color}; box-shadow: 0 0 10px ${style.glow};" title="${cat}">
-          ${cat}
+        <span class="premium-muscle-badge" style="background: ${style.glow}; border: 1px solid ${style.color}; box-shadow: 0 0 10px ${style.glow};" title="${cat} (${pct}%)">
+          ${cat} (${pct}%)
         </span>
       `;
     }).join('');
@@ -1585,28 +1878,54 @@ export function renderWorkoutsLog() {
         `;
       }).join('');
 
+      // Format a compact summary of sets (e.g. 60 ק״ג × 10, 65 ק״ג × 8)
+      const summaryParts = completedSets.map(s => {
+        const parts = [];
+        if (showWeight) parts.push(`${s.weight || 0}ק״ג`);
+        if (showReps) parts.push(`${s.reps || 0}`);
+        if (showTime) parts.push(`${s.time || 0}ש׳`);
+        return parts.join('×');
+      });
+      const setsCountText = `${completedSets.length} סטים`;
+      const setsSummaryText = summaryParts.length > 0 ? ` | ${summaryParts.join(', ')}` : '';
+      const fullSummary = `${setsCountText}${setsSummaryText}`;
+
       return `
         <div class="premium-exercise-card" style="border-left: 3.5px solid ${muscleStyle.color}; box-shadow: inset 5px 0 15px -5px ${muscleStyle.glow};">
-          <div class="premium-exercise-header">
-            <div class="premium-exercise-info">
-              <span class="premium-exercise-name">${ex.name}</span>
-              <span class="premium-exercise-cat-badge" style="background-color: ${muscleStyle.glow}; color: ${muscleStyle.color}; border: 1px solid rgba(255,255,255,0.08);">${cat}</span>
+          <div class="premium-exercise-accordion-header">
+            <div class="premium-exercise-accordion-info">
+              <div class="premium-exercise-name-row">
+                <span class="premium-exercise-name" style="font-size: 0.95rem; font-weight: 800; color: #ffffff;">${ex.name}</span>
+                <span class="premium-exercise-cat-badge" style="background-color: ${muscleStyle.glow}; color: ${muscleStyle.color}; border: 1px solid rgba(255,255,255,0.08); font-size: 0.68rem; font-weight: 800; padding: 2px 6px; border-radius: 6px;">${cat}</span>
+              </div>
+              <div class="premium-exercise-sets-summary-row">${fullSummary}</div>
             </div>
+            <span class="premium-exercise-chevron">▼</span>
           </div>
           
-          <div class="premium-exercise-stats-grid">
-            <div class="premium-exercise-rings-panel">
-              ${ringsHtml}
-            </div>
-            <div class="premium-exercise-comparison-panel">
-              ${comparisonBarsHtml}
-            </div>
-          </div>
-          
-          <div class="premium-exercise-sets-section">
-            <div class="premium-exercise-sets-title">סטים שבוצעו:</div>
-            <div class="premium-exercise-sets-container">
-              ${setBubblesHtml}
+          <div class="premium-exercise-details-collapse">
+            <div class="premium-exercise-details-content">
+              <div class="premium-exercise-stats-grid">
+                <div class="premium-exercise-rings-panel">
+                  ${ringsHtml}
+                </div>
+                <div class="premium-exercise-comparison-panel">
+                  ${comparisonBarsHtml}
+                </div>
+              </div>
+              
+              <div class="premium-exercise-sets-section">
+                <div class="premium-exercise-sets-title">סטים שבוצעו:</div>
+                <div class="premium-exercise-sets-container">
+                  ${setBubblesHtml}
+                </div>
+              </div>
+
+              <div style="display: flex; justify-content: flex-end; margin-top: 4px;">
+                <span class="premium-exercise-inspector-link" data-name="${ex.name}" style="color: var(--electric-blue-light); font-size: 0.78rem; font-weight: 700; cursor: pointer; text-decoration: underline; text-underline-offset: 3px;">
+                  ניתוח גרפים והיסטוריית PR 📈
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -1630,7 +1949,7 @@ export function renderWorkoutsLog() {
       
       <!-- Redesigned High-end info bar replacing old chips preview -->
       ${compactInfoBarHtml}
-
+ 
       <!-- Expanded detailed information sheet -->
       <div class="workout-log-expanded-details">
         <div class="workout-log-exercises-premium">
@@ -1662,17 +1981,25 @@ export function renderWorkoutsLog() {
 
     container.appendChild(card);
 
-    // Bind click events on premium exercise cards to open inspector
+    // Bind click events on premium exercise accordion headers & links
     const exCards = card.querySelectorAll('.premium-exercise-card');
     exCards.forEach(exCard => {
-      exCard.addEventListener('click', (e) => {
-        e.stopPropagation(); // prevent parent card toggling
-        const nameEl = exCard.querySelector('.premium-exercise-name');
-        if (nameEl) {
-          const exName = nameEl.textContent.trim();
+      const headerEl = exCard.querySelector('.premium-exercise-accordion-header');
+      if (headerEl) {
+        headerEl.addEventListener('click', (e) => {
+          e.stopPropagation(); // prevent parent card toggling
+          exCard.classList.toggle('accordion-expanded');
+        });
+      }
+
+      const inspectorLink = exCard.querySelector('.premium-exercise-inspector-link');
+      if (inspectorLink) {
+        inspectorLink.addEventListener('click', (e) => {
+          e.stopPropagation(); // prevent parent card toggling
+          const exName = inspectorLink.dataset.name;
           openExerciseInspector(exName);
-        }
-      });
+        });
+      }
     });
   });
 }
@@ -2956,15 +3283,39 @@ export function initAICoach() {
 
 // Setup Analytics Event Binders on DOM ready
 export function initAnalyticsTab() {
-  // Collapsible Filters Panel
-  const toggleFiltersBtn = document.getElementById('toggle-filters-btn');
-  const collapsibleFiltersContainer = document.getElementById('collapsible-filters-container');
-  if (toggleFiltersBtn && collapsibleFiltersContainer) {
-    toggleFiltersBtn.addEventListener('click', () => {
-      const isExpanded = collapsibleFiltersContainer.classList.toggle('expanded');
-      toggleFiltersBtn.classList.toggle('expanded', isExpanded);
+  // Dynamic Horizontal Filters Bar listeners
+  const pills = document.querySelectorAll('.filter-pill-btn');
+  const dropdownPanel = document.getElementById('filter-dropdown-panel');
+
+  // Close dropdown when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.premium-filter-bar-container')) {
+      if (dropdownPanel) dropdownPanel.classList.add('hide');
+      pills.forEach(p => p.classList.remove('active'));
+    }
+  });
+
+  pills.forEach(pill => {
+    pill.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const category = pill.dataset.category;
+      
+      if (pill.classList.contains('active')) {
+        pill.classList.remove('active');
+        if (dropdownPanel) dropdownPanel.classList.add('hide');
+        return;
+      }
+
+      pills.forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+
+      if (dropdownPanel) {
+        dropdownPanel.innerHTML = '';
+        dropdownPanel.classList.remove('hide');
+        populateFilterDropdown(category, dropdownPanel, pill);
+      }
     });
-  }
+  });
 
   // Metrics Sub-Navigation Bar Tab Switcher
   const subNavTabs = document.querySelectorAll('#metrics-sub-nav .nav-tab[data-sub-tab]');
@@ -3047,26 +3398,7 @@ export function initAnalyticsTab() {
     });
   });
 
-  // Time filter chips
-  const chips = document.querySelectorAll('#tab-analytics .filter-chip');
-  const customDateInputs = document.getElementById('custom-date-inputs');
-
-  chips.forEach(c => {
-    c.addEventListener('click', () => {
-      chips.forEach(x => x.classList.remove('active'));
-      c.classList.add('active');
-
-      state.filterTimeSelection = c.dataset.time;
-
-      if (state.filterTimeSelection === 'custom') {
-        if (customDateInputs) customDateInputs.style.display = 'flex';
-      } else {
-        if (customDateInputs) customDateInputs.style.display = 'none';
-      }
-
-      renderAnalytics();
-    });
-  });
+  // Time filter chips listener removed (replaced by horizontal filters bar)
 
   const startD = document.getElementById('filter-start-date');
   const endD = document.getElementById('filter-end-date');
