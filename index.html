@@ -4,7 +4,8 @@
   <meta charset="UTF-8">
   <script>
     window.onerror = function(msg, url, line) {
-      alert("קוד שגיאה: " + msg + "\nשורה: " + line);
+      alert("קוד שגיאה: " + msg + "
+שורה: " + line);
     };
   </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -398,91 +399,6 @@
               <div class="picker-add-custom-wrapper" style="padding: 12px 1.5rem 18px 1.5rem; border-top: 1px solid rgba(255, 255, 255, 0.05); background: rgba(0,0,0,0.15);">
                 <button id="open-custom-exercise-modal-btn" class="btn-add-custom-exercise-trigger" style="width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; padding: 14px; border-radius: 14px; background: linear-gradient(135deg, #dc2626 0%, #f43f5e 100%); border: none; color: #ffffff; font-weight: bold; font-size: 1rem; cursor: pointer; box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);">
                   <span>➕ צור תרגיל מותאם אישית חדש</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Metric Selector Modal -->
-          <div id="metric-selector-modal" class="workout-modal-overlay hide" style="z-index: 1700; align-items: center; justify-content: center;">
-            <div class="workout-modal-card" style="max-width: 390px; width: 92%;">
-              <div class="modal-header" style="padding: 18px 1.5rem 12px 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
-                <button id="close-metric-selector-btn" class="btn-cancel-link" style="background: none; border: none; font-size: 0.95rem; font-weight: 700; color: var(--text-muted); cursor: pointer; margin: 0 !important; font-family: var(--font-sans);">ביטול</button>
-                <h3 class="modal-title" style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #ffffff; font-family: var(--font-display);">הגדרות תרגיל</h3>
-                <span style="width: 40px;"></span>
-              </div>
-              <div class="modal-body">
-                <!-- 1. Target Sets Section -->
-                <h4 style="font-size: 1.02rem; font-weight: 800; margin-bottom: 12px; color: #ffffff; text-align: right; direction: rtl;">🎯 סטים מתוכננים</h4>
-                
-                <div class="sets-stepper-container" style="display: flex; align-items: center; justify-content: center; gap: 20px; margin: 15px 0; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.03);">
-                  <button type="button" id="metric-sets-minus" class="stepper-btn">-</button>
-                  <div style="display: flex; flex-direction: column; align-items: center;">
-                    <span id="metric-sets-display" style="font-size: 1.6rem; font-weight: 900; color: #ffffff; min-width: 40px; text-align: center; font-family: var(--font-sans);">3</span>
-                    <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">סטים לאימון</span>
-                  </div>
-                  <button type="button" id="metric-sets-plus" class="stepper-btn">+</button>
-                </div>
-
-                <div id="sets-chips-container" class="sets-chips-container" style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; direction: ltr; margin-bottom: 20px;">
-                  <button type="button" class="sets-option-chip" data-sets="2">2</button>
-                  <button type="button" class="sets-option-chip active" data-sets="3">3 ⭐️</button>
-                  <button type="button" class="sets-option-chip" data-sets="4">4</button>
-                  <button type="button" class="sets-option-chip" data-sets="5">5</button>
-                  <button type="button" class="sets-option-chip" data-sets="6">6</button>
-                </div>
-
-                <div class="divider" style="margin: 1.2rem 0; border-top: 1px solid rgba(255, 255, 255, 0.08);"></div>
-
-                <!-- 2. Rest Duration Section -->
-                <h4 style="font-size: 1.02rem; font-weight: 800; margin-bottom: 12px; color: #ffffff; text-align: right; direction: rtl;">⏱️ זמן מנוחה קבוע</h4>
-                <div id="rest-time-chips-container" class="rest-time-chips-container" style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; direction: ltr; margin-bottom: 20px;">
-                  <button type="button" class="rest-option-chip" data-rest="30">30s</button>
-                  <button type="button" class="rest-option-chip" data-rest="60">60s</button>
-                  <button type="button" class="rest-option-chip active" data-rest="90">90s ⭐️</button>
-                  <button type="button" class="rest-option-chip" data-rest="120">120s</button>
-                  <button type="button" class="rest-option-chip" data-rest="180">180s</button>
-                </div>
-
-                <div class="divider" style="margin: 1.2rem 0; border-top: 1px solid rgba(255, 255, 255, 0.08);"></div>
-
-                <!-- 3. Measurement Type (Stateful Selectable Cards) -->
-                <h4 style="font-size: 1.02rem; font-weight: 800; margin-bottom: 12px; color: #ffffff; text-align: right; direction: rtl;">⚖️ סוג המדדים למדידה</h4>
-                <div class="premium-metric-card-grid">
-                  <!-- Weight Card -->
-                  <div class="premium-metric-card active" data-metric="weight">
-                    <div class="premium-metric-icon">🏋️‍♂️</div>
-                    <div class="premium-metric-details">
-                      <span class="premium-metric-title">משקל</span>
-                      <span class="premium-metric-desc">מעקב אחר המשקל המורם בסט (ק״ג)</span>
-                    </div>
-                    <div class="premium-metric-badge">✓</div>
-                  </div>
-
-                  <!-- Reps Card -->
-                  <div class="premium-metric-card active" data-metric="reps">
-                    <div class="premium-metric-icon">🔢</div>
-                    <div class="premium-metric-details">
-                      <span class="premium-metric-title">חזרות</span>
-                      <span class="premium-metric-desc">מעקב אחר מספר החזרות שבוצעו בסט</span>
-                    </div>
-                    <div class="premium-metric-badge">✓</div>
-                  </div>
-
-                  <!-- Time Card -->
-                  <div class="premium-metric-card" data-metric="time">
-                    <div class="premium-metric-icon">⏱️</div>
-                    <div class="premium-metric-details">
-                      <span class="premium-metric-title">זמן</span>
-                      <span class="premium-metric-desc">מעקב אחר משך הזמן בשניות</span>
-                    </div>
-                    <div class="premium-metric-badge">✓</div>
-                  </div>
-                </div>
-
-                <!-- 4. Premium Glowing Confirm Action Button -->
-                <button type="button" id="confirm-add-exercise-btn" class="btn btn-primary" style="width: 100%; padding: 15px; font-weight: 800; border-radius: 16px; font-size: 1.05rem; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; cursor: pointer; background: linear-gradient(135deg, var(--electric-blue) 0%, #7c3aed 100%); color: #ffffff; box-shadow: 0 8px 25px rgba(124, 58, 237, 0.25); margin-top: 15px; transition: all 0.2s;">
-                  <span>✨ הוסף תרגיל לאימון</span>
                 </button>
               </div>
             </div>
@@ -1585,6 +1501,92 @@
   </div>
 
 
+
+  
+  <!-- Metric Selector Modal -->
+          <div id="metric-selector-modal" class="workout-modal-overlay hide" style="z-index: 1700; align-items: center; justify-content: center;">
+            <div class="workout-modal-card" style="max-width: 390px; width: 92%;">
+              <div class="modal-header" style="padding: 18px 1.5rem 12px 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.06);">
+                <button id="close-metric-selector-btn" class="btn-cancel-link" style="background: none; border: none; font-size: 0.95rem; font-weight: 700; color: var(--text-muted); cursor: pointer; margin: 0 !important; font-family: var(--font-sans);">ביטול</button>
+                <h3 class="modal-title" style="margin: 0; font-size: 1.2rem; font-weight: 800; color: #ffffff; font-family: var(--font-display);">הגדרות תרגיל</h3>
+                <span style="width: 40px;"></span>
+              </div>
+              <div class="modal-body">
+                <!-- 1. Target Sets Section -->
+                <h4 style="font-size: 1.02rem; font-weight: 800; margin-bottom: 12px; color: #ffffff; text-align: right; direction: rtl;">🎯 סטים מתוכננים</h4>
+                
+                <div class="sets-stepper-container" style="display: flex; align-items: center; justify-content: center; gap: 20px; margin: 15px 0; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.03);">
+                  <button type="button" id="metric-sets-minus" class="stepper-btn">-</button>
+                  <div style="display: flex; flex-direction: column; align-items: center;">
+                    <span id="metric-sets-display" style="font-size: 1.6rem; font-weight: 900; color: #ffffff; min-width: 40px; text-align: center; font-family: var(--font-sans);">3</span>
+                    <span style="font-size: 0.75rem; color: var(--text-muted); font-weight: 600;">סטים לאימון</span>
+                  </div>
+                  <button type="button" id="metric-sets-plus" class="stepper-btn">+</button>
+                </div>
+
+                <div id="sets-chips-container" class="sets-chips-container" style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; direction: ltr; margin-bottom: 20px;">
+                  <button type="button" class="sets-option-chip" data-sets="2">2</button>
+                  <button type="button" class="sets-option-chip active" data-sets="3">3 ⭐️</button>
+                  <button type="button" class="sets-option-chip" data-sets="4">4</button>
+                  <button type="button" class="sets-option-chip" data-sets="5">5</button>
+                  <button type="button" class="sets-option-chip" data-sets="6">6</button>
+                </div>
+
+                <div class="divider" style="margin: 1.2rem 0; border-top: 1px solid rgba(255, 255, 255, 0.08);"></div>
+
+                <!-- 2. Rest Duration Section -->
+                <h4 style="font-size: 1.02rem; font-weight: 800; margin-bottom: 12px; color: #ffffff; text-align: right; direction: rtl;">⏱️ זמן מנוחה קבוע</h4>
+                <div id="rest-time-chips-container" class="rest-time-chips-container" style="display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; direction: ltr; margin-bottom: 20px;">
+                  <button type="button" class="rest-option-chip" data-rest="30">30s</button>
+                  <button type="button" class="rest-option-chip" data-rest="60">60s</button>
+                  <button type="button" class="rest-option-chip active" data-rest="90">90s ⭐️</button>
+                  <button type="button" class="rest-option-chip" data-rest="120">120s</button>
+                  <button type="button" class="rest-option-chip" data-rest="180">180s</button>
+                </div>
+
+                <div class="divider" style="margin: 1.2rem 0; border-top: 1px solid rgba(255, 255, 255, 0.08);"></div>
+
+                <!-- 3. Measurement Type (Stateful Selectable Cards) -->
+                <h4 style="font-size: 1.02rem; font-weight: 800; margin-bottom: 12px; color: #ffffff; text-align: right; direction: rtl;">⚖️ סוג המדדים למדידה</h4>
+                <div class="premium-metric-card-grid">
+                  <!-- Weight Card -->
+                  <div class="premium-metric-card active" data-metric="weight">
+                    <div class="premium-metric-icon">🏋️‍♂️</div>
+                    <div class="premium-metric-details">
+                      <span class="premium-metric-title">משקל</span>
+                      <span class="premium-metric-desc">מעקב אחר המשקל המורם בסט (ק״ג)</span>
+                    </div>
+                    <div class="premium-metric-badge">✓</div>
+                  </div>
+
+                  <!-- Reps Card -->
+                  <div class="premium-metric-card active" data-metric="reps">
+                    <div class="premium-metric-icon">🔢</div>
+                    <div class="premium-metric-details">
+                      <span class="premium-metric-title">חזרות</span>
+                      <span class="premium-metric-desc">מעקב אחר מספר החזרות שבוצעו בסט</span>
+                    </div>
+                    <div class="premium-metric-badge">✓</div>
+                  </div>
+
+                  <!-- Time Card -->
+                  <div class="premium-metric-card" data-metric="time">
+                    <div class="premium-metric-icon">⏱️</div>
+                    <div class="premium-metric-details">
+                      <span class="premium-metric-title">זמן</span>
+                      <span class="premium-metric-desc">מעקב אחר משך הזמן בשניות</span>
+                    </div>
+                    <div class="premium-metric-badge">✓</div>
+                  </div>
+                </div>
+
+                <!-- 4. Premium Glowing Confirm Action Button -->
+                <button type="button" id="confirm-add-exercise-btn" class="btn btn-primary" style="width: 100%; padding: 15px; font-weight: 800; border-radius: 16px; font-size: 1.05rem; display: flex; align-items: center; justify-content: center; gap: 8px; border: none; cursor: pointer; background: linear-gradient(135deg, var(--electric-blue) 0%, #7c3aed 100%); color: #ffffff; box-shadow: 0 8px 25px rgba(124, 58, 237, 0.25); margin-top: 15px; transition: all 0.2s;">
+                  <span>✨ הוסף תרגיל לאימון</span>
+                </button>
+              </div>
+            </div>
+          </div>
 
   <!-- Load global Firebase credential settings -->
   <script src="firebase-config.js"></script>
