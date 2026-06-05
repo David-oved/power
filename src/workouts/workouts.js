@@ -833,8 +833,25 @@ export function renderExercises() {
 
     const nameRow = document.createElement('div');
     nameRow.className = 'ex-card-name-row';
-    nameRow.textContent = ex.name;
+
+    const nameContainer = document.createElement('div');
+    nameContainer.className = 'ex-card-name-container';
+
+    const nameLabel = document.createElement('span');
+    nameLabel.className = 'ex-card-name-label';
+    nameLabel.textContent = ex.name;
+    nameContainer.appendChild(nameLabel);
+    nameRow.appendChild(nameContainer);
     headerRow.appendChild(nameRow);
+
+    // Check if the exercise name overflows and apply marquee effect
+    setTimeout(() => {
+      if (nameContainer.scrollWidth > nameContainer.clientWidth) {
+        nameLabel.classList.add('marquee-scroll');
+        const scrollDistance = nameContainer.scrollWidth - nameContainer.clientWidth;
+        nameLabel.style.setProperty('--scroll-distance', `${scrollDistance + 15}px`);
+      }
+    }, 50);
 
     const subRow = document.createElement('div');
     subRow.className = 'ex-card-sub-row';
@@ -1979,7 +1996,7 @@ export function initWorkoutsModule() {
   }
 
   // Handle click on premium metric selector cards to make them statefully selectable (toggling for multi-selection)
-  const metricCards = document.querySelectorAll('.premium-metric-card');
+  const metricCards = document.querySelectorAll('#metric-selector-modal .premium-metric-card');
   metricCards.forEach(card => {
     card.addEventListener('click', () => {
       card.classList.toggle('active');
@@ -1994,7 +2011,7 @@ export function initWorkoutsModule() {
       console.log("Confirm add exercise clicked. Selected exercise:", state.selectedExerciseForAdding, "Edit index:", state.editingActiveExerciseIndex, "Config exercise:", state.configuringExerciseDefaults);
       
       // Extract active metrics
-      const activeCards = document.querySelectorAll('.premium-metric-card.active');
+      const activeCards = document.querySelectorAll('#metric-selector-modal .premium-metric-card.active');
       const metrics = Array.from(activeCards).map(card => card.getAttribute('data-metric'));
       
       if (metrics.length === 0) {
