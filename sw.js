@@ -21,13 +21,13 @@ const ASSETS = [
 
 let restTimerTimeout = null;
 
-// Service Worker Install State - resolve immediately without downloading assets (On-Demand Updates)
 self.addEventListener('install', (event) => {
   console.log('Service Worker: Installed immediately. Assets will be cached on-demand.');
+  self.skipWaiting(); // Force activation immediately
   event.waitUntil(Promise.resolve());
 });
 
-// Activate state - clean up old caches
+// Activate state - clean up old caches and force client reload
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
@@ -39,6 +39,19 @@ self.addEventListener('activate', (event) => {
           }
         })
       );
+    }).then(() => {
+      // Force reload all open window clients to update immediately
+      return self.clients.matchAll({ type: 'window' }).then((clients) => {
+        clients.forEach((client) => {
+          if (client.url && typeof client.navigate === 'function') {
+            try {
+              client.navigate(client.url);
+            } catch (err) {
+              console.error('Failed to force reload client:', err);
+            }
+          }
+        });
+      });
     })
   );
   self.clients.claim();
