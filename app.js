@@ -346,10 +346,4 @@ onDOMReady(() => {
   // Tab Initializers setup
   initPremiumSettings();
   initAnalyticsTab();
-
-  // Clear PWA recovery timeout if it exists (successful application boot)
-  if (window.recoveryTimeout) {
-    clearTimeout(window.recoveryTimeout);
-    console.log("App boot successful. PWA recovery timeout cleared.");
-  }
 });
