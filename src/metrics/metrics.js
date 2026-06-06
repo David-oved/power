@@ -1776,7 +1776,7 @@ export function renderWorkoutsLog() {
           <span class="premium-info-text">${duration} דק׳</span>
         </div>
         <div style="flex-grow: 1;"></div>
-        <div class="premium-muscle-dots-container" style="display: flex; gap: 6px; align-items: center;">
+        <div class="premium-muscle-dots-container" style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end;">
           ${muscleDotsHtml}
         </div>
       </div>
