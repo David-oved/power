@@ -5224,7 +5224,7 @@ body.authenticated .ios-bottom-nav {
   border-radius: 12px;
   padding: 12px 14px;
   color: #ffffff;
-  font-size: 0.95rem;
+  font-size: 16px !important;
   font-weight: 600;
   outline: none;
   font-family: var(--font-sans);
@@ -9224,5 +9224,86 @@ html, body {
 .filter-dropdown-apply-btn:hover {
   opacity: 0.9 !important;
 }
+
+.round-glass-btn {
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 1.2rem !important;
+  cursor: pointer !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: #fff !important;
+  backdrop-filter: blur(12px) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  outline: none !important;
+  padding: 0 !important;
+}
+
+.round-glass-btn:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  transform: translateY(-2px) scale(1.05) !important;
+  box-shadow: 0 6px 20px rgba(0, 240, 255, 0.15) !important;
+}
+
+.round-glass-btn:active {
+  transform: translateY(0) scale(0.95) !important;
+}
+
+/* Exercises Leaderboard Custom Highlights */
+.modal-leader-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  padding: 14px !important;
+  border-radius: 16px !important;
+  background: rgba(255, 255, 255, 0.02) !important;
+  border: 1px solid rgba(255, 255, 255, 0.04) !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  cursor: pointer !important;
+}
+
+.modal-leader-item:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  transform: translateY(-2px) !important;
+}
+
+.modal-leader-item.gold-tier {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.06) 0%, rgba(255, 215, 0, 0.01) 100%) !important;
+  border-color: rgba(255, 215, 0, 0.25) !important;
+}
+
+.modal-leader-item.gold-tier:hover {
+  border-color: rgba(255, 215, 0, 0.5) !important;
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.15) !important;
+}
+
+.modal-leader-item.silver-tier {
+  background: linear-gradient(135deg, rgba(192, 192, 192, 0.06) 0%, rgba(192, 192, 192, 0.01) 100%) !important;
+  border-color: rgba(192, 192, 192, 0.25) !important;
+}
+
+.modal-leader-item.silver-tier:hover {
+  border-color: rgba(192, 192, 192, 0.5) !important;
+  box-shadow: 0 4px 15px rgba(192, 192, 192, 0.15) !important;
+}
+
+.modal-leader-item.bronze-tier {
+  background: linear-gradient(135deg, rgba(205, 127, 50, 0.06) 0%, rgba(205, 127, 50, 0.01) 100%) !important;
+  border-color: rgba(205, 127, 50, 0.25) !important;
+}
+
+.modal-leader-item.bronze-tier:hover {
+  border-color: rgba(205, 127, 50, 0.5) !important;
+  box-shadow: 0 4px 15px rgba(205, 127, 50, 0.15) !important;
+}
+
+
 
 

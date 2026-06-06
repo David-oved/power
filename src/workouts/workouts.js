@@ -24,11 +24,11 @@ export const GYM_EXERCISES = [
   { name: 'כפיפת ברכיים', category: 'רגליים', emoji: '🦵' },
   { name: 'דדליפט רומני', category: 'רגליים', emoji: '🏋️' },
   { name: 'הרמת עקבים (Calves)', category: 'רגליים', emoji: '🦵' },
-  { name: 'כפיפת מרפקים עם מוט', category: 'ידיים', emoji: '💪' },
-  { name: 'כפיפת מרפקים פטישים', category: 'ידיים', emoji: '💪' },
-  { name: 'כפיפת מרפקים בכור כומר', category: 'ידיים', emoji: '💪' },
-  { name: 'פשיטת מרפקים בפולי', category: 'ידיים', emoji: '💪' },
-  { name: 'פשיטת מרפקים מעל הראש', category: 'ידיים', emoji: '💪' },
+  { name: 'כפיפת מרפקים עם מוט', category: 'יד קדמית', emoji: '💪' },
+  { name: 'כפיפת מרפקים פטישים', category: 'יד קדמית', emoji: '💪' },
+  { name: 'כפיפת מרפקים בכור כומר', category: 'יד קדמית', emoji: '💪' },
+  { name: 'פשיטת מרפקים בפולי', category: 'יד אחורית', emoji: '💪' },
+  { name: 'פשיטת מרפקים מעל הראש', category: 'יד אחורית', emoji: '💪' },
   { name: 'כפיפות בטן', category: 'בטן וליבה', emoji: '🍫' },
   { name: 'פלאנק', category: 'בטן וליבה', emoji: '🧘' },
   { name: 'הרמת רגליים בתלייה', category: 'בטן וליבה', emoji: '🍫' },
@@ -42,10 +42,10 @@ export const PARK_EXERCISES = [
   { name: 'חתירה אוסטרלית', category: 'גב', emoji: '💪' },
   { name: 'מקבילים (Dips)', category: 'חזה', emoji: '🏋️' },
   { name: 'שכיבות שמיכה', category: 'חזה', emoji: '🤸' },
-  { name: 'שכיבות שמיכה יהלום', category: 'ידיים', emoji: '🤸' },
+  { name: 'שכיבות שמיכה יהלום', category: 'יד אחורית', emoji: '🤸' },
   { name: 'שכיבות שמיכה בשיפוע שלילי', category: 'חזה', emoji: '🤸' },
   { name: 'שכיבות שמיכה פייק', category: 'כתפיים', emoji: '🤸' },
-  { name: 'מקבילים אחוריים על ספסל', category: 'ידיים', emoji: '🏋️' },
+  { name: 'מקבילים אחוריים על ספסל', category: 'יד אחורית', emoji: '🏋️' },
   { name: 'פיסטול סקוואט', category: 'רגליים', emoji: '🦵' },
   { name: 'סקוואט משקל גוף', category: 'רגליים', emoji: '🦵' },
   { name: 'לאנג׳ים', category: 'רגליים', emoji: '🦵' },
@@ -275,6 +275,13 @@ export function getAllExercises() {
         ex.category = 'גב';
       } else if (ex.category === 'דחיפה') {
         ex.category = 'חזה';
+      } else if (ex.category === 'ידיים') {
+        const nameNorm = ex.name || '';
+        if (nameNorm.includes('פשיט') || nameNorm.includes('אחורי') || nameNorm.includes('יהלום') || nameNorm.includes('מקבילים') || nameNorm.includes('טריספס') || nameNorm.includes('tricep')) {
+          ex.category = 'יד אחורית';
+        } else {
+          ex.category = 'יד קדמית';
+        }
       }
       if (ex.category !== oldCat) {
         modified = true;
@@ -353,6 +360,13 @@ export function initWorkouts() {
           ex.category = 'גב';
         } else if (ex.category === 'דחיפה') {
           ex.category = 'חזה';
+        } else if (ex.category === 'ידיים') {
+          const nameNorm = ex.name || '';
+          if (nameNorm.includes('פשיט') || nameNorm.includes('אחורי') || nameNorm.includes('יהלום') || nameNorm.includes('מקבילים') || nameNorm.includes('טריספס') || nameNorm.includes('tricep')) {
+            ex.category = 'יד אחורית';
+          } else {
+            ex.category = 'יד קדמית';
+          }
         }
         if (ex.category !== oldCat) {
           modified = true;
@@ -631,7 +645,7 @@ export function renderExercisePickerFilters() {
   if (state.favoriteExercises.length > 0) {
     categories.push('⭐ מועדפים');
   }
-  categories.push('חזה', 'גב', 'כתפיים', 'רגליים', 'ידיים', 'בטן וליבה', 'אירובי');
+  categories.push('חזה', 'גב', 'כתפיים', 'רגליים', 'יד קדמית', 'יד אחורית', 'בטן וליבה', 'אירובי');
   if (state.customExercises.length > 0) {
     categories.push('תרגילים שלי');
   }
@@ -693,7 +707,8 @@ export function renderExercisePickerList() {
     'גב':       { bg: 'rgba(59,130,246,0.15)',  color: '#60a5fa' },
     'כתפיים':    { bg: 'rgba(168,85,247,0.15)',  color: '#c084fc' },
     'רגליים':    { bg: 'rgba(34,197,94,0.15)',   color: '#4ade80' },
-    'ידיים':    { bg: 'rgba(251,146,60,0.15)',  color: '#fb923c' },
+    'יד קדמית': { bg: 'rgba(251,146,60,0.15)',  color: '#fb923c' },
+    'יד אחורית': { bg: 'rgba(251,146,60,0.15)',  color: '#fb923c' },
     'בטן':      { bg: 'rgba(234,179,8,0.15)',   color: '#facc15' },
     'בטן וליבה':{ bg: 'rgba(234,179,8,0.15)',   color: '#facc15' },
     'אירובי':    { bg: 'rgba(20,184,166,0.15)',  color: '#2dd4bf' },

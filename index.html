@@ -578,9 +578,13 @@
                       <span>🦵</span>
                       <span>רגליים</span>
                     </button>
-                    <button class="muscle-card" data-category="ידיים">
+                    <button class="muscle-card" data-category="יד קדמית">
                       <span>💪</span>
-                      <span>ידיים</span>
+                      <span>יד קדמית</span>
+                    </button>
+                    <button class="muscle-card" data-category="יד אחורית">
+                      <span>💪</span>
+                      <span>יד אחורית</span>
                     </button>
                     <button class="muscle-card" data-category="בטן וליבה">
                       <span>🧘‍♂️</span>
@@ -672,7 +676,8 @@
                   <option value="גב">גב</option>
                   <option value="כתפיים">כתפיים</option>
                   <option value="רגליים">רגליים</option>
-                  <option value="ידיים">ידיים</option>
+                  <option value="יד קדמית">יד קדמית</option>
+                  <option value="יד אחורית">יד אחורית</option>
                   <option value="בטן וליבה">בטן וליבה</option>
                   <option value="אירובי">אירובי</option>
                   <option value="אחר">אחר</option>
@@ -742,64 +747,95 @@
           <!-- Sub-Tab 3: Exercises Manager -->
           <div id="sub-tab-exercises" class="sub-tab-pane" style="width: 100%; height: 100%; display: none; flex-direction: column; overflow: hidden;">
             <div class="ios-analytics-scroll-container" style="flex: 1; overflow-y: auto; padding: 1.5rem 1.5rem calc(100px + env(safe-area-inset-bottom)) 1.5rem;">
-              <h2 class="settings-main-title" style="margin-bottom: 1.2rem; padding: 0;">ניהול ומעקב תרגילים</h2>
-              
-              <!-- Add New Exercise Button -->
-              <button id="add-new-global-exercise-btn" class="btn btn-primary" style="width: 100%; margin-bottom: 1.5rem; padding: 14px; font-weight: 800; border-radius: 16px; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 1rem; background: linear-gradient(135deg, var(--electric-blue) 0%, var(--electric-blue-light) 100%); border: none; box-shadow: 0 4px 15px var(--electric-blue-glow-subtle); cursor: pointer; color: #fff;">
-                <span>➕ הוסף תרגיל חדש לנצח</span>
-              </button>
-
-              <!-- Dynamic Leading Exercises Leaderboard Widget -->
-              <div id="exercises-leaderboard-container" class="leaderboard-card glass-panel" style="margin-bottom: 1.5rem; display: none;">
-                <!-- Generated dynamically in app.js -->
+              <div class="exercises-header-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; direction: rtl;">
+                <h2 class="settings-main-title" style="margin: 0; padding: 0; font-size: 1.5rem; font-weight: 800;">ניהול ומעקב תרגילים</h2>
+                <div class="exercises-action-buttons" style="display: flex; gap: 10px; align-items: center;">
+                  <button id="show-exercises-leaderboard-btn" class="round-glass-btn" title="תרגילים מובילים שלי">🏆</button>
+                  <button id="add-new-global-exercise-btn" class="round-glass-btn" title="הוסף תרגיל חדש לנצח">➕</button>
+                </div>
               </div>
 
-              <!-- Advanced Filters Card -->
-              <div class="analytics-sub-view" style="background: rgba(20,20,24,0.6); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 1.2rem; margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 10px; direction: rtl;">
-                <div class="filter-field">
-                  <input type="text" id="exercises-search-input-tab3" class="analytics-search-input" placeholder="🔍 חפש תרגיל..." autocomplete="off" style="width: 100%; margin-bottom: 0;">
+              <!-- Dynamic Leading Exercises Leaderboard Widget (kept hidden or removed container as we use modal now) -->
+              <div id="exercises-leaderboard-container" style="display: none;"></div>
+
+              <!-- Search Bar & Filters Pills -->
+              <div class="filter-field" style="margin-bottom: 0.8rem; direction: rtl;">
+                <input type="text" id="exercises-search-input-tab3" class="analytics-search-input" placeholder="🔍 חפש תרגיל..." autocomplete="off" style="width: 100%; margin-bottom: 0; font-size: 16px !important;">
+              </div>
+
+              <div class="premium-filter-bar-container" style="position: relative; margin-bottom: 1.2rem; width: 100%; direction: rtl;">
+                <div class="premium-filter-scroll-row" id="exercises-pills-container" style="display: flex; gap: 8px; overflow-x: auto; padding: 4px 4px 8px 4px; direction: rtl; white-space: nowrap; -webkit-overflow-scrolling: touch; scrollbar-width: none;">
+                  <button class="filter-pill-btn" id="pill-ex-muscle" data-category="muscle">
+                    <span class="pill-label">💪 שריר: הכל</span>
+                    <span class="pill-chevron">▼</span>
+                  </button>
+                  <button class="filter-pill-btn" id="pill-ex-type" data-category="type">
+                    <span class="pill-label">🧩 סוג: הכל</span>
+                    <span class="pill-chevron">▼</span>
+                  </button>
+                  <button class="filter-pill-btn" id="pill-ex-usage" data-category="usage">
+                    <span class="pill-label">🔄 שימוש: הכל</span>
+                    <span class="pill-chevron">▼</span>
+                  </button>
+                  <button class="filter-pill-btn" id="pill-ex-favorite" data-category="favorite">
+                    <span class="pill-label">⭐ מועדפים: הכל</span>
+                    <span class="pill-chevron">▼</span>
+                  </button>
                 </div>
-                <div class="filter-field">
-                  <select id="exercises-muscle-filter-tab3" class="premium-filter-select" style="width: 100%;">
-                    <option value="all">💪 כל קבוצות השרירים</option>
-                    <option value="חזה">🍒 חזה</option>
-                    <option value="גב">🦅 גב</option>
-                    <option value="כתפיים">🛡️ כתפיים</option>
-                    <option value="רגליים">🦵 רגליים</option>
-                    <option value="ידיים">💪 ידיים</option>
-                    <option value="בטן וליבה">🧘‍♂️ בטן וליבה</option>
-                    <option value="אירובי">🏃‍♂️ אירובי</option>
-                    <option value="אחר">🧩 אחר</option>
-                  </select>
+                <div id="exercises-filter-dropdown-panel" class="filter-dropdown-panel hide" style="direction: rtl;">
+                  <!-- Dynamic filter options populated in JS -->
                 </div>
-                <div class="filter-field">
-                  <select id="exercises-type-filter-tab3" class="premium-filter-select" style="width: 100%;">
-                    <option value="all">🧩 כל סוגי התרגילים</option>
-                    <option value="standard">🏛️ תרגילים סטנדרטיים</option>
-                    <option value="custom">✨ תרגילים מותאמים אישית</option>
-                  </select>
-                </div>
-                <!-- Premium Usage Filter Dropdown -->
-                <div class="filter-field">
-                  <select id="exercises-usage-filter-tab3" class="premium-filter-select" style="width: 100%;">
-                    <option value="all">🔄 כל התרגילים (ללא סינון שימוש)</option>
-                    <option value="used">🏋️‍♂️ היו בשימוש בכלל</option>
-                    <option value="recent">⏱️ היו בשימוש לאחרונה (30 יום אחרונים)</option>
-                    <option value="unused">💤 לא היו בשימוש מעולם</option>
-                  </select>
-                </div>
-                <!-- Favorite Filter Dropdown -->
-                <div class="filter-field">
-                  <select id="exercises-favorite-filter-tab3" class="premium-filter-select" style="width: 100%;">
-                    <option value="all">⭐ כל התרגילים (ללא סינון מועדפים)</option>
-                    <option value="favorites">⭐ תרגילים מועדפים בלבד</option>
-                  </select>
-                </div>
+              </div>
+
+              <!-- Hidden original selects for logic backward compatibility -->
+              <div style="display: none;">
+                <select id="exercises-muscle-filter-tab3">
+                  <option value="all">💪 כל קבוצות השרירים</option>
+                  <option value="חזה">🍒 חזה</option>
+                  <option value="גב">🦅 גב</option>
+                  <option value="כתפיים">🛡️ כתפיים</option>
+                  <option value="רגליים">🦵 רגליים</option>
+                  <option value="יד קדמית">💪 יד קדמית</option>
+                  <option value="יד אחורית">💪 יד אחורית</option>
+                  <option value="בטן וליבה">🧘‍♂️ בטן וליבה</option>
+                  <option value="אירובי">🏃‍♂️ אירובי</option>
+                  <option value="אחר">🧩 אחר</option>
+                </select>
+                <select id="exercises-type-filter-tab3">
+                  <option value="all">🧩 כל סוגי התרגילים</option>
+                  <option value="standard">🏛️ תרגילים סטנדרטיים</option>
+                  <option value="custom">✨ תרגילים מותאמים אישית</option>
+                </select>
+                <select id="exercises-usage-filter-tab3">
+                  <option value="all">🔄 כל התרגילים</option>
+                  <option value="used">🏋️‍♂️ היו בשימוש בכלל</option>
+                  <option value="recent">⏱️ היו בשימוש לאחרונה (30 יום אחרונים)</option>
+                  <option value="unused">💤 לא היו בשימוש מעולם</option>
+                </select>
+                <select id="exercises-favorite-filter-tab3">
+                  <option value="all">⭐ כל התרגילים</option>
+                  <option value="favorites">⭐ תרגילים מועדפים בלבד</option>
+                </select>
               </div>
 
               <!-- Dynamic Exercises Grid Container -->
               <div id="exercises-list-grid-tab3" class="exercises-list-grid-tab3" style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 1.5rem;">
                 <!-- Generated dynamically in app.js -->
+              </div>
+            </div>
+
+            <!-- Exercises Leaderboard Modal Overlay -->
+            <div id="exercises-leaderboard-modal" class="workout-modal-overlay hide" style="z-index: 1550; align-items: center; justify-content: center;">
+              <div class="workout-modal-card glass-modal-card" style="max-width: 440px; width: 95%; display: flex; flex-direction: column; height: 80vh; max-height: 720px; overflow: hidden; border-radius: 28px; border: 1px solid rgba(255, 255, 255, 0.1); animation: modal-slide-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);">
+                <div class="modal-header" style="padding: 18px 1.5rem 12px 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.06); direction: rtl;">
+                  <h3 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 8px;">
+                    🏆 תרגילים מובילים שלי
+                  </h3>
+                  <button id="close-leaderboard-modal-btn" class="btn-cancel-link" style="background: none; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; padding: 0 4px; line-height: 1;">&times;</button>
+                </div>
+                <div class="modal-body" id="leaderboard-modal-body" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 16px; overflow-y: auto; flex: 1; direction: rtl; text-align: right; -webkit-overflow-scrolling: touch; scroll-behavior: smooth;">
+                  <!-- Dynamic content loaded via JS -->
+                </div>
               </div>
             </div>
 
@@ -958,9 +994,13 @@
                         <span>🦵</span>
                         <span>רגליים</span>
                       </button>
-                      <button class="muscle-card" data-category="ידיים">
+                      <button class="muscle-card" data-category="יד קדמית">
                         <span>💪</span>
-                        <span>ידיים</span>
+                        <span>יד קדמית</span>
+                      </button>
+                      <button class="muscle-card" data-category="יד אחורית">
+                        <span>💪</span>
+                        <span>יד אחורית</span>
                       </button>
                       <button class="muscle-card" data-category="בטן וליבה">
                         <span>🧘‍♂️</span>
@@ -1096,9 +1136,13 @@
                         <span>🦵</span>
                         <span>רגליים</span>
                       </button>
-                      <button class="muscle-card" data-category="ידיים">
+                      <button class="muscle-card" data-category="יד קדמית">
                         <span>💪</span>
-                        <span>ידיים</span>
+                        <span>יד קדמית</span>
+                      </button>
+                      <button class="muscle-card" data-category="יד אחורית">
+                        <span>💪</span>
+                        <span>יד אחורית</span>
                       </button>
                       <button class="muscle-card" data-category="בטן וליבה">
                         <span>🧘‍♂️</span>

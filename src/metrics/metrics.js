@@ -577,7 +577,7 @@ export function renderMuscleSplitView() {
 
   const filtered = getFilteredHistory(true);
   const volumeByMuscle = {
-    'חזה': 0, 'גב': 0, 'כתפיים': 0, 'רגליים': 0, 'ידיים': 0, 'בטן וליבה': 0, 'אירובי': 0, 'אחר': 0
+    'חזה': 0, 'גב': 0, 'כתפיים': 0, 'רגליים': 0, 'יד קדמית': 0, 'יד אחורית': 0, 'בטן וליבה': 0, 'אירובי': 0, 'אחר': 0
   };
 
   let totalOverallVolume = 0;
@@ -1252,6 +1252,8 @@ const categoryColorMap = {
   'מתח': { color: '#3b82f6', glow: 'rgba(59, 130, 246, 0.4)' },
   'כתפיים': { color: '#a855f7', glow: 'rgba(168, 85, 247, 0.4)' },
   'רגליים': { color: '#22c55e', glow: 'rgba(34, 197, 94, 0.4)' },
+  'יד קדמית': { color: '#fb923c', glow: 'rgba(251, 146, 60, 0.4)' },
+  'יד אחורית': { color: '#fb923c', glow: 'rgba(251, 146, 60, 0.4)' },
   'ידיים': { color: '#fb923c', glow: 'rgba(251, 146, 60, 0.4)' },
   'בטן': { color: '#facc15', glow: 'rgba(250, 204, 21, 0.4)' },
   'ליבה': { color: '#facc15', glow: 'rgba(250, 204, 21, 0.4)' },
@@ -1271,7 +1273,9 @@ export function getMuscleCategoryStyle(cat) {
   if (norm.includes('גב') || norm.includes('מתח')) return categoryColorMap['גב'];
   if (norm.includes('כתף') || norm.includes('כתפיים')) return categoryColorMap['כתפיים'];
   if (norm.includes('רגל') || norm.includes('רגליים')) return categoryColorMap['רגליים'];
-  if (norm.includes('יד') || norm.includes('ידיים')) return categoryColorMap['ידיים'];
+  if (norm.includes('יד קדמית')) return categoryColorMap['יד קדמית'];
+  if (norm.includes('יד אחורית')) return categoryColorMap['יד אחורית'];
+  if (norm.includes('יד') || norm.includes('ידיים')) return categoryColorMap['יד קדמית'];
   if (norm.includes('בטן') || norm.includes('ליבה')) return categoryColorMap['בטן וליבה'];
   if (norm.includes('אירובי') || norm.includes('סיבולת')) return categoryColorMap['אירובי'];
   return categoryColorMap['אחר'];
@@ -1521,6 +1525,68 @@ export function populateFilterDropdown(category, container, pill) {
       container.appendChild(optionEl);
     });
   }
+}
+
+export function populateExercisesFilterDropdown(category, container, pill) {
+  let originalSelectId = '';
+  let selectedValue = '';
+  
+  if (category === 'muscle') {
+    originalSelectId = 'exercises-muscle-filter-tab3';
+  } else if (category === 'type') {
+    originalSelectId = 'exercises-type-filter-tab3';
+  } else if (category === 'usage') {
+    originalSelectId = 'exercises-usage-filter-tab3';
+  } else if (category === 'favorite') {
+    originalSelectId = 'exercises-favorite-filter-tab3';
+  }
+
+  const originalSelect = document.getElementById(originalSelectId);
+  if (!originalSelect) return;
+
+  selectedValue = originalSelect.value;
+
+  Array.from(originalSelect.options).forEach(opt => {
+    const optionEl = document.createElement('div');
+    optionEl.className = `filter-dropdown-option ${selectedValue === opt.value ? 'selected' : ''}`;
+    optionEl.innerHTML = `
+      <span>${opt.text}</span>
+      ${selectedValue === opt.value ? '<span class="filter-dropdown-option-check">✓</span>' : ''}
+    `;
+    optionEl.addEventListener('click', () => {
+      originalSelect.value = opt.value;
+      originalSelect.dispatchEvent(new Event('change'));
+      
+      const pillLabel = pill.querySelector('.pill-label');
+      if (pillLabel) {
+        let prefix = '💪 שריר: ';
+        if (category === 'type') prefix = '🧩 סוג: ';
+        if (category === 'usage') prefix = '🔄 שימוש: ';
+        if (category === 'favorite') prefix = '⭐ מועדפים: ';
+        
+        let cleanedText = opt.text;
+        if (category === 'muscle') {
+          if (opt.value === 'all') cleanedText = 'הכל';
+          else cleanedText = cleanedText.replace(/[💪🍒🦅🛡️🦵🧘‍♂️🏃‍♂️🧩]/g, '').trim();
+        } else if (category === 'type') {
+          if (opt.value === 'all') cleanedText = 'הכל';
+          else cleanedText = cleanedText.replace(/[🧩🏛️✨]/g, '').trim();
+        } else if (category === 'usage') {
+          if (opt.value === 'all') cleanedText = 'הכל';
+          else cleanedText = cleanedText.replace(/[🔄🏋️‍♂️⏱️💤]/g, '').trim();
+        } else if (category === 'favorite') {
+          if (opt.value === 'all') cleanedText = 'הכל';
+          else cleanedText = cleanedText.replace(/[⭐]/g, '').trim();
+        }
+        
+        pillLabel.textContent = `${prefix}${cleanedText}`;
+      }
+      
+      container.classList.add('hide');
+      pill.classList.remove('active');
+    });
+    container.appendChild(optionEl);
+  });
 }
 
 // Helper to render custom date selectors inside dropdown
@@ -2076,8 +2142,8 @@ export function getExerciseStats(exerciseName) {
 }
 
 // Exercises Top 3 Leaderboard Widget
-export function renderExercisesLeaderboard() {
-  const container = document.getElementById('exercises-leaderboard-container');
+export function renderExercisesLeaderboardModal() {
+  const container = document.getElementById('leaderboard-modal-body');
   if (!container) return;
 
   const allExs = getAllExercises();
@@ -2094,43 +2160,38 @@ export function renderExercisesLeaderboard() {
   });
 
   if (listWithStats.length === 0) {
-    container.style.display = 'none';
+    container.innerHTML = `<div style="color: var(--text-muted); text-align: center; padding: 20px; font-size: 0.95rem; direction: rtl;">עוד לא ביצעת תרגילים. בצע אימון כדי לראות נתונים! 🏋️‍♂️</div>`;
     return;
   }
 
-  container.style.display = 'block';
   container.innerHTML = '';
 
-  const top3 = listWithStats.slice(0, 3);
-  const maxPerformed = top3[0].stats.timesPerformed || 1;
-
+  const maxPerformed = listWithStats[0].stats.timesPerformed || 1;
   const ranks = ['🥇', '🥈', '🥉'];
-  const gradientClasses = ['gold-gradient', 'silver-gradient', 'bronze-gradient'];
   const tierClasses = ['gold-tier', 'silver-tier', 'bronze-tier'];
+  const gradientClasses = ['gold-gradient', 'silver-gradient', 'bronze-gradient'];
 
-  const header = document.createElement('div');
-  header.className = 'leaderboard-header';
-  header.style.cssText = 'display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; direction: rtl;';
-  header.innerHTML = `
-    <h3 class="leaderboard-title" style="margin: 0; font-size: 1.1rem; font-weight: 800; color: #fff;">🏆 תרגילים מובילים שלי</h3>
-    <span class="leaderboard-badge" style="font-size: 0.72rem; background: rgba(0, 240, 255, 0.1); color: #00F0FF; padding: 4px 10px; border-radius: 12px; border: 1px solid rgba(0, 240, 255, 0.2); font-weight: 700;">התמדה מירבית</span>
-  `;
-  container.appendChild(header);
-
-  const listContainer = document.createElement('div');
-  listContainer.className = 'leaderboard-list';
-  listContainer.style.cssText = 'display: flex; flex-direction: column; gap: 12px; direction: rtl; text-align: right;';
-  
-  top3.forEach((item, idx) => {
+  listWithStats.forEach((item, idx) => {
+    const isTop3 = idx < 3;
+    const rankStr = isTop3 ? ranks[idx] : `<span style="font-size: 1.1rem; font-weight: 800; color: var(--text-muted); width: 24px; text-align: center; display: inline-block;">${idx + 1}</span>`;
     const pct = Math.round((item.stats.timesPerformed / maxPerformed) * 100);
     const emojiStr = item.ex.emoji ? `<span style="font-size: 1.2rem; margin-left: 6px;">${item.ex.emoji}</span>` : '💪';
     
     const leaderItem = document.createElement('div');
-    leaderItem.className = `leader-item ${tierClasses[idx]}`;
-    leaderItem.style.cssText = 'display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 14px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.03); transition: all 0.3s ease; cursor: pointer;';
+    leaderItem.className = `modal-leader-item ${isTop3 ? tierClasses[idx] : ''}`;
     
+    // Clicking an item opens inspector and closes modal
+    leaderItem.addEventListener('click', () => {
+      const lbModal = document.getElementById('exercises-leaderboard-modal');
+      if (lbModal) {
+        lbModal.classList.add('hide');
+        lbModal.style.display = 'none';
+      }
+      openExerciseInspector(item.ex.name);
+    });
+
     leaderItem.innerHTML = `
-      <div class="leader-rank" style="font-size: 1.4rem;">${ranks[idx]}</div>
+      <div class="leader-rank" style="min-width: 30px; display: flex; justify-content: center; align-items: center;">${rankStr}</div>
       <div class="leader-info" style="flex: 1; display: flex; flex-direction: column; gap: 4px;">
         <span class="leader-name" style="font-size: 0.95rem; font-weight: 800; color: #ffffff; display: flex; align-items: center; gap: 4px;">
           ${emojiStr} ${item.ex.name}
@@ -2139,19 +2200,18 @@ export function renderExercisesLeaderboard() {
           בוצע ${item.stats.timesPerformed} פעמים | ${item.stats.totalSets} סטים | שיא: ${item.stats.maxWeight > 0 ? item.stats.maxWeight + ' ק״ג' : '--'}
         </span>
         <div class="progress-bar-container" style="width: 100%; height: 6px; background: rgba(255, 255, 255, 0.06); border-radius: 3px; overflow: hidden; margin-top: 4px;">
-          <div class="progress-bar-fill ${gradientClasses[idx]}" style="width: ${pct}%; height: 100%; border-radius: 3px; transition: width 1s ease-in-out;"></div>
+          <div class="progress-bar-fill ${isTop3 ? gradientClasses[idx] : 'blue-gradient'}" style="width: ${pct}%; height: 100%; border-radius: 3px; transition: width 1s ease-in-out;"></div>
         </div>
       </div>
     `;
 
-    leaderItem.addEventListener('click', () => {
-      openExerciseInspector(item.ex.name);
-    });
-
-    listContainer.appendChild(leaderItem);
+    container.appendChild(leaderItem);
   });
+}
 
-  container.appendChild(listContainer);
+// Exercises Top 3 Leaderboard Widget (stubs for backwards-compatibility)
+export function renderExercisesLeaderboard() {
+  renderExercisesLeaderboardModal();
 }
 
 // Exercises List Manager inside Analytics Subtab
@@ -2160,7 +2220,8 @@ const categoryColorsTab3 = {
   'גב':       { bg: 'rgba(59,130,246,0.15)',  color: '#60a5fa' },
   'כתפיים':    { bg: 'rgba(168,85,247,0.15)',  color: '#c084fc' },
   'רגליים':    { bg: 'rgba(34,197,94,0.15)',   color: '#4ade80' },
-  'ידיים':    { bg: 'rgba(251,146,60,0.15)',  color: '#fb923c' },
+  'יד קדמית': { bg: 'rgba(251,146,60,0.15)',  color: '#fb923c' },
+  'יד אחורית': { bg: 'rgba(251,146,60,0.15)',  color: '#fb923c' },
   'בטן':      { bg: 'rgba(234,179,8,0.15)',   color: '#facc15' },
   'בטן וליבה':{ bg: 'rgba(234,179,8,0.15)',   color: '#facc15' },
   'אירובי':    { bg: 'rgba(20,184,166,0.15)',  color: '#2dd4bf' },
@@ -3318,8 +3379,8 @@ export function initAICoach() {
 
 // Setup Analytics Event Binders on DOM ready
 export function initAnalyticsTab() {
-  // Dynamic Horizontal Filters Bar listeners
-  const pills = document.querySelectorAll('.filter-pill-btn');
+  // Dynamic Horizontal Filters Bar listeners for Workouts
+  const pills = document.querySelectorAll('#pill-location, #pill-date, #pill-muscle, #pill-sort');
   const dropdownPanel = document.getElementById('filter-dropdown-panel');
 
   // Close dropdown when clicking outside
@@ -3351,6 +3412,70 @@ export function initAnalyticsTab() {
       }
     });
   });
+
+  // Exercises sub-tab filter pills dynamic bindings
+  const exPills = document.querySelectorAll('#pill-ex-muscle, #pill-ex-type, #pill-ex-usage, #pill-ex-favorite');
+  const exDropdownPanel = document.getElementById('exercises-filter-dropdown-panel');
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#sub-tab-exercises .premium-filter-bar-container')) {
+      if (exDropdownPanel) exDropdownPanel.classList.add('hide');
+      exPills.forEach(p => p.classList.remove('active'));
+    }
+  });
+
+  exPills.forEach(pill => {
+    pill.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const category = pill.dataset.category;
+      
+      if (pill.classList.contains('active')) {
+        pill.classList.remove('active');
+        if (exDropdownPanel) exDropdownPanel.classList.add('hide');
+        return;
+      }
+
+      exPills.forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+
+      if (exDropdownPanel) {
+        exDropdownPanel.innerHTML = '';
+        exDropdownPanel.classList.remove('hide');
+        populateExercisesFilterDropdown(category, exDropdownPanel, pill);
+      }
+    });
+  });
+
+  // Exercises Leaderboard Modal dynamic bindings
+  const showLeaderboardBtn = document.getElementById('show-exercises-leaderboard-btn');
+  const leaderboardModal = document.getElementById('exercises-leaderboard-modal');
+  const closeLeaderboardModalBtn = document.getElementById('close-leaderboard-modal-btn');
+
+  if (showLeaderboardBtn && leaderboardModal) {
+    showLeaderboardBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      renderExercisesLeaderboardModal();
+      leaderboardModal.classList.remove('hide');
+      leaderboardModal.style.display = 'flex';
+    });
+  }
+
+  if (closeLeaderboardModalBtn && leaderboardModal) {
+    closeLeaderboardModalBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      leaderboardModal.classList.add('hide');
+      leaderboardModal.style.display = 'none';
+    });
+  }
+
+  if (leaderboardModal) {
+    leaderboardModal.addEventListener('click', (e) => {
+      if (e.target === leaderboardModal) {
+        leaderboardModal.classList.add('hide');
+        leaderboardModal.style.display = 'none';
+      }
+    });
+  }
 
   // Metrics Sub-Navigation Bar Tab Switcher
   const subNavTabs = document.querySelectorAll('#metrics-sub-nav .nav-tab[data-sub-tab]');
