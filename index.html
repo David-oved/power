@@ -7,45 +7,7 @@
       alert("קוד שגיאה: " + msg + "\nשורה: " + line);
     };
   </script>
-  <script>
-    // PWA Recovery Engine: if the application fails to boot within 2.5 seconds, unregister service workers, wipe cache, and reload.
-    window.recoveryTimeout = setTimeout(function() {
-      console.warn("PWA boot timeout. Triggering cache recovery and refresh...");
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistrations().then(function(registrations) {
-          if (registrations && registrations.length > 0) {
-            var promises = [];
-            for (var i = 0; i < registrations.length; i++) {
-              promises.push(registrations[i].unregister());
-            }
-            Promise.all(promises).then(function() {
-              if ('caches' in window) {
-                caches.keys().then(function(names) {
-                  var cachePromises = [];
-                  for (var j = 0; j < names.length; j++) {
-                    cachePromises.push(caches.delete(names[j]));
-                  }
-                  Promise.all(cachePromises).then(function() {
-                    window.location.reload(true);
-                  });
-                }).catch(function() {
-                  window.location.reload(true);
-                });
-              } else {
-                window.location.reload(true);
-              }
-            });
-          } else {
-            window.location.reload(true);
-          }
-        }).catch(function() {
-          window.location.reload(true);
-        });
-      } else {
-        window.location.reload(true);
-      }
-    }, 2500);
-  </script>
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>AuraApp</title>
   
