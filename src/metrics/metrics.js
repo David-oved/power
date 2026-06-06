@@ -1,6 +1,6 @@
 import { state } from "../state.js";
 import { SafeStorage } from "../utils/storage.js";
-import { triggerLocalNotification, showAuraToast, safeFormatDate, requestNotificationPermissionSafely } from "../utils/helpers.js";
+import { triggerLocalNotification, showAuraToast, safeFormatDate, requestNotificationPermissionSafely, callGeminiCloudFunction } from "../utils/helpers.js";
 import { getAllExercises, saveAllExercises, GYM_EXERCISES, PARK_EXERCISES, openEditModal, saveActiveWorkoutState, getExerciseDefaults, saveExerciseDefaults } from "../workouts/workouts.js";
 
 // DOM Elements & Configurations
@@ -3342,39 +3342,235 @@ export function renderAnalytics() {
     renderExercisesManager();
   } else if (state.activeSubTab === 'ai') {
     console.log("Aura AI Coach segment active.");
+    const chatMessagesContainer = document.getElementById('ai-chat-messages');
+    if (chatMessagesContainer) {
+      chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+    }
   }
 }
 
-// coming soon Coach Orb Card interactions
-export function initAICoach() {
-  const card = document.querySelector('#sub-tab-ai .aura-ai-card');
-  if (!card) return;
+// Simple markdown formatter for beautiful chat presentation in Hebrew
+function formatAIChatMarkdown(text) {
+  if (!text) return '';
+  // Basic HTML escaping
+  let html = text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
 
-  card.addEventListener('click', (e) => {
-    e.preventDefault();
+  // Bold **text**
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  
+  // Italic *text*
+  html = html.replace(/\*(.*?)\*/g, '<em>$1</em>');
 
-    const ripple = document.createElement('span');
-    ripple.className = 'ai-ripple';
+  // Inline code `code`
+  html = html.replace(/`(.*?)`/g, '<code style="background: rgba(255,255,255,0.15); padding: 2px 6px; border-radius: 4px; font-family: monospace; font-size: 0.9em; border: 1px solid rgba(255,255,255,0.1); color: var(--electric-blue);">$1</code>');
 
-    const rect = card.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    ripple.style.left = `${x}px`;
-    ripple.style.top = `${y}px`;
-
-    card.appendChild(ripple);
-
-    if (navigator.vibrate) {
-      navigator.vibrate(15);
+  // Bullet items
+  const lines = html.split('\n');
+  let inList = false;
+  const listLines = lines.map(line => {
+    const trimmed = line.trim();
+    if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+      const content = trimmed.substring(2);
+      if (!inList) {
+        inList = true;
+        return `<ul style="margin: 6px 0; padding-right: 20px; list-style-type: disc;"><li>${content}</li>`;
+      }
+      return `<li>${content}</li>`;
+    } else {
+      if (inList) {
+        inList = false;
+        return `</ul>${line}`;
+      }
+      return line;
     }
-
-    showAuraToast("המאמן האישי שלך בהכנה... 🤖🔥");
-
-    setTimeout(() => {
-      ripple.remove();
-    }, 800);
   });
+  if (inList) {
+    listLines.push('</ul>');
+  }
+
+  return listLines.join('<br>');
+}
+
+// Initializer for the AI Coach Tab Chat
+export function initAICoach() {
+  const chatMessagesContainer = document.getElementById('ai-chat-messages');
+  const chatInput = document.getElementById('ai-chat-input');
+  const sendBtn = document.getElementById('send-ai-message-btn');
+  const clearBtn = document.getElementById('clear-ai-chat-btn');
+
+  if (!chatMessagesContainer) {
+    console.warn("AI Chat components not found in the DOM.");
+    return;
+  }
+
+  // Load history from localStorage
+  const getHistoryKey = () => `aura-ai-chat-history_${state.currentUser ? state.currentUser.uid : 'guest'}`;
+
+  function loadChatHistory() {
+    // Clear everything except the welcome message
+    chatMessagesContainer.innerHTML = `
+      <div class="ai-msg-bubble assistant">
+        שלום. אני המאמן האישי שלך. אני מכיר את 10 האימונים האחרונים שלך ומצפה ממך לתוצאות, לא לתירוצים.
+        שאל אותי כל שאלה לגבי האימונים וההתקדמות שלך.
+      </div>
+    `;
+
+    if (!state.currentUser) return [];
+
+    try {
+      const historyData = SafeStorage.getItem(getHistoryKey());
+      if (historyData) {
+        const history = JSON.parse(historyData);
+        history.forEach(msg => {
+          appendChatMessageUI(msg.role, msg.text);
+        });
+        return history;
+      }
+    } catch (e) {
+      console.error("Error reading AI chat history:", e);
+    }
+    return [];
+  }
+
+  function appendChatMessageUI(role, text) {
+    const bubble = document.createElement('div');
+    bubble.className = `ai-msg-bubble ${role}`;
+    if (role === 'user') {
+      bubble.textContent = text;
+    } else {
+      bubble.innerHTML = formatAIChatMarkdown(text);
+    }
+    chatMessagesContainer.appendChild(bubble);
+    chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+  }
+
+  let chatHistory = loadChatHistory();
+
+  // Expose reload globally so it can be called on auth changes
+  window.reloadAIChatHistory = () => {
+    chatHistory = loadChatHistory();
+  };
+
+  // Handle Clear Chat
+  if (clearBtn) {
+    clearBtn.addEventListener('click', () => {
+      if (confirm("האם אתה בטוח שברצונך למחוק את היסטוריית השיחה עם המאמן?")) {
+        if (state.currentUser) {
+          SafeStorage.removeItem(getHistoryKey());
+        }
+        chatHistory = [];
+        loadChatHistory();
+        showPremiumToast("שיחת המאמן נמחקה", "info");
+      }
+    });
+  }
+
+  // Handle Send Message
+  async function handleSendMessage() {
+    const text = chatInput.value.trim();
+    if (!text) return;
+
+    // 1. Add user message to UI and history
+    appendChatMessageUI('user', text);
+    chatHistory.push({ role: 'user', text });
+    if (state.currentUser) {
+      SafeStorage.setItem(getHistoryKey(), JSON.stringify(chatHistory));
+    }
+    chatInput.value = '';
+    chatInput.focus();
+
+    // 2. Show typing indicator
+    const typingIndicator = document.createElement('div');
+    typingIndicator.id = 'ai-typing';
+    typingIndicator.className = 'ai-typing-indicator';
+    typingIndicator.innerHTML = '<span></span><span></span><span></span>';
+    chatMessagesContainer.appendChild(typingIndicator);
+    chatMessagesContainer.scrollTop = chatMessagesContainer.scrollHeight;
+
+    try {
+      // 3. Extract context (last 10 completed workouts)
+      const completedWorkouts = [...state.workoutHistory]
+        .filter(w => w.exercises && w.exercises.length > 0)
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+        .slice(0, 10);
+
+      const workoutsContext = completedWorkouts.map((w, index) => {
+        const dateStr = new Date(w.date).toLocaleDateString('he-IL');
+        const durationStr = w.duration ? `${Math.round(w.duration / 60)} דקות` : 'לא ידוע';
+        const exercisesStr = w.exercises.map(ex => {
+          const setsStr = ex.sets
+            .filter(s => s.completed)
+            .map((s, i) => {
+              let parts = [];
+              if (s.weight !== undefined && s.weight !== null && s.weight > 0) parts.push(`${s.weight} ק"ג`);
+              if (s.reps !== undefined && s.reps !== null && s.reps > 0) parts.push(`${s.reps} חזרות`);
+              if (s.time !== undefined && s.time !== null && s.time > 0) parts.push(`${s.time} שניות`);
+              return `סט ${i + 1}: ${parts.join(' x ')}`;
+            })
+            .join(', ');
+          return `- ${ex.name} (${ex.category || 'כללי'}): ${setsStr || 'אין סטים שהושלמו'}`;
+        }).join('\n');
+        
+        return `אימון ${index + 1}: ${w.name || 'אימון ללא שם'} בתאריך ${dateStr} (${w.location || 'כללי'}), משך: ${durationStr}\nתרגילים:\n${exercisesStr}`;
+      }).join('\n\n');
+
+      // 4. Build prompt
+      const chatContext = chatHistory.length > 1
+        ? "היסטוריית השיחה הנוכחית:\n" + chatHistory.slice(-7, -1).map(m => `${m.role === 'user' ? 'משתמש' : 'מאמן'}: ${m.text}`).join('\n') + "\n\n"
+        : "";
+
+      const prompt = `${chatContext}האימונים האחרונים של המתאמן:\n${workoutsContext || 'אין אימונים מתועדים'}\n\nהודעת המשתמש הנוכחית: ${text}`;
+      
+      const SYSTEM_INSTRUCTION_CHAT = `אתה מאמן כושר אישי קשוח, ממוקד תוצאות ומקצועי ביותר בשם "Aura Coach".
+תפקידך לתת למשתמש משוב על האימונים שלו, לענות על שאלותיו ולכוון אותו להשגת מטרותיו.
+חוקים לשיחה:
+1. עליך לדבר אך ורק בעברית!
+2. טון הדיבור שלך קשוח וממוקד. אתה לא מחפש לתת "צומי" או לקבל תירוצים. אם המשתמש מראה חולשה או מחפש הקלות, עליך לנזוף בו בעדינות או בתקיפות אך בצורה בונה ומקצועית (לא מעליבה). המטרה היא לגרום לו להתאמץ ולהצליח!
+3. השתמש במידע על 10 האימונים האחרונים של המשתמש כדי לתת תשובות מבוססות נתונים. אם הוא שואל על ההתקדמות שלו, נתח את הנתונים שלו (משקלים, חזרות, נפח) והצבע על נקודות לשיפור או לשימור.
+4. שמור על תשובות מובנות, יפות ומאורגנות היטב עם כותרות, נקודות מפתח (bullet points) והדגשות בעזרת markdown.
+5. אל תמציא נתונים שלא קיימים בהיסטוריית האימונים שלו. אם אין מספיק נתונים, ציין זאת ודחוף אותו ללכת להתאמן ולתעד.`;
+
+      // 5. Call Cloud Function
+      const data = await callGeminiCloudFunction(prompt, SYSTEM_INSTRUCTION_CHAT);
+      
+      // Remove typing indicator
+      const typingEl = document.getElementById('ai-typing');
+      if (typingEl) typingEl.remove();
+
+      // Extract text response
+      const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text || 'מצטער, לא הצלחתי לעבד את התשובה. תמשיך להתאמן!';
+      
+      // Render assistant response
+      appendChatMessageUI('assistant', responseText);
+      chatHistory.push({ role: 'assistant', text: responseText });
+      if (state.currentUser) {
+        SafeStorage.setItem(getHistoryKey(), JSON.stringify(chatHistory));
+      }
+    } catch (err) {
+      console.error("Failed to query AI Coach:", err);
+      // Remove typing indicator
+      const typingEl = document.getElementById('ai-typing');
+      if (typingEl) typingEl.remove();
+
+      appendChatMessageUI('assistant', "חלה שגיאה בתקשורת איתי. וודא שיש לך חיבור אינטרנט תקין ושמפתח ה-Gemini מוגדר כהלכה בשרת.");
+    }
+  }
+
+  if (sendBtn) {
+    sendBtn.addEventListener('click', handleSendMessage);
+  }
+
+  if (chatInput) {
+    chatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleSendMessage();
+      }
+    });
+  }
 }
 
 // Setup Analytics Event Binders on DOM ready

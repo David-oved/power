@@ -348,6 +348,7 @@ export function initAuth() {
         state.currentUser = user;
 
         updateAuthUI();
+        if (window.reloadAIChatHistory) window.reloadAIChatHistory();
         
         // Dynamic initializers
         if (window.initWorkouts) window.initWorkouts();
@@ -371,6 +372,7 @@ export function initAuth() {
         sessionStorage.removeItem('aura_session_welcomed');
         
         clearUserSession();
+        if (window.reloadAIChatHistory) window.reloadAIChatHistory();
         switchScreen(false);
 
         if (isLogoutTransition && typeof Notification !== 'undefined' && Notification.permission === 'granted') {

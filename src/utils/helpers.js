@@ -1,4 +1,5 @@
 import { SafeStorage } from "./storage.js";
+import { state } from "../state.js";
 
 // Safe HTML escape helper to prevent Persistent DOM XSS
 export function escapeHTML(str) {
@@ -209,4 +210,41 @@ export function showAuraToast(message) {
       toast.remove();
     }, 400);
   }, 2500);
+}
+
+// Secure multi-user Gemini AI HTTPS endpoint request helper
+export async function callGeminiCloudFunction(prompt, systemInstruction) {
+  if (!state.currentUser || !state.auth) {
+    throw new Error("משתמש לא מחובר במערכת");
+  }
+
+  let token;
+  try {
+    token = await state.auth.currentUser.getIdToken();
+  } catch (err) {
+    console.error("Failed to retrieve user ID token:", err);
+    throw new Error("שגיאה באימות המשתמש מול השרת");
+  }
+
+  const response = await fetch("https://us-central1-power-4ab3e.cloudfunctions.net/callGeminiModel", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
+    },
+    body: JSON.stringify({ prompt, systemInstruction })
+  });
+
+  if (!response.ok) {
+    let errMsg = `שגיאת תקשורת עם שרת ה-AI (קוד ${response.status})`;
+    try {
+      const errData = await response.json();
+      if (errData && errData.error) {
+        errMsg = errData.error;
+      }
+    } catch (_) {}
+    throw new Error(errMsg);
+  }
+
+  return await response.json();
 }
