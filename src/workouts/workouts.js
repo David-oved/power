@@ -1,6 +1,6 @@
 import { state } from "../state.js";
 import { SafeStorage } from "../utils/storage.js";
-import { triggerLocalNotification, showPremiumToast, requestNotificationPermissionSafely, callGeminiCloudFunction } from "../utils/helpers.js";
+import { triggerLocalNotification, showPremiumToast, requestNotificationPermissionSafely } from "../utils/helpers.js";
 
 export const GYM_EXERCISES = [
   { name: 'לחיצת חזה עם מוט', category: 'חזה', emoji: '🏋️' },
@@ -762,7 +762,6 @@ export function renderExercisePickerList() {
         saveActiveWorkoutState();
         state.selectedExerciseForAdding = null;
         renderExercises();
-        triggerAICoachExerciseAlert(newExercise.name);
       } else {
         state.editingActiveExerciseIndex = null;
         state.configuringExerciseDefaults = null;
@@ -2110,7 +2109,6 @@ export function initWorkoutsModule() {
         state.selectedExerciseForAdding = null;
         
         renderExercises();
-        triggerAICoachExerciseAlert(newExercise.name);
       }
     });
   }
@@ -2682,76 +2680,5 @@ export function initRestTimerInteraction() {
 
   function updateBubbleTransform() {
     bubble.style.transform = `translate(calc(-50% + ${currentX}px), ${currentY}px) scale(${scale})`;
-  }
-}
-
-// Triggers a motivating/coaching exercise start tip from the Gemini API
-export async function triggerAICoachExerciseAlert(exerciseName) {
-  const alertEl = document.getElementById('ai-workout-alert');
-  const alertTextEl = document.getElementById('ai-workout-alert-text');
-  if (!alertEl || !alertTextEl) return;
-
-  // 1. Show the banner with loading text
-  alertTextEl.textContent = `מנתח ביצועי עבר עבור ${exerciseName}... 🤖`;
-  alertEl.classList.remove('hide');
-
-  try {
-    // 2. Retrieve history for this specific exercise (up to 3 completed sets logs)
-    const exerciseLogs = [];
-    if (state.workoutHistory && state.workoutHistory.length > 0) {
-      const sortedHistory = [...state.workoutHistory].sort((a, b) => new Date(b.date) - new Date(a.date));
-      for (const w of sortedHistory) {
-        if (!w.exercises) continue;
-        const ex = w.exercises.find(e => e.name === exerciseName);
-        if (ex && ex.sets && ex.sets.some(s => s.completed)) {
-          const completedSets = ex.sets.filter(s => s.completed);
-          if (completedSets.length > 0) {
-            exerciseLogs.push({
-              date: new Date(w.date).toLocaleDateString('he-IL'),
-              name: w.name,
-              sets: completedSets.map((s, i) => {
-                let parts = [];
-                if (s.weight !== undefined && s.weight !== null && s.weight > 0) parts.push(`${s.weight} ק"ג`);
-                if (s.reps !== undefined && s.reps !== null && s.reps > 0) parts.push(`${s.reps} חזרות`);
-                if (s.time !== undefined && s.time !== null && s.time > 0) parts.push(`${s.time} שניות`);
-                return `סט ${i+1}: ${parts.join(' x ')}`;
-              })
-            });
-            if (exerciseLogs.length >= 3) break;
-          }
-        }
-      }
-    }
-
-    // 3. Build Prompt for Gemini
-    let prompt = `המתאמן מתחיל כעת את התרגיל: "${exerciseName}".\n`;
-    if (exerciseLogs.length > 0) {
-      prompt += `היסטוריית הפיצועים האחרונה שלו עבור תרגיל זה:\n`;
-      exerciseLogs.forEach((log) => {
-        prompt += `- בתאריך ${log.date} באימון "${log.name}": ${log.sets.join(', ')}\n`;
-      });
-    } else {
-      prompt += `אין לו היסטוריית ביצועים מתועדת עבור תרגיל זה. זהו ביצוע חדש לגמרי.\n`;
-    }
-    prompt += `\nאנא תן לו הנחיית מוטיבציה/הערה מקצועית קצרה (עד 2 משפטים) בעברית.
-כמאמן קשוח וממוקד תוצאות, אל תחמיא לו סתם. תגיד לו מה הוא צריך לעשות היום כדי לשפר או לשמור על הרמה (למשל להעלות משקל, לשמור על טכניקה, או להפסיק לוותר לעצמו). דבר אליו ישירות בגובה העיניים כמאמן ברזל אישי.`;
-
-    const SYSTEM_INSTRUCTION_ALERT = `אתה מאמן כושר אישי קשוח, ממוקד תוצאות ותמציתי ביותר בשם "Aura Coach".
-תפקידך לתת למשתמש הערה קצרה ונוקבת (עד 2 משפטים) בעברית ממש לפני שהוא מתחיל סט של תרגיל.
-חוקים:
-1. דבר אך ורק בעברית!
-2. טון דיבור קשוח, ממוקד ברזל, ללא קישקושים ותירוצים.
-3. התשובה חייבת להיות קצרה ותמציתית (עד 2 משפטים, מקסימום 30 מילים) כדי שתוצג יפה בבאנר קטן בטלפון.
-4. אל תשתמש בכותרות או רשימות. רק טקסט נקי, עוצמתי וממוקד.`;
-
-    // 4. Send request
-    const data = await callGeminiCloudFunction(prompt, SYSTEM_INSTRUCTION_ALERT);
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || 'אין תירוצים היום. תעלה את המשקלים ותעבוד נכון! 🏋️‍♂️';
-    
-    // 5. Update UI
-    alertTextEl.textContent = text.trim();
-  } catch (err) {
-    console.error("Failed to fetch AI exercise tip:", err);
-    alertTextEl.textContent = 'אין תירוצים היום. תעלה את המשקלים ותעבוד נכון! 🏋️‍♂️';
   }
 }
