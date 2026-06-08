@@ -37,6 +37,9 @@ export const state = {
   currentLoggingExercise: null,
   currentLoggingSetIndex: -1,
 
+  // Onboarding & Health State
+  healthQuestionnaire: null,
+
   // Analytics & Metrics State
   filterTimeSelection: 'all',
   filterStartDate: null,

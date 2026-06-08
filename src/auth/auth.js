@@ -357,6 +357,16 @@ export function initAuth() {
         if (window.initWorkouts) window.initWorkouts();
         
         switchScreen(true);
+        if (window.initOnboarding) window.initOnboarding();
+
+        // Check health questionnaire
+        if (!state.healthQuestionnaire) {
+          setTimeout(() => {
+            if (window.showHealthQuestionnaireModal) {
+              window.showHealthQuestionnaireModal();
+            }
+          }, 1500);
+        }
 
         const hasBeenWelcomed = sessionStorage.getItem('aura_session_welcomed');
         if (isLoginTransition && !hasBeenWelcomed && typeof Notification !== 'undefined' && Notification.permission === 'granted') {

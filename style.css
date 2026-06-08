@@ -9304,6 +9304,112 @@ html, body {
   box-shadow: 0 4px 15px rgba(205, 127, 50, 0.15) !important;
 }
 
+/* ==========================================================================
+   10. Interactive Spotlight & Tooltip Tour Engine Styles
+   ========================================================================== */
+.onboarding-click-blocker {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  background: transparent;
+  pointer-events: auto;
+}
+
+.onboarding-spotlight {
+  position: fixed;
+  z-index: 10000;
+  box-shadow: 0 0 0 9999px rgba(8, 8, 10, 0.78), 0 0 15px var(--accent-glow);
+  border: 2px solid var(--accent);
+  border-radius: 12px;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.onboarding-tooltip {
+  position: fixed;
+  z-index: 10001;
+  width: 290px;
+  background: linear-gradient(135deg, hsla(225, 20%, 12%, 0.96) 0%, hsla(225, 20%, 8%, 0.98) 100%);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65), 0 0 20px var(--accent-glow-subtle);
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  direction: rtl;
+  text-align: right;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  animation: tooltip-fade-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes tooltip-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.onboarding-tooltip.tooltip-center {
+  animation: tooltip-center-fade-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes tooltip-center-fade-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -45%) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.tooltip-arrow {
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  pointer-events: none;
+}
+
+/* Arrow orientation classes */
+.onboarding-tooltip.tooltip-bottom .tooltip-arrow {
+  top: -8px;
+  border-width: 0 8px 8px 8px;
+  border-color: transparent transparent rgba(25, 26, 32, 0.96) transparent;
+}
+
+.onboarding-tooltip.tooltip-top .tooltip-arrow {
+  bottom: -8px;
+  border-width: 8px 8px 0 8px;
+  border-color: rgba(15, 16, 20, 0.98) transparent transparent transparent;
+}
+
+/* PWA custom modal card styling overrides */
+.pwa-guide-modal-card {
+  animation: modal-slide-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pwa-step-item {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  padding-bottom: 12px;
+}
+
+.pwa-step-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+
 
 
 

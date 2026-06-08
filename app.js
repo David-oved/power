@@ -8,6 +8,7 @@ import { initAuth } from "./src/auth/auth.js";
 import { initWorkoutsModule } from "./src/workouts/workouts.js";
 import { initAnalyticsModule, initAnalyticsTab } from "./src/metrics/metrics.js";
 import { initSettingsModule, initPremiumSettings, showUpdateStateInSettings } from "./src/settings/settings.js";
+import { initOnboarding } from "./src/utils/onboarding.js";
 
 // Helper to run functions on DOM load
 function onDOMReady(fn) {
@@ -361,4 +362,5 @@ onDOMReady(() => {
   // Tab Initializers setup
   initPremiumSettings();
   initAnalyticsTab();
+  initOnboarding();
 });
