@@ -11,6 +11,7 @@ import {
 import { state } from "../state.js";
 import { SafeStorage } from "../utils/storage.js";
 import { triggerLocalNotification, getInitialsAvatar, showPremiumToast } from "../utils/helpers.js";
+import { syncUserSession } from "../utils/db.js";
 
 // DOM Elements
 let authScreen;
@@ -338,7 +339,7 @@ export function initAuth() {
   // Handle Firebase auth checking state changes
   let initialAuthCheckDone = false;
   if (state.firebaseEnabled) {
-    onAuthStateChanged(state.auth, (user) => {
+    onAuthStateChanged(state.auth, async (user) => {
       state.firebaseAuthResolved = true;
       const isLoginTransition = initialAuthCheckDone && user && !state.currentUser;
       const isLogoutTransition = initialAuthCheckDone && !user && state.currentUser;
@@ -348,6 +349,9 @@ export function initAuth() {
         state.currentUser = user;
 
         updateAuthUI();
+        
+        // Sync user data from cloud
+        await syncUserSession(user.uid);
         
         // Dynamic initializers
         if (window.initWorkouts) window.initWorkouts();

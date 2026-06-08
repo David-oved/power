@@ -1,7 +1,8 @@
 import { state } from "../state.js";
 import { SafeStorage } from "../utils/storage.js";
 import { triggerLocalNotification, showAuraToast, safeFormatDate, requestNotificationPermissionSafely } from "../utils/helpers.js";
-import { getAllExercises, saveAllExercises, GYM_EXERCISES, PARK_EXERCISES, openEditModal, saveActiveWorkoutState, getExerciseDefaults, saveExerciseDefaults } from "../workouts/workouts.js";
+import { getAllExercises, isSystemExercise, GYM_EXERCISES, PARK_EXERCISES, openEditModal, saveActiveWorkoutState, getExerciseDefaults, saveExerciseDefaults } from "../workouts/workouts.js";
+import { saveFieldToCloud } from "../utils/db.js";
 
 // DOM Elements & Configurations
 const HEBREW_QUOTES = [
@@ -33,6 +34,7 @@ export function saveFutureWorkouts(workouts) {
   const key = `aura-future-workouts_${state.currentUser.uid}`;
   try {
     SafeStorage.setItem(key, JSON.stringify(workouts));
+    saveFieldToCloud("futureWorkouts", workouts);
   } catch (e) {
     console.error("Error saving future workouts", e);
   }
@@ -3063,17 +3065,19 @@ export function renderExerciseInspectorChart() {
 }
 
 export function deleteGlobalExercise(exerciseName) {
+  if (isSystemExercise(exerciseName)) {
+    alert("תרגילי מערכת הם קבועים ולא ניתן למחוק אותם. תוכל למחוק רק תרגילים מותאמים אישית שיצרת.");
+    return;
+  }
+
   if (!confirm(`האם אתה בטוח שברצונך למחוק את "${exerciseName}" לצמיתות?\nפעולה זו תסיר את התרגיל מרשימות הבחירה בעתיד, אך תשמור אותו בהיסטוריית האימונים הישנים שלך כדי לשמור על הסטטיסטיקות.`)) {
     return;
   }
 
-  let allExs = getAllExercises();
-  allExs = allExs.filter(ex => ex.name.trim().toLowerCase() !== exerciseName.trim().toLowerCase());
-  saveAllExercises(allExs);
-
   if (state.currentUser) {
     state.customExercises = state.customExercises.filter(ex => ex.name.trim().toLowerCase() !== exerciseName.trim().toLowerCase());
     SafeStorage.setItem(`aura-custom-exercises_${state.currentUser.uid}`, JSON.stringify(state.customExercises));
+    saveFieldToCloud("customExercises", state.customExercises);
   }
 
   const modal = document.getElementById('exercise-inspector-modal');
@@ -3115,12 +3119,12 @@ export function addGlobalExercise() {
     emoji: emoji || '💪'
   };
 
-  allExs.push(newEx);
-  saveAllExercises(allExs);
+
 
   if (state.currentUser) {
     state.customExercises.push(newEx);
     SafeStorage.setItem(`aura-custom-exercises_${state.currentUser.uid}`, JSON.stringify(state.customExercises));
+    saveFieldToCloud("customExercises", state.customExercises);
   }
 
   // --- SAVE THE DEFAULTS CONFIGURED IN THE MODAL ---
@@ -3195,27 +3199,7 @@ export function saveEditedGlobalExercise(oldName) {
     }
   }
 
-  // 1. Update in allExs
-  let found = false;
-  allExs.forEach(ex => {
-    if (ex.name.trim().toLowerCase() === oldName.trim().toLowerCase()) {
-      ex.name = newName;
-      ex.category = category;
-      ex.emoji = emoji || '💪';
-      found = true;
-    }
-  });
-
-  if (!found) {
-    allExs.push({
-      name: newName,
-      category,
-      emoji: emoji || '💪'
-    });
-  }
-  saveAllExercises(allExs);
-
-  // 2. Update in state.customExercises
+  // 1. Update in state.customExercises
   if (state.currentUser) {
     let customFound = false;
     state.customExercises.forEach(ex => {
@@ -3228,6 +3212,7 @@ export function saveEditedGlobalExercise(oldName) {
     });
     if (customFound) {
       SafeStorage.setItem(`aura-custom-exercises_${state.currentUser.uid}`, JSON.stringify(state.customExercises));
+      saveFieldToCloud("customExercises", state.customExercises);
     }
   }
 
@@ -3237,6 +3222,7 @@ export function saveEditedGlobalExercise(oldName) {
     state.favoriteExercises[favIdx] = newName;
     if (state.currentUser) {
       SafeStorage.setItem(`aura-favorite-exercises_${state.currentUser.uid}`, JSON.stringify(state.favoriteExercises));
+      saveFieldToCloud("favoriteExercises", state.favoriteExercises);
     }
   }
 
@@ -3255,6 +3241,7 @@ export function saveEditedGlobalExercise(oldName) {
     });
     if (historyModified) {
       SafeStorage.setItem(`aura-workout-history_${state.currentUser.uid}`, JSON.stringify(state.workoutHistory));
+      saveFieldToCloud("workoutHistory", state.workoutHistory);
       if (typeof window.renderWorkoutHistory === 'function') {
         window.renderWorkoutHistory();
       }
@@ -3935,6 +3922,11 @@ export function initAnalyticsTab() {
       
       const currentName = state.currentInspectorExercise;
       if (!currentName) return;
+
+      if (isSystemExercise(currentName)) {
+        alert("תרגילי מערכת הם קבועים ולא ניתן לערוך אותם. תוכל ליצור תרגיל מותאם אישית חדש.");
+        return;
+      }
       
       const allExs = getAllExercises();
       const exDetails = allExs.find(ex => ex.name === currentName) || { name: currentName, category: 'אחר', emoji: '💪' };

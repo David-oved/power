@@ -1,6 +1,7 @@
 import { state } from "../state.js";
 import { SafeStorage } from "../utils/storage.js";
 import { triggerLocalNotification, showPremiumToast, requestNotificationPermissionSafely } from "../utils/helpers.js";
+import { saveFieldToCloud } from "../utils/db.js";
 
 export const GYM_EXERCISES = [
   { name: 'לחיצת חזה עם מוט', category: 'חזה', emoji: '🏋️' },
@@ -73,6 +74,7 @@ export const HEBREW_QUOTES = [
 export function saveActiveWorkoutState() {
   if (state.currentUser && state.activeWorkout) {
     SafeStorage.setItem(`aura-active-workout_${state.currentUser.uid}`, JSON.stringify(state.activeWorkout));
+    saveFieldToCloud("activeWorkout", state.activeWorkout);
   }
 }
 
@@ -114,6 +116,7 @@ export function saveExerciseDefaults(exerciseName, config) {
     metrics: config.metrics
   };
   SafeStorage.setItem(key, JSON.stringify(defaults));
+  saveFieldToCloud("exerciseDefaults", defaults);
 }
 
 export function getExerciseMetrics(ex) {
@@ -245,80 +248,35 @@ export function openMetricSelectorForConfig(exerciseName) {
 
 
 
-// Unified Exercises LocalStorage Helpers
 export function getAllExercises() {
-  if (!state.currentUser) {
-    return [...GYM_EXERCISES, ...PARK_EXERCISES];
-  }
-  const key = `aura-all-exercises_${state.currentUser.uid}`;
-  let list = SafeStorage.getItem(key);
-  if (!list) {
-    const combined = [];
-    const names = new Set();
-    [...GYM_EXERCISES, ...PARK_EXERCISES].forEach(item => {
-      if (!names.has(item.name)) {
-        names.add(item.name);
-        combined.push(item);
-      }
-    });
-    SafeStorage.setItem(key, JSON.stringify(combined));
-    return combined;
-  }
-  try {
-    const parsed = JSON.parse(list);
-    let modified = false;
-    parsed.forEach(ex => {
-      const oldCat = ex.category;
-      if (ex.category === 'בטן' || ex.category === 'ליבה' || ex.category === 'ליבה ואירובי') {
-        ex.category = 'בטן וליבה';
-      } else if (ex.category === 'מתח') {
-        ex.category = 'גב';
-      } else if (ex.category === 'דחיפה') {
-        ex.category = 'חזה';
-      } else if (ex.category === 'ידיים') {
-        const nameNorm = ex.name || '';
-        if (nameNorm.includes('פשיט') || nameNorm.includes('אחורי') || nameNorm.includes('יהלום') || nameNorm.includes('מקבילים') || nameNorm.includes('טריספס') || nameNorm.includes('tricep')) {
-          ex.category = 'יד אחורית';
-        } else {
-          ex.category = 'יד קדמית';
-        }
-      }
-      if (ex.category !== oldCat) {
-        modified = true;
-      }
-    });
-    if (modified) {
-      SafeStorage.setItem(key, JSON.stringify(parsed));
+  const combined = [];
+  const names = new Set();
+  [...GYM_EXERCISES, ...PARK_EXERCISES].forEach(item => {
+    if (!names.has(item.name)) {
+      names.add(item.name);
+      combined.push(item);
     }
-    return parsed;
-  } catch (e) {
-    console.error("Failed to parse aura-all-exercises from storage:", e);
-    return [...GYM_EXERCISES, ...PARK_EXERCISES];
-  }
+  });
+  state.customExercises.forEach(item => {
+    if (!names.has(item.name)) {
+      names.add(item.name);
+      combined.push(item);
+    }
+  });
+  return combined;
 }
 
-export function saveAllExercises(list) {
-  if (!state.currentUser) return;
-  const key = `aura-all-exercises_${state.currentUser.uid}`;
-  SafeStorage.setItem(key, JSON.stringify(list));
+export function isSystemExercise(name) {
+  if (!name) return false;
+  const normName = name.trim().toLowerCase();
+  return [...GYM_EXERCISES, ...PARK_EXERCISES].some(
+    ex => ex.name.trim().toLowerCase() === normName
+  );
 }
 
 // Initialize workouts state on user auth
 export function initWorkouts() {
   if (!state.currentUser) return;
-
-  const key = `aura-all-exercises_${state.currentUser.uid}`;
-  if (!SafeStorage.getItem(key)) {
-    const combined = [];
-    const names = new Set();
-    [...GYM_EXERCISES, ...PARK_EXERCISES].forEach(item => {
-      if (!names.has(item.name)) {
-        names.add(item.name);
-        combined.push(item);
-      }
-    });
-    SafeStorage.setItem(key, JSON.stringify(combined));
-  }
   
   // Load History
   const historyData = SafeStorage.getItem(`aura-workout-history_${state.currentUser.uid}`);
@@ -799,6 +757,7 @@ export function renderExercisePickerList() {
       }
       if (state.currentUser) {
         SafeStorage.setItem(`aura-favorite-exercises_${state.currentUser.uid}`, JSON.stringify(state.favoriteExercises));
+        saveFieldToCloud("favoriteExercises", state.favoriteExercises);
       }
       renderExercisePickerFilters();
       if (state.currentActiveCategoryFilter === '⭐ מועדפים') {
@@ -1732,6 +1691,7 @@ export function deleteWorkoutFromHistory(workoutId) {
   
   state.workoutHistory = state.workoutHistory.filter(w => String(w.id) !== String(workoutId));
   SafeStorage.setItem(`aura-workout-history_${state.currentUser.uid}`, JSON.stringify(state.workoutHistory));
+  saveFieldToCloud("workoutHistory", state.workoutHistory);
   
   if (window.renderWorkoutHistory) window.renderWorkoutHistory();
   
@@ -1893,6 +1853,7 @@ export function initWorkoutsModule() {
       state.customLocations.push(newLoc);
       if (state.currentUser) {
         SafeStorage.setItem(`aura-custom-locations_${state.currentUser.uid}`, JSON.stringify(state.customLocations));
+        saveFieldToCloud("customLocations", state.customLocations);
       }
       
       nameInput.value = '';
@@ -1991,11 +1952,7 @@ export function initWorkoutsModule() {
       state.customExercises.push(newEx);
       if (state.currentUser) {
         SafeStorage.setItem(`aura-custom-exercises_${state.currentUser.uid}`, JSON.stringify(state.customExercises));
-        let allExs = getAllExercises();
-        if (!allExs.some(ex => ex.name.trim().toLowerCase() === exName.trim().toLowerCase())) {
-          allExs.push(newEx);
-          saveAllExercises(allExs);
-        }
+        saveFieldToCloud("customExercises", state.customExercises);
       }
       
       if (customExModal) customExModal.classList.add('hide');
@@ -2220,8 +2177,10 @@ export function initWorkoutsModule() {
       
       state.workoutHistory.push(workoutLog);
       SafeStorage.setItem(`aura-workout-history_${state.currentUser.uid}`, JSON.stringify(state.workoutHistory));
+      saveFieldToCloud("workoutHistory", state.workoutHistory);
       
       SafeStorage.removeItem(`aura-active-workout_${state.currentUser.uid}`);
+      saveFieldToCloud("activeWorkout", null);
       stopRestTimer();
 
       if (state.activeTimerInterval) {
@@ -2308,6 +2267,7 @@ export function initWorkoutsModule() {
       if (originalIdx !== -1) {
         state.workoutHistory[originalIdx] = state.editingWorkout;
         SafeStorage.setItem(`aura-workout-history_${state.currentUser.uid}`, JSON.stringify(state.workoutHistory));
+        saveFieldToCloud("workoutHistory", state.workoutHistory);
         
         if (window.renderWorkoutHistory) window.renderWorkoutHistory();
         
