@@ -33,6 +33,7 @@ const setElText = (id, text) => {
 // Reset DOM fields safely on Logout to avoid credential leakage
 export function clearUserSession() {
   state.currentUser = null;
+  state.userRole = 'user';
   SafeStorage._fallbackMem = {};
   SafeStorage._failedKeys = {};
 
@@ -43,6 +44,7 @@ export function clearUserSession() {
   setElText('user-display-name', 'User');
   setElText('settings-user-name-field', 'User');
   setElText('settings-user-email-field', 'user@gmail.com');
+  setElText('settings-user-role-field', 'משתמש רגיל');
   setElText('settings-user-name-main', 'משתמש');
   
   const mainView = document.getElementById('settings-main-view');
@@ -105,11 +107,13 @@ export function updateAuthUI() {
 
   const name = state.currentUser.displayName || 'Unknown User';
   const email = state.currentUser.email || '--';
+  const roleText = state.userRole === 'admin' ? 'מנהל' : 'משתמש רגיל';
 
   // Header Display Name
   setElText('user-display-name', name ? name.split(' ')[0] : 'User');
   setElText('settings-user-name-field', name);
   setElText('settings-user-email-field', email);
+  setElText('settings-user-role-field', roleText);
   setElText('settings-user-name-main', name);
 
   // Photo Binding
@@ -352,6 +356,9 @@ export function initAuth() {
         
         // Sync user data from cloud
         await syncUserSession(user.uid);
+        
+        // Update UI again now that role and other info are synced
+        updateAuthUI();
         
         // Dynamic initializers
         if (window.initWorkouts) window.initWorkouts();

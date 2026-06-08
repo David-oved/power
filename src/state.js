@@ -4,6 +4,7 @@ import { SafeStorage } from "./utils/storage.js";
 export const state = {
   // Authentication State
   currentUser: null,
+  userRole: 'user',
   isSensitiveDataVisible: false,
   firebaseEnabled: false,
   firebaseAuthResolved: false,

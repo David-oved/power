@@ -95,19 +95,27 @@ export async function uploadLocalDataToCloud(uid) {
   if (activeWorkout) data.activeWorkout = JSON.parse(activeWorkout);
   if (futureWorkouts) data.futureWorkouts = JSON.parse(futureWorkouts);
 
-  if (Object.keys(data).length > 0) {
-    const firestoreDb = getDb();
-    if (!firestoreDb) return;
-    try {
-      const docRef = doc(firestoreDb, "users", uid);
-      await setDoc(docRef, {
-        ...data,
-        updatedAt: Date.now()
-      }, { merge: true });
-      console.log("Successfully uploaded local cache to Firestore.");
-    } catch (e) {
-      console.error("Failed to upload local cache to Firestore:", e);
-    }
+  const firestoreDb = getDb();
+  if (!firestoreDb) return;
+  try {
+    const docRef = doc(firestoreDb, "users", uid);
+    
+    // Determine profile and role
+    const email = state.currentUser ? state.currentUser.email : "";
+    const displayName = state.currentUser ? state.currentUser.displayName : "";
+    const role = (email && email.toLowerCase() === 'wbddwd55@gmail.com') ? 'admin' : 'user';
+    state.userRole = role;
+
+    await setDoc(docRef, {
+      ...data,
+      email,
+      displayName,
+      role,
+      updatedAt: Date.now()
+    }, { merge: true });
+    console.log("Successfully uploaded local cache to Firestore with user profile.");
+  } catch (e) {
+    console.error("Failed to upload local cache to Firestore:", e);
   }
 }
 
@@ -118,6 +126,13 @@ export async function syncUserSession(uid) {
     showPremiumToast("מסנכרן נתונים מהענן... ☁️", "info");
 
     const cloudData = await loadUserDataFromCloud(uid);
+
+    // Determine profile and role
+    const email = state.currentUser ? state.currentUser.email : "";
+    const displayName = state.currentUser ? state.currentUser.displayName : "";
+    const role = (email && email.toLowerCase() === 'wbddwd55@gmail.com') ? 'admin' : (cloudData?.role || 'user');
+    state.userRole = role;
+
     if (!cloudData) {
       console.log("No cloud data found. Backup local data to cloud...");
       await uploadLocalDataToCloud(uid);
@@ -201,6 +216,9 @@ export async function syncUserSession(uid) {
       exerciseDefaults: mergedDefaults,
       activeWorkout: mergedActive,
       futureWorkouts: mergedFuture,
+      email,
+      displayName,
+      role,
       updatedAt: Date.now()
     };
     
