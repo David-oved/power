@@ -1,4 +1,4 @@
-const CACHE_NAME = '10.6';
+const CACHE_NAME = '10.7';
 const UPDATE_DESCRIPTION = 'ניהול';
 
 const ASSETS = [
