@@ -894,46 +894,58 @@ export function renderExercises() {
     metricBadge.textContent = metricLabel;
     badgesCol.appendChild(metricBadge);
 
-    if (!ex.completed) {
-      // Compact Stepper: [-] X סטים [+]
-      const compactStepper = document.createElement('div');
-      compactStepper.className = 'compact-sets-stepper';
+    const isGpsEx = ['ריצה', 'הליכה', 'ריצה והליכה'].includes(ex.name);
 
-      const minusBtn = document.createElement('button');
-      minusBtn.type = 'button';
-      minusBtn.className = 'compact-stepper-btn';
-      minusBtn.textContent = '-';
-      minusBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        ex.targetSetsCount = Math.max(1, (ex.targetSetsCount || 3) - 1);
-        saveActiveWorkoutState();
-        renderExercises();
-      });
-      compactStepper.appendChild(minusBtn);
+    if (!isGpsEx) {
+      if (!ex.completed) {
+        // Compact Stepper: [-] X סטים [+]
+        const compactStepper = document.createElement('div');
+        compactStepper.className = 'compact-sets-stepper';
 
-      const countVal = document.createElement('span');
-      countVal.className = 'compact-stepper-val';
-      countVal.textContent = `${targetSets} סטים`;
-      compactStepper.appendChild(countVal);
+        const minusBtn = document.createElement('button');
+        minusBtn.type = 'button';
+        minusBtn.className = 'compact-stepper-btn';
+        minusBtn.textContent = '-';
+        minusBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          ex.targetSetsCount = Math.max(1, (ex.targetSetsCount || 3) - 1);
+          saveActiveWorkoutState();
+          renderExercises();
+        });
+        compactStepper.appendChild(minusBtn);
 
-      const plusBtn = document.createElement('button');
-      plusBtn.type = 'button';
-      plusBtn.className = 'compact-stepper-btn';
-      plusBtn.textContent = '+';
-      plusBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        ex.targetSetsCount = Math.min(12, (ex.targetSetsCount || 3) + 1);
-        saveActiveWorkoutState();
-        renderExercises();
-      });
-      compactStepper.appendChild(plusBtn);
+        const countVal = document.createElement('span');
+        countVal.className = 'compact-stepper-val';
+        countVal.textContent = `${targetSets} סטים`;
+        compactStepper.appendChild(countVal);
 
-      badgesCol.appendChild(compactStepper);
+        const plusBtn = document.createElement('button');
+        plusBtn.type = 'button';
+        plusBtn.className = 'compact-stepper-btn';
+        plusBtn.textContent = '+';
+        plusBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          ex.targetSetsCount = Math.min(12, (ex.targetSetsCount || 3) + 1);
+          saveActiveWorkoutState();
+          renderExercises();
+        });
+        compactStepper.appendChild(plusBtn);
+
+        badgesCol.appendChild(compactStepper);
+      } else {
+        const progressBadge = document.createElement('span');
+        progressBadge.style.cssText = 'font-size: 0.75rem; color: #22c55e; font-weight: 700; background: rgba(34, 197, 94, 0.1); padding: 4px 10px; border-radius: 20px;';
+        progressBadge.textContent = `בוצעו: ${completedCount}/${targetSets} סטים`;
+        badgesCol.appendChild(progressBadge);
+      }
     } else {
-      const progressBadge = document.createElement('span');
-      progressBadge.style.cssText = 'font-size: 0.75rem; color: #22c55e; font-weight: 700; background: rgba(34, 197, 94, 0.1); padding: 4px 10px; border-radius: 20px;';
-      progressBadge.textContent = `בוצעו: ${completedCount}/${targetSets} סטים`;
-      badgesCol.appendChild(progressBadge);
+      if (ex.completed) {
+        const progressBadge = document.createElement('span');
+        progressBadge.style.cssText = 'font-size: 0.75rem; color: var(--electric-blue); font-weight: 700; background: rgba(0, 191, 255, 0.1); padding: 4px 10px; border-radius: 20px;';
+        const totalDist = ex.sets && ex.sets[0] ? (ex.sets[0].distance / 1000).toFixed(2) : '0.00';
+        progressBadge.textContent = `מרחק: ${totalDist} ק״מ`;
+        badgesCol.appendChild(progressBadge);
+      }
     }
 
     subRow.appendChild(badgesCol);
@@ -943,16 +955,18 @@ export function renderExercises() {
       const actionsCol = document.createElement('div');
       actionsCol.className = 'ex-card-actions-col';
 
-      // Settings gear button
-      const settingsBtn = document.createElement('button');
-      settingsBtn.className = 'ex-settings-btn-card';
-      settingsBtn.innerHTML = '⚙️';
-      settingsBtn.title = 'הגדרות תרגיל';
-      settingsBtn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        openMetricSelectorForEdit(exIdx);
-      });
-      actionsCol.appendChild(settingsBtn);
+      if (!isGpsEx) {
+        // Settings gear button
+        const settingsBtn = document.createElement('button');
+        settingsBtn.className = 'ex-settings-btn-card';
+        settingsBtn.innerHTML = '⚙️';
+        settingsBtn.title = 'הגדרות תרגיל';
+        settingsBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          openMetricSelectorForEdit(exIdx);
+        });
+        actionsCol.appendChild(settingsBtn);
+      }
 
       // Delete trash button
       const removeExBtn = document.createElement('button');
@@ -976,17 +990,19 @@ export function renderExercises() {
     card.appendChild(headerRow);
 
     // 2. VISUAL SETS DOTS PROGRESS BAR
-    const dotsRow = document.createElement('div');
-    dotsRow.className = 'ex-card-dots-row';
-    for (let i = 0; i < targetSets; i++) {
-      const dot = document.createElement('div');
-      dot.className = 'set-dot';
-      if (i < completedCount) {
-        dot.classList.add('completed');
+    if (!isGpsEx) {
+      const dotsRow = document.createElement('div');
+      dotsRow.className = 'ex-card-dots-row';
+      for (let i = 0; i < targetSets; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'set-dot';
+        if (i < completedCount) {
+          dot.classList.add('completed');
+        }
+        dotsRow.appendChild(dot);
       }
-      dotsRow.appendChild(dot);
+      card.appendChild(dotsRow);
     }
-    card.appendChild(dotsRow);
 
     // 3. SETS AREA
     const setsArea = document.createElement('div');
@@ -1027,7 +1043,7 @@ export function renderExercises() {
           <span>${valueStr}</span>
         `;
         
-        if (!ex.completed) {
+        if (!ex.completed && !isGpsEx) {
           chip.style.cursor = 'pointer';
           chip.title = 'לחץ לביטול הסט';
           chip.addEventListener('click', () => {
@@ -1046,72 +1062,159 @@ export function renderExercises() {
 
     // 4. BOTTOM ACTIONS BAR
     const bottomActions = document.createElement('div');
-    
-    if (!ex.completed) {
-      bottomActions.className = 'ex-card-bottom-actions';
+    bottomActions.className = 'ex-card-bottom-actions';
+    bottomActions.style.width = '100%';
+    bottomActions.style.display = 'flex';
+    bottomActions.style.gap = '8px';
+    bottomActions.style.marginTop = '10px';
 
-      // GPS Tracker Button for specific exercises
-      if (['ריצה', 'הליכה', 'ריצה והליכה'].includes(ex.name)) {
+    if (isGpsEx) {
+      if (!ex.completed) {
+        // Active GPS Exercise
         const gpsBtn = document.createElement('button');
         gpsBtn.className = 'btn-gps-track-action';
-        gpsBtn.style.cssText = 'background: linear-gradient(135deg, var(--electric-blue) 0%, #0284c7 100%); border: none; color: #fff; padding: 10px 14px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); margin-left: 8px;';
-        gpsBtn.innerHTML = 'הפעל מעקב GPS 🗺️';
+        gpsBtn.style.cssText = 'flex: 1; background: linear-gradient(135deg, var(--electric-blue) 0%, #0284c7 100%); border: none; color: #fff; padding: 12px; border-radius: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);';
+        
+        const hasData = ex.sets && ex.sets.length > 0 && ex.sets[0].distance > 0;
+        gpsBtn.innerHTML = hasData ? 'המשך מעקב GPS 🗺️' : 'הפעל מעקב GPS 🗺️';
+        
         gpsBtn.addEventListener('click', () => {
           openRunTrackerModal(ex);
         });
         bottomActions.appendChild(gpsBtn);
-      }
-
-      // Deep purple/blue glowing Add Set Button
-      const enterSetBtn = document.createElement('button');
-      enterSetBtn.className = 'btn-add-set-action';
-      
-      const nextIncompleteIdx = ex.sets.findIndex(s => !s.completed);
-      const activeSetIdx = nextIncompleteIdx !== -1 ? nextIncompleteIdx : ex.sets.length;
-      
-      enterSetBtn.textContent = `➕ רישום סט ${activeSetIdx + 1}`;
-      enterSetBtn.addEventListener('click', () => {
-        openSetLoggingModal(ex);
-      });
-      bottomActions.appendChild(enterSetBtn);
-
-      // Success Green End Exercise Button
-      const saveExBtn = document.createElement('button');
-      saveExBtn.className = 'btn-finish-ex-action';
-      saveExBtn.textContent = 'סיום ✓';
-      saveExBtn.addEventListener('click', () => {
-        const hasCompletedSets = ex.sets.some(s => s.completed);
-        if (!hasCompletedSets) {
-          alert('אנא השלם לפחות סט אחד.');
-          return;
-        }
-        ex.completed = true;
-        ex.sets = ex.sets.filter(s => s.completed);
-        saveActiveWorkoutState();
-
-        // Save its settings as defaults
-        saveExerciseDefaults(ex.name, {
-          targetSetsCount: ex.targetSetsCount || 3,
-          restTime: ex.restTime || 90,
-          metrics: getExerciseMetrics(ex)
+      } else {
+        // Completed GPS Exercise
+        // Button 1: המשך ריצה
+        const resumeBtn = document.createElement('button');
+        resumeBtn.style.cssText = 'flex: 1; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); color: #fff; padding: 12px; border-radius: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px;';
+        resumeBtn.innerHTML = 'המשך ריצה 🏃‍♂️';
+        resumeBtn.addEventListener('click', () => {
+          ex.completed = false;
+          
+          if (state.currentUser && ex.sets && ex.sets[0]) {
+            const uid = state.currentUser.uid;
+            const savedSet = ex.sets[0];
+            
+            state.isTrackingRun = true;
+            state.runTrackerState = "run";
+            state.isRunPaused = false;
+            state.runTrackerSegments = savedSet.segments || [];
+            
+            // Push a new segment to continue fresh
+            state.runTrackerSegments.push({
+              state: "run",
+              coords: [],
+              startTime: Date.now(),
+              endTime: null
+            });
+            
+            state.runTrackerMetrics = {
+              totalDistance: savedSet.distance || 0,
+              runDistance: savedSet.runDistance || 0,
+              walkDistance: savedSet.walkDistance || 0,
+              totalDuration: savedSet.time || 0,
+              runDuration: savedSet.runDuration || 0,
+              walkDuration: savedSet.walkDuration || 0,
+              restDuration: savedSet.restDuration || 0
+            };
+            
+            state.activeRunExerciseIndex = exIdx;
+            
+            saveRunSessionState();
+            startGPSWatcher();
+            startTelemetryTimer();
+            startSilentAudioBackgroundLoop();
+          }
+          
+          saveActiveWorkoutState();
+          renderExercises();
+          openRunTrackerModal(ex);
         });
+        bottomActions.appendChild(resumeBtn);
 
-        renderExercises();
-      });
-      bottomActions.appendChild(saveExBtn);
-      
+        // Button 2: צפה במסלול
+        const viewRouteBtn = document.createElement('button');
+        viewRouteBtn.style.cssText = 'flex: 1; background: linear-gradient(135deg, var(--electric-blue) 0%, #1e40af 100%); border: none; color: #fff; padding: 12px; border-radius: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);';
+        viewRouteBtn.innerHTML = 'צפה במסלול 🗺️';
+        viewRouteBtn.addEventListener('click', () => {
+          if (ex.sets && ex.sets[0] && ex.sets[0].segments) {
+            if (window.openHistoryMapFullscreen) {
+              window.openHistoryMapFullscreen(ex.sets[0].segments);
+            } else {
+              alert('פונקציית המפה אינה זמינה כעת.');
+            }
+          } else {
+            alert('אין נתוני מסלול זמינים.');
+          }
+        });
+        bottomActions.appendChild(viewRouteBtn);
+
+        // Button 3: מחק תרגיל (trash button)
+        const deleteBtn = document.createElement('button');
+        deleteBtn.style.cssText = 'background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; padding: 12px 14px; border-radius: 14px; cursor: pointer; transition: all 0.2s;';
+        deleteBtn.innerHTML = '🗑️';
+        deleteBtn.title = 'מחק תרגיל';
+        deleteBtn.addEventListener('click', () => {
+          if (confirm('האם למחוק תרגיל זה מהאימון?')) {
+            state.activeWorkout.exercises.splice(exIdx, 1);
+            saveActiveWorkoutState();
+            renderExercises();
+          }
+        });
+        bottomActions.appendChild(deleteBtn);
+      }
     } else {
-      // Completed - show a clean Edit button at bottom of card
-      bottomActions.style.width = '100%';
-      const editExBtn = document.createElement('button');
-      editExBtn.className = 'btn-edit-ex-action';
-      editExBtn.textContent = 'ערוך תרגיל ✏️';
-      editExBtn.addEventListener('click', () => {
-        ex.completed = false;
-        saveActiveWorkoutState();
-        renderExercises();
-      });
-      bottomActions.appendChild(editExBtn);
+      if (!ex.completed) {
+        // Deep purple/blue glowing Add Set Button
+        const enterSetBtn = document.createElement('button');
+        enterSetBtn.className = 'btn-add-set-action';
+        
+        const nextIncompleteIdx = ex.sets.findIndex(s => !s.completed);
+        const activeSetIdx = nextIncompleteIdx !== -1 ? nextIncompleteIdx : ex.sets.length;
+        
+        enterSetBtn.textContent = `➕ רישום סט ${activeSetIdx + 1}`;
+        enterSetBtn.addEventListener('click', () => {
+          openSetLoggingModal(ex);
+        });
+        bottomActions.appendChild(enterSetBtn);
+
+        // Success Green End Exercise Button
+        const saveExBtn = document.createElement('button');
+        saveExBtn.className = 'btn-finish-ex-action';
+        saveExBtn.textContent = 'סיום ✓';
+        saveExBtn.addEventListener('click', () => {
+          const hasCompletedSets = ex.sets.some(s => s.completed);
+          if (!hasCompletedSets) {
+            alert('אנא השלם לפחות סט אחד.');
+            return;
+          }
+          ex.completed = true;
+          ex.sets = ex.sets.filter(s => s.completed);
+          saveActiveWorkoutState();
+
+          // Save its settings as defaults
+          saveExerciseDefaults(ex.name, {
+            targetSetsCount: ex.targetSetsCount || 3,
+            restTime: ex.restTime || 90,
+            metrics: getExerciseMetrics(ex)
+          });
+
+          renderExercises();
+        });
+        bottomActions.appendChild(saveExBtn);
+      } else {
+        // Completed - show a clean Edit button at bottom of card
+        bottomActions.style.width = '100%';
+        const editExBtn = document.createElement('button');
+        editExBtn.className = 'btn-edit-ex-action';
+        editExBtn.textContent = 'ערוך תרגיל ✏️';
+        editExBtn.addEventListener('click', () => {
+          ex.completed = false;
+          saveActiveWorkoutState();
+          renderExercises();
+        });
+        bottomActions.appendChild(editExBtn);
+      }
     }
 
     card.appendChild(bottomActions);
@@ -1871,12 +1974,33 @@ function initTrackerMap() {
     }).addTo(runTrackerMap);
   }
 
-  // Invalidate map size so it renders correctly inside the visible modal
+  // Quick location fetch to center the map on the user's neighborhood immediately if no segments coords recorded yet
+  const hasNoCoords = !state.runTrackerSegments || state.runTrackerSegments.length === 0 || !state.runTrackerSegments.some(s => s.coords && s.coords.length > 0);
+  if (hasNoCoords && navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        if (runTrackerMap && hasNoCoords) {
+          runTrackerMap.setView([latitude, longitude], 16);
+        }
+      },
+      (error) => {
+        console.warn("Quick location fetch failed:", error);
+      },
+      { enableHighAccuracy: true, timeout: 5000, maximumAge: 10000 }
+    );
+  }
+
+  // Invalidate map size so it renders correctly inside the visible modal (multiple intervals to cover modal animation)
   setTimeout(() => {
-    if (runTrackerMap) {
-      runTrackerMap.invalidateSize();
-    }
-  }, 200);
+    if (runTrackerMap) runTrackerMap.invalidateSize();
+  }, 100);
+  setTimeout(() => {
+    if (runTrackerMap) runTrackerMap.invalidateSize();
+  }, 300);
+  setTimeout(() => {
+    if (runTrackerMap) runTrackerMap.invalidateSize();
+  }, 600);
 }
 
 // Draw all segments as polylines on the map
@@ -2336,6 +2460,11 @@ export function finishAndSaveRun() {
     SafeStorage.removeItem(`aura-active-run-session_${uid}`);
   }
 
+  const closeBtn = document.getElementById('close-run-tracker-btn');
+  if (closeBtn) {
+    closeBtn.style.display = 'block';
+  }
+
   const modal = document.getElementById('run-tracker-modal');
   if (modal) {
     modal.classList.add('hide');
@@ -2371,18 +2500,22 @@ export function openRunTrackerModal(exercise) {
   } else {
     startTrackingSession();
   }
+
+  // Update close button visibility (hide when tracking, show when not)
+  const closeBtn = document.getElementById('close-run-tracker-btn');
+  if (closeBtn) {
+    closeBtn.style.display = state.isTrackingRun ? 'none' : 'block';
+  }
 }
 
 // Close Run Tracker Modal
 export function closeRunTrackerModal() {
+  if (state.isTrackingRun) {
+    console.log("Cannot close modal: tracking is active.");
+    return;
+  }
   const modal = document.getElementById('run-tracker-modal');
   if (!modal) return;
-
-  if (state.isTrackingRun) {
-    if (!confirm('המעקב פעיל כרגע. האם לסגור את החלון? המעקב ימשיך לפעול ברקע.')) {
-      return;
-    }
-  }
 
   modal.classList.add('hide');
   modal.classList.remove('active');
