@@ -1,5 +1,5 @@
-const CACHE_NAME = '10.7';
-const UPDATE_DESCRIPTION = 'ניהול';
+const CACHE_NAME = '10.9';
+const UPDATE_DESCRIPTION = 'הוספת אימון ריצה בלייב כולל רידום מדויק של הפרטי אימון';
 
 const ASSETS = [
   './',
