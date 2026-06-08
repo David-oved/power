@@ -1,4 +1,4 @@
-const CACHE_NAME = '10.3';
+const CACHE_NAME = '10.5';
 const UPDATE_DESCRIPTION = 'שדרוג סנכרון הנתונים לענן (Firebase) והפרדת תרגילי המערכת';
 
 const ASSETS = [
