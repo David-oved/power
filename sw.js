@@ -17,7 +17,7 @@ const ASSETS = [
   './src/workouts/workouts.js',
   './src/metrics/metrics.js',
   './src/settings/settings.js'
-// Firebase SDK files intentionally excluded: served from Google CDN with long cache-control headers.
+  // Firebase SDK files intentionally excluded: served from Google CDN with long cache-control headers.
   // Caching opaque cross-origin responses risks serving corrupted/stale Firebase SDK.
 ];
 
