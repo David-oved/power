@@ -1887,6 +1887,7 @@ export function deleteWorkoutFromHistory(workoutId) {
 
 let runTrackerMap = null;
 let runPolylines = [];
+let userMarker = null;
 let gpsWatchId = null;
 let telemetryTimerId = null;
 let wakeLock = null;
@@ -2003,7 +2004,7 @@ function initTrackerMap() {
   }, 600);
 }
 
-// Draw all segments as polylines on the map
+// Draw all segments as polylines on the map and update the user's location marker
 function drawSegmentsOnMap() {
   if (!runTrackerMap) return;
 
@@ -2028,6 +2029,24 @@ function drawSegmentsOnMap() {
       runPolylines.push(polyline);
     }
   });
+
+  // Update user marker
+  if (userMarker) {
+    runTrackerMap.removeLayer(userMarker);
+    userMarker = null;
+  }
+
+  const lastCoord = getLastCoordinate();
+  if (lastCoord) {
+    // Pulsing user marker in AuraApp's electric blue theme
+    const gpsIcon = L.divIcon({
+      className: 'gps-pulse-marker-container',
+      html: '<div class="gps-pulse-marker"></div>',
+      iconSize: [24, 24],
+      iconAnchor: [12, 12]
+    });
+    userMarker = L.marker(lastCoord, { icon: gpsIcon }).addTo(runTrackerMap);
+  }
 }
 
 // Find the last coordinate of the tracking session
@@ -2445,6 +2464,11 @@ export function finishAndSaveRun() {
   state.isRunPaused = false;
   state.activeRunExerciseIndex = null;
   state.runTrackerSegments = [];
+
+  if (userMarker) {
+    if (runTrackerMap) runTrackerMap.removeLayer(userMarker);
+    userMarker = null;
+  }
   state.runTrackerMetrics = {
     totalDistance: 0,
     runDistance: 0,
