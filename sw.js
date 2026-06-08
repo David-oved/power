@@ -1,5 +1,5 @@
-const CACHE_NAME = '10.5';
-const UPDATE_DESCRIPTION = 'שדרוג סנכרון הנתונים לענן (Firebase) והפרדת תרגילי המערכת';
+const CACHE_NAME = '10.6';
+const UPDATE_DESCRIPTION = 'ניהול';
 
 const ASSETS = [
   './',
