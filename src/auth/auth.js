@@ -12,6 +12,7 @@ import { state } from "../state.js";
 import { SafeStorage } from "../utils/storage.js";
 import { triggerLocalNotification, getInitialsAvatar, showPremiumToast } from "../utils/helpers.js";
 import { syncUserSession } from "../utils/db.js";
+import { updateAdminUI } from "../settings/admin.js";
 
 // DOM Elements
 let authScreen;
@@ -63,6 +64,9 @@ export function clearUserSession() {
 
   // Call clean sessions globally or dynamically
   if (window.clearWorkoutSession) window.clearWorkoutSession();
+
+  // Reset admin layouts and badges
+  updateAdminUI();
 }
 
 // Manage App Screen Transitions with premium animations
@@ -136,6 +140,9 @@ export function updateAuthUI() {
     floatingUserPhoto.src = photoURL;
     floatingUserPhoto.onerror = () => { floatingUserPhoto.src = initialsFallback; };
   }
+
+  // Update admin dashboard triggers and badges
+  updateAdminUI();
 }
 
 // Translate auth error codes into friendly Hebrew

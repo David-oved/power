@@ -12,6 +12,11 @@ export const state = {
   auth: null,
   googleProvider: null,
 
+  // Admin & User Communication State
+  userMessages: [],
+  usersList: [],
+  feedbacksList: [],
+
   // Navigation State
   lastActiveMainTab: 'settings',
   activeSubTab: 'workouts',

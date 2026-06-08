@@ -9,6 +9,7 @@ import { initWorkoutsModule } from "./src/workouts/workouts.js";
 import { initAnalyticsModule, initAnalyticsTab } from "./src/metrics/metrics.js";
 import { initSettingsModule, initPremiumSettings, showUpdateStateInSettings } from "./src/settings/settings.js";
 import { initOnboarding } from "./src/utils/onboarding.js";
+import { initAdminModule } from "./src/settings/admin.js";
 
 // Helper to run functions on DOM load
 function onDOMReady(fn) {
@@ -363,4 +364,5 @@ onDOMReady(() => {
   initPremiumSettings();
   initAnalyticsTab();
   initOnboarding();
+  initAdminModule();
 });

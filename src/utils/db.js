@@ -9,7 +9,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { state } from "../state.js";
 import { SafeStorage } from "./storage.js";
-import { showPremiumToast } from "./helpers.js";
+import { showPremiumToast, triggerLocalNotification } from "./helpers.js";
 
 let db = null;
 
@@ -85,6 +85,7 @@ export async function uploadLocalDataToCloud(uid) {
   const exerciseDefaults = SafeStorage.getItem(`aura-exercise-defaults_${uid}`);
   const activeWorkout = SafeStorage.getItem(`aura-active-workout_${uid}`);
   const futureWorkouts = SafeStorage.getItem(`aura-future-workouts_${uid}`);
+  const messages = SafeStorage.getItem(`aura-messages_${uid}`);
 
   const data = {};
   if (workoutHistory) data.workoutHistory = JSON.parse(workoutHistory);
@@ -94,6 +95,7 @@ export async function uploadLocalDataToCloud(uid) {
   if (exerciseDefaults) data.exerciseDefaults = JSON.parse(exerciseDefaults);
   if (activeWorkout) data.activeWorkout = JSON.parse(activeWorkout);
   if (futureWorkouts) data.futureWorkouts = JSON.parse(futureWorkouts);
+  if (messages) data.messages = JSON.parse(messages);
 
   const firestoreDb = getDb();
   if (!firestoreDb) return;
@@ -207,6 +209,36 @@ export async function syncUserSession(uid) {
     const mergedFuture = Array.from(futureMap.values());
     SafeStorage.setItem(`aura-future-workouts_${uid}`, JSON.stringify(mergedFuture));
 
+    // 8. Merge Messages
+    const localMessages = JSON.parse(SafeStorage.getItem(`aura-messages_${uid}`) || "[]");
+    const cloudMessages = cloudData.messages || [];
+
+    // Trigger local push notification on new unread cloud messages (Choice A1)
+    const localMsgIds = new Set(localMessages.map(m => String(m.id)));
+    const newCloudMessages = cloudMessages.filter(m => !localMsgIds.has(String(m.id)));
+    if (newCloudMessages.length > 0) {
+      const unreadNew = newCloudMessages.filter(m => !m.read);
+      if (unreadNew.length > 0 && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+        unreadNew.forEach(m => {
+          try {
+            triggerLocalNotification(
+              m.title || "הודעה חדשה מהמערכת ✉️",
+              m.content || "כנס לאפליקציה לצפייה בהודעה."
+            );
+          } catch(err) {
+            console.warn("Failed to fire push notification:", err);
+          }
+        });
+      }
+    }
+
+    const messagesMap = new Map();
+    localMessages.forEach(m => messagesMap.set(String(m.id), m));
+    cloudMessages.forEach(m => messagesMap.set(String(m.id), m));
+    const mergedMessages = Array.from(messagesMap.values()).sort((a, b) => b.date - a.date);
+    SafeStorage.setItem(`aura-messages_${uid}`, JSON.stringify(mergedMessages));
+    state.userMessages = mergedMessages;
+
     // Upload merged data back to the cloud in case local had items the cloud didn't
     const mergedDoc = {
       workoutHistory: mergedHistory,
@@ -216,6 +248,7 @@ export async function syncUserSession(uid) {
       exerciseDefaults: mergedDefaults,
       activeWorkout: mergedActive,
       futureWorkouts: mergedFuture,
+      messages: mergedMessages,
       email,
       displayName,
       role,

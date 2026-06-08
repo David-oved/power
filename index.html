@@ -265,6 +265,45 @@
                 </div>
               </div>
             </div>
+
+            <!-- iOS Settings Card Group: Admin options (Visible to admin only) -->
+            <div id="settings-admin-group" class="ios-settings-card-group hide">
+              <div class="ios-settings-group-title">ניהול מערכת</div>
+              <button id="go-to-admin-console-btn" class="ios-setting-row">
+                <div class="ios-row-left">
+                  <span class="ios-row-chevron">←</span>
+                </div>
+                <div class="ios-row-right">
+                  <span class="ios-row-icon-badge bg-ios-red">🛠️</span>
+                  <span class="ios-row-label">פאנל ניהול מנהל</span>
+                </div>
+              </button>
+            </div>
+
+            <!-- iOS Settings Card Group: Support -->
+            <div class="ios-settings-card-group">
+              <div class="ios-settings-group-title">תמיכה ומשוב</div>
+              <button id="go-to-feedback-btn" class="ios-setting-row">
+                <div class="ios-row-left">
+                  <span class="ios-row-chevron">←</span>
+                </div>
+                <div class="ios-row-right">
+                  <span class="ios-row-icon-badge bg-ios-blue">💬</span>
+                  <span class="ios-row-label">שליחת משוב למפתח</span>
+                </div>
+              </button>
+              <button id="go-to-messages-btn" class="ios-setting-row">
+                <div class="ios-row-left">
+                  <span id="unread-messages-badge" class="ios-badge hide">0</span>
+                  <span class="ios-row-chevron">←</span>
+                </div>
+                <div class="ios-row-right">
+                  <span class="ios-row-icon-badge bg-ios-orange">✉️</span>
+                  <span class="ios-row-label">הודעות מהמערכת</span>
+                </div>
+              </button>
+            </div>
+
           </div>
 
           <!-- Sub-view 2: Account Details Screen (Hidden by default) -->
@@ -305,6 +344,126 @@
               <button id="app-logout-btn" class="btn btn-logout hide" style="width: 100%; max-width: 240px;">
                 <span class="btn-icon">🚪</span> יציאה מהחשבון
               </button>
+            </div>
+          </div>
+
+          <!-- Sub-view 3: Admin Console Panel (Hidden by default) -->
+          <div id="settings-admin-view" class="hide" style="width: 100%; height: 100%; display: flex; flex-direction: column;">
+            <div class="ios-settings-header" style="flex: 0 0 auto;">
+              <button id="back-from-admin-btn" class="ios-back-btn">
+                חזרה <span class="back-arrow">→</span>
+              </button>
+              <h2 class="settings-sub-title">פאנל ניהול</h2>
+            </div>
+
+            <!-- Admin Segmented Tab Bar -->
+            <div class="ios-segmented-control" style="margin: 10px 1.5rem; display: flex; background: rgba(255, 255, 255, 0.05); padding: 3px; border-radius: 12px; direction: rtl;">
+              <button class="segmented-btn active" data-admin-tab="users" style="flex: 1; padding: 10px; background: none; border: none; color: #fff; border-radius: 9px; font-weight: bold; cursor: pointer; font-size: 0.9rem; transition: background 0.2s;">ניהול משתמשים</button>
+              <button class="segmented-btn" data-admin-tab="feedback" style="flex: 1; padding: 10px; background: none; border: none; color: #fff; border-radius: 9px; font-weight: bold; cursor: pointer; font-size: 0.9rem; transition: background 0.2s;">משובים</button>
+              <button class="segmented-btn" data-admin-tab="announcement" style="flex: 1; padding: 10px; background: none; border: none; color: #fff; border-radius: 9px; font-weight: bold; cursor: pointer; font-size: 0.9rem; transition: background 0.2s;">הודעה גלובלית</button>
+            </div>
+
+            <div class="ios-settings-scroll-container" style="flex: 1; overflow-y: auto; padding: 0 1.5rem 1.5rem 1.5rem;">
+              
+              <!-- Tab A: User Management -->
+              <div id="admin-tab-users" class="admin-tab-content active" style="direction: rtl; text-align: right;">
+                <!-- Stats Row -->
+                <div style="display: flex; gap: 10px; margin-bottom: 1.5rem;">
+                  <div style="flex: 1; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.06); text-align: center;">
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">משתמשים רשומים</div>
+                    <div id="admin-stat-users-count" style="font-size: 1.5rem; font-weight: 800; color: var(--electric-blue); margin-top: 4px;">0</div>
+                  </div>
+                  <div style="flex: 1; background: rgba(255,255,255,0.05); padding: 12px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.06); text-align: center;">
+                    <div style="font-size: 0.75rem; color: var(--text-muted);">סך הכל אימונים</div>
+                    <div id="admin-stat-workouts-count" style="font-size: 1.5rem; font-weight: 800; color: var(--electric-blue); margin-top: 4px;">0</div>
+                  </div>
+                </div>
+
+                <!-- Search Input -->
+                <div style="margin-bottom: 1.2rem;">
+                  <input type="text" id="admin-user-search-input" placeholder="🔍 חפש לפי שם או אימייל..." style="width: 100%; border-radius: 12px; padding: 10px 14px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); color: #ffffff; text-align: right; direction: rtl; outline: none;">
+                </div>
+
+                <!-- User list container -->
+                <div id="admin-users-list" style="display: flex; flex-direction: column; gap: 10px;">
+                  <!-- Injected dynamically -->
+                </div>
+              </div>
+
+              <!-- Tab B: User Feedback -->
+              <div id="admin-tab-feedback" class="admin-tab-content hide" style="direction: rtl; text-align: right;">
+                <!-- Stats Row -->
+                <div style="background: rgba(255,255,255,0.05); padding: 12px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.06); text-align: center; margin-bottom: 1.5rem; width: 100%;">
+                  <div style="font-size: 0.75rem; color: var(--text-muted);">משובים ממתינים לטיפול</div>
+                  <div id="admin-stat-pending-feedback-count" style="font-size: 1.5rem; font-weight: 800; color: #ff9500; margin-top: 4px;">0</div>
+                </div>
+
+                <div id="admin-feedbacks-list" style="display: flex; flex-direction: column; gap: 12px;">
+                  <!-- Injected dynamically -->
+                </div>
+              </div>
+
+              <!-- Tab C: Global Announcement -->
+              <div id="admin-tab-announcement" class="admin-tab-content hide" style="direction: rtl; text-align: right;">
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.2rem;">
+                  שליחת הודעה גלובלית תפיץ את ההודעה לכל המשתמשים הרשומים במערכת. הם יקבלו התראת פוש מקומית וכן ההודעה תופיע במרכז ההודעות שלהם.
+                </p>
+                <div class="custom-ex-field-group" style="margin-bottom: 1rem;">
+                  <label class="custom-ex-field-label">כותרת ההודעה</label>
+                  <input type="text" id="admin-announcement-title" placeholder="למשל: עדכון תוכנה חדש 🚀" style="width: 100%; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; color: #ffffff; text-align: right; direction: rtl; outline: none;">
+                </div>
+                <div class="custom-ex-field-group" style="margin-bottom: 1.5rem;">
+                  <label class="custom-ex-field-label">תוכן ההודעה</label>
+                  <textarea id="admin-announcement-content" placeholder="כתוב את ההודעה כאן..." style="width: 100%; height: 120px; border-radius: 12px; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); color: #ffffff; text-align: right; direction: rtl; outline: none; resize: none; font-family: var(--font-sans);"></textarea>
+                </div>
+                <button id="admin-send-announcement-btn" class="btn btn-primary" style="width: 100%; padding: 14px; font-weight: bold; border-radius: 14px;">שלח הודעה גלובלית 📢</button>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Sub-view 4: Feedback Submission Screen (Hidden by default) -->
+          <div id="settings-feedback-view" class="hide" style="width: 100%; height: 100%; display: flex; flex-direction: column;">
+            <div class="ios-settings-header" style="flex: 0 0 auto;">
+              <button id="back-from-feedback-btn" class="ios-back-btn">
+                חזרה <span class="back-arrow">→</span>
+              </button>
+              <h2 class="settings-sub-title">שליחת משוב</h2>
+            </div>
+            <div class="ios-settings-scroll-container" style="flex: 1; overflow-y: auto; padding: 1.5rem; text-align: right; direction: rtl;">
+              <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; line-height: 1.5;">
+                יש לך הצעה לשיפור, דיווח על תקלה או סתם מילים חמות? נשמח לשמוע ממך! המשוב יישלח ישירות למנהל המערכת.
+              </p>
+              
+              <div class="custom-ex-field-group" style="margin-bottom: 1.2rem;">
+                <label class="custom-ex-field-label">סוג המשוב</label>
+                <select id="feedback-category-input" style="width: 100%; padding: 12px; background: rgba(20,20,24,0.95); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; color: #ffffff; text-align: right; direction: rtl; outline: none; font-family: var(--font-sans); font-size: 1rem;">
+                  <option value="💡 הצעת שיפור">💡 הצעת שיפור</option>
+                  <option value="🐛 דיווח על תקלה">🐛 דיווח על תקלה</option>
+                  <option value="❓ שאלה כללית">❓ שאלה כללית</option>
+                </select>
+              </div>
+
+              <div class="custom-ex-field-group" style="margin-bottom: 1.5rem;">
+                <label class="custom-ex-field-label">תוכן המשוב</label>
+                <textarea id="feedback-text-input" placeholder="כתוב את המשוב שלך כאן..." style="width: 100%; height: 140px; border-radius: 12px; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); color: #ffffff; text-align: right; direction: rtl; outline: none; resize: none; font-family: var(--font-sans); line-height: 1.4;"></textarea>
+              </div>
+              <button id="send-feedback-submit-btn" class="btn btn-primary" style="width: 100%; padding: 14px; font-weight: bold; border-radius: 14px;">שלח משוב 🚀</button>
+            </div>
+          </div>
+
+          <!-- Sub-view 5: System Messages Screen (Hidden by default) -->
+          <div id="settings-messages-view" class="hide" style="width: 100%; height: 100%; display: flex; flex-direction: column;">
+            <div class="ios-settings-header" style="flex: 0 0 auto;">
+              <button id="back-from-messages-btn" class="ios-back-btn">
+                חזרה <span class="back-arrow">→</span>
+              </button>
+              <h2 class="settings-sub-title">הודעות מערכת</h2>
+            </div>
+            <div class="ios-settings-scroll-container" style="flex: 1; overflow-y: auto; padding: 1.5rem; text-align: right; direction: rtl;">
+              <div id="user-messages-list" style="display: flex; flex-direction: column; gap: 12px;">
+                <!-- Injected dynamically -->
+              </div>
             </div>
           </div>
 
