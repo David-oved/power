@@ -378,6 +378,9 @@ export function initWorkouts() {
       state.activeWorkout = null;
     }
   }
+
+  // Restore active run/walk tracking session if any
+  recoverRunSession();
 }
 
 // Clear workout session on logout
@@ -388,6 +391,7 @@ export function clearWorkoutSession() {
   }
   
   stopRestTimer();
+  stopSilentAudioBackgroundLoop();
 
   state.activeWorkout = null;
   state.workoutHistory = [];
@@ -776,19 +780,70 @@ export function renderExercises() {
   if (!container || !state.activeWorkout) return;
   
   container.innerHTML = '';
-  
-  const hasUncompleted = state.activeWorkout.exercises.some(ex => !ex.completed && ex.sets.some(s => s.completed));
-  const addExerciseBtn = document.getElementById('add-exercise-btn');
-  
-  if (addExerciseBtn) {
-    if (hasUncompleted) {
-      addExerciseBtn.disabled = true;
-      addExerciseBtn.style.opacity = '0.4';
-      addExerciseBtn.style.cursor = 'not-allowed';
-    } else {
+
+  if (state.activeWorkout.exercises.length === 0) {
+    const shortcutCard = document.createElement('div');
+    shortcutCard.className = 'exercise-card shortcut-card';
+    shortcutCard.style.cssText = 'padding: 24px; text-align: center; background: rgba(255, 255, 255, 0.03); border: 1px dashed rgba(255, 255, 255, 0.15); border-radius: 20px; display: flex; flex-direction: column; align-items: center; gap: 12px; margin-bottom: 1rem;';
+    shortcutCard.innerHTML = `
+      <span style="font-size: 2rem;">🏃‍♂️</span>
+      <h4 style="margin: 0; font-size: 1.2rem; font-weight: 700; color: #ffffff; font-family: var(--font-display);">מעקב ריצה והליכה בחוץ</h4>
+      <p style="margin: 0 0 8px 0; font-size: 0.88rem; color: var(--text-muted); line-height: 1.4;">מדוד מרחק, קצב ומסלול בזמן אמת באמצעות GPS</p>
+      <button id="start-run-shortcut-btn" class="btn btn-primary" style="padding: 12px 24px; border-radius: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s; background: linear-gradient(135deg, var(--electric-blue) 0%, #1e40af 100%); border: none; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);">התחל ריצה / הליכה 🏃‍♂️</button>
+    `;
+    container.appendChild(shortcutCard);
+
+    const shortcutBtn = shortcutCard.querySelector('#start-run-shortcut-btn');
+    if (shortcutBtn) {
+      shortcutBtn.addEventListener('click', () => {
+        const newEx = {
+          name: 'ריצה והליכה',
+          targetSetsCount: 1,
+          metrics: ['time'],
+          completed: false,
+          sets: []
+        };
+        state.activeWorkout.exercises.push(newEx);
+        saveActiveWorkoutState();
+        renderExercises();
+        openRunTrackerModal(newEx);
+      });
+    }
+
+    const addExerciseBtn = document.getElementById('add-exercise-btn');
+    if (addExerciseBtn) {
+      addExerciseBtn.classList.remove('hide');
       addExerciseBtn.disabled = false;
       addExerciseBtn.style.opacity = '1';
       addExerciseBtn.style.cursor = 'pointer';
+    }
+    const finishWorkoutBtn = document.getElementById('finish-workout-btn');
+    if (finishWorkoutBtn) {
+      finishWorkoutBtn.classList.remove('hide');
+    }
+    return;
+  }
+  
+  const hasUncompleted = state.activeWorkout.exercises.some(ex => !ex.completed);
+  const addExerciseBtn = document.getElementById('add-exercise-btn');
+  const finishWorkoutBtn = document.getElementById('finish-workout-btn');
+  
+  if (hasUncompleted) {
+    if (addExerciseBtn) {
+      addExerciseBtn.classList.add('hide');
+    }
+    if (finishWorkoutBtn) {
+      finishWorkoutBtn.classList.add('hide');
+    }
+  } else {
+    if (addExerciseBtn) {
+      addExerciseBtn.classList.remove('hide');
+      addExerciseBtn.disabled = false;
+      addExerciseBtn.style.opacity = '1';
+      addExerciseBtn.style.cursor = 'pointer';
+    }
+    if (finishWorkoutBtn) {
+      finishWorkoutBtn.classList.remove('hide');
     }
   }
   
@@ -949,11 +1004,22 @@ export function renderExercises() {
         chip.className = 'completed-set-chip';
         chip.style.cssText = 'display: inline-flex; align-items: center; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08); padding: 6px 12px; border-radius: 12px; font-size: 0.88rem; color: #ffffff; gap: 6px;';
         
-        const parts = [];
-        if (metrics.includes('weight')) parts.push(`${set.weight || 0} ק״ג`);
-        if (metrics.includes('reps')) parts.push(`${set.reps || 0} חזרות`);
-        if (metrics.includes('time')) parts.push(`${set.time || 0} ש׳`);
-        const valueStr = parts.join(' × ');
+        let valueStr = '';
+        if (set.distance !== undefined) {
+          const km = (set.distance / 1000).toFixed(2);
+          const hrs = Math.floor(set.time / 3600);
+          const mins = Math.floor((set.time % 3600) / 60);
+          const secs = set.time % 60;
+          const pad = (num) => String(num).padStart(2, '0');
+          const timeStr = hrs > 0 ? `${pad(hrs)}:${pad(mins)}:${pad(secs)}` : `${pad(mins)}:${pad(secs)}`;
+          valueStr = `🏃 ${km} ק״מ ב-${timeStr}`;
+        } else {
+          const parts = [];
+          if (metrics.includes('weight')) parts.push(`${set.weight || 0} ק״ג`);
+          if (metrics.includes('reps')) parts.push(`${set.reps || 0} חזרות`);
+          if (metrics.includes('time')) parts.push(`${set.time || 0} ש׳`);
+          valueStr = parts.join(' × ');
+        }
         
         const realIdx = ex.sets.indexOf(set);
         chip.innerHTML = `
@@ -983,6 +1049,18 @@ export function renderExercises() {
     
     if (!ex.completed) {
       bottomActions.className = 'ex-card-bottom-actions';
+
+      // GPS Tracker Button for specific exercises
+      if (['ריצה', 'הליכה', 'ריצה והליכה'].includes(ex.name)) {
+        const gpsBtn = document.createElement('button');
+        gpsBtn.className = 'btn-gps-track-action';
+        gpsBtn.style.cssText = 'background: linear-gradient(135deg, var(--electric-blue) 0%, #0284c7 100%); border: none; color: #fff; padding: 10px 14px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 4px; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); margin-left: 8px;';
+        gpsBtn.innerHTML = 'הפעל מעקב GPS 🗺️';
+        gpsBtn.addEventListener('click', () => {
+          openRunTrackerModal(ex);
+        });
+        bottomActions.appendChild(gpsBtn);
+      }
 
       // Deep purple/blue glowing Add Set Button
       const enterSetBtn = document.createElement('button');
@@ -1700,6 +1778,705 @@ export function deleteWorkoutFromHistory(workoutId) {
   state.editingWorkout = null;
 }
 
+// ==========================================================================
+// Location-Based GPS Run/Walk Tracker Logic
+// ==========================================================================
+
+let runTrackerMap = null;
+let runPolylines = [];
+let gpsWatchId = null;
+let telemetryTimerId = null;
+let wakeLock = null;
+let silentAudioPlayer = null;
+
+function startSilentAudioBackgroundLoop() {
+  if (silentAudioPlayer) {
+    silentAudioPlayer.play().catch(e => {
+      console.warn("silentAudioPlayer play error:", e);
+    });
+    return;
+  }
+  const silenceBase64 = "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQQAAAAAAA==";
+  silentAudioPlayer = new Audio(silenceBase64);
+  silentAudioPlayer.loop = true;
+  silentAudioPlayer.play().catch(e => {
+    console.warn("Silent audio autoplay blocked. Adding one-time interaction listener.", e);
+    const playOnGesture = () => {
+      if (silentAudioPlayer) {
+        silentAudioPlayer.play().catch(err => console.warn("Interactive play failed:", err));
+      }
+      document.removeEventListener('click', playOnGesture);
+      document.removeEventListener('touchstart', playOnGesture);
+    };
+    document.addEventListener('click', playOnGesture);
+    document.addEventListener('touchstart', playOnGesture);
+  });
+}
+
+function stopSilentAudioBackgroundLoop() {
+  if (silentAudioPlayer) {
+    silentAudioPlayer.pause();
+    silentAudioPlayer = null;
+  }
+}
+
+// Haversine formula to compute distance in meters between two coordinates
+function haversine(lat1, lon1, lat2, lon2) {
+  const R = 6371000; // Radius of Earth in meters
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+// Request screen wake lock to keep screen active during tracking
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator) {
+      wakeLock = await navigator.wakeLock.request('screen');
+      console.log('Wake Lock acquired');
+    }
+  } catch (err) {
+    console.warn(`Wake Lock error: ${err.name}, ${err.message}`);
+  }
+}
+
+// Release screen wake lock
+function releaseWakeLock() {
+  if (wakeLock !== null) {
+    wakeLock.release().then(() => {
+      wakeLock = null;
+      console.log('Wake Lock released');
+    });
+  }
+}
+
+// Initialize Leaflet Map
+function initTrackerMap() {
+  const mapContainer = document.getElementById('run-tracker-map');
+  if (!mapContainer) return;
+
+  if (!runTrackerMap) {
+    // Center map on Israel [31.5, 34.8] with zoom level 8
+    runTrackerMap = L.map('run-tracker-map', {
+      zoomControl: true
+    }).setView([31.5, 34.8], 8);
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    }).addTo(runTrackerMap);
+  }
+
+  // Invalidate map size so it renders correctly inside the visible modal
+  setTimeout(() => {
+    if (runTrackerMap) {
+      runTrackerMap.invalidateSize();
+    }
+  }, 200);
+}
+
+// Draw all segments as polylines on the map
+function drawSegmentsOnMap() {
+  if (!runTrackerMap) return;
+
+  // Clear existing polylines
+  runPolylines.forEach(layer => runTrackerMap.removeLayer(layer));
+  runPolylines = [];
+
+  // Draw segments
+  state.runTrackerSegments.forEach(segment => {
+    if (segment.coords && segment.coords.length > 1) {
+      let color = '#ef4444'; // Run - Red
+      if (segment.state === 'walk') color = '#10b981'; // Walk - Green
+      else if (segment.state === 'rest') color = '#f59e0b'; // Rest - Yellow
+
+      const polyline = L.polyline(segment.coords, {
+        color: color,
+        weight: 6,
+        opacity: 0.85,
+        lineJoin: 'round'
+      }).addTo(runTrackerMap);
+      
+      runPolylines.push(polyline);
+    }
+  });
+}
+
+// Find the last coordinate of the tracking session
+function getLastCoordinate() {
+  for (let i = state.runTrackerSegments.length - 1; i >= 0; i--) {
+    const coords = state.runTrackerSegments[i].coords;
+    if (coords && coords.length > 0) {
+      return coords[coords.length - 1];
+    }
+  }
+  return null;
+}
+
+// Start GPS watching
+function startGPSWatcher() {
+  if (gpsWatchId) {
+    navigator.geolocation.clearWatch(gpsWatchId);
+  }
+
+  const options = {
+    enableHighAccuracy: true,
+    timeout: 10000,
+    maximumAge: 0
+  };
+
+  gpsWatchId = navigator.geolocation.watchPosition(
+    (position) => {
+      handleGPSReading(position);
+    },
+    (error) => {
+      console.warn("watchPosition error:", error);
+    },
+    options
+  );
+
+  state.runWatchPositionId = gpsWatchId;
+}
+
+// Stop GPS watching
+function stopGPSWatcher() {
+  if (gpsWatchId) {
+    navigator.geolocation.clearWatch(gpsWatchId);
+    gpsWatchId = null;
+    state.runWatchPositionId = null;
+  }
+}
+
+// Handle new coordinate reading from GPS
+function handleGPSReading(position) {
+  const { latitude, longitude, accuracy } = position.coords;
+
+  // Filter GPS drift: ignore accuracy > 20 meters
+  if (accuracy > 20) {
+    console.log("GPS accuracy too poor, ignoring:", accuracy);
+    return;
+  }
+
+  if (state.isTrackingRun && !state.isRunPaused) {
+    const lat = latitude;
+    const lng = longitude;
+    const newCoord = [lat, lng];
+
+    let activeSegment = state.runTrackerSegments[state.runTrackerSegments.length - 1];
+    if (!activeSegment || activeSegment.endTime !== null) {
+      activeSegment = {
+        state: state.runTrackerState,
+        coords: [],
+        startTime: Date.now(),
+        endTime: null
+      };
+      state.runTrackerSegments.push(activeSegment);
+    }
+
+    const lastCoord = getLastCoordinate();
+    let dist = 0;
+    let shouldAccumulate = false;
+
+    if (lastCoord) {
+      dist = haversine(lastCoord[0], lastCoord[1], lat, lng);
+      // Filter GPS noise: only accumulate if distance >= 2.5m
+      if (dist >= 2.5) {
+        shouldAccumulate = true;
+      }
+    } else {
+      // First point is always saved
+      shouldAccumulate = true;
+    }
+
+    if (shouldAccumulate) {
+      activeSegment.coords.push(newCoord);
+
+      if (lastCoord) {
+        // Accumulate distance in metrics (meters)
+        state.runTrackerMetrics.totalDistance += dist;
+        if (state.runTrackerState === "run") {
+          state.runTrackerMetrics.runDistance += dist;
+        } else if (state.runTrackerState === "walk") {
+          state.runTrackerMetrics.walkDistance += dist;
+        }
+      }
+
+      // Draw map segments
+      drawSegmentsOnMap();
+
+      // Center map on new coordinate
+      if (runTrackerMap) {
+        runTrackerMap.setView(newCoord, 16);
+      }
+
+      // Save run state to LocalStorage for data loss prevention
+      saveRunSessionState();
+
+      // Refresh telemetry UI
+      updateTrackerUI();
+    }
+  }
+}
+
+// Switch between Run / Walk / Rest states
+export function switchTrackerState(newState) {
+  if (!state.isTrackingRun) return;
+  if (state.runTrackerState === newState) return;
+
+  // End current segment
+  const activeSegment = state.runTrackerSegments[state.runTrackerSegments.length - 1];
+  if (activeSegment) {
+    activeSegment.endTime = Date.now();
+  }
+
+  // Set new state
+  state.runTrackerState = newState;
+
+  // Start new segment
+  const newSegment = {
+    state: newState,
+    coords: [],
+    startTime: Date.now(),
+    endTime: null
+  };
+  state.runTrackerSegments.push(newSegment);
+
+  // Speech syntheses voice announcement in Hebrew
+  speakStateHebrew(newState);
+
+  // Haptic feedback
+  if (navigator.vibrate) {
+    navigator.vibrate([200]);
+  }
+
+  // Update classes
+  updateSwitcherUI();
+
+  // Save tracking state
+  saveRunSessionState();
+}
+
+// Speech syntheses helper
+function speakStateHebrew(stateName) {
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    
+    let text = "";
+    if (stateName === "run") text = "ריצה";
+    else if (stateName === "walk") text = "הליכה";
+    else if (stateName === "rest") text = "מנוחה";
+
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'he-IL';
+    
+    const voices = window.speechSynthesis.getVoices();
+    const heVoice = voices.find(v => v.lang.includes('he') || v.lang.includes('HE'));
+    if (heVoice) {
+      utterance.voice = heVoice;
+    }
+    
+    window.speechSynthesis.speak(utterance);
+  }
+}
+
+// Update UI classes for switcher
+function updateSwitcherUI() {
+  const btnRun = document.getElementById('run-state-btn-run');
+  const btnWalk = document.getElementById('run-state-btn-walk');
+  const btnRest = document.getElementById('run-state-btn-rest');
+
+  if (btnRun) btnRun.classList.remove('run-state-active-run');
+  if (btnWalk) btnWalk.classList.remove('run-state-active-walk');
+  if (btnRest) btnRest.classList.remove('run-state-active-rest');
+
+  if (state.runTrackerState === "run" && btnRun) {
+    btnRun.classList.add('run-state-active-run');
+  } else if (state.runTrackerState === "walk" && btnWalk) {
+    btnWalk.classList.add('run-state-active-walk');
+  } else if (state.runTrackerState === "rest" && btnRest) {
+    btnRest.classList.add('run-state-active-rest');
+  }
+}
+
+// Start telemetry counter interval
+function startTelemetryTimer() {
+  if (telemetryTimerId) {
+    clearInterval(telemetryTimerId);
+  }
+
+  telemetryTimerId = setInterval(() => {
+    if (state.isTrackingRun && !state.isRunPaused) {
+      state.runTrackerMetrics.totalDuration++;
+
+      if (state.runTrackerState === "run") {
+        state.runTrackerMetrics.runDuration++;
+      } else if (state.runTrackerState === "walk") {
+        state.runTrackerMetrics.walkDuration++;
+      } else if (state.runTrackerState === "rest") {
+        state.runTrackerMetrics.restDuration++;
+      }
+
+      updateTrackerUI();
+      saveRunSessionState();
+    }
+  }, 1000);
+}
+
+// Stop telemetry counter interval
+function stopTelemetryTimer() {
+  if (telemetryTimerId) {
+    clearInterval(telemetryTimerId);
+    telemetryTimerId = null;
+  }
+}
+
+// Helper to format Pace (min/km)
+function formatPace(totalDurationSeconds, totalDistanceMeters) {
+  if (!totalDistanceMeters || totalDistanceMeters < 5) return "--:--";
+  const distanceKm = totalDistanceMeters / 1000;
+  const totalMinutes = totalDurationSeconds / 60;
+  const paceDec = totalMinutes / distanceKm;
+
+  const mins = Math.floor(paceDec);
+  const secs = Math.floor((paceDec - mins) * 60);
+
+  return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+}
+
+// Helper to calculate Speed (km/h)
+function calculateSpeed(totalDurationSeconds, totalDistanceMeters) {
+  if (!totalDurationSeconds || !totalDistanceMeters) return "0.0";
+  const distanceKm = totalDistanceMeters / 1000;
+  const hours = totalDurationSeconds / 3600;
+  const speed = distanceKm / hours;
+  return speed.toFixed(1);
+}
+
+// Format duration to HH:MM:SS
+function formatDuration(seconds) {
+  const hrs = Math.floor(seconds / 3600);
+  const mins = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+  const pad = (num) => String(num).padStart(2, '0');
+  return `${pad(hrs)}:${pad(mins)}:${pad(secs)}`;
+}
+
+// Sync all telemetry displays in the run tracker modal
+function updateTrackerUI() {
+  const totalDistEl = document.getElementById('run-metric-total-dist');
+  const paceEl = document.getElementById('run-metric-pace');
+  const speedEl = document.getElementById('run-metric-speed');
+  const runDistEl = document.getElementById('run-metric-run-dist');
+  const walkDistEl = document.getElementById('run-metric-walk-dist');
+  
+  const totalTimeEl = document.getElementById('run-metric-total-time');
+  const runTimeEl = document.getElementById('run-metric-run-time');
+  const walkTimeEl = document.getElementById('run-metric-walk-time');
+  const restTimeEl = document.getElementById('run-metric-rest-time');
+
+  const metrics = state.runTrackerMetrics;
+
+  if (totalDistEl) totalDistEl.textContent = (metrics.totalDistance / 1000).toFixed(2);
+  if (paceEl) paceEl.textContent = formatPace(metrics.totalDuration, metrics.totalDistance);
+  if (speedEl) speedEl.textContent = calculateSpeed(metrics.totalDuration, metrics.totalDistance);
+  if (runDistEl) runDistEl.textContent = (metrics.runDistance / 1000).toFixed(2);
+  if (walkDistEl) walkDistEl.textContent = (metrics.walkDistance / 1000).toFixed(2);
+
+  if (totalTimeEl) totalTimeEl.textContent = formatDuration(metrics.totalDuration);
+  if (runTimeEl) runTimeEl.textContent = formatDuration(metrics.runDuration);
+  if (walkTimeEl) walkTimeEl.textContent = formatDuration(metrics.walkDuration);
+  if (restTimeEl) restTimeEl.textContent = formatDuration(metrics.restDuration);
+
+  updateSwitcherUI();
+
+  const pauseBtn = document.getElementById('run-control-pause');
+  const resumeBtn = document.getElementById('run-control-resume');
+
+  if (pauseBtn && resumeBtn) {
+    if (state.isRunPaused) {
+      pauseBtn.classList.add('hide');
+      resumeBtn.classList.remove('hide');
+    } else {
+      pauseBtn.classList.remove('hide');
+      resumeBtn.classList.add('hide');
+    }
+  }
+}
+
+// Start a new tracking session
+export function startTrackingSession() {
+  if (state.currentUser) {
+    state.isTrackingRun = true;
+    state.runTrackerState = "run";
+    state.isRunPaused = false;
+    state.runTrackerSegments = [{
+      state: "run",
+      coords: [],
+      startTime: Date.now(),
+      endTime: null
+    }];
+    state.runTrackerMetrics = {
+      totalDistance: 0,
+      runDistance: 0,
+      walkDistance: 0,
+      totalDuration: 0,
+      runDuration: 0,
+      walkDuration: 0,
+      restDuration: 0
+    };
+
+    saveRunSessionState();
+    startGPSWatcher();
+    startTelemetryTimer();
+    updateTrackerUI();
+    drawSegmentsOnMap();
+    startSilentAudioBackgroundLoop();
+  }
+}
+
+// Save active session tracking parameters to localStorage
+function saveRunSessionState() {
+  if (state.currentUser) {
+    const uid = state.currentUser.uid;
+    const session = {
+      isTrackingRun: state.isTrackingRun,
+      runTrackerState: state.runTrackerState,
+      runTrackerSegments: state.runTrackerSegments,
+      runTrackerMetrics: state.runTrackerMetrics,
+      activeRunExerciseIndex: state.activeRunExerciseIndex,
+      isRunPaused: state.isRunPaused
+    };
+    SafeStorage.setItem(`aura-active-run-session_${uid}`, JSON.stringify(session));
+  }
+}
+
+// Pause tracking session
+export function pauseTracking() {
+  state.isRunPaused = true;
+  stopTelemetryTimer();
+
+  const activeSegment = state.runTrackerSegments[state.runTrackerSegments.length - 1];
+  if (activeSegment) {
+    activeSegment.endTime = Date.now();
+  }
+
+  saveRunSessionState();
+  updateTrackerUI();
+  stopSilentAudioBackgroundLoop();
+}
+
+// Resume tracking session
+export function resumeTracking() {
+  state.isRunPaused = false;
+
+  const newSegment = {
+    state: state.runTrackerState,
+    coords: [],
+    startTime: Date.now(),
+    endTime: null
+  };
+  state.runTrackerSegments.push(newSegment);
+
+  startTelemetryTimer();
+  saveRunSessionState();
+  updateTrackerUI();
+  startSilentAudioBackgroundLoop();
+}
+
+// Save run session details to current active exercise sets and exit modal
+export function finishAndSaveRun() {
+  stopGPSWatcher();
+  releaseWakeLock();
+  stopTelemetryTimer();
+  stopSilentAudioBackgroundLoop();
+
+  if (state.activeWorkout && state.activeWorkout.exercises && state.activeRunExerciseIndex !== null) {
+    const ex = state.activeWorkout.exercises[state.activeRunExerciseIndex];
+    if (ex) {
+      const specializedSet = {
+        completed: true,
+        distance: state.runTrackerMetrics.totalDistance,
+        time: state.runTrackerMetrics.totalDuration,
+        runDistance: state.runTrackerMetrics.runDistance,
+        walkDistance: state.runTrackerMetrics.walkDistance,
+        runDuration: state.runTrackerMetrics.runDuration,
+        walkDuration: state.runTrackerMetrics.walkDuration,
+        restDuration: state.runTrackerMetrics.restDuration,
+        segments: JSON.parse(JSON.stringify(state.runTrackerSegments))
+      };
+
+      ex.sets = ex.sets || [];
+      ex.sets = [specializedSet];
+      ex.completed = true;
+
+      saveActiveWorkoutState();
+    }
+  }
+
+  state.isTrackingRun = false;
+  state.isRunPaused = false;
+  state.activeRunExerciseIndex = null;
+  state.runTrackerSegments = [];
+  state.runTrackerMetrics = {
+    totalDistance: 0,
+    runDistance: 0,
+    walkDistance: 0,
+    totalDuration: 0,
+    runDuration: 0,
+    walkDuration: 0,
+    restDuration: 0
+  };
+
+  if (state.currentUser) {
+    const uid = state.currentUser.uid;
+    SafeStorage.removeItem(`aura-active-run-session_${uid}`);
+  }
+
+  const modal = document.getElementById('run-tracker-modal');
+  if (modal) {
+    modal.classList.add('hide');
+    modal.classList.remove('active');
+  }
+
+  renderExercises();
+}
+
+// Open Run Tracker Modal
+export function openRunTrackerModal(exercise) {
+  const modal = document.getElementById('run-tracker-modal');
+  if (!modal) return;
+
+  if (state.activeWorkout && exercise) {
+    const idx = state.activeWorkout.exercises.indexOf(exercise);
+    state.activeRunExerciseIndex = idx;
+  }
+
+  modal.classList.remove('hide');
+  modal.classList.add('active');
+
+  initTrackerMap();
+  requestWakeLock();
+
+  if (state.isTrackingRun) {
+    drawSegmentsOnMap();
+    updateTrackerUI();
+    const lastCoord = getLastCoordinate();
+    if (lastCoord && runTrackerMap) {
+      runTrackerMap.setView(lastCoord, 16);
+    }
+  } else {
+    startTrackingSession();
+  }
+}
+
+// Close Run Tracker Modal
+export function closeRunTrackerModal() {
+  const modal = document.getElementById('run-tracker-modal');
+  if (!modal) return;
+
+  if (state.isTrackingRun) {
+    if (!confirm('המעקב פעיל כרגע. האם לסגור את החלון? המעקב ימשיך לפעול ברקע.')) {
+      return;
+    }
+  }
+
+  modal.classList.add('hide');
+  modal.classList.remove('active');
+}
+
+// Recover previous active run session if app reloaded
+export function recoverRunSession() {
+  if (!state.currentUser) return;
+  const uid = state.currentUser.uid;
+  const sessionData = SafeStorage.getItem(`aura-active-run-session_${uid}`);
+  if (sessionData) {
+    try {
+      const recovered = JSON.parse(sessionData);
+      console.log("Restoring active run session:", recovered);
+
+      state.isTrackingRun = recovered.isTrackingRun;
+      state.runTrackerState = recovered.runTrackerState || "run";
+      state.runTrackerSegments = recovered.runTrackerSegments || [];
+      state.runTrackerMetrics = recovered.runTrackerMetrics || {
+        totalDistance: 0,
+        runDistance: 0,
+        walkDistance: 0,
+        totalDuration: 0,
+        runDuration: 0,
+        walkDuration: 0,
+        restDuration: 0
+      };
+      state.activeRunExerciseIndex = recovered.activeRunExerciseIndex !== undefined ? recovered.activeRunExerciseIndex : null;
+      state.isRunPaused = recovered.isRunPaused || false;
+
+      if (state.isTrackingRun) {
+        let ex = null;
+        if (state.activeWorkout && state.activeWorkout.exercises && state.activeRunExerciseIndex !== null) {
+          ex = state.activeWorkout.exercises[state.activeRunExerciseIndex];
+        }
+
+        openRunTrackerModal(ex);
+        startGPSWatcher();
+        startTelemetryTimer();
+        startSilentAudioBackgroundLoop();
+      }
+    } catch (e) {
+      console.error("Failed to recover run session:", e);
+      SafeStorage.removeItem(`aura-active-run-session_${uid}`);
+    }
+  }
+}
+
+// Initialize run tracker elements click event bindings
+export function initRunTrackerBindings() {
+  const btnRun = document.getElementById('run-state-btn-run');
+  const btnWalk = document.getElementById('run-state-btn-walk');
+  const btnRest = document.getElementById('run-state-btn-rest');
+
+  if (btnRun) btnRun.addEventListener('click', () => switchTrackerState('run'));
+  if (btnWalk) btnWalk.addEventListener('click', () => switchTrackerState('walk'));
+  if (btnRest) btnRest.addEventListener('click', () => switchTrackerState('rest'));
+
+  const btnPause = document.getElementById('run-control-pause');
+  const btnResume = document.getElementById('run-control-resume');
+  const btnFinish = document.getElementById('run-control-finish');
+
+  if (btnPause) btnPause.addEventListener('click', () => pauseTracking());
+  if (btnResume) btnResume.addEventListener('click', () => resumeTracking());
+  if (btnFinish) {
+    btnFinish.addEventListener('click', () => {
+      if (confirm('האם לסיים את המעקב ולשמור את הנתונים?')) {
+        finishAndSaveRun();
+      }
+    });
+  }
+
+  const btnClose = document.getElementById('close-run-tracker-btn');
+  if (btnClose) btnClose.addEventListener('click', () => closeRunTrackerModal());
+
+  const expandBtn = document.getElementById('run-map-expand-btn');
+  const mapElement = document.getElementById('run-tracker-map');
+
+  if (expandBtn && mapElement) {
+    const toggleMapExpand = (e) => {
+      e.stopPropagation();
+      mapElement.classList.toggle('expanded');
+      setTimeout(() => {
+        if (runTrackerMap) {
+          runTrackerMap.invalidateSize();
+        }
+      }, 300);
+    };
+
+    expandBtn.addEventListener('click', toggleMapExpand);
+    mapElement.addEventListener('click', toggleMapExpand);
+  }
+}
+
 // BIND ALL GENERAL ACTIONS & INTERACTIVE ELEMENTS
 export function initWorkoutsModule() {
   // Bind global compatibility triggers
@@ -1718,6 +2495,17 @@ export function initWorkoutsModule() {
   window.openMetricSelectorForConfig = openMetricSelectorForConfig;
   window.openMetricSelectorForEdit = openMetricSelectorForEdit;
   window.setupMetricSelectorModal = setupMetricSelectorModal;
+  
+  // GPS Run Tracker Compatibility bindings
+  window.openRunTrackerModal = openRunTrackerModal;
+  window.closeRunTrackerModal = closeRunTrackerModal;
+  window.switchTrackerState = switchTrackerState;
+  window.pauseTracking = pauseTracking;
+  window.resumeTracking = resumeTracking;
+  window.finishAndSaveRun = finishAndSaveRun;
+  window.recoverRunSession = recoverRunSession;
+
+  initRunTrackerBindings();
 
   // Setup click bindings on DOM
   const startWorkoutBtn = document.getElementById('start-workout-btn');

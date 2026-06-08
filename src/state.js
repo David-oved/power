@@ -56,6 +56,21 @@ export const state = {
   activeLogsSubView: 'calendar',
   currentCalendarDate: new Date(),
   filterSortSelection: 'date-desc',
-  activeAnalyticsSegment: 'workouts' // Only workouts is supported now
+  activeAnalyticsSegment: 'workouts', // Only workouts is supported now
+
+  // Location-based Run Tracker State
+  isTrackingRun: false,
+  runWatchPositionId: null,
+  runTrackerState: "run", // "run" | "walk" | "rest"
+  runTrackerSegments: [],
+  runTrackerMetrics: {
+    totalDistance: 0,
+    runDistance: 0,
+    walkDistance: 0,
+    totalDuration: 0,
+    runDuration: 0,
+    walkDuration: 0,
+    restDuration: 0
+  }
 };
 

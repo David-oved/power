@@ -45,6 +45,9 @@
   
   <link rel="stylesheet" href="style.css">
 
+  <!-- Leaflet.js mapping library for GPS Tracking -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
 </head>
 <body>
   <noscript>
@@ -903,6 +906,11 @@
                 <div class="muscle-recommendation-box" id="muscle-recommendation-box" style="padding: 12px; background: rgba(220,38,38,0.08); border: 1px solid rgba(220,38,38,0.2); border-radius: 12px; font-size: 0.82rem; color: #fca5a5; text-align: right; direction: rtl;">
                   <!-- Generated dynamically -->
                 </div>
+              </div>
+
+              <!-- Aerobic Activity Analytics Card -->
+              <div id="analytics-aerobic-summary-view" class="analytics-sub-view" style="background: rgba(20,20,24,0.6); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 1.2rem; margin-top: 1.5rem;">
+                <!-- Generated dynamically in metrics.js -->
               </div>
             </div>
           </div>
@@ -1787,6 +1795,124 @@
               </div>
             </div>
           </div>
+
+  <!-- Location-Based Run Tracker Modal -->
+  <div id="run-tracker-modal" class="workout-modal-overlay hide" style="z-index: 1800; align-items: center; justify-content: center;">
+    <div class="workout-modal-card run-tracker-card" style="max-width: 500px; width: 95%; max-height: 95vh; display: flex; flex-direction: column; border-radius: 28px; border: 1px solid rgba(255, 255, 255, 0.1); overflow: hidden; position: relative;">
+      
+      <!-- Header -->
+      <div class="modal-header" style="padding: 16px 1.5rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255, 255, 255, 0.05); direction: rtl;">
+        <button id="close-run-tracker-btn" class="btn-cancel-link" style="background: none; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; line-height: 1;">&times;</button>
+        <h3 class="modal-title" style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #ffffff; font-family: var(--font-display);">מעקב ריצה והליכה</h3>
+        <span style="width: 40px;"></span>
+      </div>
+
+      <div class="modal-body" style="flex: 1; overflow-y: auto; padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem; -webkit-overflow-scrolling: touch;">
+        
+        <!-- Map Container Wrapper -->
+        <div class="run-map-wrapper" style="position: relative; border-radius: 20px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 4px 20px rgba(0,0,0,0.4);">
+          <div id="run-tracker-map" style="width: 100%; height: 160px; transition: height 0.3s ease;"></div>
+          <!-- Full screen Toggle button on map -->
+          <button id="run-map-expand-btn" class="run-map-toggle-btn" style="position: absolute; top: 10px; right: 10px; z-index: 1000; background: rgba(0, 0, 0, 0.6); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; color: white; cursor: pointer; transition: background 0.2s;">
+            <span class="expand-icon">🔍</span>
+          </button>
+        </div>
+
+        <!-- Metrics Dashboard -->
+        <div class="run-metrics-dashboard" style="direction: rtl; text-align: right; display: flex; flex-direction: column; gap: 1rem;">
+          
+          <!-- Primary Large Metrics -->
+          <div style="display: flex; gap: 10px;">
+            <div class="metric-card" style="flex: 1; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); padding: 12px; border-radius: 16px; text-align: center;">
+              <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">מרחק כולל</span>
+              <span id="run-metric-total-dist" style="font-size: 1.6rem; font-weight: 800; color: var(--electric-blue); font-family: var(--font-sans);">0.00</span>
+              <span style="font-size: 0.75rem; color: var(--text-muted);">ק״מ</span>
+            </div>
+            <div class="metric-card" style="flex: 1; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); padding: 12px; border-radius: 16px; text-align: center;">
+              <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">קצב נוכחי</span>
+              <span id="run-metric-pace" style="font-size: 1.6rem; font-weight: 800; color: #a855f7; font-family: var(--font-sans);">--:--</span>
+              <span style="font-size: 0.75rem; color: var(--text-muted);">דק׳/ק״מ</span>
+            </div>
+            <div class="metric-card" style="flex: 1; background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.05); padding: 12px; border-radius: 16px; text-align: center;">
+              <span style="font-size: 0.8rem; color: var(--text-muted); display: block;">מהירות נוכחית</span>
+              <span id="run-metric-speed" style="font-size: 1.6rem; font-weight: 800; color: #3b82f6; font-family: var(--font-sans);">0.0</span>
+              <span style="font-size: 0.75rem; color: var(--text-muted);">קמ״ש</span>
+            </div>
+          </div>
+
+          <!-- Secondary Details Grid -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.03); padding: 10px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 0.8rem; color: var(--text-muted);">מרחק ריצה:</span>
+              <span style="font-weight: 700; color: #ff5e3a;"><span id="run-metric-run-dist" style="font-family: var(--font-sans);">0.00</span> ק״מ</span>
+            </div>
+            <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.03); padding: 10px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 0.8rem; color: var(--text-muted);">מרחק הליכה:</span>
+              <span style="font-weight: 700; color: #10b981;"><span id="run-metric-walk-dist" style="font-family: var(--font-sans);">0.00</span> ק״מ</span>
+            </div>
+          </div>
+
+          <!-- Time Durations List -->
+          <div class="durations-box" style="background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.05); padding: 12px; border-radius: 16px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">⏱️ זמן כולל:</span>
+              <span id="run-metric-total-time" style="font-size: 1.15rem; font-weight: 800; color: #ffffff; font-family: var(--font-sans);">00:00:00</span>
+            </div>
+            <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 6px; display: flex; flex-direction: column; gap: 4px; font-size: 0.8rem;">
+              <div style="display: flex; justify-content: space-between;">
+                <span style="color: var(--text-muted);">🔥 זמן ריצה:</span>
+                <span id="run-metric-run-time" style="font-weight: 600; color: #ff5e3a; font-family: var(--font-sans);">00:00:00</span>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span style="color: var(--text-muted);">🌱 זמן הליכה:</span>
+                <span id="run-metric-walk-time" style="font-weight: 600; color: #10b981; font-family: var(--font-sans);">00:00:00</span>
+              </div>
+              <div style="display: flex; justify-content: space-between;">
+                <span style="color: var(--text-muted);">🛑 זמן מנוחה:</span>
+                <span id="run-metric-rest-time" style="font-weight: 600; color: #f59e0b; font-family: var(--font-sans);">00:00:00</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- State Switcher Button Group -->
+        <div class="run-state-switcher-container" style="direction: rtl;">
+          <span style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); display: block; margin-bottom: 8px;">מצב פעילות נוכחי:</span>
+          <div class="run-state-switcher" style="display: flex; background: rgba(0, 0, 0, 0.3); border: 1px solid rgba(255, 255, 255, 0.05); padding: 4px; border-radius: 14px; gap: 4px;">
+            <button id="run-state-btn-run" class="state-switch-btn run-state-active-run" style="flex: 1; border: none; padding: 10px 6px; border-radius: 10px; cursor: pointer; color: white; background: transparent; font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.3s ease;">
+              <span>ריצה</span> 🏃‍♂️
+            </button>
+            <button id="run-state-btn-walk" class="state-switch-btn" style="flex: 1; border: none; padding: 10px 6px; border-radius: 10px; cursor: pointer; color: white; background: transparent; font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.3s ease;">
+              <span>הליכה</span> 🚶‍♂️
+            </button>
+            <button id="run-state-btn-rest" class="state-switch-btn" style="flex: 1; border: none; padding: 10px 6px; border-radius: 10px; cursor: pointer; color: white; background: transparent; font-weight: 700; font-size: 0.9rem; display: flex; align-items: center; justify-content: center; gap: 4px; transition: all 0.3s ease;">
+              <span>מנוחה</span> 🛑
+            </button>
+          </div>
+        </div>
+
+        <!-- Action Controls -->
+        <div class="run-controls" style="display: flex; flex-direction: column; gap: 10px; margin-top: 0.5rem;">
+          <div style="display: flex; gap: 10px;">
+            <!-- Pause / Resume buttons -->
+            <button id="run-control-pause" class="btn" style="flex: 1; padding: 14px; border-radius: 14px; font-weight: bold; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: white; cursor: pointer; transition: all 0.2s;">
+              ⏸️ השהה
+            </button>
+            <button id="run-control-resume" class="btn hide" style="flex: 1; padding: 14px; border-radius: 14px; font-weight: bold; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none; color: white; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);">
+              ▶️ המשך
+            </button>
+            
+            <!-- Finish and Save button -->
+            <button id="run-control-finish" class="btn btn-primary" style="flex: 1; padding: 14px; border-radius: 14px; font-weight: bold; cursor: pointer; transition: all 0.2s;">
+              💾 סיום ושמירה
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
 
   <!-- Load global Firebase credential settings -->
   <script src="firebase-config.js"></script>

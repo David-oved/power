@@ -649,8 +649,194 @@ export function renderMuscleSplitView() {
   }
 }
 
+export function renderAerobicAnalyticsCard(timeframe = '30') {
+  const container = document.getElementById('analytics-aerobic-summary-view');
+  if (!container) return;
+
+  const now = new Date();
+  let limitDate = null;
+  let timeframeLabel = "כל הזמן";
+
+  if (timeframe === '7') {
+    limitDate = new Date();
+    limitDate.setDate(now.getDate() - 7);
+    timeframeLabel = "שבועי (7 ימים)";
+  } else if (timeframe === '30') {
+    limitDate = new Date();
+    limitDate.setDate(now.getDate() - 30);
+    timeframeLabel = "חודשי (30 ימים)";
+  }
+
+  // Filter workouts by date limit
+  const workouts = state.workoutHistory.filter(w => {
+    if (!limitDate) return true;
+    return new Date(w.date) >= limitDate;
+  });
+
+  let totalRunDist = 0;
+  let totalWalkDist = 0;
+  let totalRunSec = 0;
+  let totalWalkSec = 0;
+  let totalRestSec = 0;
+
+  workouts.forEach(w => {
+    if (!w.exercises) return;
+    w.exercises.forEach(ex => {
+      if (ex.sets) {
+        ex.sets.forEach(s => {
+          if (s.completed && s.segments) {
+            // It is a GPS-tracked exercise set
+            totalRunDist += (s.runDistance || 0);
+            totalWalkDist += (s.walkDistance || 0);
+            totalRunSec += (s.runDuration || 0);
+            totalWalkSec += (s.walkDuration || 0);
+            totalRestSec += (s.restDuration || 0);
+          }
+        });
+      }
+    });
+  });
+
+  const totalDist = totalRunDist + totalWalkDist;
+  const totalSec = totalRunSec + totalWalkSec + totalRestSec;
+
+  const totalDistKm = (totalDist / 1000).toFixed(2);
+  const runDistKm = (totalRunDist / 1000).toFixed(2);
+  const walkDistKm = (totalWalkDist / 1000).toFixed(2);
+
+  const formatHrsMins = (totalSeconds) => {
+    const hrs = Math.floor(totalSeconds / 3600);
+    const mins = Math.floor((totalSeconds % 3600) / 60);
+    if (hrs > 0) {
+      return `${hrs} ש׳ ${mins} דק׳`;
+    }
+    return `${mins} דק׳`;
+  };
+
+  const totalTimeStr = formatHrsMins(totalSec);
+  const runTimeStr = formatHrsMins(totalRunSec);
+  const walkTimeStr = formatHrsMins(totalWalkSec);
+  const restTimeStr = formatHrsMins(totalRestSec);
+
+  // Percentages for splits
+  const runPct = totalDist > 0 ? Math.round((totalRunDist / totalDist) * 100) : 0;
+  const walkPct = totalDist > 0 ? Math.round((totalWalkDist / totalDist) * 100) : 0;
+
+  const runTimePct = totalSec > 0 ? Math.round((totalRunSec / totalSec) * 100) : 0;
+  const walkTimePct = totalSec > 0 ? Math.round((totalWalkSec / totalSec) * 100) : 0;
+  const restTimePct = totalSec > 0 ? Math.round((totalRestSec / totalSec) * 100) : 0;
+
+  container.innerHTML = `
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; direction: rtl;">
+      <h3 style="margin: 0; font-size: 1rem; font-weight: 800; color: #ffffff;">🏃‍♂️ סיכום פעילות אירובית (${timeframeLabel})</h3>
+      
+      <!-- Timeframe Toggle Pills -->
+      <div style="display: flex; gap: 4px; background: rgba(255,255,255,0.05); padding: 2px; border-radius: 8px;">
+        <button class="aerobic-tf-btn ${timeframe === '7' ? 'active' : ''}" data-tf="7" style="padding: 4px 8px; font-size: 0.7rem; border-radius: 6px; border: none; background: ${timeframe === '7' ? 'var(--electric-blue-light)' : 'transparent'}; color: #fff; cursor: pointer; font-weight: bold; font-family: var(--font-sans);">7 ימים</button>
+        <button class="aerobic-tf-btn ${timeframe === '30' ? 'active' : ''}" data-tf="30" style="padding: 4px 8px; font-size: 0.7rem; border-radius: 6px; border: none; background: ${timeframe === '30' ? 'var(--electric-blue-light)' : 'transparent'}; color: #fff; cursor: pointer; font-weight: bold; font-family: var(--font-sans);">30 ימים</button>
+        <button class="aerobic-tf-btn ${timeframe === 'all' ? 'active' : ''}" data-tf="all" style="padding: 4px 8px; font-size: 0.7rem; border-radius: 6px; border: none; background: ${timeframe === 'all' ? 'var(--electric-blue-light)' : 'transparent'}; color: #fff; cursor: pointer; font-weight: bold; font-family: var(--font-sans);">הכל</button>
+      </div>
+    </div>
+
+    ${totalDist === 0 && totalSec === 0 ? `
+      <div style="color: var(--text-muted); text-align: center; padding: 20px; font-size: 0.85rem; direction: rtl;">
+        אין נתוני פעילות אירובית מתועדת ב-GPS בטווח זמן זה.
+      </div>
+    ` : `
+      <div style="direction: rtl; text-align: right; display: flex; flex-direction: column; gap: 14px;">
+        <!-- Overview Stats Row -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; background: rgba(255,255,255,0.02); padding: 10px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.04);">
+          <div>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">מרחק מצטבר</span>
+            <div style="font-size: 1.25rem; font-weight: 900; color: var(--electric-blue-light);">${totalDistKm} ק״מ</div>
+          </div>
+          <div>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">זמן אירובי כולל</span>
+            <div style="font-size: 1.25rem; font-weight: 900; color: #fff;">${totalTimeStr}</div>
+          </div>
+        </div>
+
+        <!-- Splits / Percentages Bars -->
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <span style="font-size: 0.78rem; font-weight: 700; color: #fff;">חלוקת מרחקים:</span>
+          
+          <!-- Run Split -->
+          <div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #e2e8f0; margin-bottom: 2px;">
+              <span>🏃‍♂️ ריצה: ${runDistKm} ק״מ</span>
+              <span>${runPct}%</span>
+            </div>
+            <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden;">
+              <div style="width: ${runPct}%; height: 100%; background: #ef4444; border-radius: 3px;"></div>
+            </div>
+          </div>
+
+          <!-- Walk Split -->
+          <div>
+            <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: #e2e8f0; margin-bottom: 2px;">
+              <span>🚶‍♂️ הליכה: ${walkDistKm} ק״מ</span>
+              <span>${walkPct}%</span>
+            </div>
+            <div style="width: 100%; height: 6px; background: rgba(255,255,255,0.05); border-radius: 3px; overflow: hidden;">
+              <div style="width: ${walkPct}%; height: 100%; background: #10b981; border-radius: 3px;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Time distribution breakdown -->
+        <div style="display: flex; flex-direction: column; gap: 8px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px;">
+          <span style="font-size: 0.78rem; font-weight: 700; color: #fff;">חלוקת זמנים (ריצה/הליכה/מנוחה):</span>
+          
+          <div style="display: flex; width: 100%; height: 10px; background: rgba(255,255,255,0.05); border-radius: 5px; overflow: hidden; margin-bottom: 6px;">
+            <div style="width: ${runTimePct}%; height: 100%; background: #ef4444;" title="ריצה"></div>
+            <div style="width: ${walkTimePct}%; height: 100%; background: #10b981;" title="הליכה"></div>
+            <div style="width: ${restTimePct}%; height: 100%; background: #f59e0b;" title="מנוחה"></div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; text-align: center; font-size: 0.7rem;">
+            <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
+              <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #ef4444;"></span>
+              <span style="color: var(--text-muted);">ריצה:</span> <strong style="color: #fff;">${runTimeStr}</strong>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
+              <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #10b981;"></span>
+              <span style="color: var(--text-muted);">הליכה:</span> <strong style="color: #fff;">${walkTimeStr}</strong>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: center; gap: 4px;">
+              <span style="display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #f59e0b;"></span>
+              <span style="color: var(--text-muted);">מנוחה:</span> <strong style="color: #fff;">${restTimeStr}</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+    `}
+  `;
+
+  // Attach click listeners to timeframe toggle buttons inside the card
+  container.querySelectorAll('.aerobic-tf-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const tf = btn.getAttribute('data-tf');
+      state.aerobicTimeSelection = tf;
+      renderAerobicAnalyticsCard(tf);
+    });
+  });
+}
+
+window.renderAerobicAnalyticsCard = renderAerobicAnalyticsCard;
+
 // Helper to format exercise sets text nicely depending on metricType
 function formatExerciseSetsText(ex) {
+  const firstGpsSet = ex.sets && ex.sets.find(s => s.distance !== undefined);
+  if (firstGpsSet) {
+    const km = (firstGpsSet.distance / 1000).toFixed(2);
+    const hrs = Math.floor(firstGpsSet.time / 3600);
+    const mins = Math.floor((firstGpsSet.time % 3600) / 60);
+    const secs = firstGpsSet.time % 60;
+    const timeStr = hrs > 0 ? `${hrs}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}` : `${mins}:${String(secs).padStart(2, '0')}`;
+    return `🏃 ${km} ק״מ ב-${timeStr}`;
+  }
+
   const showWeight = ex.metrics ? ex.metrics.includes('weight') : (ex.metricType === 'both' || ex.metricType === 'weight' || !ex.metricType);
   const showReps = ex.metrics ? ex.metrics.includes('reps') : (ex.metricType === 'both' || ex.metricType === 'reps' || !ex.metricType);
   const showTime = ex.metrics ? ex.metrics.includes('time') : (ex.metricType === 'time');
@@ -720,15 +906,66 @@ export function renderAccordionHistoryView() {
       </div>
       <div class="accordion-details hide" style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.05); direction: rtl;">
         <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px;">
-          ${w.exercises.map(ex => {
+          ${w.exercises.map((ex, exIdx) => {
             const exSetsText = formatExerciseSetsText(ex);
-            return `
-              <div style="font-size: 0.85rem; color: #e2e8f0; display: flex; justify-content: space-between;">
-                <span style="font-weight: 700;">• ${ex.name}</span>
-                <span style="color: var(--text-muted); font-size: 0.8rem; direction: ltr;">[${exSetsText}]</span>
-              </div>
-            `;
+            const gpsSet = ex.sets && ex.sets.find(s => s.segments && s.segments.length > 0);
+            if (gpsSet) {
+              const totalDist = ((gpsSet.distance || 0) / 1000).toFixed(2);
+              const runDist = ((gpsSet.runDistance || 0) / 1000).toFixed(2);
+              const walkDist = ((gpsSet.walkDistance || 0) / 1000).toFixed(2);
+              
+              const formatDurationHelper = (secs) => {
+                const h = Math.floor(secs / 3600);
+                const m = Math.floor((secs % 3600) / 60);
+                const s = secs % 60;
+                return h > 0 ? `${h}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}` : `${m}:${String(s).padStart(2, '0')}`;
+              };
+
+              const totalDurationStr = formatDurationHelper(gpsSet.time || 0);
+              const runDurationStr = formatDurationHelper(gpsSet.runDuration || 0);
+              const walkDurationStr = formatDurationHelper(gpsSet.walkDuration || 0);
+              const restDurationStr = formatDurationHelper(gpsSet.restDuration || 0);
+
+              return `
+                <div style="font-size: 0.85rem; color: #e2e8f0; margin-bottom: 12px; background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); border-radius: 12px; padding: 12px;">
+                  <div style="display: flex; justify-content: space-between; font-weight: 700; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 6px; margin-bottom: 8px;">
+                    <span>• ${ex.name}</span>
+                    <span style="color: var(--electric-blue-light); direction: ltr; font-size: 0.8rem;">${exSetsText}</span>
+                  </div>
+                  
+                  <div class="gps-telemetry-dashboard" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; text-align: center; background: rgba(255,255,255,0.02); padding: 8px; border-radius: 8px; font-size: 0.75rem; border: 1px solid rgba(255,255,255,0.03);">
+                    <div>
+                      <div style="color: var(--text-muted);">מרחק כולל</div>
+                      <div style="font-weight: bold; color: #fff;">${totalDist} ק״מ</div>
+                      <div style="font-size: 0.65rem; color: var(--text-muted);">${totalDurationStr}</div>
+                    </div>
+                    <div>
+                      <div style="color: #ef4444;">🏃 ריצה</div>
+                      <div style="font-weight: bold; color: #fff;">${runDist} ק״מ</div>
+                      <div style="font-size: 0.65rem; color: var(--text-muted);">${runDurationStr}</div>
+                    </div>
+                    <div>
+                      <div style="color: #10b981;">🚶 הליכה</div>
+                      <div style="font-weight: bold; color: #fff;">${walkDist} ק״מ</div>
+                      <div style="font-size: 0.65rem; color: var(--text-muted);">${walkDurationStr}</div>
+                    </div>
+                  </div>
+                  
+                  <div style="text-align: center; margin-top: 6px; font-size: 0.7rem; color: #f59e0b;">🛑 מנוחה: ${restDurationStr}</div>
+                  
+                  <div id="history-map-${w.id}-${exIdx}" class="history-map-element" style="height: 180px; width: 100%; border-radius: 12px; overflow: hidden; position: relative; margin-top: 10px; background: rgba(0,0,0,0.2);" data-segments='${JSON.stringify(gpsSet.segments)}'></div>
+                </div>
+              `;
+            } else {
+              return `
+                <div style="font-size: 0.85rem; color: #e2e8f0; display: flex; justify-content: space-between; margin-bottom: 4px;">
+                  <span style="font-weight: 700;">• ${ex.name}</span>
+                  <span style="color: var(--text-muted); font-size: 0.8rem; direction: ltr;">[${exSetsText}]</span>
+                </div>
+              `;
+            }
           }).join('')}
+        </div>
         <button class="btn btn-secondary edit-w-accordion-btn" style="width: 100%; padding: 8px !important; font-size: 0.8rem !important; border-radius: 10px;">🛠️ ערוך פרטי אימון</button>
       </div>
     `;
@@ -744,6 +981,10 @@ export function renderAccordionHistoryView() {
           details.classList.remove('hide');
           if (arrow) arrow.style.transform = 'rotate(180deg)';
           card.style.background = 'rgba(255,255,255,0.04)';
+          
+          setTimeout(() => {
+            initHistoryMaps(details);
+          }, 100);
         } else {
           details.classList.add('hide');
           if (arrow) arrow.style.transform = 'rotate(0deg)';
@@ -763,6 +1004,172 @@ export function renderAccordionHistoryView() {
     container.appendChild(card);
   });
 }
+
+// Leaflet History Maps Logic
+let fullscreenMapInstance = null;
+
+export function initHistoryMaps(container) {
+  const mapElements = container.querySelectorAll('.history-map-element');
+  mapElements.forEach(el => {
+    if (el._leaflet_map) {
+      el._leaflet_map.invalidateSize();
+      return;
+    }
+
+    const segmentsData = el.getAttribute('data-segments');
+    if (!segmentsData) return;
+
+    let segments = [];
+    try {
+      segments = JSON.parse(segmentsData);
+    } catch (e) {
+      console.error("Failed to parse map segments", e);
+      return;
+    }
+
+    if (typeof L === 'undefined') {
+      console.warn("Leaflet.js is not loaded");
+      return;
+    }
+
+    const map = L.map(el.id, {
+      zoomControl: false,
+      scrollWheelZoom: false,
+      doubleClickZoom: false,
+      dragging: false,
+      touchZoom: false,
+      boxZoom: false
+    });
+
+    el._leaflet_map = map;
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+    }).addTo(map);
+
+    const bounds = [];
+    segments.forEach(segment => {
+      if (segment.coords && segment.coords.length > 1) {
+        let color = '#ef4444'; // default run (Molten Red)
+        if (segment.state === 'walk') color = '#10b981'; // Green
+        else if (segment.state === 'rest') color = '#f59e0b'; // Amber/Yellow
+
+        L.polyline(segment.coords, {
+          color: color,
+          weight: 4,
+          opacity: 0.9,
+          lineJoin: 'round'
+        }).addTo(map);
+
+        segment.coords.forEach(coord => {
+          bounds.push(coord);
+        });
+      }
+    });
+
+    if (bounds.length > 0) {
+      map.fitBounds(bounds, { padding: [10, 10] });
+    } else {
+      map.setView([31.5, 34.8], 8);
+    }
+
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openHistoryMapFullscreen(segments);
+    });
+  });
+}
+
+export function openHistoryMapFullscreen(segments) {
+  let overlay = document.getElementById('history-fullscreen-map-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'history-fullscreen-map-overlay';
+    overlay.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); display: flex; flex-direction: column; z-index: 2000;';
+    overlay.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: rgba(20,20,24,0.9); border-bottom: 1px solid rgba(255,255,255,0.05); direction: rtl;">
+        <span style="font-weight: 800; color: #fff; font-size: 1rem;">מסלול אימון</span>
+        <button id="close-history-fullscreen-map" style="background: none; border: none; color: #ef4444; font-size: 1.5rem; cursor: pointer; padding: 4px 10px; font-weight: bold;">✕</button>
+      </div>
+      <div id="history-fullscreen-map" style="flex: 1; width: 100%; height: 100%;"></div>
+    `;
+    document.body.appendChild(overlay);
+    
+    document.getElementById('close-history-fullscreen-map').addEventListener('click', () => {
+      closeHistoryMapFullscreen();
+    });
+  }
+
+  overlay.style.display = 'flex';
+
+  if (typeof L === 'undefined') {
+    console.warn("Leaflet.js is not loaded");
+    return;
+  }
+
+  if (fullscreenMapInstance) {
+    fullscreenMapInstance.remove();
+  }
+
+  fullscreenMapInstance = L.map('history-fullscreen-map', {
+    zoomControl: true,
+    scrollWheelZoom: true,
+    doubleClickZoom: true,
+    dragging: true
+  }).setView([31.5, 34.8], 8);
+
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
+  }).addTo(fullscreenMapInstance);
+
+  const bounds = [];
+  segments.forEach(segment => {
+    if (segment.coords && segment.coords.length > 1) {
+      let color = '#ef4444';
+      if (segment.state === 'walk') color = '#10b981';
+      else if (segment.state === 'rest') color = '#f59e0b';
+
+      L.polyline(segment.coords, {
+        color: color,
+        weight: 6,
+        opacity: 0.9,
+        lineJoin: 'round'
+      }).addTo(fullscreenMapInstance);
+
+      segment.coords.forEach(coord => {
+        bounds.push(coord);
+      });
+    }
+  });
+
+  if (bounds.length > 0) {
+    fullscreenMapInstance.fitBounds(bounds, { padding: [20, 20] });
+  }
+
+  setTimeout(() => {
+    if (fullscreenMapInstance) {
+      fullscreenMapInstance.invalidateSize();
+      if (bounds.length > 0) {
+        fullscreenMapInstance.fitBounds(bounds, { padding: [20, 20] });
+      }
+    }
+  }, 150);
+}
+
+export function closeHistoryMapFullscreen() {
+  const overlay = document.getElementById('history-fullscreen-map-overlay');
+  if (overlay) {
+    overlay.style.display = 'none';
+  }
+  if (fullscreenMapInstance) {
+    fullscreenMapInstance.remove();
+    fullscreenMapInstance = null;
+  }
+}
+
+window.initHistoryMaps = initHistoryMaps;
+window.openHistoryMapFullscreen = openHistoryMapFullscreen;
+window.closeHistoryMapFullscreen = closeHistoryMapFullscreen;
 
 const CSS_STYLES = `
 /* Premium Glassmorphic Workout Cards Styles */
@@ -3325,6 +3732,7 @@ export function renderAnalytics() {
   } else if (state.activeSubTab === 'calendar') {
     renderCalendarView();
     renderMuscleSplitView();
+    renderAerobicAnalyticsCard(state.aerobicTimeSelection || '30');
   } else if (state.activeSubTab === 'exercises') {
     renderExercisesManager();
   } else if (state.activeSubTab === 'ai') {
