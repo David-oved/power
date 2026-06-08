@@ -170,12 +170,6 @@
             </div>
             <span class="google-btn-text">Sign in with Google</span>
           </button>
-
-          <!-- PWA Installation Guide Trigger -->
-          <button id="pwa-guide-trigger-btn" class="btn btn-secondary" style="width: 100%; margin-top: 1rem; padding: 12px; font-weight: bold; border-radius: 12px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #ffffff; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
-            📲 מדריך התקנה למסך הבית
-          </button>
-
           <div class="auth-footer" style="margin-top: 1.5rem;">
             <p>Secure authentication via Google Identity</p>
           </div>
@@ -270,22 +264,6 @@
                   <span class="ios-row-label">חיפוש עדכונים</span>
                 </div>
               </div>
-            </div>
-
-            <!-- iOS Settings Card Group: Health (בריאות) -->
-            <div class="ios-settings-card-group">
-              <div class="ios-settings-group-title">בריאות וכושר</div>
-
-              <!-- Row 1: Health Questionnaire -->
-              <button id="edit-health-questionnaire-btn" class="ios-setting-row" style="background: none; width: 100%; text-align: inherit; font-family: inherit; font-size: inherit; color: inherit; border: none; padding: 0; cursor: pointer;">
-                <div class="ios-row-left">
-                  <span class="ios-row-chevron">←</span>
-                </div>
-                <div class="ios-row-right">
-                  <span class="ios-row-icon-badge bg-ios-blue">📋</span>
-                  <span class="ios-row-label">שאלון מדדי בריאות</span>
-                </div>
-              </button>
             </div>
           </div>
 
@@ -1514,63 +1492,6 @@
 
         <button type="submit" id="save-scheduled-workout-btn" class="btn btn-primary" style="width: 100%; padding: 14px; font-weight: bold; border-radius: 14px; margin-top: 1rem; background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); border: none; box-shadow: 0 4px 15px rgba(249, 115, 22, 0.3);">
           💾 שמור ותזמן
-        </button>
-      </form>
-    </div>
-  </div>
-
-  <!-- Health Questionnaire Modal -->
-  <div id="health-questionnaire-modal" class="workout-modal-overlay hide" style="z-index: 1750; align-items: center; justify-content: center;">
-    <div class="workout-modal-card" style="max-width: 420px; width: 92%; border-radius: 28px; padding: 1.8rem; max-height: 90vh; display: flex; flex-direction: column; background: linear-gradient(135deg, hsla(225, 20%, 9%, 0.95) 0%, hsla(225, 20%, 5%, 0.98) 100%); border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);">
-      <div class="modal-header" style="padding-bottom: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: space-between; align-items: center; direction: rtl;">
-        <h3 class="modal-title" style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #ffffff; font-family: var(--font-display);">📋 שאלון מדדי בריאות</h3>
-        <button id="close-health-modal-btn" class="btn-cancel-link" style="background: none; border: none; font-size: 1.5rem; color: var(--text-muted); cursor: pointer; padding: 0 4px; line-height: 1;">&times;</button>
-      </div>
-
-      <form id="health-questionnaire-form" style="display: flex; flex-direction: column; gap: 1.2rem; direction: rtl; text-align: right; overflow-y: auto; flex: 1; padding: 1.2rem 4px 1rem 4px; -webkit-overflow-scrolling: touch; scroll-behavior: smooth;">
-        <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
-          <label style="font-size: 0.9rem; font-weight: 700; color: #ffffff;">מגדר</label>
-          <select id="health-gender" class="premium-filter-select" style="width: 100%; text-align: right;" required>
-            <option value="" disabled selected>בחר מגדר</option>
-            <option value="זכר">זכר</option>
-            <option value="נקבה">נקבה</option>
-            <option value="אחר">אחר</option>
-          </select>
-        </div>
-
-        <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
-          <label style="font-size: 0.9rem; font-weight: 700; color: #ffffff;">גיל</label>
-          <input type="number" id="health-age" class="date-picker-input" style="width: 100%; text-align: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); color: white; border-radius: 12px; padding: 12px;" min="1" max="120" placeholder="הכנס גיל" required>
-        </div>
-
-        <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
-          <label style="font-size: 0.9rem; font-weight: 700; color: #ffffff;">גובה (בס"מ)</label>
-          <input type="number" id="health-height" class="date-picker-input" style="width: 100%; text-align: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); color: white; border-radius: 12px; padding: 12px;" min="50" max="250" placeholder="למשל 175" required>
-        </div>
-
-        <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
-          <label style="font-size: 0.9rem; font-weight: 700; color: #ffffff;">משקל נוכחי (בק"ג)</label>
-          <input type="number" step="0.1" id="health-weight" class="date-picker-input" style="width: 100%; text-align: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); color: white; border-radius: 12px; padding: 12px;" min="10" max="300" placeholder="למשל 72.5" required>
-        </div>
-
-        <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
-          <label style="font-size: 0.9rem; font-weight: 700; color: #ffffff;">משקל יעד (בק"ג)</label>
-          <input type="number" step="0.1" id="health-target-weight" class="date-picker-input" style="width: 100%; text-align: center; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); color: white; border-radius: 12px; padding: 12px;" min="10" max="300" placeholder="למשל 70.0" required>
-        </div>
-
-        <div class="form-group" style="display: flex; flex-direction: column; gap: 6px;">
-          <label style="font-size: 0.9rem; font-weight: 700; color: #ffffff;">מטרת אימון ראשית</label>
-          <select id="health-goal" class="premium-filter-select" style="width: 100%; text-align: right;" required>
-            <option value="" disabled selected>בחר מטרה</option>
-            <option value="חיטוב ועיצוב">חיטוב ועיצוב הגוף</option>
-            <option value="עלייה במסה">עלייה במסת שריר</option>
-            <option value="שיפור סיבולת וכושר">שיפור סיבולת וכושר גופני</option>
-            <option value="שמירה על הקיים">שמירה על הקיים ובריאות כללית</option>
-          </select>
-        </div>
-
-        <button type="submit" id="save-health-btn" class="btn btn-primary" style="width: 100%; padding: 14px; font-weight: bold; border-radius: 14px; margin-top: 0.5rem; background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%); border: none; box-shadow: 0 4px 15px var(--accent-glow); color: white;">
-          💾 שמור וערוך פרופיל בריאות
         </button>
       </form>
     </div>

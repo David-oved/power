@@ -85,7 +85,6 @@ export async function uploadLocalDataToCloud(uid) {
   const exerciseDefaults = SafeStorage.getItem(`aura-exercise-defaults_${uid}`);
   const activeWorkout = SafeStorage.getItem(`aura-active-workout_${uid}`);
   const futureWorkouts = SafeStorage.getItem(`aura-future-workouts_${uid}`);
-  const healthQuestionnaire = SafeStorage.getItem(`aura-health-questionnaire_${uid}`);
 
   const data = {};
   if (workoutHistory) data.workoutHistory = JSON.parse(workoutHistory);
@@ -95,7 +94,6 @@ export async function uploadLocalDataToCloud(uid) {
   if (exerciseDefaults) data.exerciseDefaults = JSON.parse(exerciseDefaults);
   if (activeWorkout) data.activeWorkout = JSON.parse(activeWorkout);
   if (futureWorkouts) data.futureWorkouts = JSON.parse(futureWorkouts);
-  if (healthQuestionnaire) data.healthQuestionnaire = JSON.parse(healthQuestionnaire);
 
   if (Object.keys(data).length > 0) {
     const firestoreDb = getDb();
@@ -194,19 +192,6 @@ export async function syncUserSession(uid) {
     const mergedFuture = Array.from(futureMap.values());
     SafeStorage.setItem(`aura-future-workouts_${uid}`, JSON.stringify(mergedFuture));
 
-    // 8. Merge Health Questionnaire
-    const localHealth = SafeStorage.getItem(`aura-health-questionnaire_${uid}`);
-    let mergedHealth = null;
-    if (cloudData.healthQuestionnaire) {
-      mergedHealth = cloudData.healthQuestionnaire;
-    } else if (localHealth) {
-      try { mergedHealth = JSON.parse(localHealth); } catch(e) {}
-    }
-    if (mergedHealth) {
-      SafeStorage.setItem(`aura-health-questionnaire_${uid}`, JSON.stringify(mergedHealth));
-    }
-    state.healthQuestionnaire = mergedHealth;
-
     // Upload merged data back to the cloud in case local had items the cloud didn't
     const mergedDoc = {
       workoutHistory: mergedHistory,
@@ -216,7 +201,6 @@ export async function syncUserSession(uid) {
       exerciseDefaults: mergedDefaults,
       activeWorkout: mergedActive,
       futureWorkouts: mergedFuture,
-      healthQuestionnaire: mergedHealth,
       updatedAt: Date.now()
     };
     

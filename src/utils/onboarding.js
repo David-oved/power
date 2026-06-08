@@ -543,10 +543,6 @@ export function initOnboarding() {
   
   addOnboardingSettingsGroup();
   
-  document.getElementById('pwa-guide-trigger-btn')?.addEventListener('click', () => {
-    showPWARecommendationModal();
-  });
-  
   const uid = state.currentUser ? state.currentUser.uid : null;
   if (!uid) return;
   

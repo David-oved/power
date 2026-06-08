@@ -1,7 +1,6 @@
 import { state } from "../state.js";
 import { SafeStorage } from "../utils/storage.js";
 import { showPremiumToast } from "../utils/helpers.js";
-import { saveFieldToCloud } from "../utils/db.js";
 
 // Display "עדכן 🚀" button inside settings check update row
 export function showUpdateStateInSettings(waitingWorker) {
@@ -131,113 +130,10 @@ export function initPremiumSettings() {
       }
     });
   }
-
-  // Initialize Health Questionnaire event handlers
-  initHealthQuestionnaire();
 }
 
 // Binds global configurations
 export function initSettingsModule() {
   window.initPremiumSettings = initPremiumSettings;
   window.showUpdateStateInSettings = showUpdateStateInSettings;
-  window.showHealthQuestionnaireModal = showHealthQuestionnaireModal;
-  window.hideHealthQuestionnaireModal = hideHealthQuestionnaireModal;
-}
-
-export function showHealthQuestionnaireModal() {
-  const modal = document.getElementById('health-questionnaire-modal');
-  if (!modal) return;
-  
-  // Pre-fill fields if questionnaire data exists
-  if (state.healthQuestionnaire) {
-    const data = state.healthQuestionnaire;
-    if (document.getElementById('health-gender')) document.getElementById('health-gender').value = data.gender || '';
-    if (document.getElementById('health-age')) document.getElementById('health-age').value = data.age || '';
-    if (document.getElementById('health-height')) document.getElementById('health-height').value = data.height || '';
-    if (document.getElementById('health-weight')) document.getElementById('health-weight').value = data.weight || '';
-    if (document.getElementById('health-target-weight')) document.getElementById('health-target-weight').value = data.targetWeight || '';
-    if (document.getElementById('health-goal')) document.getElementById('health-goal').value = data.goal || '';
-  }
-  
-  modal.classList.remove('hide');
-}
-
-export function hideHealthQuestionnaireModal() {
-  const modal = document.getElementById('health-questionnaire-modal');
-  if (modal) {
-    modal.classList.add('hide');
-  }
-}
-
-export function initHealthQuestionnaire() {
-  window.showHealthQuestionnaireModal = showHealthQuestionnaireModal;
-  window.hideHealthQuestionnaireModal = hideHealthQuestionnaireModal;
-
-  const editBtn = document.getElementById('edit-health-questionnaire-btn');
-  const closeBtn = document.getElementById('close-health-modal-btn');
-  const modal = document.getElementById('health-questionnaire-modal');
-  const form = document.getElementById('health-questionnaire-form');
-
-  if (editBtn) {
-    editBtn.addEventListener('click', () => {
-      showHealthQuestionnaireModal();
-    });
-  }
-
-  if (closeBtn) {
-    closeBtn.addEventListener('click', () => {
-      hideHealthQuestionnaireModal();
-    });
-  }
-
-  if (modal) {
-    modal.addEventListener('click', (e) => {
-      if (e.target === modal) {
-        hideHealthQuestionnaireModal();
-      }
-    });
-  }
-
-  if (form) {
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      
-      const gender = document.getElementById('health-gender').value;
-      const age = parseInt(document.getElementById('health-age').value);
-      const height = parseInt(document.getElementById('health-height').value);
-      const weight = parseFloat(document.getElementById('health-weight').value);
-      const targetWeight = parseFloat(document.getElementById('health-target-weight').value);
-      const goal = document.getElementById('health-goal').value;
-
-      if (!gender || isNaN(age) || isNaN(height) || isNaN(weight) || isNaN(targetWeight) || !goal) {
-        showPremiumToast("אנא מלא את כל השדות בצורה תקינה.", "error");
-        return;
-      }
-
-      const data = {
-        gender,
-        age,
-        height,
-        weight,
-        targetWeight,
-        goal,
-        updatedAt: Date.now()
-      };
-
-      state.healthQuestionnaire = data;
-
-      const uid = state.currentUser ? state.currentUser.uid : null;
-      const storageKey = uid ? `aura-health-questionnaire_${uid}` : 'aura-health-questionnaire_guest';
-      
-      SafeStorage.setItem(storageKey, JSON.stringify(data));
-
-      if (uid) {
-        showPremiumToast("שומר ומסנכרן לענן... ☁️", "info");
-        await saveFieldToCloud('healthQuestionnaire', data);
-      }
-
-      showPremiumToast("פרופיל הבריאות נשמר בהצלחה! 📋✨", "success");
-      hideHealthQuestionnaireModal();
-    });
-  }
 }
