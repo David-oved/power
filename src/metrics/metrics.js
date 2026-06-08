@@ -3485,6 +3485,11 @@ export function initAnalyticsTab() {
         if (pane.id === `sub-tab-${subTab}`) {
           pane.classList.add('active');
           pane.style.display = 'flex';
+          pane.scrollTop = 0;
+          
+          // Reset internal scrollable wrappers
+          const innerScrolls = pane.querySelectorAll('.ios-analytics-scroll-container, .exercises-list-container, .workout-history-list');
+          innerScrolls.forEach(c => c.scrollTop = 0);
         } else {
           pane.style.display = 'none';
         }

@@ -9409,6 +9409,36 @@ html, body {
   padding-bottom: 0;
 }
 
+/* Fix mobile auto-zoom and layout jumps on focus */
+@media (max-width: 768px) {
+  input[type="text"],
+  input[type="number"],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+/* Glowing animation for settings unread badge dot */
+.nav-unread-dot {
+  animation: pulse-dot 1.8s infinite ease-in-out;
+}
+
+@keyframes pulse-dot {
+  0% {
+    transform: scale(0.9);
+    box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7);
+  }
+  70% {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 6px rgba(255, 59, 48, 0);
+  }
+  100% {
+    transform: scale(0.9);
+    box-shadow: 0 0 0 0 rgba(255, 59, 48, 0);
+  }
+}
+
 
 
 

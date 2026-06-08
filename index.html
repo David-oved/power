@@ -1483,9 +1483,10 @@
 
         <!-- Rightmost Tab: Settings (Active by Default) -->
         <button class="nav-tab active" data-tab="settings" aria-label="Settings Tab">
-          <div class="nav-avatar-wrapper">
+          <div class="nav-avatar-wrapper" style="position: relative;">
             <img id="nav-user-photo" class="nav-avatar" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" alt="Settings">
             <span class="avatar-active-ring"></span>
+            <span id="nav-settings-unread-dot" class="nav-unread-dot hide" style="position: absolute; top: -2px; right: -2px; width: 10px; height: 10px; border-radius: 50%; background-color: #ff3b30; border: 2px solid #090a0f; box-shadow: 0 0 8px #ff3b30; z-index: 10;"></span>
           </div>
         </button>
       </div>

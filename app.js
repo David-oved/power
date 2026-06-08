@@ -234,10 +234,18 @@ onDOMReady(() => {
       navTabs.forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
 
+      // Reset window viewport scroll to prevent page shift (UX fix)
+      window.scrollTo(0, 0);
+
       tabPanes.forEach((pane) => {
         pane.classList.remove('active');
         if (pane.id === `tab-${targetTab}`) {
           pane.classList.add('active');
+          pane.scrollTop = 0;
+          
+          // Reset internal scrollable wrappers
+          const innerScrolls = pane.querySelectorAll('.ios-settings-scroll-container, .ios-analytics-scroll-container, .exercises-list-container, .workout-history-list');
+          innerScrolls.forEach(c => c.scrollTop = 0);
         }
       });
       

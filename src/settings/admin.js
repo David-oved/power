@@ -147,6 +147,15 @@ export function initAdminModule() {
         if (titleInput) titleInput.value = '';
         if (contentInput) contentInput.value = '';
         showPremiumToast("ההודעה הגלובלית נשלחה בהצלחה לכל המשתמשים! 📢", "success");
+        // Reload admin stats and data immediately
+        await loadAdminDashboardData();
+        // Sync own session if admin is a registered user, to instantly load it in their own inbox
+        if (state.currentUser) {
+          const { syncUserSession } = await import("../utils/db.js");
+          await syncUserSession(state.currentUser.uid);
+          updateAdminUI();
+          renderUserMessagesList();
+        }
       }
     });
   }
@@ -193,6 +202,7 @@ export function initAdminModule() {
 export function updateAdminUI() {
   const adminGroup = document.getElementById('settings-admin-group');
   const unreadBadge = document.getElementById('unread-messages-badge');
+  const unreadDot = document.getElementById('nav-settings-unread-dot');
 
   // Admin options visibility
   if (adminGroup) {
@@ -203,14 +213,24 @@ export function updateAdminUI() {
     }
   }
 
-  // Unread messages badge count
+  const unreadCount = state.userMessages ? state.userMessages.filter(m => !m.read).length : 0;
+
+  // Unread messages badge count inside Settings main view
   if (unreadBadge) {
-    const unreadCount = state.userMessages ? state.userMessages.filter(m => !m.read).length : 0;
     if (unreadCount > 0) {
       unreadBadge.textContent = unreadCount;
       unreadBadge.classList.remove('hide');
     } else {
       unreadBadge.classList.add('hide');
+    }
+  }
+
+  // Glowing dot on Settings tab in the bottom nav bar
+  if (unreadDot) {
+    if (unreadCount > 0) {
+      unreadDot.classList.remove('hide');
+    } else {
+      unreadDot.classList.add('hide');
     }
   }
 }
@@ -377,6 +397,15 @@ function renderAdminUsersList(list) {
         btn.disabled = false;
         if (ok) {
           showPremiumToast(`ההודעה האישית נשלחה אל ${user.displayName}!`, "success");
+          // Reload admin stats and data immediately
+          await loadAdminDashboardData();
+          // Sync own session if admin sent a message to themselves
+          if (state.currentUser && uid === state.currentUser.uid) {
+            const { syncUserSession } = await import("../utils/db.js");
+            await syncUserSession(state.currentUser.uid);
+            updateAdminUI();
+            renderUserMessagesList();
+          }
         }
       } else if (action === 'delete') {
         if (confirm(`⚠️ אזהרה חמורה!\nהאם אתה בטוח שברצונך למחוק לצמיתות את המשתמש ${user.displayName} וכל נתוני Firestore שלו מהמערכת?\nפעולה זו אינה ניתנת לביטול!`)) {
