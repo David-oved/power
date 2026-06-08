@@ -131,6 +131,20 @@ function showUpdateToast(waitingWorker) {
   const refreshBtn = document.getElementById('pwa-refresh-btn');
   
   if (toast && refreshBtn) {
+    // Query the waiting worker for version and update description
+    const messageChannel = new MessageChannel();
+    messageChannel.port1.onmessage = (event) => {
+      if (event.data) {
+        const textEl = toast.querySelector('.toast-text');
+        if (textEl) {
+          const versionStr = event.data.version ? `גרסה ${event.data.version}` : 'גרסה חדשה';
+          const descriptionStr = event.data.description || 'שיפורי ביצועים ועיצוב כלליים';
+          textEl.innerHTML = `<strong>${versionStr} זמינה!</strong><br><span style="font-size: 0.78rem; font-weight: 500; color: #475569; display: block; margin-top: 2px;">${descriptionStr}</span>`;
+        }
+      }
+    };
+    waitingWorker.postMessage({ action: 'getVersion' }, [messageChannel.port2]);
+
     toast.classList.add('show');
     refreshBtn.addEventListener('click', () => {
       console.log("User requested update activation. Initiating on-demand asset download...");
@@ -144,6 +158,7 @@ function showUpdateToast(waitingWorker) {
 
   showUpdateStateInSettings(waitingWorker);
 }
+
 
 // ==========================================================================
 // iOS Premium Bottom Navigation Bar Switcher & Collapsible UX

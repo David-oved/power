@@ -1,4 +1,6 @@
-const CACHE_NAME = '10.2';
+const CACHE_NAME = '10.3';
+const UPDATE_DESCRIPTION = 'שדרוג סנכרון הנתונים לענן (Firebase) והפרדת תרגילי המערכת';
+
 const ASSETS = [
   './',
   './index.html',
@@ -23,7 +25,7 @@ let restTimerTimeout = null;
 
 self.addEventListener('install', (event) => {
   console.log('Service Worker: Installed immediately. Assets will be cached on-demand.');
-  self.skipWaiting(); // Force activation immediately
+  // Wait for explicit skipWaiting/activation message from client
   event.waitUntil(Promise.resolve());
 });
 
@@ -199,7 +201,10 @@ self.addEventListener('message', (event) => {
   if (event.data && event.data.action === 'getVersion') {
     if (event.ports && event.ports[0]) {
       const cleanVer = CACHE_NAME.replace('aura-app-', '').replace(/^v/, '');
-      event.ports[0].postMessage({ version: cleanVer });
+      event.ports[0].postMessage({ 
+        version: cleanVer,
+        description: typeof UPDATE_DESCRIPTION !== 'undefined' ? UPDATE_DESCRIPTION : ''
+      });
     }
   }
 });
