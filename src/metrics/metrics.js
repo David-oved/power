@@ -1087,11 +1087,11 @@ export function openHistoryMapFullscreen(segments) {
     overlay.id = 'history-fullscreen-map-overlay';
     overlay.style.cssText = 'position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(10px); display: flex; flex-direction: column; z-index: 2000;';
     overlay.innerHTML = `
-      <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: rgba(20,20,24,0.9); border-bottom: 1px solid rgba(255,255,255,0.05); direction: rtl;">
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: rgba(20,20,24,0.9); border-bottom: 1px solid rgba(255,255,255,0.05); direction: rtl; flex-shrink: 0;">
         <span style="font-weight: 800; color: #fff; font-size: 1rem;">מסלול אימון</span>
         <button id="close-history-fullscreen-map" style="background: none; border: none; color: #ef4444; font-size: 1.5rem; cursor: pointer; padding: 4px 10px; font-weight: bold;">✕</button>
       </div>
-      <div id="history-fullscreen-map" style="flex: 1; width: 100%; height: 100%;"></div>
+      <div id="history-fullscreen-map" style="flex: 1; width: 100%;"></div>
     `;
     document.body.appendChild(overlay);
     

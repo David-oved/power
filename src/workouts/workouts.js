@@ -3054,10 +3054,15 @@ export function initWorkoutsModule() {
 
       const sanitizedExercises = state.activeWorkout.exercises.map(ex => {
         const clonedEx = JSON.parse(JSON.stringify(ex));
+        const isGpsEx = ['ריצה', 'הליכה', 'ריצה והליכה'].includes(ex.name);
         clonedEx.sets = clonedEx.sets.filter(s => {
-          const hasReps = s.reps !== null && String(s.reps).trim() !== '' && Number(s.reps) > 0;
-          const hasWeight = s.weight !== null && String(s.weight).trim() !== '' && Number(s.weight) >= 0;
-          return s.completed && (hasReps || hasWeight);
+          if (isGpsEx) {
+            return s.completed && (s.distance !== undefined || s.time !== undefined);
+          } else {
+            const hasReps = s.reps !== null && s.reps !== undefined && String(s.reps).trim() !== '' && Number(s.reps) > 0;
+            const hasWeight = s.weight !== null && s.weight !== undefined && String(s.weight).trim() !== '' && Number(s.weight) >= 0;
+            return s.completed && (hasReps || hasWeight);
+          }
         });
         return clonedEx;
       }).filter(ex => ex.name.trim() !== '' && ex.sets.length > 0);
@@ -3169,10 +3174,15 @@ export function initWorkoutsModule() {
           return;
         }
         
+        const isGpsEx = ['ריצה', 'הליכה', 'ריצה והליכה'].includes(ex.name);
         ex.sets = ex.sets.filter(s => {
-          const hasReps = s.reps !== null && String(s.reps).trim() !== '' && Number(s.reps) > 0;
-          const hasWeight = s.weight !== null && String(s.weight).trim() !== '' && Number(s.weight) >= 0;
-          return hasReps || hasWeight;
+          if (isGpsEx) {
+            return s.distance !== undefined || s.time !== undefined;
+          } else {
+            const hasReps = s.reps !== null && s.reps !== undefined && String(s.reps).trim() !== '' && Number(s.reps) > 0;
+            const hasWeight = s.weight !== null && s.weight !== undefined && String(s.weight).trim() !== '' && Number(s.weight) >= 0;
+            return hasReps || hasWeight;
+          }
         });
         
         if (ex.sets.length === 0) {
