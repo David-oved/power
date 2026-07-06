@@ -67,6 +67,9 @@ export function clearUserSession() {
 
   // Reset admin layouts and badges
   updateAdminUI();
+
+  // Reset sync UI status on logout
+  if (window.updateSyncUI) window.updateSyncUI();
 }
 
 // Manage App Screen Transitions with premium animations
@@ -366,6 +369,9 @@ export function initAuth() {
         
         // Update UI again now that role and other info are synced
         updateAuthUI();
+
+        // Rerender cloud sync status
+        if (window.updateSyncUI) window.updateSyncUI();
         
         // Dynamic initializers
         if (window.initWorkouts) window.initWorkouts();

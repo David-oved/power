@@ -1893,6 +1893,46 @@ let telemetryTimerId = null;
 let wakeLock = null;
 let silentAudioPlayer = null;
 
+function showGPSDiagnosticModal() {
+  const modal = document.getElementById('gps-diagnostic-modal');
+  if (modal) {
+    modal.classList.remove('hide');
+    modal.classList.add('active');
+  }
+}
+
+async function triggerGPSAlertInbox(title, content) {
+  const uid = state.currentUser ? state.currentUser.uid : 'guest';
+  const localMessages = JSON.parse(SafeStorage.getItem(`aura-messages_${uid}`) || "[]");
+  
+  const alertId = 'gps-error-alert';
+  // Check if there is already an unread GPS error message in localMessages
+  const hasUnread = localMessages.some(m => m.id === alertId && !m.read);
+  if (hasUnread) return; // Don't spam the inbox
+  
+  const newMessage = {
+    id: alertId,
+    title: `⚠️ ${title}`,
+    content: `${content}\n\nהנחיות לפתרון:\n1. באייפון: הגדרות ➔ פרטיות ➔ שירותי מיקום ➔ אתרי Safari ➔ אפשר בעת השימוש.\n2. באנדרואיד: הגדרות ➔ יישומים ➔ כרום ➔ הרשאות ➔ מיקום ➔ אפשר.`,
+    date: Date.now(),
+    read: false
+  };
+  
+  // Prepend the message
+  const updated = [newMessage, ...localMessages.filter(m => m.id !== alertId)]; // Remove old to keep only one fresh one
+  state.userMessages = updated;
+  SafeStorage.setItem(`aura-messages_${uid}`, JSON.stringify(updated));
+  
+  if (state.currentUser && state.cloudSyncEnabled && state.cloudSyncToggles?.messages !== false) {
+    const { saveFieldToCloud } = await import("../utils/db.js");
+    await saveFieldToCloud('messages', updated);
+  }
+  
+  // Update UI
+  if (window.updateAdminUI) window.updateAdminUI();
+  if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+}
+
 function startSilentAudioBackgroundLoop() {
   if (silentAudioPlayer) {
     silentAudioPlayer.play().catch(e => {
@@ -2078,6 +2118,13 @@ function startGPSWatcher() {
     },
     (error) => {
       console.warn("watchPosition error:", error);
+      if (error.code === 1) { // PERMISSION_DENIED
+        triggerGPSAlertInbox("גישת GPS נדחתה על ידי המשתמש", "האפליקציה ניסתה לגשת למיקומך אך הבקשה נדחתה. יש לאפשר גישה בהגדרות הדפדפן או המכשיר.");
+        showGPSDiagnosticModal();
+      } else if (error.code === 2) { // POSITION_UNAVAILABLE
+        triggerGPSAlertInbox("אות GPS לא זמין", "רכיב המיקום במכשיר אינו מצליח לקבל קליטת לוויינים תקינה. ודא שאתה תחת שמיים פתוחים ושירותי המיקום מופעלים במכשיר.");
+        showGPSDiagnosticModal();
+      }
     },
     options
   );
@@ -2499,7 +2546,28 @@ export function finishAndSaveRun() {
 }
 
 // Open Run Tracker Modal
-export function openRunTrackerModal(exercise) {
+export async function openRunTrackerModal(exercise) {
+  // Check if Geolocation is supported
+  if (!navigator.geolocation) {
+    triggerGPSAlertInbox("רכיב מיקום (GPS) אינו נתמך בדפדפן זה.", "הדפדפן שלך אינו תומך בגישה לשירותי מיקום. אנא פתח את האפליקציה בדפדפן מודרני (Chrome באנדרואיד או Safari ב-iOS).");
+    showGPSDiagnosticModal();
+    return;
+  }
+
+  // Try to check using Permissions API if available (Chrome/Firefox/Safari 16+)
+  if (navigator.permissions && navigator.permissions.query) {
+    try {
+      const permissionStatus = await navigator.permissions.query({ name: 'geolocation' });
+      if (permissionStatus.state === 'denied') {
+        triggerGPSAlertInbox("גישת GPS חסומה", "חסמת את הרשאת הגישה למיקום עבור Aura. כדי להשתמש במעקב הריצה, אנא פעל לפי ההוראות בהגדרות המכשיר לאישור הגישה למיקום.");
+        showGPSDiagnosticModal();
+        return;
+      }
+    } catch (err) {
+      console.warn("Permissions API query failed:", err);
+    }
+  }
+
   const modal = document.getElementById('run-tracker-modal');
   if (!modal) return;
 
@@ -3481,6 +3549,26 @@ export function initWorkoutsModule() {
   if (calcModal) {
     calcModal.addEventListener('click', (e) => {
       if (e.target === calcModal) dismissCalc();
+    });
+  }
+
+  // GPS Diagnostic bindings
+  const gpsDiagModal = document.getElementById('gps-diagnostic-modal');
+  const gpsDiagClose = document.getElementById('close-gps-diagnostic-btn');
+  const gpsDiagOk = document.getElementById('gps-diagnostic-ok-btn');
+
+  const dismissGpsDiag = () => {
+    if (gpsDiagModal) {
+      gpsDiagModal.classList.add('hide');
+      gpsDiagModal.classList.remove('active');
+    }
+  };
+
+  if (gpsDiagClose) gpsDiagClose.addEventListener('click', dismissGpsDiag);
+  if (gpsDiagOk) gpsDiagOk.addEventListener('click', dismissGpsDiag);
+  if (gpsDiagModal) {
+    gpsDiagModal.addEventListener('click', (e) => {
+      if (e.target === gpsDiagModal) dismissGpsDiag();
     });
   }
 

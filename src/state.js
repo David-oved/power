@@ -71,6 +71,33 @@ export const state = {
     runDuration: 0,
     walkDuration: 0,
     restDuration: 0
-  }
+  },
+
+  // Cloud Sync Settings
+  cloudSyncEnabled: SafeStorage.getItem('aura-cloud-sync-enabled') !== 'false',
+  cloudSyncToggles: (() => {
+    try {
+      const saved = SafeStorage.getItem('aura-cloud-sync-toggles');
+      return saved ? JSON.parse(saved) : {
+        workoutHistory: true,
+        customExercises: true,
+        customLocations: true,
+        favoriteExercises: true,
+        exerciseDefaults: true,
+        futureWorkouts: true,
+        messages: true
+      };
+    } catch (e) {
+      return {
+        workoutHistory: true,
+        customExercises: true,
+        customLocations: true,
+        favoriteExercises: true,
+        exerciseDefaults: true,
+        futureWorkouts: true,
+        messages: true
+      };
+    }
+  })()
 };
 

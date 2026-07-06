@@ -5,7 +5,8 @@ import {
   getFirestore,
   doc,
   getDoc,
-  setDoc 
+  setDoc,
+  deleteDoc
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { state } from "../state.js";
 import { SafeStorage } from "./storage.js";
@@ -39,6 +40,28 @@ export function getDb() {
 // Save a specific field to the user's cloud document
 export async function saveFieldToCloud(fieldName, data) {
   if (!state.currentUser) return;
+  if (!state.cloudSyncEnabled) {
+    console.log("Cloud sync is disabled. Skipping save to cloud for:", fieldName);
+    return;
+  }
+
+  const toggleMap = {
+    workoutHistory: 'workoutHistory',
+    activeWorkout: 'workoutHistory',
+    customLocations: 'customLocations',
+    customExercises: 'customExercises',
+    favoriteExercises: 'favoriteExercises',
+    exerciseDefaults: 'exerciseDefaults',
+    futureWorkouts: 'futureWorkouts',
+    messages: 'messages'
+  };
+
+  const toggleKey = toggleMap[fieldName];
+  if (toggleKey && state.cloudSyncToggles && state.cloudSyncToggles[toggleKey] === false) {
+    console.log(`Cloud sync is disabled for data type: ${toggleKey}. Skipping save to cloud.`);
+    return;
+  }
+
   const uid = state.currentUser.uid;
   const firestoreDb = getDb();
   if (!firestoreDb) {
@@ -78,24 +101,43 @@ export async function loadUserDataFromCloud(uid) {
 
 // Upload local data to the cloud (used on first sync if cloud is empty)
 export async function uploadLocalDataToCloud(uid) {
-  const workoutHistory = SafeStorage.getItem(`aura-workout-history_${uid}`);
-  const customLocations = SafeStorage.getItem(`aura-custom-locations_${uid}`);
-  const customExercises = SafeStorage.getItem(`aura-custom-exercises_${uid}`);
-  const favoriteExercises = SafeStorage.getItem(`aura-favorite-exercises_${uid}`);
-  const exerciseDefaults = SafeStorage.getItem(`aura-exercise-defaults_${uid}`);
-  const activeWorkout = SafeStorage.getItem(`aura-active-workout_${uid}`);
-  const futureWorkouts = SafeStorage.getItem(`aura-future-workouts_${uid}`);
-  const messages = SafeStorage.getItem(`aura-messages_${uid}`);
-
+  if (!state.cloudSyncEnabled) {
+    console.log("Cloud sync is disabled. Skipping uploadLocalDataToCloud.");
+    return;
+  }
   const data = {};
-  if (workoutHistory) data.workoutHistory = JSON.parse(workoutHistory);
-  if (customLocations) data.customLocations = JSON.parse(customLocations);
-  if (customExercises) data.customExercises = JSON.parse(customExercises);
-  if (favoriteExercises) data.favoriteExercises = JSON.parse(favoriteExercises);
-  if (exerciseDefaults) data.exerciseDefaults = JSON.parse(exerciseDefaults);
-  if (activeWorkout) data.activeWorkout = JSON.parse(activeWorkout);
-  if (futureWorkouts) data.futureWorkouts = JSON.parse(futureWorkouts);
-  if (messages) data.messages = JSON.parse(messages);
+  const toggles = state.cloudSyncToggles || {};
+
+  if (toggles.workoutHistory !== false) {
+    const workoutHistory = SafeStorage.getItem(`aura-workout-history_${uid}`);
+    if (workoutHistory) data.workoutHistory = JSON.parse(workoutHistory);
+    const activeWorkout = SafeStorage.getItem(`aura-active-workout_${uid}`);
+    if (activeWorkout) data.activeWorkout = JSON.parse(activeWorkout);
+  }
+  if (toggles.customLocations !== false) {
+    const customLocations = SafeStorage.getItem(`aura-custom-locations_${uid}`);
+    if (customLocations) data.customLocations = JSON.parse(customLocations);
+  }
+  if (toggles.customExercises !== false) {
+    const customExercises = SafeStorage.getItem(`aura-custom-exercises_${uid}`);
+    if (customExercises) data.customExercises = JSON.parse(customExercises);
+  }
+  if (toggles.favoriteExercises !== false) {
+    const favoriteExercises = SafeStorage.getItem(`aura-favorite-exercises_${uid}`);
+    if (favoriteExercises) data.favoriteExercises = JSON.parse(favoriteExercises);
+  }
+  if (toggles.exerciseDefaults !== false) {
+    const exerciseDefaults = SafeStorage.getItem(`aura-exercise-defaults_${uid}`);
+    if (exerciseDefaults) data.exerciseDefaults = JSON.parse(exerciseDefaults);
+  }
+  if (toggles.futureWorkouts !== false) {
+    const futureWorkouts = SafeStorage.getItem(`aura-future-workouts_${uid}`);
+    if (futureWorkouts) data.futureWorkouts = JSON.parse(futureWorkouts);
+  }
+  if (toggles.messages !== false) {
+    const messages = SafeStorage.getItem(`aura-messages_${uid}`);
+    if (messages) data.messages = JSON.parse(messages);
+  }
 
   const firestoreDb = getDb();
   if (!firestoreDb) return;
@@ -122,10 +164,18 @@ export async function uploadLocalDataToCloud(uid) {
 }
 
 // Merge cloud data with any existing local cache to prevent data loss, then update local state
-export async function syncUserSession(uid) {
+export async function syncUserSession(uid, isManual = false) {
+  if (!state.cloudSyncEnabled && !isManual) {
+    console.log("Cloud sync is disabled. Skipping user session sync.");
+    const email = state.currentUser ? state.currentUser.email : "";
+    state.userRole = (email && email.toLowerCase() === 'wbddwd55@gmail.com') ? 'admin' : 'user';
+    return;
+  }
   try {
     console.log("Starting cloud data synchronization for uid:", uid);
-    showPremiumToast("מסנכרן נתונים מהענן... ☁️", "info");
+    if (isManual) {
+      showPremiumToast("מסנכרן נתונים מהענן... ☁️", "info");
+    }
 
     const cloudData = await loadUserDataFromCloud(uid);
 
@@ -138,132 +188,178 @@ export async function syncUserSession(uid) {
     if (!cloudData) {
       console.log("No cloud data found. Backup local data to cloud...");
       await uploadLocalDataToCloud(uid);
-      showPremiumToast("הסנכרון הראשוני הושלם בהצלחה! ⚡", "success");
+      if (isManual) {
+        showPremiumToast("הסנכרון הראשוני הושלם בהצלחה! ⚡", "success");
+      }
       return;
     }
 
+    const toggles = state.cloudSyncToggles || {};
+
     // 1. Merge Workout History
-    const localHistory = JSON.parse(SafeStorage.getItem(`aura-workout-history_${uid}`) || "[]");
-    const cloudHistory = cloudData.workoutHistory || [];
-    const historyMap = new Map();
-    localHistory.forEach(w => historyMap.set(String(w.id), w));
-    cloudHistory.forEach(w => historyMap.set(String(w.id), w));
-    const mergedHistory = Array.from(historyMap.values()).sort((a, b) => b.date - a.date);
-    SafeStorage.setItem(`aura-workout-history_${uid}`, JSON.stringify(mergedHistory));
-    state.workoutHistory = mergedHistory;
+    let mergedHistory = state.workoutHistory;
+    if (toggles.workoutHistory !== false) {
+      const localHistory = JSON.parse(SafeStorage.getItem(`aura-workout-history_${uid}`) || "[]");
+      const cloudHistory = cloudData.workoutHistory || [];
+      const historyMap = new Map();
+      localHistory.forEach(w => historyMap.set(String(w.id), w));
+      cloudHistory.forEach(w => historyMap.set(String(w.id), w));
+      mergedHistory = Array.from(historyMap.values()).sort((a, b) => b.date - a.date);
+      SafeStorage.setItem(`aura-workout-history_${uid}`, JSON.stringify(mergedHistory));
+      state.workoutHistory = mergedHistory;
+    }
 
     // 2. Merge Custom Locations
-    const localLocs = JSON.parse(SafeStorage.getItem(`aura-custom-locations_${uid}`) || "[]");
-    const cloudLocs = cloudData.customLocations || [];
-    const locsMap = new Map();
-    localLocs.forEach(l => locsMap.set(String(l.id), l));
-    cloudLocs.forEach(l => locsMap.set(String(l.id), l));
-    const mergedLocs = Array.from(locsMap.values());
-    SafeStorage.setItem(`aura-custom-locations_${uid}`, JSON.stringify(mergedLocs));
-    state.customLocations = mergedLocs;
+    let mergedLocs = state.customLocations;
+    if (toggles.customLocations !== false) {
+      const localLocs = JSON.parse(SafeStorage.getItem(`aura-custom-locations_${uid}`) || "[]");
+      const cloudLocs = cloudData.customLocations || [];
+      const locsMap = new Map();
+      localLocs.forEach(l => locsMap.set(String(l.id), l));
+      cloudLocs.forEach(l => locsMap.set(String(l.id), l));
+      mergedLocs = Array.from(locsMap.values());
+      SafeStorage.setItem(`aura-custom-locations_${uid}`, JSON.stringify(mergedLocs));
+      state.customLocations = mergedLocs;
+    }
 
     // 3. Merge Custom Exercises
-    const localExs = JSON.parse(SafeStorage.getItem(`aura-custom-exercises_${uid}`) || "[]");
-    const cloudExs = cloudData.customExercises || [];
-    const exsMap = new Map();
-    localExs.forEach(e => exsMap.set(e.name.trim().toLowerCase(), e));
-    cloudExs.forEach(e => exsMap.set(e.name.trim().toLowerCase(), e));
-    const mergedExs = Array.from(exsMap.values());
-    SafeStorage.setItem(`aura-custom-exercises_${uid}`, JSON.stringify(mergedExs));
-    state.customExercises = mergedExs;
+    let mergedExs = state.customExercises;
+    if (toggles.customExercises !== false) {
+      const localExs = JSON.parse(SafeStorage.getItem(`aura-custom-exercises_${uid}`) || "[]");
+      const cloudExs = cloudData.customExercises || [];
+      const exsMap = new Map();
+      localExs.forEach(e => exsMap.set(e.name.trim().toLowerCase(), e));
+      cloudExs.forEach(e => exsMap.set(e.name.trim().toLowerCase(), e));
+      mergedExs = Array.from(exsMap.values());
+      SafeStorage.setItem(`aura-custom-exercises_${uid}`, JSON.stringify(mergedExs));
+      state.customExercises = mergedExs;
+    }
 
     // 4. Merge Favorite Exercises
-    const localFavs = JSON.parse(SafeStorage.getItem(`aura-favorite-exercises_${uid}`) || "[]");
-    const cloudFavs = cloudData.favoriteExercises || [];
-    const mergedFavs = Array.from(new Set([...localFavs, ...cloudFavs]));
-    SafeStorage.setItem(`aura-favorite-exercises_${uid}`, JSON.stringify(mergedFavs));
-    state.favoriteExercises = mergedFavs;
+    let mergedFavs = state.favoriteExercises;
+    if (toggles.favoriteExercises !== false) {
+      const localFavs = JSON.parse(SafeStorage.getItem(`aura-favorite-exercises_${uid}`) || "[]");
+      const cloudFavs = cloudData.favoriteExercises || [];
+      mergedFavs = Array.from(new Set([...localFavs, ...cloudFavs]));
+      SafeStorage.setItem(`aura-favorite-exercises_${uid}`, JSON.stringify(mergedFavs));
+      state.favoriteExercises = mergedFavs;
+    }
 
     // 5. Merge Exercise Defaults Configurations
-    const localDefaults = JSON.parse(SafeStorage.getItem(`aura-exercise-defaults_${uid}`) || "{}");
-    const cloudDefaults = cloudData.exerciseDefaults || {};
-    const mergedDefaults = { ...localDefaults, ...cloudDefaults };
-    SafeStorage.setItem(`aura-exercise-defaults_${uid}`, JSON.stringify(mergedDefaults));
+    let mergedDefaults = JSON.parse(SafeStorage.getItem(`aura-exercise-defaults_${uid}`) || "{}");
+    if (toggles.exerciseDefaults !== false) {
+      const localDefaults = mergedDefaults;
+      const cloudDefaults = cloudData.exerciseDefaults || {};
+      mergedDefaults = { ...localDefaults, ...cloudDefaults };
+      SafeStorage.setItem(`aura-exercise-defaults_${uid}`, JSON.stringify(mergedDefaults));
+    }
 
     // 6. Merge Active Workout
-    const localActive = SafeStorage.getItem(`aura-active-workout_${uid}`);
-    let mergedActive = null;
-    if (cloudData.activeWorkout) {
-      mergedActive = cloudData.activeWorkout;
-    } else if (localActive) {
-      try { mergedActive = JSON.parse(localActive); } catch(e) {}
+    let mergedActive = state.activeWorkout;
+    if (toggles.workoutHistory !== false) {
+      const localActive = SafeStorage.getItem(`aura-active-workout_${uid}`);
+      if (cloudData.activeWorkout) {
+        mergedActive = cloudData.activeWorkout;
+      } else if (localActive) {
+        try { mergedActive = JSON.parse(localActive); } catch(e) {}
+      }
+      if (mergedActive) {
+        SafeStorage.setItem(`aura-active-workout_${uid}`, JSON.stringify(mergedActive));
+      } else {
+        SafeStorage.removeItem(`aura-active-workout_${uid}`);
+      }
+      state.activeWorkout = mergedActive;
     }
-    if (mergedActive) {
-      SafeStorage.setItem(`aura-active-workout_${uid}`, JSON.stringify(mergedActive));
-    } else {
-      SafeStorage.removeItem(`aura-active-workout_${uid}`);
-    }
-    state.activeWorkout = mergedActive;
 
     // 7. Merge Future Workouts
-    const localFuture = JSON.parse(SafeStorage.getItem(`aura-future-workouts_${uid}`) || "[]");
-    const cloudFuture = cloudData.futureWorkouts || [];
-    const futureMap = new Map();
-    localFuture.forEach(f => futureMap.set(String(f.id), f));
-    cloudFuture.forEach(f => futureMap.set(String(f.id), f));
-    const mergedFuture = Array.from(futureMap.values());
-    SafeStorage.setItem(`aura-future-workouts_${uid}`, JSON.stringify(mergedFuture));
+    let mergedFuture = [];
+    if (toggles.futureWorkouts !== false) {
+      const localFuture = JSON.parse(SafeStorage.getItem(`aura-future-workouts_${uid}`) || "[]");
+      const cloudFuture = cloudData.futureWorkouts || [];
+      const futureMap = new Map();
+      localFuture.forEach(f => futureMap.set(String(f.id), f));
+      cloudFuture.forEach(f => futureMap.set(String(f.id), f));
+      mergedFuture = Array.from(futureMap.values());
+      SafeStorage.setItem(`aura-future-workouts_${uid}`, JSON.stringify(mergedFuture));
+    }
 
     // 8. Merge Messages
-    const localMessages = JSON.parse(SafeStorage.getItem(`aura-messages_${uid}`) || "[]");
-    const cloudMessages = cloudData.messages || [];
+    let mergedMessages = state.userMessages;
+    if (toggles.messages !== false) {
+      const localMessages = JSON.parse(SafeStorage.getItem(`aura-messages_${uid}`) || "[]");
+      const cloudMessages = cloudData.messages || [];
 
-    // Trigger local push notification on new unread cloud messages (Choice A1)
-    const localMsgIds = new Set(localMessages.map(m => String(m.id)));
-    const newCloudMessages = cloudMessages.filter(m => !localMsgIds.has(String(m.id)));
-    if (newCloudMessages.length > 0) {
-      const unreadNew = newCloudMessages.filter(m => !m.read);
-      if (unreadNew.length > 0 && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-        unreadNew.forEach(m => {
-          try {
-            triggerLocalNotification(
-              m.title || "הודעה חדשה מהמערכת ✉️",
-              m.content || "כנס לאפליקציה לצפייה בהודעה."
-            );
-          } catch(err) {
-            console.warn("Failed to fire push notification:", err);
-          }
-        });
+      // Trigger local push notification on new unread cloud messages (Choice A1)
+      const localMsgIds = new Set(localMessages.map(m => String(m.id)));
+      const newCloudMessages = cloudMessages.filter(m => !localMsgIds.has(String(m.id)));
+      if (newCloudMessages.length > 0) {
+        const unreadNew = newCloudMessages.filter(m => !m.read);
+        if (unreadNew.length > 0 && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+          unreadNew.forEach(m => {
+            try {
+              triggerLocalNotification(
+                m.title || "הודעה חדשה מהמערכת ✉️",
+                m.content || "כנס לאפליקציה לצפייה בהודעה."
+              );
+            } catch(err) {
+              console.warn("Failed to fire push notification:", err);
+            }
+          });
+        }
+      }
+
+      const messagesMap = new Map();
+      localMessages.forEach(m => messagesMap.set(String(m.id), m));
+      cloudMessages.forEach(m => messagesMap.set(String(m.id), m));
+      mergedMessages = Array.from(messagesMap.values()).sort((a, b) => b.date - a.date);
+      SafeStorage.setItem(`aura-messages_${uid}`, JSON.stringify(mergedMessages));
+      state.userMessages = mergedMessages;
+    }
+
+    // Upload merged data back to the cloud in case local had items the cloud didn't
+    if (state.cloudSyncEnabled) {
+      const mergedDoc = {
+        email,
+        displayName,
+        role,
+        updatedAt: Date.now()
+      };
+      if (toggles.workoutHistory !== false) {
+        mergedDoc.workoutHistory = mergedHistory;
+        mergedDoc.activeWorkout = mergedActive;
+      }
+      if (toggles.customLocations !== false) mergedDoc.customLocations = mergedLocs;
+      if (toggles.customExercises !== false) mergedDoc.customExercises = mergedExs;
+      if (toggles.favoriteExercises !== false) mergedDoc.favoriteExercises = mergedFavs;
+      if (toggles.exerciseDefaults !== false) mergedDoc.exerciseDefaults = mergedDefaults;
+      if (toggles.futureWorkouts !== false) mergedDoc.futureWorkouts = mergedFuture;
+      if (toggles.messages !== false) mergedDoc.messages = mergedMessages;
+      
+      const firestoreDb = getDb();
+      if (firestoreDb) {
+        const docRef = doc(firestoreDb, "users", uid);
+        await setDoc(docRef, mergedDoc, { merge: true });
       }
     }
 
-    const messagesMap = new Map();
-    localMessages.forEach(m => messagesMap.set(String(m.id), m));
-    cloudMessages.forEach(m => messagesMap.set(String(m.id), m));
-    const mergedMessages = Array.from(messagesMap.values()).sort((a, b) => b.date - a.date);
-    SafeStorage.setItem(`aura-messages_${uid}`, JSON.stringify(mergedMessages));
-    state.userMessages = mergedMessages;
-
-    // Upload merged data back to the cloud in case local had items the cloud didn't
-    const mergedDoc = {
-      workoutHistory: mergedHistory,
-      customLocations: mergedLocs,
-      customExercises: mergedExs,
-      favoriteExercises: mergedFavs,
-      exerciseDefaults: mergedDefaults,
-      activeWorkout: mergedActive,
-      futureWorkouts: mergedFuture,
-      messages: mergedMessages,
-      email,
-      displayName,
-      role,
-      updatedAt: Date.now()
-    };
-    
-    const firestoreDb = getDb();
-    if (firestoreDb) {
-      const docRef = doc(firestoreDb, "users", uid);
-      await setDoc(docRef, mergedDoc, { merge: true });
+    if (isManual) {
+      showPremiumToast("הנתונים סונכרנו בהצלחה! ⚡", "success");
     }
-
-    showPremiumToast("הנתונים סונכרנו בהצלחה! ⚡", "success");
   } catch (error) {
     console.error("Error during cloud user sync session:", error);
-    showPremiumToast("סנכרון הענן נכשל. עובד במצב לא מקוון.", "error");
+    if (isManual) {
+      showPremiumToast("סנכרון הענן נכשל. עובד במצב לא מקוון.", "error");
+    }
   }
+}
+
+// Delete all cloud data for the user
+export async function deleteCloudDataOnly(uid) {
+  const firestoreDb = getDb();
+  if (!firestoreDb) {
+    throw new Error("Firestore not initialized.");
+  }
+  const docRef = doc(firestoreDb, "users", uid);
+  await deleteDoc(docRef);
+  console.log(`Successfully deleted cloud data for user: ${uid}`);
 }
