@@ -1,4 +1,4 @@
-const CACHE_NAME = '11';
+const CACHE_NAME = '11.1';
 const UPDATE_DESCRIPTION = 'תיקונים והוספת הגדרות ענן';
 
 const ASSETS = [
