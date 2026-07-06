@@ -1,5 +1,5 @@
-const CACHE_NAME = '10.9';
-const UPDATE_DESCRIPTION = 'הוספת אימון ריצה בלייב כולל רידום מדויק של הפרטי אימון';
+const CACHE_NAME = '11';
+const UPDATE_DESCRIPTION = 'תיקונים והוספת הגדרות ענן';
 
 const ASSETS = [
   './',
