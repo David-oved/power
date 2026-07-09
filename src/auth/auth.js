@@ -281,32 +281,47 @@ export function initAuth() {
       loginBtn.disabled = true;
       const btnTextEl = loginBtn.querySelector('.google-btn-text');
       const originalText = btnTextEl ? btnTextEl.textContent : 'Sign in with Google';
-      if (btnTextEl) btnTextEl.textContent = 'Connecting...';
 
-      try {
-        console.log("Attempting Google Authentication via popup...");
-        await signInWithPopup(state.auth, state.googleProvider);
-        console.log("Logged in successfully via popup!");
+      let maxAttempts = 3;
+      let success = false;
+
+      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        if (btnTextEl) btnTextEl.textContent = `Connecting (Attempt ${attempt})...`;
+        try {
+          console.log(`Attempting Google Authentication via popup (Attempt ${attempt})...`);
+          await signInWithPopup(state.auth, state.googleProvider);
+          console.log("Logged in successfully via popup!");
+          success = true;
+          break;
+        } catch (popupError) {
+          console.warn(`Popup authentication failed/blocked (Attempt ${attempt}). Code:`, popupError.code, popupError.message);
+          
+          if (popupError.code === 'auth/account-exists-with-different-credential') {
+            showPremiumToast("קיים כבר חשבון רשום עם כתובת אימייל זו במערכת. אנא פנה לתמיכה לצורך מיזוג חשבונות.", "error");
+            loginBtn.disabled = false;
+            if (btnTextEl) btnTextEl.textContent = originalText;
+            return;
+          }
+
+          // If user cancelled, just reset button state and return safely.
+          if (popupError.code === 'auth/popup-closed-by-user' || popupError.code === 'auth/cancelled-popup-request') {
+            console.log("Sign-in process was cancelled by the user.");
+            loginBtn.disabled = false;
+            if (btnTextEl) btnTextEl.textContent = originalText;
+            return;
+          }
+
+          // Non-cancellation error: delay and retry if not last attempt
+          if (attempt < maxAttempts) {
+            await new Promise(resolve => setTimeout(resolve, 2000));
+          }
+        }
+      }
+
+      if (success) {
         loginBtn.disabled = false;
         if (btnTextEl) btnTextEl.textContent = originalText;
-      } catch (popupError) {
-        console.warn("Popup authentication failed/blocked. Code:", popupError.code, popupError.message);
-        
-        if (popupError.code === 'auth/account-exists-with-different-credential') {
-          showPremiumToast("קיים כבר חשבון רשום עם כתובת אימייל זו במערכת. אנא פנה לתמיכה לצורך מיזוג חשבונות.", "error");
-          loginBtn.disabled = false;
-          if (btnTextEl) btnTextEl.textContent = originalText;
-          return;
-        }
-
-        // If user cancelled, just reset button state and return safely.
-        if (popupError.code === 'auth/popup-closed-by-user' || popupError.code === 'auth/cancelled-popup-request') {
-          console.log("Sign-in process was cancelled by the user.");
-          loginBtn.disabled = false;
-          if (btnTextEl) btnTextEl.textContent = originalText;
-          return;
-        }
-
+      } else {
         // Redirect fallback
         console.log("Falling back dynamically to signInWithRedirect...");
         if (btnTextEl) btnTextEl.textContent = 'Redirecting...';

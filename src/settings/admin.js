@@ -193,6 +193,40 @@ export function initAdminModule() {
     });
   }
 
+  // --- SYSTEM UPDATE TRIGGER ---
+  const triggerUpdateBtn = document.getElementById('admin-trigger-update-btn');
+  if (triggerUpdateBtn) {
+    triggerUpdateBtn.addEventListener('click', async () => {
+      if (!('serviceWorker' in navigator)) {
+        showPremiumToast('שירות Service Worker אינו זמין במכשיר זה.', 'error');
+        return;
+      }
+
+      triggerUpdateBtn.disabled = true;
+      triggerUpdateBtn.textContent = 'מפיץ עדכון... 🚀';
+
+      try {
+        const reg = await navigator.serviceWorker.getRegistration();
+        const worker = navigator.serviceWorker.controller || (reg ? reg.active : null);
+
+        if (worker) {
+          console.log("Admin triggered forced version update. Sending message to SW...");
+          worker.postMessage({ action: 'downloadAndActivate' });
+          showPremiumToast('הפצת עדכון גרסה הופעלה. האפליקציה תתרענן בקרוב עם הקבצים החדשים!', 'success');
+        } else {
+          showPremiumToast('לא נמצא Service Worker פעיל לביצוע העדכון.', 'error');
+          triggerUpdateBtn.disabled = false;
+          triggerUpdateBtn.textContent = '🚀 הפץ עדכון גרסה עכשיו';
+        }
+      } catch (err) {
+        console.error("Failed to trigger admin update:", err);
+        showPremiumToast('שגיאה בהפצת העדכון: ' + err.message, 'error');
+        triggerUpdateBtn.disabled = false;
+        triggerUpdateBtn.textContent = '🚀 הפץ עדכון גרסה עכשיו';
+      }
+    });
+  }
+
   // Export globally
   window.updateAdminUI = updateAdminUI;
   window.loadAdminDashboardData = loadAdminDashboardData;

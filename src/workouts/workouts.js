@@ -370,8 +370,149 @@ export function initWorkouts() {
         if (!state.activeWorkout.exercises || !Array.isArray(state.activeWorkout.exercises)) {
           state.activeWorkout.exercises = [];
         }
-        console.log("Restored active workout from storage, resuming timer...");
-        resumeWorkoutTimer();
+
+        const fourHoursInMs = 4 * 60 * 60 * 1000;
+        const isStale = (Date.now() - state.activeWorkout.startTime) > fourHoursInMs;
+
+        if (isStale) {
+          const hasCompletedExercises = state.activeWorkout.exercises.some(ex => ex.sets && ex.sets.some(s => s.completed));
+          if (!hasCompletedExercises) {
+            console.log("Stale and empty active workout detected. Discarding quietly...");
+            state.activeWorkout = null;
+            SafeStorage.removeItem(`aura-active-workout_${state.currentUser.uid}`);
+            saveFieldToCloud("activeWorkout", null);
+          } else {
+            console.log("Stale active workout with completed exercises detected. Showing stale workout modal...");
+            const staleModal = document.getElementById('stale-workout-modal');
+            const listContainer = document.getElementById('stale-workout-exercises-list');
+            if (listContainer) {
+              listContainer.innerHTML = '';
+              state.activeWorkout.exercises.forEach(ex => {
+                const completedSetsCount = ex.sets ? ex.sets.filter(s => s.completed).length : 0;
+                if (completedSetsCount > 0) {
+                  const item = document.createElement('div');
+                  item.style.padding = '6px 0';
+                  item.style.borderBottom = '1px solid rgba(255,255,255,0.05)';
+                  item.style.color = '#ffffff';
+                  item.style.fontSize = '0.9rem';
+                  item.textContent = `${ex.emoji || '💪'} ${ex.name} (${completedSetsCount} סטים)`;
+                  listContainer.appendChild(item);
+                }
+              });
+            }
+            if (staleModal) {
+              staleModal.classList.remove('hide');
+            }
+
+            const saveBtn = document.getElementById('stale-workout-save-btn');
+            const deleteBtn = document.getElementById('stale-workout-delete-btn');
+
+            if (saveBtn) {
+              const newSaveBtn = saveBtn.cloneNode(true);
+              saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
+              newSaveBtn.addEventListener('click', () => {
+                state.activeWorkout.exercises.forEach(ex => {
+                  if (!ex.completed && ex.name.trim() !== '') {
+                    ex.sets.forEach(set => {
+                      if (!set.completed) {
+                        const hasReps = set.reps !== '' && Number(set.reps) > 0;
+                        const hasWeight = set.weight !== '' && Number(set.weight) >= 0;
+                        if (hasReps || hasWeight) {
+                          set.completed = true;
+                        }
+                      }
+                    });
+                    const hasCompletedSets = ex.sets.some(s => s.completed);
+                    if (hasCompletedSets) {
+                      ex.completed = true;
+                    }
+                  }
+                });
+
+                const sanitizedExercises = state.activeWorkout.exercises.map(ex => {
+                  const clonedEx = JSON.parse(JSON.stringify(ex));
+                  const isGpsEx = ['ריצה', 'הליכה', 'ריצה והליכה'].includes(ex.name);
+                  clonedEx.sets = clonedEx.sets.filter(s => {
+                    if (isGpsEx) {
+                      return s.completed && (s.distance !== undefined || s.time !== undefined);
+                    } else {
+                      const hasReps = s.reps !== null && s.reps !== undefined && String(s.reps).trim() !== '' && Number(s.reps) > 0;
+                      const hasWeight = s.weight !== null && s.weight !== undefined && String(s.weight).trim() !== '' && Number(s.weight) >= 0;
+                      return s.completed && (hasReps || hasWeight);
+                    }
+                  });
+                  return clonedEx;
+                }).filter(ex => ex.name.trim() !== '' && ex.sets.length > 0);
+
+                const workoutLog = {
+                  id: Date.now(),
+                  date: Date.now(),
+                  location: state.activeWorkout.location,
+                  locationName: state.activeWorkout.locationName || (state.activeWorkout.location === 'gym' ? 'חדר כושר' : 'פארק'),
+                  locationEmoji: state.activeWorkout.locationEmoji || (state.activeWorkout.location === 'gym' ? '🏋️‍♂️' : '🌳'),
+                  duration: 3600, // default 60 minutes
+                  exercises: sanitizedExercises
+                };
+
+                state.workoutHistory.push(workoutLog);
+                SafeStorage.setItem(`aura-workout-history_${state.currentUser.uid}`, JSON.stringify(state.workoutHistory));
+                saveFieldToCloud("workoutHistory", state.workoutHistory);
+
+                SafeStorage.removeItem(`aura-active-workout_${state.currentUser.uid}`);
+                saveFieldToCloud("activeWorkout", null);
+
+                if (state.activeTimerInterval) {
+                  clearInterval(state.activeTimerInterval);
+                  state.activeTimerInterval = null;
+                }
+                state.activeWorkout = null;
+
+                if (staleModal) staleModal.classList.add('hide');
+
+                const activeView = document.getElementById('workout-active-view');
+                const idleView = document.getElementById('workout-idle-view');
+                if (activeView) activeView.classList.add('hide');
+                if (idleView) {
+                  idleView.classList.add('active');
+                  idleView.classList.remove('hide');
+                }
+
+                if (window.renderWorkoutHistory) window.renderWorkoutHistory();
+                showPremiumToast("האימון הישן נשמר בהצלחה! 💪", "success");
+              });
+            }
+
+            if (deleteBtn) {
+              const newDeleteBtn = deleteBtn.cloneNode(true);
+              deleteBtn.parentNode.replaceChild(newDeleteBtn, deleteBtn);
+              newDeleteBtn.addEventListener('click', () => {
+                SafeStorage.removeItem(`aura-active-workout_${state.currentUser.uid}`);
+                saveFieldToCloud("activeWorkout", null);
+
+                if (state.activeTimerInterval) {
+                  clearInterval(state.activeTimerInterval);
+                  state.activeTimerInterval = null;
+                }
+                state.activeWorkout = null;
+
+                if (staleModal) staleModal.classList.add('hide');
+
+                const activeView = document.getElementById('workout-active-view');
+                const idleView = document.getElementById('workout-idle-view');
+                if (activeView) activeView.classList.add('hide');
+                if (idleView) {
+                  idleView.classList.add('active');
+                  idleView.classList.remove('hide');
+                }
+
+                showPremiumToast("האימון הישן נמחק בהצלחה.", "info");
+              });
+            }
+          }
+        } else {
+          console.log("Restored active workout from storage, resuming timer...");
+          resumeWorkoutTimer();
+        }
       }
     } catch (e) {
       console.error("Failed to parse restored active workout:", e);

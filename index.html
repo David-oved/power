@@ -75,13 +75,19 @@
   <!-- Google Fonts: Outfit for display, Inter for details -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://unpkg.com">
+  
+  <link rel="preload" href="style.css" as="style">
+  <link rel="modulepreload" href="app.js">
+  <link rel="modulepreload" href="src/state.js">
+
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   
   <link rel="stylesheet" href="style.css">
 
   <!-- Leaflet.js mapping library for GPS Tracking -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="" defer></script>
 </head>
 <body>
   <noscript>
@@ -439,9 +445,10 @@
 
             <!-- Admin Segmented Tab Bar -->
             <div class="ios-segmented-control" style="margin: 10px 1.5rem; display: flex; background: rgba(255, 255, 255, 0.05); padding: 3px; border-radius: 12px; direction: rtl;">
-              <button class="segmented-btn active" data-admin-tab="users" style="flex: 1; padding: 10px; background: none; border: none; color: #fff; border-radius: 9px; font-weight: bold; cursor: pointer; font-size: 0.9rem; transition: background 0.2s;">ניהול משתמשים</button>
-              <button class="segmented-btn" data-admin-tab="feedback" style="flex: 1; padding: 10px; background: none; border: none; color: #fff; border-radius: 9px; font-weight: bold; cursor: pointer; font-size: 0.9rem; transition: background 0.2s;">משובים</button>
-              <button class="segmented-btn" data-admin-tab="announcement" style="flex: 1; padding: 10px; background: none; border: none; color: #fff; border-radius: 9px; font-weight: bold; cursor: pointer; font-size: 0.9rem; transition: background 0.2s;">הודעה גלובלית</button>
+              <button class="segmented-btn active" data-admin-tab="users" style="flex: 1; padding: 10px; background: none; border: none; color: #fff; border-radius: 9px; font-weight: bold; cursor: pointer; font-size: 0.85rem; transition: background 0.2s;">ניהול משתמשים</button>
+              <button class="segmented-btn" data-admin-tab="feedback" style="flex: 1; padding: 10px; background: none; border: none; color: #fff; border-radius: 9px; font-weight: bold; cursor: pointer; font-size: 0.85rem; transition: background 0.2s;">משובים</button>
+              <button class="segmented-btn" data-admin-tab="announcement" style="flex: 1; padding: 10px; background: none; border: none; color: #fff; border-radius: 9px; font-weight: bold; cursor: pointer; font-size: 0.85rem; transition: background 0.2s;">הודעה גלובלית</button>
+              <button class="segmented-btn" data-admin-tab="system-update" style="flex: 1; padding: 10px; background: none; border: none; color: #fff; border-radius: 9px; font-weight: bold; cursor: pointer; font-size: 0.85rem; transition: background 0.2s;">עדכון גרסה</button>
             </div>
 
             <div class="ios-settings-scroll-container" style="flex: 1; overflow-y: auto; padding: 0 1.5rem 1.5rem 1.5rem;">
@@ -498,6 +505,23 @@
                   <textarea id="admin-announcement-content" placeholder="כתוב את ההודעה כאן..." style="width: 100%; height: 120px; border-radius: 12px; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); color: #ffffff; text-align: right; direction: rtl; outline: none; resize: none; font-family: var(--font-sans);"></textarea>
                 </div>
                 <button id="admin-send-announcement-btn" class="btn btn-primary" style="width: 100%; padding: 14px; font-weight: bold; border-radius: 14px;">שלח הודעה גלובלית 📢</button>
+              </div>
+
+              <!-- Tab D: System Update -->
+              <div id="admin-tab-system-update" class="admin-tab-content hide" style="direction: rtl; text-align: right;">
+                <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.2rem; line-height: 1.4;">
+                  אזור זה מיועד למנהלי מערכת בלבד. לחיצה על הכפתור מדמה שינוי גרסה מרוחק ומאלצת את ה-Service Worker להוריד מחדש את כל קבצי האפליקציה מהשרת ולרענן את המשתמשים לגרסה האחרונה.
+                </p>
+                <div class="ios-settings-card-group" style="margin-bottom: 1.5rem;">
+                  <div class="ios-settings-group-title">עדכון תוכנה גלובלי</div>
+                  <div class="ios-setting-row no-hover" style="flex-direction: column; align-items: flex-start; padding: 16px 12px;">
+                    <div style="font-size: 0.9rem; color: #ffffff; font-weight: 600; margin-bottom: 6px;">הפצת עדכון קבצים מרוחק</div>
+                    <div style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 12px;">
+                      לחיצה על הכפתור תשלח הוראת downloadAndActivate ל-Service Worker הפעיל של המשתמש, ותאלץ הורדה מחדש של הקבצים משרת האירוח ומעבר לגרסה החדשה.
+                    </div>
+                    <button id="admin-trigger-update-btn" class="btn btn-primary" style="width: 100%; padding: 14px; font-weight: bold; border-radius: 14px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none;">🚀 הפץ עדכון גרסה עכשיו</button>
+                  </div>
+                </div>
               </div>
 
             </div>
@@ -577,28 +601,59 @@
               <!-- Data Stats Card -->
               <div class="ios-settings-card-group" style="margin-bottom: 1.5rem;">
                 <div class="ios-settings-group-title">נתונים מגובי ענן</div>
-                <div class="ios-setting-row no-hover" style="padding: 12px;">
-                  <div style="width: 100%; display: flex; flex-direction: column; gap: 10px; font-size: 0.9rem;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                      <span style="color: var(--text-muted);">📋 היסטוריית אימונים</span>
-                      <strong id="sync-stat-history">0 אימונים</strong>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                      <span style="color: var(--text-muted);">✨ תרגילים מותאמים אישית</span>
-                      <strong id="sync-stat-custom-ex">0 תרגילים</strong>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                      <span style="color: var(--text-muted);">📍 מיקומים מותאמים אישית</span>
-                      <strong id="sync-stat-custom-loc">0 מיקומים</strong>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                      <span style="color: var(--text-muted);">⭐ תרגילים מועדפים</span>
-                      <strong id="sync-stat-favorites">0 תרגילים</strong>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                      <span style="color: var(--text-muted);">📅 אימונים מתוכננים</span>
-                      <strong id="sync-stat-future">0 אימונים</strong>
-                    </div>
+                
+                <!-- Workouts History -->
+                <div class="ios-setting-row no-hover">
+                  <div class="ios-row-left">
+                    <strong id="sync-stat-history" class="ios-row-detail-text">0 אימונים</strong>
+                  </div>
+                  <div class="ios-row-right">
+                    <span class="ios-row-icon-badge" style="background-color: #5856d6;">📋</span>
+                    <span class="ios-row-label">היסטוריית אימונים</span>
+                  </div>
+                </div>
+
+                <!-- Custom Exercises -->
+                <div class="ios-setting-row no-hover">
+                  <div class="ios-row-left">
+                    <strong id="sync-stat-custom-ex" class="ios-row-detail-text">0 תרגילים</strong>
+                  </div>
+                  <div class="ios-row-right">
+                    <span class="ios-row-icon-badge" style="background-color: #ff9500;">✨</span>
+                    <span class="ios-row-label">תרגילים מותאמים אישית</span>
+                  </div>
+                </div>
+
+                <!-- Custom Locations -->
+                <div class="ios-setting-row no-hover">
+                  <div class="ios-row-left">
+                    <strong id="sync-stat-custom-loc" class="ios-row-detail-text">0 מיקומים</strong>
+                  </div>
+                  <div class="ios-row-right">
+                    <span class="ios-row-icon-badge" style="background-color: #ff3b30;">📍</span>
+                    <span class="ios-row-label">מיקומים מותאמים אישית</span>
+                  </div>
+                </div>
+
+                <!-- Favorite Exercises -->
+                <div class="ios-setting-row no-hover">
+                  <div class="ios-row-left">
+                    <strong id="sync-stat-favorites" class="ios-row-detail-text">0 תרגילים</strong>
+                  </div>
+                  <div class="ios-row-right">
+                    <span class="ios-row-icon-badge" style="background-color: #ffcc00;">⭐</span>
+                    <span class="ios-row-label">תרגילים מועדפים</span>
+                  </div>
+                </div>
+
+                <!-- Planned Workouts -->
+                <div class="ios-setting-row no-hover">
+                  <div class="ios-row-left">
+                    <strong id="sync-stat-future" class="ios-row-detail-text">0 אימונים</strong>
+                  </div>
+                  <div class="ios-row-right">
+                    <span class="ios-row-icon-badge" style="background-color: #007aff;">📅</span>
+                    <span class="ios-row-label">אימונים מתוכננים</span>
                   </div>
                 </div>
               </div>
@@ -1871,6 +1926,27 @@
     </div>
   </div>
 
+  <!-- Stale Workout Modal -->
+  <div id="stale-workout-modal" class="workout-modal-overlay hide" style="z-index: 1550; align-items: center; justify-content: center;">
+    <div class="workout-modal-card glass-modal-card" style="max-width: 380px; width: 92%; border-radius: 24px; padding: 1.5rem; text-align: center; border: 1px solid rgba(255, 255, 255, 0.1); max-height: 90vh; display: flex; flex-direction: column; overflow: hidden;">
+      <div class="alert-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; direction: rtl;">
+        <span style="font-size: 1.2rem; font-weight: 800; color: #ff9500; display: flex; align-items: center; gap: 8px;">⏳ אימון לא הושלם</span>
+      </div>
+      <div class="modal-body" style="overflow-y: auto; flex: 1; direction: rtl; padding-bottom: 1rem; text-align: center;">
+        <p style="font-size: 0.95rem; color: #ffffff; margin-bottom: 1rem; text-align: right; line-height: 1.4;">
+          נמצא אימון פעיל מלפני יותר מ-4 שעות. האם ברצונך לשמור אותו או למחוק?
+        </p>
+        <div id="stale-workout-exercises-list" style="display: flex; flex-direction: column; gap: 8px; text-align: right; margin-bottom: 1rem; max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 12px;">
+          <!-- Injected dynamically: list of completed exercises -->
+        </div>
+      </div>
+      <div style="display: flex; gap: 12px; direction: rtl; margin-top: 1rem;">
+        <button id="stale-workout-save-btn" class="btn btn-primary" style="flex: 1; padding: 12px; font-weight: bold; border-radius: 12px;">שמור אימון</button>
+        <button id="stale-workout-delete-btn" class="btn btn-logout" style="flex: 1; padding: 12px; font-weight: bold; border-radius: 12px; background: var(--color-danger); box-shadow: none;">מחק</button>
+      </div>
+    </div>
+  </div>
+
   <!-- GPS Diagnostic Modal -->
   <div id="gps-diagnostic-modal" class="workout-modal-overlay hide" style="z-index: 1800; align-items: center; justify-content: center;">
     <div class="workout-modal-card glass-modal-card" style="max-width: 400px; width: 92%; border-radius: 28px; padding: 1.8rem; border: 1px solid rgba(255, 255, 255, 0.1); max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; background: linear-gradient(135deg, hsla(225, 20%, 9%, 0.95) 0%, hsla(225, 20%, 5%, 0.98) 100%); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);">
@@ -2224,5 +2300,30 @@
   <!-- Load global Firebase credential settings -->
   <script src="firebase-config.js"></script>
   <script type="module" src="app.js"></script>
+
+  <!-- Stale Workout Recovery Modal -->
+  <div id="stale-workout-modal" class="workout-modal-overlay hide" style="z-index: 1900; align-items: center; justify-content: center;">
+    <div class="workout-modal-card glass-modal-card" style="max-width: 440px; width: 95%; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; border-radius: 28px; animation: modal-slide-in 0.4s cubic-bezier(0.16, 1, 0.3, 1); padding: 1.5rem; box-sizing: border-box;">
+      <div class="modal-header" style="padding-bottom: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.08); display: flex; justify-content: space-between; align-items: center;">
+        <h3 class="modal-title" style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #ffffff; direction: rtl;">שחזור אימון שלא הושלם</h3>
+      </div>
+      <div class="modal-body" style="overflow-y: auto; flex: 1; margin: 15px 0; direction: rtl; text-align: right;">
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1rem;">
+          זיהינו אימון קודם שלא נשמר כראוי. האם תרצה לשמור אותו או למחוק אותו?
+        </p>
+        <div id="stale-workout-exercises-list" class="modal-exercises-container" style="display: flex; flex-direction: column; gap: 8px;">
+          <!-- Exercises will be injected dynamically -->
+        </div>
+      </div>
+      <div class="modal-footer" style="display: flex; gap: 12px; direction: rtl;">
+        <button id="stale-workout-save-btn" class="btn btn-primary" style="flex: 1; padding: 14px; font-weight: bold; border-radius: 14px;">
+          שמור אימון
+        </button>
+        <button id="stale-workout-delete-btn" class="btn btn-logout" style="flex: 1; padding: 14px; font-weight: bold; border-radius: 14px; background: var(--color-danger); box-shadow: 0 4px 15px var(--color-danger-glow);">
+          מחק אימון
+        </button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
