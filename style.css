@@ -19,13 +19,13 @@
 
   /* Cyber-Athletic Neon Highlights - Remapped to Molten Red & Forged Crimson */
   --electric-blue: #dc2626; /* Stark Molten Red */
-  --electric-blue-glow: rgba(220, 38, 38, 0.35); /* Molten red fire glow */
-  --electric-blue-glow-subtle: rgba(220, 38, 38, 0.12);
+  --electric-blue-glow: rgba(228, 228, 230, 0.05); /* Toned down to thin platinum sheen */
+  --electric-blue-glow-subtle: rgba(228, 228, 230, 0.02);
   --electric-blue-light: #ef4444; /* Glowing active red */
 
   --neon-orange: #f43f5e; /* Forged Crimson highlight */
-  --neon-orange-glow: rgba(244, 63, 94, 0.35); /* Hot crimson glow */
-  --neon-orange-glow-subtle: rgba(244, 63, 94, 0.12);
+  --neon-orange-glow: rgba(228, 228, 230, 0.05); /* Toned down to thin platinum sheen */
+  --neon-orange-glow-subtle: rgba(228, 228, 230, 0.02);
   --neon-orange-light: #fb7185; /* Active crimson rose */
 
   /* Keep core accent mapped to electric blue for automatic compatibility */
@@ -34,10 +34,10 @@
   --accent-light: var(--electric-blue-light);
 
   --color-success: #16a34a; /* Raw sports green success state */
-  --color-success-glow: rgba(22, 163, 74, 0.3);
+  --color-success-glow: rgba(22, 163, 74, 0.05);
   
   --color-danger: #dc2626; /* Stark molten red danger state */
-  --color-danger-glow: rgba(220, 38, 38, 0.35);
+  --color-danger-glow: rgba(220, 38, 38, 0.05);
 
   --transition-smooth: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
   --radius-card: 20px; /* Sharper cards for high-performance aesthetic */
@@ -9579,5 +9579,166 @@ html, body {
     transform: scale(2.2);
     opacity: 0;
   }
+}
+
+/* ==========================================================================
+   AuraApp Matte Steel / Slate Aesthetic Overrides
+   ========================================================================== */
+
+/* Active & focus states: drop glowing shadows, replace with thin platinum 1px borders */
+.btn:active, .btn:focus, .btn.active,
+button:active, button:focus,
+.ios-setting-row:active,
+.segmented-btn.active,
+.filter-pill-btn.active,
+.muscle-card.active,
+.ios-settings-card-group:active,
+.workout-dashboard-card:active,
+.slider-adjust-btn:active,
+.premium-range-slider:focus {
+  box-shadow: none !important;
+  border: 1px solid rgba(228, 228, 230, 0.4) !important;
+}
+
+/* Stepper Layout Custom Styling */
+.stepper-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+  color: #ffffff !important;
+  font-size: 1.4rem !important;
+  font-weight: bold !important;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.2s ease-in-out;
+  outline: none;
+}
+
+.stepper-btn:hover {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+.stepper-btn:active {
+  background: rgba(255, 255, 255, 0.18) !important;
+  border-color: rgba(228, 228, 230, 0.6) !important; /* platinum active border */
+  transform: scale(0.95);
+}
+
+.stepper-chip {
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 20px !important;
+  padding: 6px 12px !important;
+  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  color: var(--text-muted) !important;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  font-family: var(--font-sans);
+}
+
+.stepper-chip:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  color: #ffffff !important;
+}
+
+.stepper-chip:active {
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-color: rgba(228, 228, 230, 0.6) !important; /* platinum active border */
+  color: #ffffff !important;
+  transform: scale(0.95);
+}
+
+/* Tone down ambient glow base opacity */
+.ambient-glow {
+  opacity: 0.05 !important;
+}
+
+/* ==========================================================================
+   Display Preferences: Outdoor Mode & Hide Glows
+   ========================================================================== */
+
+/* Disables ambient glow animation blobs */
+.hide-glows .ambient-glow {
+  display: none !important;
+  animation: none !important;
+}
+
+.hide-glows .avatar-glow-ring,
+.hide-glows .avatar-glow-ring::after,
+.hide-glows .coming-soon-badge-glow {
+  box-shadow: none !important;
+  text-shadow: none !important;
+  filter: none !important;
+  animation: none !important;
+}
+
+/* High-Contrast Outdoor Mode (solid black background, maximum contrast, flat buttons) */
+.outdoor-mode {
+  background-color: #000000 !important;
+  background: #000000 !important;
+}
+
+.outdoor-mode .app-viewport,
+.outdoor-mode .tab-pane,
+.outdoor-mode .screen {
+  background-color: #000000 !important;
+  background: #000000 !important;
+}
+
+.outdoor-mode .ambient-glow {
+  display: none !important;
+}
+
+.outdoor-mode * {
+  text-shadow: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+/* Max contrast and flat styling for buttons & settings rows */
+.outdoor-mode .btn,
+.outdoor-mode button,
+.outdoor-mode .stepper-btn,
+.outdoor-mode .stepper-chip,
+.outdoor-mode .ios-setting-row,
+.outdoor-mode .ios-settings-card-group,
+.outdoor-mode .location-tile,
+.outdoor-mode .exercise-list-item-wrapper,
+.outdoor-mode .workout-dashboard-card,
+.outdoor-mode .custom-ex-name-input {
+  box-shadow: none !important;
+  background-color: #000000 !important;
+  background: #000000 !important;
+  border: 2px solid #ffffff !important; /* maximum contrast flat buttons with white borders */
+  color: #ffffff !important;
+  border-radius: 4px !important; /* flat look */
+}
+
+.outdoor-mode .btn-primary,
+.outdoor-mode button.btn-primary {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+  color: #000000 !important;
+  border: 2px solid #ffffff !important;
+  font-weight: 900 !important;
+}
+
+.outdoor-mode .ios-row-chevron,
+.outdoor-mode .ios-row-label,
+.outdoor-mode .field-label,
+.outdoor-mode .field-value {
+  color: #ffffff !important;
+}
+
+.outdoor-mode .text-muted,
+.outdoor-mode span[style*="color: var(--text-muted)"] {
+  color: #ffffff !important;
 }
 

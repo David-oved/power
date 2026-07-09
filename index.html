@@ -6,6 +6,40 @@
     window.onerror = function(msg, url, line) {
       alert("קוד שגיאה: " + msg + "\nשורה: " + line);
     };
+    function adjustWeight(offset) {
+      const slider = document.getElementById('weight-range-slider');
+      const display = document.getElementById('weight-slider-value');
+      if (slider && display) {
+        let val = (parseFloat(slider.value) || 0) + offset;
+        val = Math.max(0, Math.min(250, val));
+        val = parseFloat(val.toFixed(1));
+        slider.value = val;
+        display.textContent = val;
+        slider.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    }
+    function adjustReps(offset) {
+      const slider = document.getElementById('reps-range-slider');
+      const display = document.getElementById('reps-slider-value');
+      if (slider && display) {
+        let val = (parseInt(slider.value, 10) || 0) + offset;
+        val = Math.max(0, Math.min(50, val));
+        slider.value = val;
+        display.textContent = val;
+        slider.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    }
+    function adjustTime(offset) {
+      const slider = document.getElementById('time-range-slider');
+      const display = document.getElementById('time-slider-value');
+      if (slider && display) {
+        let val = (parseInt(slider.value, 10) || 0) + offset;
+        val = Math.max(0, Math.min(300, val));
+        slider.value = val;
+        display.textContent = val;
+        slider.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    }
   </script>
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -191,8 +225,9 @@
           <div id="settings-main-view" class="ios-settings-scroll-container">
             <h2 class="settings-main-title">הגדרות</h2>
 
-            <!-- Pinned Sticky Profile Card Group -->
+            <!-- Group 1: Account -->
             <div class="ios-settings-card-group sticky-profile-container">
+              <div class="ios-settings-group-title">חשבון</div>
               <!-- Row 1: Account Settings (Clickable Profile Row) -->
               <button id="go-to-account-btn" class="ios-setting-row ios-profile-card">
                 <div class="ios-row-left">
@@ -211,65 +246,7 @@
               </button>
             </div>
 
-            <!-- iOS Settings Card Group: Appearance -->
-            <div class="ios-settings-card-group">
-              <!-- Row 2: Dark Mode Toggle Switch -->
-              <div class="ios-setting-row no-hover" id="row-settings-dark-mode">
-                <div class="ios-row-left">
-                  <label class="ios-toggle-switch">
-                    <input type="checkbox" id="toggle-settings-dark-mode">
-                    <span class="ios-toggle-slider"></span>
-                  </label>
-                </div>
-                <div class="ios-row-right">
-                  <span class="ios-row-icon-badge bg-ios-gray">🌙</span>
-                  <span class="ios-row-label">מצב כהה</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- iOS Settings Card Group: System (מערכת) -->
-            <div class="ios-settings-card-group">
-              <div class="ios-settings-group-title">מערכת</div>
-
-              <!-- Row 1: System Version -->
-              <div class="ios-setting-row no-hover">
-                <div class="ios-row-left">
-                  <span id="settings-system-version" class="ios-row-detail-text">v1.2</span>
-                </div>
-                <div class="ios-row-right">
-                  <span class="ios-row-icon-badge bg-ios-blue">ℹ️</span>
-                  <span class="ios-row-label">גרסת המערכת</span>
-                </div>
-              </div>
-
-              <!-- Row 2: Notifications Switch -->
-              <div class="ios-setting-row no-hover">
-                <div class="ios-row-left">
-                  <label class="ios-toggle-switch">
-                    <input type="checkbox" id="toggle-settings-notifications" checked>
-                    <span class="ios-toggle-slider"></span>
-                  </label>
-                </div>
-                <div class="ios-row-right">
-                  <span class="ios-row-icon-badge bg-ios-red">🔔</span>
-                  <span class="ios-row-label">התראות פעילות</span>
-                </div>
-              </div>
-
-              <!-- Row 3: Search for Updates -->
-              <div class="ios-setting-row" id="row-settings-check-update">
-                <div class="ios-row-left">
-                  <span id="settings-update-status" class="ios-row-detail-text">בדוק</span>
-                </div>
-                <div class="ios-row-right">
-                  <span class="ios-row-icon-badge bg-ios-green">🔄</span>
-                  <span class="ios-row-label">חיפוש עדכונים</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- iOS Settings Card Group: Cloud Sync -->
+            <!-- Group 2: Cloud Services -->
             <div class="ios-settings-card-group">
               <div class="ios-settings-group-title">שירותי ענן</div>
               <button id="go-to-cloud-sync-btn" class="ios-setting-row">
@@ -284,23 +261,94 @@
               </button>
             </div>
 
-            <!-- iOS Settings Card Group: Admin options (Visible to admin only) -->
-            <div id="settings-admin-group" class="ios-settings-card-group hide">
-              <div class="ios-settings-group-title">ניהול מערכת</div>
-              <button id="go-to-admin-console-btn" class="ios-setting-row">
+            <!-- Group 3: Display Settings -->
+            <div class="ios-settings-card-group">
+              <div class="ios-settings-group-title">תצוגה ומראה</div>
+              
+              <!-- Dark Mode Toggle Switch -->
+              <div class="ios-setting-row no-hover" id="row-settings-dark-mode">
                 <div class="ios-row-left">
-                  <span class="ios-row-chevron">←</span>
+                  <label class="ios-toggle-switch">
+                    <input type="checkbox" id="toggle-settings-dark-mode">
+                    <span class="ios-toggle-slider"></span>
+                  </label>
                 </div>
                 <div class="ios-row-right">
-                  <span class="ios-row-icon-badge bg-ios-red">🛠️</span>
-                  <span class="ios-row-label">פאנל ניהול מנהל</span>
+                  <span class="ios-row-icon-badge bg-ios-gray">🌙</span>
+                  <span class="ios-row-label">מצב כהה</span>
                 </div>
-              </button>
+              </div>
+
+              <!-- High-Contrast Outdoor Mode Toggle -->
+              <div class="ios-setting-row no-hover" id="row-settings-outdoor-mode">
+                <div class="ios-row-left">
+                  <label class="ios-toggle-switch">
+                    <input type="checkbox" id="toggle-settings-outdoor-mode">
+                    <span class="ios-toggle-slider"></span>
+                  </label>
+                </div>
+                <div class="ios-row-right">
+                  <span class="ios-row-icon-badge bg-ios-orange" style="background-color: #ff9500;">☀️</span>
+                  <span class="ios-row-label">מצב שטח (ניגודיות גבוהה)</span>
+                </div>
+              </div>
+
+              <!-- Show Ambient Glows Toggle -->
+              <div class="ios-setting-row no-hover" id="row-settings-show-glows">
+                <div class="ios-row-left">
+                  <label class="ios-toggle-switch">
+                    <input type="checkbox" id="toggle-settings-show-glows" checked>
+                    <span class="ios-toggle-slider"></span>
+                  </label>
+                </div>
+                <div class="ios-row-right">
+                  <span class="ios-row-icon-badge bg-ios-purple" style="background-color: #5856d6;">✨</span>
+                  <span class="ios-row-label">הצג אפקטי זוהר</span>
+                </div>
+              </div>
             </div>
 
-            <!-- iOS Settings Card Group: Support -->
+            <!-- Group 4: App Version/Updates -->
             <div class="ios-settings-card-group">
-              <div class="ios-settings-group-title">תמיכה ומשוב</div>
+              <div class="ios-settings-group-title">גרסה ועדכונים</div>
+
+              <!-- System Version -->
+              <div class="ios-setting-row no-hover">
+                <div class="ios-row-left">
+                  <span id="settings-system-version" class="ios-row-detail-text">v1.2</span>
+                </div>
+                <div class="ios-row-right">
+                  <span class="ios-row-icon-badge bg-ios-blue">ℹ️</span>
+                  <span class="ios-row-label">גרסת המערכת</span>
+                </div>
+              </div>
+
+              <!-- Notifications Switch -->
+              <div class="ios-setting-row no-hover">
+                <div class="ios-row-left">
+                  <label class="ios-toggle-switch">
+                    <input type="checkbox" id="toggle-settings-notifications" checked>
+                    <span class="ios-toggle-slider"></span>
+                  </label>
+                </div>
+                <div class="ios-row-right">
+                  <span class="ios-row-icon-badge bg-ios-red">🔔</span>
+                  <span class="ios-row-label">התראות פעילות</span>
+                </div>
+              </div>
+
+              <!-- Search for Updates -->
+              <div class="ios-setting-row" id="row-settings-check-update">
+                <div class="ios-row-left">
+                  <span id="settings-update-status" class="ios-row-detail-text">בדוק</span>
+                </div>
+                <div class="ios-row-right">
+                  <span class="ios-row-icon-badge bg-ios-green">🔄</span>
+                  <span class="ios-row-label">חיפוש עדכונים</span>
+                </div>
+              </div>
+
+              <!-- Send feedback to developer -->
               <button id="go-to-feedback-btn" class="ios-setting-row">
                 <div class="ios-row-left">
                   <span class="ios-row-chevron">←</span>
@@ -310,6 +358,8 @@
                   <span class="ios-row-label">שליחת משוב למפתח</span>
                 </div>
               </button>
+
+              <!-- Messages from system -->
               <button id="go-to-messages-btn" class="ios-setting-row">
                 <div class="ios-row-left">
                   <span id="unread-messages-badge" class="ios-badge hide">0</span>
@@ -320,6 +370,19 @@
                   <span class="ios-row-label">הודעות מהמערכת</span>
                 </div>
               </button>
+
+              <!-- Admin options (Visible to admin only) -->
+              <div id="settings-admin-group" class="hide" style="width: 100%;">
+                <button id="go-to-admin-console-btn" class="ios-setting-row" style="width: 100%; border: none; background: transparent; padding: 0;">
+                  <div class="ios-row-left">
+                    <span class="ios-row-chevron">←</span>
+                  </div>
+                  <div class="ios-row-right">
+                    <span class="ios-row-icon-badge bg-ios-red">🛠️</span>
+                    <span class="ios-row-label">פאנל ניהול מנהל</span>
+                  </div>
+                </button>
+              </div>
             </div>
 
           </div>
@@ -802,48 +865,81 @@
                 <div class="set-log-set-number" id="set-log-set-number" style="font-size: 1rem; color: var(--electric-blue); font-weight: 600; margin-top: 4px;">סט 1</div>
               </div>
 
-              <!-- Premium Sliders Area -->
+              <!-- Modern Steppers Area -->
               <div class="set-log-sliders-area" style="display: flex; flex-direction: column; gap: 1.5rem;">
                 
-                <!-- Weight Slider Row -->
+                <!-- Weight Stepper Row -->
                 <div class="slider-group-container" id="set-log-weight-group" style="display: flex; flex-direction: column; gap: 8px;">
                   <div class="slider-header" style="display: flex; justify-content: space-between; align-items: center; direction: rtl;">
                     <span style="font-size: 0.95rem; font-weight: 700; color: var(--text-muted); display: flex; align-items: center; gap: 6px;">
                       משקל (ק״ג)
                       <button type="button" id="trigger-plate-calc-btn" style="background: none; border: none; font-size: 1.1rem; cursor: pointer; padding: 2px 6px; border-radius: 6px; background-color: rgba(255,255,255,0.06); display: inline-flex; align-items: center; justify-content: center;">🧮</button>
                     </span>
-                    <span class="slider-display-value" style="font-size: 1.3rem; font-weight: 800; color: #ffffff;"><span id="weight-slider-value">60</span> ק״ג</span>
                   </div>
-                  <div class="slider-control-row" style="display: flex; align-items: center; gap: 10px; direction: ltr;">
-                    <button type="button" id="weight-minus-btn" class="slider-adjust-btn" style="width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.3rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center;">-</button>
-                    <input type="range" id="weight-range-slider" class="premium-range-slider" min="0" max="250" step="2.5" value="60" style="flex: 1; height: 6px; border-radius: 3px; outline: none; background: rgba(255,255,255,0.1);">
-                    <button type="button" id="weight-plus-btn" class="slider-adjust-btn" style="width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.3rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center;">+</button>
+                  <div class="stepper-control-row" style="display: flex; align-items: center; justify-content: center; gap: 20px; direction: ltr; margin: 5px 0;">
+                    <button type="button" id="weight-minus-btn" class="stepper-btn" style="width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.4rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: all 0.2s;">-</button>
+                    <div class="stepper-display" style="min-width: 120px; text-align: center; display: flex; align-items: baseline; justify-content: center; gap: 4px;">
+                      <span id="weight-slider-value" style="font-size: 2.2rem; font-weight: 800; color: #ffffff; font-family: var(--font-display);">60</span>
+                      <span style="font-size: 1rem; color: var(--text-muted); font-weight: 600;">ק״ג</span>
+                    </div>
+                    <button type="button" id="weight-plus-btn" class="stepper-btn" style="width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.4rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: all 0.2s;">+</button>
+                  </div>
+                  <input type="hidden" id="weight-range-slider" value="60">
+                  
+                  <!-- Quick chips underneath -->
+                  <div class="stepper-chips-row" style="display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; direction: ltr;">
+                    <button type="button" class="stepper-chip">-5</button>
+                    <button type="button" class="stepper-chip">-2.5</button>
+                    <button type="button" class="stepper-chip">+2.5</button>
+                    <button type="button" class="stepper-chip">+5</button>
                   </div>
                 </div>
 
-                <!-- Reps Slider Row -->
+                <!-- Reps Stepper Row -->
                 <div class="slider-group-container" id="set-log-reps-group" style="display: flex; flex-direction: column; gap: 8px;">
                   <div class="slider-header" style="display: flex; justify-content: space-between; align-items: center; direction: rtl;">
                     <span style="font-size: 0.95rem; font-weight: 700; color: var(--text-muted);">חזרות</span>
-                    <span class="slider-display-value" style="font-size: 1.3rem; font-weight: 800; color: #ffffff;"><span id="reps-slider-value">10</span> חזרות</span>
                   </div>
-                  <div class="slider-control-row" style="display: flex; align-items: center; gap: 10px; direction: ltr;">
-                    <button type="button" id="reps-minus-btn" class="slider-adjust-btn" style="width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.3rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center;">-</button>
-                    <input type="range" id="reps-range-slider" class="premium-range-slider" min="0" max="50" step="1" value="10" style="flex: 1; height: 6px; border-radius: 3px; outline: none; background: rgba(255,255,255,0.1);">
-                    <button type="button" id="reps-plus-btn" class="slider-adjust-btn" style="width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.3rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center;">+</button>
+                  <div class="stepper-control-row" style="display: flex; align-items: center; justify-content: center; gap: 20px; direction: ltr; margin: 5px 0;">
+                    <button type="button" id="reps-minus-btn" class="stepper-btn" style="width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.4rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: all 0.2s;">-</button>
+                    <div class="stepper-display" style="min-width: 120px; text-align: center; display: flex; align-items: baseline; justify-content: center; gap: 4px;">
+                      <span id="reps-slider-value" style="font-size: 2.2rem; font-weight: 800; color: #ffffff; font-family: var(--font-display);">10</span>
+                      <span style="font-size: 1rem; color: var(--text-muted); font-weight: 600;">חזרות</span>
+                    </div>
+                    <button type="button" id="reps-plus-btn" class="stepper-btn" style="width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.4rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: all 0.2s;">+</button>
+                  </div>
+                  <input type="hidden" id="reps-range-slider" value="10">
+                  
+                  <!-- Quick chips underneath -->
+                  <div class="stepper-chips-row" style="display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; direction: ltr;">
+                    <button type="button" class="stepper-chip">-5</button>
+                    <button type="button" class="stepper-chip">-1</button>
+                    <button type="button" class="stepper-chip">+1</button>
+                    <button type="button" class="stepper-chip">+5</button>
                   </div>
                 </div>
 
-                <!-- Time Slider Row -->
+                <!-- Time Stepper Row -->
                 <div class="slider-group-container" id="set-log-time-group" style="display: flex; flex-direction: column; gap: 8px;">
                   <div class="slider-header" style="display: flex; justify-content: space-between; align-items: center; direction: rtl;">
                     <span style="font-size: 0.95rem; font-weight: 700; color: var(--text-muted);">זמן</span>
-                    <span class="slider-display-value" style="font-size: 1.3rem; font-weight: 800; color: #ffffff;"><span id="time-slider-value">30</span> שניות</span>
                   </div>
-                  <div class="slider-control-row" style="display: flex; align-items: center; gap: 10px; direction: ltr;">
-                    <button type="button" id="time-minus-btn" class="slider-adjust-btn" style="width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.3rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center;">-</button>
-                    <input type="range" id="time-range-slider" class="premium-range-slider" min="0" max="300" step="5" value="30" style="flex: 1; height: 6px; border-radius: 3px; outline: none; background: rgba(255,255,255,0.1);">
-                    <button type="button" id="time-plus-btn" class="slider-adjust-btn" style="width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.3rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center;">+</button>
+                  <div class="stepper-control-row" style="display: flex; align-items: center; justify-content: center; gap: 20px; direction: ltr; margin: 5px 0;">
+                    <button type="button" id="time-minus-btn" class="stepper-btn" style="width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.4rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: all 0.2s;">-</button>
+                    <div class="stepper-display" style="min-width: 120px; text-align: center; display: flex; align-items: baseline; justify-content: center; gap: 4px;">
+                      <span id="time-slider-value" style="font-size: 2.2rem; font-weight: 800; color: #ffffff; font-family: var(--font-display);">30</span>
+                      <span style="font-size: 1rem; color: var(--text-muted); font-weight: 600;">שניות</span>
+                    </div>
+                    <button type="button" id="time-plus-btn" class="stepper-btn" style="width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.4rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: all 0.2s;">+</button>
+                  </div>
+                  <input type="hidden" id="time-range-slider" value="30">
+                  
+                  <!-- Quick chips underneath -->
+                  <div class="stepper-chips-row" style="display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; direction: ltr;">
+                    <button type="button" class="stepper-chip" onclick="adjustTime(-30)">-30</button>
+                    <button type="button" class="stepper-chip" onclick="adjustTime(-10)">-10</button>
+                    <button type="button" class="stepper-chip" onclick="adjustTime(10)">+10</button>
+                    <button type="button" class="stepper-chip" onclick="adjustTime(30)">+30</button>
                   </div>
                 </div>
 

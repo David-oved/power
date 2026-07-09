@@ -98,6 +98,10 @@ export const state = {
         messages: true
       };
     }
-  })()
+  })(),
+
+  // Display Settings
+  outdoorMode: SafeStorage.getItem('aura-outdoor-mode') === 'true',
+  showGlows: SafeStorage.getItem('aura-show-glows') !== 'false'
 };
 

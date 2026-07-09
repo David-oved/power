@@ -3397,6 +3397,8 @@ export function initWorkoutsModule() {
       val = parseFloat(val.toFixed(1));
       weightSlider.value = val;
       weightValueText.textContent = val;
+      weightSlider.dispatchEvent(new Event('input', { bubbles: true }));
+      if (navigator.vibrate) navigator.vibrate([15]);
     });
   }
   if (weightPlusBtn && weightSlider && weightValueText) {
@@ -3406,15 +3408,19 @@ export function initWorkoutsModule() {
       val = parseFloat(val.toFixed(1));
       weightSlider.value = val;
       weightValueText.textContent = val;
+      weightSlider.dispatchEvent(new Event('input', { bubbles: true }));
+      if (navigator.vibrate) navigator.vibrate([15]);
     });
   }
 
   if (repsMinusBtn && repsSlider && repsValueText) {
     repsMinusBtn.addEventListener('click', () => {
       let val = parseInt(repsSlider.value, 10) || 0;
-      val = Math.max(0, val - 1);
+      val = Math.max(1, val - 1);
       repsSlider.value = val;
       repsValueText.textContent = val;
+      repsSlider.dispatchEvent(new Event('input', { bubbles: true }));
+      if (navigator.vibrate) navigator.vibrate([15]);
     });
   }
   if (repsPlusBtn && repsSlider && repsValueText) {
@@ -3423,6 +3429,8 @@ export function initWorkoutsModule() {
       val = Math.min(50, val + 1);
       repsSlider.value = val;
       repsValueText.textContent = val;
+      repsSlider.dispatchEvent(new Event('input', { bubbles: true }));
+      if (navigator.vibrate) navigator.vibrate([15]);
     });
   }
 
@@ -3432,6 +3440,8 @@ export function initWorkoutsModule() {
       val = Math.max(0, val - 5);
       timeSlider.value = val;
       timeValueText.textContent = val;
+      timeSlider.dispatchEvent(new Event('input', { bubbles: true }));
+      if (navigator.vibrate) navigator.vibrate([15]);
     });
   }
   if (timePlusBtn && timeSlider && timeValueText) {
@@ -3440,8 +3450,50 @@ export function initWorkoutsModule() {
       val = Math.min(300, val + 5);
       timeSlider.value = val;
       timeValueText.textContent = val;
+      timeSlider.dispatchEvent(new Event('input', { bubbles: true }));
+      if (navigator.vibrate) navigator.vibrate([15]);
     });
   }
+
+  // Bind quick stepper chips
+  const weightChips = document.querySelectorAll('#set-log-weight-group .stepper-chip');
+  weightChips.forEach(chip => {
+    chip.removeAttribute('onclick');
+    chip.addEventListener('click', (e) => {
+      e.preventDefault();
+      const offset = parseFloat(chip.textContent) || 0;
+      if (weightSlider && weightValueText) {
+        let val = parseFloat(weightSlider.value) || 0;
+        val += offset;
+        val = Math.max(0, val);
+        val = Math.min(250, val);
+        val = parseFloat(val.toFixed(1));
+        weightSlider.value = val;
+        weightValueText.textContent = val;
+        weightSlider.dispatchEvent(new Event('input', { bubbles: true }));
+        if (navigator.vibrate) navigator.vibrate([15]);
+      }
+    });
+  });
+
+  const repsChips = document.querySelectorAll('#set-log-reps-group .stepper-chip');
+  repsChips.forEach(chip => {
+    chip.removeAttribute('onclick');
+    chip.addEventListener('click', (e) => {
+      e.preventDefault();
+      const offset = parseInt(chip.textContent, 10) || 0;
+      if (repsSlider && repsValueText) {
+        let val = parseInt(repsSlider.value, 10) || 0;
+        val += offset;
+        val = Math.max(1, val);
+        val = Math.min(50, val);
+        repsSlider.value = val;
+        repsValueText.textContent = val;
+        repsSlider.dispatchEvent(new Event('input', { bubbles: true }));
+        if (navigator.vibrate) navigator.vibrate([15]);
+      }
+    });
+  });
 
   if (setLogModal) {
     setLogModal.addEventListener('click', (e) => {

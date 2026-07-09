@@ -26,9 +26,23 @@ export function showUpdateStateInSettings(waitingWorker) {
 export function initPremiumSettings() {
   console.log("Initializing premium iOS Settings View...");
 
+  // Apply startup display preferences
+  if (state.outdoorMode) {
+    document.body.classList.add('outdoor-mode');
+  } else {
+    document.body.classList.remove('outdoor-mode');
+  }
+  if (!state.showGlows) {
+    document.body.classList.add('hide-glows');
+  } else {
+    document.body.classList.remove('hide-glows');
+  }
+
   const allTabs = document.querySelectorAll('.tab-content-container .tab-pane');
   const toggleDarkMode = document.getElementById('toggle-settings-dark-mode');
   const toggleNotifications = document.getElementById('toggle-settings-notifications');
+  const toggleOutdoorMode = document.getElementById('toggle-settings-outdoor-mode');
+  const toggleShowGlows = document.getElementById('toggle-settings-show-glows');
   const settingsVer = document.getElementById('settings-system-version');
   const checkUpdateRow = document.getElementById('row-settings-check-update');
   const updateStatus = document.getElementById('settings-update-status');
@@ -64,6 +78,34 @@ export function initPremiumSettings() {
     toggleNotifications.addEventListener('change', (e) => {
       SafeStorage.setItem('settings_notifications_enabled', e.target.checked);
       console.log('Saved notifications preference:', e.target.checked);
+    });
+  }
+
+  if (toggleOutdoorMode) {
+    toggleOutdoorMode.checked = state.outdoorMode;
+    toggleOutdoorMode.addEventListener('change', (e) => {
+      state.outdoorMode = e.target.checked;
+      SafeStorage.setItem('aura-outdoor-mode', state.outdoorMode ? 'true' : 'false');
+      console.log('Saved settings outdoor mode preference:', state.outdoorMode);
+      if (state.outdoorMode) {
+        document.body.classList.add('outdoor-mode');
+      } else {
+        document.body.classList.remove('outdoor-mode');
+      }
+    });
+  }
+
+  if (toggleShowGlows) {
+    toggleShowGlows.checked = state.showGlows;
+    toggleShowGlows.addEventListener('change', (e) => {
+      state.showGlows = e.target.checked;
+      SafeStorage.setItem('aura-show-glows', state.showGlows ? 'true' : 'false');
+      console.log('Saved settings show glows preference:', state.showGlows);
+      if (!state.showGlows) {
+        document.body.classList.add('hide-glows');
+      } else {
+        document.body.classList.remove('hide-glows');
+      }
     });
   }
 
