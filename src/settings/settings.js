@@ -201,7 +201,6 @@ export function initPremiumSettings() {
   }
 
   // --- CLOUD SYNC MENU BINDINGS ---
-  const settingsMainView = document.getElementById('settings-main-view');
   const syncView = document.getElementById('settings-sync-view');
   const goToSyncBtn = document.getElementById('go-to-cloud-sync-btn');
   const backFromSyncBtn = document.getElementById('back-from-sync-btn');
