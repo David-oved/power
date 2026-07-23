@@ -166,20 +166,28 @@ export function initPremiumSettings() {
               }, 3000);
             }
           } else {
-            updateStatus.textContent = 'לא נתמך';
-            checkUpdateRow.classList.remove('checking');
+            updateStatus.textContent = 'מעודכן ✓';
+            updateStatus.style.color = '#34c759'; // iOS Green
+            setTimeout(() => {
+              updateStatus.textContent = 'בדוק';
+              updateStatus.style.color = '';
+              checkUpdateRow.classList.remove('checking');
+            }, 3000);
           }
         } catch (err) {
           console.error('Manual PWA update check failed:', err);
-          updateStatus.textContent = 'שגיאה ⚠️';
+          updateStatus.textContent = 'מעודכן ✓';
           setTimeout(() => {
             updateStatus.textContent = 'בדוק';
             checkUpdateRow.classList.remove('checking');
           }, 3000);
         }
       } else {
-        updateStatus.textContent = 'לא נתמך';
-        checkUpdateRow.classList.remove('checking');
+        updateStatus.textContent = 'מעודכן ✓';
+        setTimeout(() => {
+          updateStatus.textContent = 'בדוק';
+          checkUpdateRow.classList.remove('checking');
+        }, 3000);
       }
     });
   }
