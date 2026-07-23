@@ -1,4 +1,4 @@
-const CACHE_NAME = '13.0.5';
+const CACHE_NAME = '13.0.6';
 const UPDATE_DESCRIPTION = 'תיקון מקיף להגדרות ענן, תצוגה ותיקון באגים במערכת';
 
 const ASSETS = [
@@ -73,7 +73,7 @@ self.addEventListener('fetch', (event) => {
 
   // Firebase / External Auth Exclusions
   const isGoogleFont = url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com';
-  const isAuthOrFirebase = 
+  const isAuthOrFirebase =
     !isGoogleFont && (
       url.hostname.endsWith('firebaseapp.com') ||
       url.hostname.endsWith('firebaseio.com') ||
@@ -86,7 +86,7 @@ self.addEventListener('fetch', (event) => {
       event.request.url.includes('identitytoolkit') ||
       event.request.url.includes('securetoken')
     );
-  
+
   if (isAuthOrFirebase) {
     return; // Direct network pass-through
   }
@@ -123,8 +123,8 @@ self.addEventListener('fetch', (event) => {
             if (networkResponse.status === 200 || networkResponse.status === 0) {
               cache.put(event.request, networkResponse.clone());
             }
-          }).catch(() => {});
-          
+          }).catch(() => { });
+
           return cachedResponse;
         }
 
@@ -136,9 +136,9 @@ self.addEventListener('fetch', (event) => {
           }
           return networkResponse;
         }).catch(() => {
-          return new Response('Network error and no cache available.', { 
-            status: 503, 
-            statusText: 'Service Unavailable' 
+          return new Response('Network error and no cache available.', {
+            status: 503,
+            statusText: 'Service Unavailable'
           });
         });
       });
@@ -228,7 +228,7 @@ self.addEventListener('message', (event) => {
   if (event.data && event.data.action === 'getVersion') {
     if (event.ports && event.ports[0]) {
       const cleanVer = CACHE_NAME.replace('aura-app-', '').replace(/^v/, '');
-      event.ports[0].postMessage({ 
+      event.ports[0].postMessage({
         version: cleanVer,
         description: typeof UPDATE_DESCRIPTION !== 'undefined' ? UPDATE_DESCRIPTION : ''
       });
