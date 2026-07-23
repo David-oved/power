@@ -98,7 +98,7 @@ export function getExerciseDefaults(exerciseName) {
   }
 }
 
-export function saveExerciseDefaults(exerciseName, config) {
+export function saveExerciseDefaults(exerciseName, config = {}) {
   const key = getExerciseDefaultsKey();
   if (!key) return;
   const data = SafeStorage.getItem(key);
@@ -110,6 +110,7 @@ export function saveExerciseDefaults(exerciseName, config) {
       console.error("Failed to parse exercise defaults for saving:", e);
     }
   }
+  if (!config) return;
   defaults[exerciseName] = {
     targetSetsCount: config.targetSetsCount,
     restTime: config.restTime,
@@ -404,15 +405,16 @@ export function initWorkouts() {
               staleModal.classList.remove('hide');
             }
 
-            const saveBtn = document.getElementById('stale-workout-save-btn');
-            const deleteBtn = document.getElementById('stale-workout-delete-btn');
+            let saveBtn = document.getElementById('stale-workout-save-btn');
+            let deleteBtn = document.getElementById('stale-workout-delete-btn');
 
             if (saveBtn) {
               const handleSave = () => {
                 if (!state.activeWorkout) return;
                 state.activeWorkout.exercises.forEach(ex => {
                   if (!ex.completed && ex.name.trim() !== '') {
-                    ex.sets.forEach(set => {
+                    const sets = Array.isArray(ex.sets) ? ex.sets : [];
+                    sets.forEach(set => {
                       if (!set.completed) {
                         const hasReps = set.reps !== '' && Number(set.reps) > 0;
                         const hasWeight = set.weight !== '' && Number(set.weight) >= 0;
@@ -421,7 +423,7 @@ export function initWorkouts() {
                         }
                       }
                     });
-                    const hasCompletedSets = ex.sets.some(s => s.completed);
+                    const hasCompletedSets = sets.some(s => s.completed);
                     if (hasCompletedSets) {
                       ex.completed = true;
                     }
@@ -430,8 +432,9 @@ export function initWorkouts() {
 
                 const sanitizedExercises = state.activeWorkout.exercises.map(ex => {
                   const clonedEx = JSON.parse(JSON.stringify(ex));
+                  const sets = Array.isArray(clonedEx.sets) ? clonedEx.sets : [];
                   const isGpsEx = ['ריצה', 'הליכה', 'ריצה והליכה'].includes(ex.name);
-                  clonedEx.sets = clonedEx.sets.filter(s => {
+                  clonedEx.sets = sets.filter(s => {
                     if (isGpsEx) {
                       return s.completed && (s.distance !== undefined || s.time !== undefined);
                     } else {
@@ -489,6 +492,7 @@ export function initWorkouts() {
                   const newSaveBtn = saveBtn.cloneNode(true);
                   saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
                   newSaveBtn.addEventListener('click', handleSave);
+                  saveBtn = newSaveBtn;
                 } catch (e) {
                   saveBtn.addEventListener('click', handleSave);
                 }
@@ -530,6 +534,7 @@ export function initWorkouts() {
                   const newDeleteBtn = deleteBtn.cloneNode(true);
                   deleteBtn.parentNode.replaceChild(newDeleteBtn, deleteBtn);
                   newDeleteBtn.addEventListener('click', handleDelete);
+                  deleteBtn = newDeleteBtn;
                 } catch (e) {
                   deleteBtn.addEventListener('click', handleDelete);
                 }

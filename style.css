@@ -9692,3 +9692,16 @@ body.nav-style-fixed #metrics-sub-nav .nav-tab.active {
   border-top: 2.5px solid var(--electric-blue-light) !important;
   border-radius: 10px 10px 4px 4px !important;
 }
+
+/* Ensure crisp text contrast for settings header */
+#tab-settings .ios-settings-header,
+#tab-settings .ios-settings-header h2,
+#tab-settings .ios-settings-header h3 {
+  color: #1c1c1e !important;
+}
+
+#tab-settings.dark-theme .ios-settings-header,
+#tab-settings.dark-theme .ios-settings-header h2,
+#tab-settings.dark-theme .ios-settings-header h3 {
+  color: #ffffff !important;
+}

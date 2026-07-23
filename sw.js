@@ -170,6 +170,33 @@ self.addEventListener('message', (event) => {
     }
   }
 
+  if (event.data && event.data.action === 'adminForceClearAndDownload') {
+    console.log('Service Worker: adminForceClearAndDownload received. Deleting all caches...');
+    caches.keys().then((keys) => {
+      return Promise.all(keys.map(key => caches.delete(key)));
+    }).then(() => {
+      return caches.open(CACHE_NAME);
+    }).then((cache) => {
+      const ts = Date.now();
+      const cachePromises = ASSETS.map((url) => {
+        const reqUrl = url.includes('?') ? `${url}&t=${ts}` : `${url}?t=${ts}`;
+        const request = new Request(reqUrl, { cache: 'reload' });
+        return fetch(request).then((response) => {
+          if (response.ok || response.status === 0) {
+            return cache.put(url, response);
+          }
+          throw new Error(`Failed to fetch ${url} (status: ${response.status})`);
+        });
+      });
+      return Promise.all(cachePromises);
+    }).then(() => {
+      console.log('Service Worker: Force download complete. Activating...');
+      self.skipWaiting();
+    }).catch((err) => {
+      console.error('Service Worker: adminForceClearAndDownload failed:', err);
+    });
+  }
+
   if (event.data && event.data.action === 'skipWaiting') {
     self.skipWaiting();
   }

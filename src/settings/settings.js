@@ -52,6 +52,28 @@ export function initPremiumSettings() {
   const backFromDisplayBtn = document.getElementById('back-from-display-btn');
   const settingsMainView = document.getElementById('settings-main-view');
   const displayView = document.getElementById('settings-display-view');
+  const accountView = document.getElementById('settings-account-view');
+  const adminView = document.getElementById('settings-admin-view');
+  const feedbackView = document.getElementById('settings-feedback-view');
+  const messagesView = document.getElementById('settings-messages-view');
+  const syncView = document.getElementById('settings-sync-view');
+
+  const resetSettingsViews = () => {
+    if (settingsMainView) settingsMainView.classList.remove('hide');
+    if (displayView) displayView.classList.add('hide');
+    if (accountView) accountView.classList.add('hide');
+    if (adminView) adminView.classList.add('hide');
+    if (feedbackView) feedbackView.classList.add('hide');
+    if (messagesView) messagesView.classList.add('hide');
+    if (syncView) syncView.classList.add('hide');
+  };
+
+  resetSettingsViews();
+
+  const settingsNavBtn = document.querySelector('[data-tab="settings"]');
+  if (settingsNavBtn) {
+    settingsNavBtn.addEventListener('click', resetSettingsViews);
+  }
 
   if (goToDisplayBtn) {
     goToDisplayBtn.addEventListener('click', () => {

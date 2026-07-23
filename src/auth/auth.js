@@ -247,6 +247,18 @@ export async function initAuth() {
   settingsUserPhotoMain = document.getElementById('settings-user-photo-main');
   floatingUserPhoto = document.getElementById('floating-user-photo');
 
+  // Optimistic 0ms Startup
+  const cachedUserStr = SafeStorage.getItem('aura-cached-user-session');
+  if (cachedUserStr) {
+    try {
+      state.currentUser = JSON.parse(cachedUserStr);
+      switchScreen(true);
+      updateAuthUI();
+    } catch(e) {
+      console.warn("Failed to parse cached user session:", e);
+    }
+  }
+
   // Set compatibility mappings for dormant code
   window.clearUserSession = clearUserSession;
 
@@ -354,6 +366,13 @@ export async function initAuth() {
       if (user) {
         console.log("User signed in successfully:", user.displayName);
         state.currentUser = user;
+        
+        SafeStorage.setItem('aura-cached-user-session', JSON.stringify({
+          uid: user.uid,
+          displayName: user.displayName,
+          email: user.email,
+          photoURL: user.photoURL
+        }));
 
         updateAuthUI();
         
@@ -440,7 +459,7 @@ export async function initAuth() {
         }
       });
 
-    // Fail-safe: Hide the splash screen after 8 seconds if Firebase fails or hangs on startup
+    // Fail-safe: Hide the splash screen after 1500ms if Firebase fails or hangs on startup
     setTimeout(() => {
       if (!state.firebaseAuthResolved) {
         console.warn("Firebase Auth resolution timed out. Falling back to offline/auth login screen.");
@@ -451,7 +470,7 @@ export async function initAuth() {
         splash.classList.add('fade-out');
         setTimeout(() => splash.style.display = 'none', 600);
       }
-    }, 8000);
+    }, 1500);
   } else {
     console.log("Firebase is disabled. Auth features are unavailable.");
     switchScreen(false);

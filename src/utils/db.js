@@ -6,7 +6,8 @@ import {
   doc,
   getDoc,
   setDoc,
-  deleteDoc
+  deleteDoc,
+  deleteField
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { state } from "../state.js";
 import { SafeStorage } from "./storage.js";
@@ -194,6 +195,18 @@ export async function syncUserSession(uid, isManual = false) {
       return;
     }
 
+    const localLastSync = parseInt(SafeStorage.getItem(`aura-last-sync_${uid}`) || "0");
+    const cloudLastUpdate = cloudData.updatedAt || 0;
+
+    if (cloudLastUpdate > 0 && cloudLastUpdate <= localLastSync && !isManual) {
+      console.log("Local data is already up-to-date with cloud. Skipping heavy sync.");
+      return;
+    }
+
+    if (!isManual) {
+      showPremiumToast("מסנכרן שינויים מהענן... ⚡", "info");
+    }
+
     const toggles = state.cloudSyncToggles || {};
 
     // 1. Merge Workout History
@@ -342,14 +355,61 @@ export async function syncUserSession(uid, isManual = false) {
       }
     }
 
-    if (isManual) {
-      showPremiumToast("הנתונים סונכרנו בהצלחה! ⚡", "success");
+    SafeStorage.setItem(`aura-last-sync_${uid}`, Date.now().toString());
+
+    if (isManual || cloudLastUpdate > localLastSync) {
+      showPremiumToast("הסנכרון הושלם! ✨", "success");
     }
   } catch (error) {
     console.error("Error during cloud user sync session:", error);
     if (isManual) {
       showPremiumToast("סנכרון הענן נכשל. עובד במצב לא מקוון.", "error");
     }
+  }
+}
+
+export async function deleteSpecificCloudCategory(uid, categoryKey) {
+  const firestoreDb = getDb();
+  if (!firestoreDb) return;
+  try {
+    const docRef = doc(firestoreDb, "users", uid);
+    await setDoc(docRef, {
+      [categoryKey]: deleteField(),
+      updatedAt: Date.now()
+    }, { merge: true });
+    console.log(`Successfully deleted category ${categoryKey} from cloud.`);
+  } catch (error) {
+    console.error(`Failed to delete category ${categoryKey} from cloud:`, error);
+  }
+}
+
+export async function deleteSpecificCloudItem(uid, categoryKey, itemKey) {
+  const cloudData = await loadUserDataFromCloud(uid);
+  if (!cloudData || !cloudData[categoryKey]) return;
+
+  const categoryData = cloudData[categoryKey];
+  let updatedData;
+
+  if (Array.isArray(categoryData)) {
+    updatedData = categoryData.filter(item => String(item.id) !== String(itemKey) && String(item.name).toLowerCase() !== String(itemKey).toLowerCase());
+  } else if (typeof categoryData === 'object') {
+    updatedData = { ...categoryData };
+    delete updatedData[itemKey];
+  } else {
+    return;
+  }
+
+  const firestoreDb = getDb();
+  if (!firestoreDb) return;
+  try {
+    const docRef = doc(firestoreDb, "users", uid);
+    await setDoc(docRef, {
+      [categoryKey]: updatedData,
+      updatedAt: Date.now()
+    }, { merge: true });
+    console.log(`Successfully deleted item ${itemKey} from category ${categoryKey} in cloud.`);
+  } catch (error) {
+    console.error(`Failed to delete item ${itemKey} from category ${categoryKey} in cloud:`, error);
   }
 }
 
