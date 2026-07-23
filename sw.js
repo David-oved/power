@@ -1,4 +1,4 @@
-const CACHE_NAME = '12.2.3';
+const CACHE_NAME = '12.2.4';
 const UPDATE_DESCRIPTION = 'תיקון מקיף להגדרות ענן, תצוגה ותיקון באגים במערכת';
 
 const ASSETS = [
