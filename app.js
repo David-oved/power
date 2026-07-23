@@ -170,6 +170,12 @@ let autoCollapseTimeout = null;
 export function applyNavStyle(style) {
   state.navStyle = style || 'floating';
   SafeStorage.setItem('aura-nav-style', state.navStyle);
+  
+  const scrollContainers = document.querySelectorAll('.tab-content-container, .ios-settings-scroll-container, .ios-scroll-container');
+  scrollContainers.forEach(el => {
+    el.style.setProperty('padding-bottom', 'calc(120px + env(safe-area-inset-bottom, 24px))', 'important');
+  });
+
   if (state.navStyle === 'fixed') {
     document.body.classList.add('nav-style-fixed');
     const bottomNav = document.querySelector('.ios-bottom-nav');

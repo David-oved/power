@@ -2598,7 +2598,7 @@ body:not(.light-theme) .ios-settings-header {
 
 /* Settings Main Title override */
 #tab-settings .settings-main-title {
-  color: #000000 !important;
+  color: #1c1c1e !important;
   font-family: var(--font-display) !important;
   font-size: 2.1rem !important;
   font-weight: 800 !important;
@@ -3422,7 +3422,7 @@ body:not(.light-theme) .ios-settings-header {
 
 /* 1. Global Tab Titles styling (Aligned large bold top-right RTL, exactly like settings) */
 .tab-pane .settings-main-title {
-  color: #000000 !important;
+  color: #1c1c1e !important;
   font-family: var(--font-display) !important;
   font-size: 2.1rem !important;
   font-weight: 800 !important;
@@ -3587,7 +3587,7 @@ body:not(.light-theme) .ios-settings-header {
 
 /* 1. Global Tab Titles styling (Aligned large bold top-right RTL, exactly like settings) */
 .tab-pane .settings-main-title {
-  color: #000000 !important;
+  color: #1c1c1e !important;
   font-family: var(--font-display) !important;
   font-size: 2.1rem !important;
   font-weight: 800 !important;
@@ -5795,7 +5795,12 @@ body:not(.light-theme) .ios-settings-header {
 .sub-tab-pane.active {
   display: flex !important;
   opacity: 1;
-  transform: translateY(0);
+}
+
+.tab-pane.active {
+  display: flex !important;
+  opacity: 1 !important;
+  transform: translateY(0) !important;
 }
 
 .nav-tab.sub-nav-back {
@@ -9675,8 +9680,10 @@ body.nav-style-fixed #metrics-sub-nav .nav-container {
   box-sizing: border-box !important;
 }
 
-body.nav-style-fixed .tab-content-container {
-  padding-bottom: calc(80px + env(safe-area-inset-bottom)) !important;
+body.nav-style-fixed .tab-content-container,
+body.nav-style-fixed .ios-settings-scroll-container,
+body.nav-style-fixed .ios-scroll-container {
+  padding-bottom: calc(120px + env(safe-area-inset-bottom, 24px)) !important;
 }
 
 body.nav-style-fixed .ios-bottom-nav .nav-tab.active,

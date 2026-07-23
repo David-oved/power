@@ -6,7 +6,9 @@ import {
   getRedirectResult, 
   GoogleAuthProvider, 
   signOut, 
-  onAuthStateChanged
+  onAuthStateChanged,
+  setPersistence,
+  browserLocalPersistence
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { state } from "../state.js";
 import { SafeStorage } from "../utils/storage.js";
@@ -234,7 +236,7 @@ export function detectEnvironmentAndWarn() {
 }
 
 // Initialize Auth
-export function initAuth() {
+export async function initAuth() {
   authScreen = document.getElementById('auth-screen');
   appScreen = document.getElementById('app-screen');
   loginBtn = document.getElementById('google-login-btn');
@@ -253,6 +255,7 @@ export function initAuth() {
     try {
       state.app = initializeApp(window.firebaseConfig);
       state.auth = getAuth(state.app);
+      await setPersistence(state.auth, browserLocalPersistence);
       state.googleProvider = new GoogleAuthProvider();
       state.googleProvider.setCustomParameters({ prompt: 'select_account' });
       state.firebaseEnabled = true;
@@ -275,73 +278,42 @@ export function initAuth() {
         return;
       }
 
-      // Proactively request notification permission on user-initiated gesture (safely)
-      if ('Notification' in window && typeof Notification !== 'undefined' && Notification.permission === 'default') {
-        try {
-          await Notification.requestPermission();
-        } catch (err) {
-          console.warn("Could not request notification permission on login click:", err);
-        }
-      }
-
       loginBtn.disabled = true;
       const btnTextEl = loginBtn.querySelector('.google-btn-text');
       const originalText = btnTextEl ? btnTextEl.textContent : 'Sign in with Google';
 
-      let maxAttempts = 3;
-      let success = false;
+      if (btnTextEl) btnTextEl.textContent = 'Connecting...';
 
-      for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-        if (btnTextEl) btnTextEl.textContent = `Connecting (Attempt ${attempt})...`;
-        try {
-          console.log(`Attempting Google Authentication via popup (Attempt ${attempt})...`);
-          await signInWithPopup(state.auth, state.googleProvider);
-          console.log("Logged in successfully via popup!");
-          success = true;
-          break;
-        } catch (popupError) {
-          console.warn(`Popup authentication failed/blocked (Attempt ${attempt}). Code:`, popupError.code, popupError.message);
-          
-          if (popupError.code === 'auth/account-exists-with-different-credential') {
-            showPremiumToast("קיים כבר חשבון רשום עם כתובת אימייל זו במערכת. אנא פנה לתמיכה לצורך מיזוג חשבונות.", "error");
-            loginBtn.disabled = false;
-            if (btnTextEl) btnTextEl.textContent = originalText;
-            return;
-          }
-
-          // If user cancelled, just reset button state and return safely.
-          if (popupError.code === 'auth/popup-closed-by-user' || popupError.code === 'auth/cancelled-popup-request') {
-            console.log("Sign-in process was cancelled by the user.");
-            loginBtn.disabled = false;
-            if (btnTextEl) btnTextEl.textContent = originalText;
-            return;
-          }
-
-          // Non-cancellation error: delay and retry if not last attempt
-          if (attempt < maxAttempts) {
-            await new Promise(resolve => setTimeout(resolve, 2000));
+      try {
+        await signInWithPopup(state.auth, state.googleProvider);
+        console.log("Logged in successfully via popup!");
+        
+        // Request notification permission ONLY after successful login.
+        if ('Notification' in window && typeof Notification !== 'undefined' && Notification.permission === 'default') {
+          try {
+            await Notification.requestPermission();
+          } catch (err) {
+            console.warn("Could not request notification permission on login success:", err);
           }
         }
-      }
-
-      if (success) {
+        
         loginBtn.disabled = false;
         if (btnTextEl) btnTextEl.textContent = originalText;
-      } else {
-        // Redirect fallback
-        console.log("Falling back dynamically to signInWithRedirect...");
-        if (btnTextEl) btnTextEl.textContent = 'Redirecting...';
-        try {
-          await signInWithRedirect(state.auth, state.googleProvider);
-        } catch (redirectError) {
-          console.error("Redirect fallback authentication error:", redirectError);
-          if (redirectError.code === 'auth/account-exists-with-different-credential') {
-            showPremiumToast("קיים כבר חשבון רשום עם כתובת אימייל זו במערכת. אנא פנה לתמיכה לצורך מיזוג חשבונות.", "error");
-            loginBtn.disabled = false;
-            if (btnTextEl) btnTextEl.textContent = originalText;
-          } else {
-            handleAuthError(redirectError, loginBtn, originalText);
-          }
+      } catch (popupError) {
+        console.warn("Popup authentication failed/blocked. Code:", popupError.code, popupError.message);
+        
+        loginBtn.disabled = false;
+        if (btnTextEl) btnTextEl.textContent = originalText;
+
+        if (popupError.code === 'auth/account-exists-with-different-credential') {
+          showPremiumToast("קיים כבר חשבון רשום עם כתובת אימייל זו במערכת. אנא פנה לתמיכה לצורך מיזוג חשבונות.", "error");
+          return;
+        }
+
+        if (popupError.code === 'auth/popup-blocked' || popupError.code === 'auth/popup-closed-by-user') {
+          showPremiumToast('ההתחברות נחסמה או בוטלה. <a href="#" onclick="document.getElementById(\'google-login-btn\').click(); return false;" style="text-decoration: underline; color: #60a5fa;">נסה להתחבר שנית 🔄</a>', "error");
+        } else {
+          showPremiumToast(`שגיאת התחברות: ${popupError.message || 'נא לנסות שנית'}`, "error");
         }
       }
     });

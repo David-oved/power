@@ -1,3 +1,5 @@
+import { showPremiumToast } from "./helpers.js";
+
 // SafeStorage Adapter to handle Private Browsing & Quota Limits safely
 export const SafeStorage = {
   _fallbackMem: {},
@@ -39,6 +41,9 @@ export const SafeStorage = {
       } catch (e) {
         console.warn("Storage write failed (quota exceeded?):", e);
         this._failedKeys[key] = true;
+        if (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED' || e.code === 22 || e.code === 1014) {
+          showPremiumToast("זכרון האחסון המקומי מלא או חסום. חלק מהנתונים לא נשמרו.", "error");
+        }
       }
     }
   },

@@ -38,7 +38,7 @@ export function initPremiumSettings() {
     document.body.classList.remove('hide-glows');
   }
 
-  const allTabs = document.querySelectorAll('.tab-content-container .tab-pane');
+  const allTabs = document.querySelectorAll('.tab-pane');
   const toggleDarkMode = document.getElementById('toggle-settings-dark-mode');
   const toggleNotifications = document.getElementById('toggle-settings-notifications');
   const toggleOutdoorMode = document.getElementById('toggle-settings-outdoor-mode');
@@ -66,7 +66,7 @@ export function initPremiumSettings() {
     });
   }
   
-  const isDarkMode = SafeStorage.getItem('settings_dark_mode') === 'true';
+  const isDarkMode = SafeStorage.getItem('settings_dark_mode') !== 'false';
   const isNotificationsEnabled = SafeStorage.getItem('settings_notifications_enabled') !== 'false';
 
   allTabs.forEach(tab => {
