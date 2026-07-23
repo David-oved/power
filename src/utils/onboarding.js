@@ -511,19 +511,20 @@ export function addOnboardingSettingsGroup() {
     </div>
   `;
   
-  const groups = settingsMainView.querySelectorAll('.ios-settings-card-group');
+  const scrollContainer = settingsMainView.querySelector('.ios-settings-scroll-container') || settingsMainView;
+  const groups = scrollContainer.querySelectorAll('.ios-settings-card-group');
   let systemGroup = null;
   for (const g of groups) {
-    if (g.textContent.includes('מערכת')) {
+    if (g.textContent.includes('מערכת') || g.textContent.includes('גרסה')) {
       systemGroup = g;
       break;
     }
   }
   
-  if (systemGroup) {
-    settingsMainView.insertBefore(group, systemGroup);
+  if (systemGroup && systemGroup.parentNode) {
+    systemGroup.parentNode.insertBefore(group, systemGroup);
   } else {
-    settingsMainView.appendChild(group);
+    scrollContainer.appendChild(group);
   }
   
   document.getElementById('row-settings-restart-tour')?.addEventListener('click', () => {
