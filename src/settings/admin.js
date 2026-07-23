@@ -32,8 +32,8 @@ export function initAdminModule() {
   if (goToAdminBtn) {
     goToAdminBtn.addEventListener('click', async () => {
       if (state.userRole !== 'admin') return;
-      settingsMainView.classList.add('hide');
-      adminView.classList.remove('hide');
+      if (settingsMainView) settingsMainView.classList.add('hide');
+      if (adminView) adminView.classList.remove('hide');
       
       // Load data immediately
       await loadAdminDashboardData();
@@ -44,8 +44,8 @@ export function initAdminModule() {
   const backFromAdminBtn = document.getElementById('back-from-admin-btn');
   if (backFromAdminBtn) {
     backFromAdminBtn.addEventListener('click', () => {
-      adminView.classList.add('hide');
-      settingsMainView.classList.remove('hide');
+      if (adminView) adminView.classList.add('hide');
+      if (settingsMainView) settingsMainView.classList.remove('hide');
     });
   }
 
@@ -53,8 +53,8 @@ export function initAdminModule() {
   const goToFeedbackBtn = document.getElementById('go-to-feedback-btn');
   if (goToFeedbackBtn) {
     goToFeedbackBtn.addEventListener('click', () => {
-      settingsMainView.classList.add('hide');
-      feedbackView.classList.remove('hide');
+      if (settingsMainView) settingsMainView.classList.add('hide');
+      if (feedbackView) feedbackView.classList.remove('hide');
       
       // Reset inputs
       const textInput = document.getElementById('feedback-text-input');
@@ -66,8 +66,8 @@ export function initAdminModule() {
   const backFromFeedbackBtn = document.getElementById('back-from-feedback-btn');
   if (backFromFeedbackBtn) {
     backFromFeedbackBtn.addEventListener('click', () => {
-      feedbackView.classList.add('hide');
-      settingsMainView.classList.remove('hide');
+      if (feedbackView) feedbackView.classList.add('hide');
+      if (settingsMainView) settingsMainView.classList.remove('hide');
     });
   }
 
@@ -75,8 +75,8 @@ export function initAdminModule() {
   const goToMessagesBtn = document.getElementById('go-to-messages-btn');
   if (goToMessagesBtn) {
     goToMessagesBtn.addEventListener('click', async () => {
-      settingsMainView.classList.add('hide');
-      messagesView.classList.remove('hide');
+      if (settingsMainView) settingsMainView.classList.add('hide');
+      if (messagesView) messagesView.classList.remove('hide');
       
       // Render and mark all messages as read
       renderUserMessagesList();
@@ -88,8 +88,8 @@ export function initAdminModule() {
   const backFromMessagesBtn = document.getElementById('back-from-messages-btn');
   if (backFromMessagesBtn) {
     backFromMessagesBtn.addEventListener('click', () => {
-      messagesView.classList.add('hide');
-      settingsMainView.classList.remove('hide');
+      if (messagesView) messagesView.classList.add('hide');
+      if (settingsMainView) settingsMainView.classList.remove('hide');
     });
   }
 
