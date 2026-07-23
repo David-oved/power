@@ -393,15 +393,10 @@ initSettingsModule();
 
 // DOM initialization trigger
 onDOMReady(() => {
-  // Apply bottom navigation style preference
-  applyNavStyle(state.navStyle);
-
-  // Initialize Auth module which sets up Firebase state resolvers and periodic session checkers
-  initAuth();
-  
-  // Tab Initializers setup
-  initPremiumSettings();
-  initAnalyticsTab();
-  initOnboarding();
-  initAdminModule();
+  try { applyNavStyle(state.navStyle); } catch (e) { console.error("Nav style init error:", e); }
+  try { initAuth(); } catch (e) { console.error("Auth init error:", e); }
+  try { initPremiumSettings(); } catch (e) { console.error("Settings init error:", e); }
+  try { initAnalyticsTab(); } catch (e) { console.error("Analytics tab init error:", e); }
+  try { initOnboarding(); } catch (e) { console.error("Onboarding init error:", e); }
+  try { initAdminModule(); } catch (e) { console.error("Admin module init error:", e); }
 });
