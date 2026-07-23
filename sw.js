@@ -1,5 +1,5 @@
-const CACHE_NAME = '12.1.2';
-const UPDATE_DESCRIPTION = 'תיקונים והוספת הגדרות ענן';
+const CACHE_NAME = '12.2.1';
+const UPDATE_DESCRIPTION = ',buggs fixed';
 
 const ASSETS = [
   './',
