@@ -155,6 +155,14 @@ export function initPremiumSettings() {
         e.stopPropagation();
         const selectedStyle = btn.dataset.navStyle || 'floating';
         updateNavStyleUI(selectedStyle);
+        
+        state.navStyle = selectedStyle;
+        SafeStorage.setItem('aura-nav-style', selectedStyle);
+        if (selectedStyle === 'fixed') {
+          document.body.classList.add('nav-style-fixed');
+        } else {
+          document.body.classList.remove('nav-style-fixed');
+        }
         if (window.applyNavStyle) {
           window.applyNavStyle(selectedStyle);
         }
