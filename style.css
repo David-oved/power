@@ -282,8 +282,7 @@ body {
   width: 72px;
   height: 72px;
   display: block;
-  filter: drop-shadow(0 0 12px hsla(200, 100%, 50%, 0.45))
-          drop-shadow(0 0 24px hsla(22, 100%, 55%, 0.3));
+  filter: none;
   transition: var(--transition-smooth);
 }
 
@@ -336,7 +335,7 @@ body {
   border-bottom-color: var(--electric-blue);
   border-radius: 50%;
   animation: spin-clockwise 2s linear infinite;
-  filter: drop-shadow(0 0 8px var(--electric-blue-glow));
+  filter: none;
 }
 
 .spinner-inner {
@@ -348,7 +347,7 @@ body {
   border-right-color: var(--neon-orange);
   border-radius: 50%;
   animation: spin-counter-clockwise 1.5s linear infinite;
-  filter: drop-shadow(0 0 8px var(--neon-orange-glow));
+  filter: none;
 }
 
 .splash-brand {
@@ -379,7 +378,7 @@ body {
   font-weight: 800;
   color: var(--text-heading);
   letter-spacing: -0.5px;
-  text-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+  text-shadow: none;
   margin: 0;
 }
 
@@ -389,7 +388,7 @@ body {
   font-weight: 600;
   letter-spacing: 2px;
   text-transform: uppercase;
-  text-shadow: 0 0 20px var(--accent-glow);
+  text-shadow: none;
   margin: 0;
 }
 
@@ -693,12 +692,12 @@ body, #auth-screen, #app-screen, .drawer-content, .settings-drawer {
 .btn-primary {
   background: linear-gradient(135deg, var(--electric-blue) 0%, var(--electric-blue-light) 100%);
   color: #ffffff;
-  box-shadow: 0 4px 15px rgba(0, 162, 255, 0.3);
+  box-shadow: none;
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(0, 162, 255, 0.5);
+  box-shadow: none;
 }
 
 .btn-secondary {
@@ -717,23 +716,23 @@ body, #auth-screen, #app-screen, .drawer-content, .settings-drawer {
 .btn-success {
   background: linear-gradient(135deg, var(--color-success) 0%, #10b981 100%);
   color: #ffffff;
-  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+  box-shadow: none;
 }
 
 .btn-success:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+  box-shadow: none;
 }
 
 .btn-logout {
   background: linear-gradient(135deg, var(--color-danger) 0%, #ef4444 100%);
   color: #ffffff;
-  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.2);
+  box-shadow: none;
 }
 
 .btn-logout:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+  box-shadow: none;
 }
 
 .btn:active {
@@ -873,7 +872,7 @@ body, #auth-screen, #app-screen, .drawer-content, .settings-drawer {
   background-color: var(--color-success);
   border-radius: 50%;
   border: 3.5px solid var(--bg-app);
-  box-shadow: 0 0 10px var(--color-success);
+  box-shadow: none;
 }
 
 .drawer-user-info {
@@ -947,7 +946,7 @@ body, #auth-screen, #app-screen, .drawer-content, .settings-drawer {
   height: 8px;
   background-color: var(--color-success);
   border-radius: 50%;
-  box-shadow: 0 0 6px var(--color-success);
+  box-shadow: none;
 }
 
 .status-label-mini {
@@ -1150,7 +1149,7 @@ body, #auth-screen, #app-screen, .drawer-content, .settings-drawer {
   font-size: 2.2rem;
   color: var(--electric-blue);
   animation: bounce-arrow 1s infinite alternate;
-  text-shadow: 0 0 10px var(--electric-blue-glow);
+  text-shadow: none;
 }
 
 @keyframes bounce-arrow {
@@ -1193,14 +1192,11 @@ body, #auth-screen, #app-screen, .drawer-content, .settings-drawer {
   pointer-events: auto;
 }
 
-@keyframes pulse-spark {
-  0% { transform: scale(1); opacity: 0.8; filter: drop-shadow(0 0 2px rgba(255,255,255,0.4)); }
-  100% { transform: scale(1.2); opacity: 1; filter: drop-shadow(0 0 8px rgba(0, 162, 255, 0.5)); }
-}
+
 
 .toast-refresh-btn:hover {
   transform: translateY(-1.5px);
-  box-shadow: 0 6px 15px rgba(37, 99, 235, 0.35) !important;
+  box-shadow: none;
 }
 
 /* ==========================================================================
@@ -1399,10 +1395,7 @@ body.authenticated .workout-summary-modal.active {
   left: 24px !important;
   transform: translateX(0) !important;
   max-width: 52px !important;
-  box-shadow: 
-    0 10px 25px rgba(220, 38, 38, 0.45),
-    0 0 15px rgba(220, 38, 38, 0.25),
-    0 0 1px rgba(255, 255, 255, 0.3) inset !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   background: rgba(15, 15, 20, 0.95) !important;
   border: 1.5px solid rgba(220, 38, 38, 0.5) !important;
 }
@@ -1903,7 +1896,7 @@ body.authenticated .ios-bottom-nav {
 .coming-soon-emoji {
   font-size: 3.5rem;
   margin-bottom: 0.5rem;
-  filter: drop-shadow(0 0 15px rgba(0, 162, 255, 0.25));
+  filter: none;
   animation: cs-float 3s ease-in-out infinite alternate;
 }
 
@@ -1936,7 +1929,7 @@ body.authenticated .ios-bottom-nav {
   color: #ffffff;
   padding: 6px 14px;
   border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 162, 255, 0.2);
+  box-shadow: none;
 }
 
 /* ==========================================================================
@@ -2084,10 +2077,7 @@ body.authenticated .ios-bottom-nav {
   width: 100%;
 }
 
-.exercise-card.saved {
-  border-color: rgba(34, 197, 94, 0.15);
-  background: rgba(34, 197, 94, 0.01);
-}
+
 
 .exercise-card.pending {
   opacity: 0.45;
@@ -3313,7 +3303,7 @@ body.authenticated .ios-bottom-nav {
   padding: 14px 18px;
   border-radius: 18px;
   color: #ffffff;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   opacity: 0;
   transform: translateY(-20px) scale(0.95);
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -3331,17 +3321,17 @@ body.authenticated .ios-bottom-nav {
 
 .premium-toast.toast-error {
   border-color: rgba(239, 68, 68, 0.3);
-  box-shadow: 0 12px 30px rgba(239, 68, 68, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .premium-toast.toast-success {
   border-color: rgba(34, 197, 94, 0.3);
-  box-shadow: 0 12px 30px rgba(34, 197, 94, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .premium-toast.toast-info {
   border-color: rgba(0, 240, 255, 0.3);
-  box-shadow: 0 12px 30px rgba(0, 240, 255, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .toast-icon {
@@ -3376,36 +3366,16 @@ body.authenticated .ios-bottom-nav {
 
 /* Red pulse border when rest timer is expired */
 .rest-timer-bubble.expired {
-  animation: pulse-danger-border 1.2s infinite alternate;
+  
   border-color: rgba(220, 38, 38, 0.5);
 }
 
-@keyframes pulse-danger-border {
-  0% {
-    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.7);
-    border-color: rgba(220, 38, 38, 0.4);
-  }
-  100% {
-    box-shadow: 0 20px 45px rgba(0, 0, 0, 0.7);
-    border-color: rgba(220, 38, 38, 0.95);
-    background: rgba(30, 10, 10, 0.95);
-  }
-}
+
 
 /* Premium Completed Exercises satisfying visuals */
-.exercise-card.saved {
-  background: linear-gradient(135deg, rgba(16, 16, 20, 0.95) 0%, rgba(8, 8, 10, 0.98) 100%) !important;
-  border: 1px solid rgba(34, 197, 94, 0.25) !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55) !important;
-  transform: translateY(0);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
 
-.exercise-card.saved:hover {
-  transform: translateY(-2px);
-  border-color: rgba(34, 197, 94, 0.35) !important;
-  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6) !important;
-}
+
+
 
 /* Smooth pop transition when exercise is saved */
 .exercise-card {
@@ -3469,11 +3439,7 @@ body.authenticated .ios-bottom-nav {
   outline: none;
 }
 
-.rest-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: var(--electric-blue-light);
-  box-shadow: 0 0 10px var(--electric-blue-glow-subtle);
-}
+
 
 /* Premium Glassmorphic Toast Notifications */
 .premium-toast-container {
@@ -3502,7 +3468,7 @@ body.authenticated .ios-bottom-nav {
   padding: 14px 18px;
   border-radius: 18px;
   color: #ffffff;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   opacity: 0;
   transform: translateY(-20px) scale(0.95);
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
@@ -3520,17 +3486,17 @@ body.authenticated .ios-bottom-nav {
 
 .premium-toast.toast-error {
   border-color: rgba(239, 68, 68, 0.3);
-  box-shadow: 0 12px 30px rgba(239, 68, 68, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .premium-toast.toast-success {
   border-color: rgba(34, 197, 94, 0.3);
-  box-shadow: 0 12px 30px rgba(34, 197, 94, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .premium-toast.toast-info {
   border-color: rgba(0, 240, 255, 0.3);
-  box-shadow: 0 12px 30px rgba(0, 240, 255, 0.15), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .toast-icon {
@@ -3565,42 +3531,16 @@ body.authenticated .ios-bottom-nav {
 
 /* Pulsing red fire glow when rest timer is expired */
 .rest-timer-bubble.expired {
-  animation: pulse-danger-glow 1s infinite alternate;
+  
   border-color: rgba(220, 38, 38, 0.4);
 }
 
-@keyframes pulse-danger-glow {
-  0% {
-    box-shadow: 
-      0 20px 45px rgba(0, 0, 0, 0.7),
-      0 0 15px rgba(220, 38, 38, 0.2);
-  }
-  100% {
-    box-shadow: 
-      0 20px 45px rgba(0, 0, 0, 0.7),
-      0 0 30px rgba(220, 38, 38, 0.6);
-    background: rgba(30, 10, 10, 0.95);
-  }
-}
+
 
 /* Premium Completed Exercises satisfying visuals */
-.exercise-card.saved {
-  background: linear-gradient(135deg, rgba(16, 16, 20, 0.95) 0%, rgba(8, 8, 10, 0.98) 100%) !important;
-  border: 1px solid rgba(34, 197, 94, 0.25) !important;
-  box-shadow: 
-    0 10px 30px rgba(0, 0, 0, 0.55),
-    0 0 15px rgba(34, 197, 94, 0.06) !important;
-  transform: translateY(0);
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
 
-.exercise-card.saved:hover {
-  transform: translateY(-2px);
-  border-color: rgba(34, 197, 94, 0.35) !important;
-  box-shadow: 
-    0 15px 40px rgba(0, 0, 0, 0.6),
-    0 0 22px rgba(34, 197, 94, 0.12) !important;
-}
+
+
 
 /* Smooth pop transition when exercise is saved */
 .exercise-card {
@@ -3721,13 +3661,7 @@ body.authenticated .ios-bottom-nav {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important;
 }
 
-.tab-pane:not(.dark-theme) .exercise-card.saved {
-  background: #ffffff !important;
-  border: 1px solid rgba(34, 197, 94, 0.4) !important;
-  box-shadow: 
-    0 8px 24px rgba(0, 0, 0, 0.05),
-    0 0 12px rgba(34, 197, 94, 0.04) !important;
-}
+.tab-pane:not(.dark-theme) 
 
 .tab-pane:not(.dark-theme) .exercise-card.saved .exercise-name-input {
   color: #16a34a !important;
@@ -3851,21 +3785,7 @@ body.authenticated .ios-bottom-nav {
 /* ==========================================================================
    PREMIUM SPORT & WORKOUT WIZARD GLASS STYLES
    ========================================================================== */
-.workout-modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(4, 5, 9, 0.75);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1500;
-  transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
+
 
 .workout-modal-overlay.hide {
   opacity: 0;
@@ -4007,7 +3927,7 @@ body.authenticated .ios-bottom-nav {
   border-radius: 28px 28px 0 0;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.7), 0 0 40px rgba(22, 163, 74, 0.08);
+  box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.7), 0 0 0 transparent;
   overflow: hidden;
   animation: set-entry-slide-up 0.45s cubic-bezier(0.16, 1, 0.3, 1);
   direction: rtl;
@@ -4110,7 +4030,7 @@ body.authenticated .ios-bottom-nav {
 .drum-picker-item.selected {
   color: #ffffff;
   font-size: 1.6rem;
-  text-shadow: 0 0 12px rgba(255, 255, 255, 0.4);
+  text-shadow: none;
 }
 
 .drum-picker-item.near-selected {
@@ -4178,14 +4098,14 @@ body.authenticated .ios-bottom-nav {
   font-weight: 800;
   font-family: var(--font-display);
   cursor: pointer;
-  box-shadow: 0 6px 25px rgba(22, 163, 74, 0.4);
+  box-shadow: none;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
   letter-spacing: -0.2px;
 }
 
 .set-entry-confirm-btn:active {
   transform: scale(0.97);
-  box-shadow: 0 3px 12px rgba(22, 163, 74, 0.3);
+  box-shadow: none;
 }
 
 .set-entry-cancel-btn {
@@ -4579,7 +4499,7 @@ body.authenticated .ios-bottom-nav {
   background: linear-gradient(135deg, rgba(220, 38, 38, 0.15) 0%, rgba(244, 63, 94, 0.15) 100%) !important;
   border-color: var(--electric-blue-light) !important;
   color: #ffffff !important;
-  box-shadow: 0 0 15px var(--electric-blue-glow-subtle) !important;
+  box-shadow: none;
   transform: scale(1.03) !important;
 }
 
@@ -4646,7 +4566,7 @@ body.authenticated .ios-bottom-nav {
   backdrop-filter: blur(35px) !important;
   -webkit-backdrop-filter: blur(35px) !important;
   border: 1px solid rgba(255, 255, 255, 0.09) !important;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85), 0 0 30px var(--electric-blue-glow-subtle) !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85), 0 0 0 transparent !important;
   padding: 24px !important;
   border-radius: 28px !important;
   direction: rtl !important;
@@ -4714,7 +4634,7 @@ body.authenticated .ios-bottom-nav {
   font-size: 1.4rem !important;
   font-weight: 800 !important;
   color: #ffffff !important;
-  text-shadow: 0 0 8px rgba(255, 255, 255, 0.25) !important;
+  text-shadow: none;
 }
 
 .slider-control-row {
@@ -4757,7 +4677,7 @@ body.authenticated .ios-bottom-nav {
   border-radius: 50% !important;
   background: radial-gradient(circle, #ffffff 30%, var(--electric-blue-light) 100%) !important;
   border: 2px solid #ffffff !important;
-  box-shadow: 0 0 10px var(--electric-blue-glow), 0 4px 8px rgba(0, 0, 0, 0.5) !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
   margin-top: -7px !important;
   transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.15s ease !important;
 }
@@ -5021,7 +4941,7 @@ body.authenticated .ios-bottom-nav {
   border-radius: 16px !important;
   margin-top: 6px !important;
   background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
-  box-shadow: 0 4px 20px rgba(220, 38, 38, 0.35) !important;
+  box-shadow: none;
   border: none !important;
   color: #fff !important;
   cursor: pointer !important;
@@ -5031,7 +4951,7 @@ body.authenticated .ios-bottom-nav {
 
 #save-custom-exercise-btn:hover {
   transform: translateY(-2px) !important;
-  box-shadow: 0 8px 28px rgba(220, 38, 38, 0.5) !important;
+  box-shadow: none;
 }
 
 #save-custom-exercise-btn:active {
@@ -5064,7 +4984,7 @@ body.authenticated .ios-bottom-nav {
   border-top: 1px solid rgba(255, 255, 255, 0.12) !important;
   border-left: 1px solid rgba(255, 255, 255, 0.06) !important;
   border-right: 1px solid rgba(255, 255, 255, 0.06) !important;
-  box-shadow: 0 -15px 40px rgba(0, 0, 0, 0.7), 0 0 25px rgba(220, 38, 38, 0.15) !important;
+  box-shadow: 0 -15px 40px rgba(0, 0, 0, 0.7), 0 0 0 transparent !important;
 }
 
 @keyframes slide-up-sheet {
@@ -5115,7 +5035,7 @@ body.authenticated .ios-bottom-nav {
   stroke-width: 6;
   stroke-linecap: round;
   transition: stroke-dashoffset 0.1s linear;
-  filter: drop-shadow(0 0 5px var(--electric-blue-glow));
+  filter: none;
 }
 
 .rest-timer-countdown {
@@ -5123,7 +5043,7 @@ body.authenticated .ios-bottom-nav {
   font-size: 2.2rem !important;
   font-weight: 800 !important;
   color: #ffffff !important;
-  text-shadow: 0 0 10px rgba(255,255,255,0.2) !important;
+  text-shadow: none;
   z-index: 10;
 }
 
@@ -5135,7 +5055,7 @@ body.authenticated .ios-bottom-nav {
   line-height: 1.4;
   direction: rtl;
   text-align: center;
-  animation: pulse-spark 1.5s infinite alternate;
+  
 }
 
 /* 3. Analytics View & Scroll Container */
@@ -5394,7 +5314,7 @@ body.authenticated .ios-bottom-nav {
   height: 6px;
   border-radius: 50%;
   background: #ef4444;
-  box-shadow: 0 0 6px #dc2626;
+  box-shadow: none;
 }
 
 .calendar-nav-arrow {
@@ -5572,7 +5492,7 @@ body.authenticated .ios-bottom-nav {
   stroke: var(--electric-blue-light);
   stroke-width: 3.5px;
   stroke-linecap: round;
-  filter: drop-shadow(0 4px 10px var(--electric-blue-glow));
+  filter: none;
 }
 
 .bezier-chart-area {
@@ -5956,7 +5876,7 @@ body.authenticated .ios-bottom-nav {
   font-weight: 800;
   padding: 2px 8px;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 /* Collapsible Arrow chevron */
@@ -6102,7 +6022,7 @@ body.authenticated .ios-bottom-nav {
   height: 100%;
   border-radius: 3px;
   background: linear-gradient(90deg, var(--electric-blue) 0%, var(--electric-blue-light) 100%);
-  box-shadow: 0 0 6px rgba(0, 122, 255, 0.4);
+  box-shadow: none;
 }
 
 /* Premium exercises lists */
@@ -6165,14 +6085,14 @@ body.authenticated .ios-bottom-nav {
   background: rgba(48, 209, 88, 0.12);
   color: #30d158;
   border: 1px solid rgba(48, 209, 88, 0.25);
-  text-shadow: 0 0 4px rgba(48, 209, 88, 0.3);
+  text-shadow: none;
 }
 
 .workout-log-trend-badge.trend-down {
   background: rgba(255, 69, 58, 0.12);
   color: #ff453a;
   border: 1px solid rgba(255, 69, 58, 0.25);
-  text-shadow: 0 0 4px rgba(255, 69, 58, 0.3);
+  text-shadow: none;
 }
 
 .workout-log-trend-badge.trend-neutral {
@@ -6238,7 +6158,7 @@ body.authenticated .ios-bottom-nav {
   border-color: rgba(249, 115, 22, 0.4) !important;
   color: #ffedd5 !important;
   font-weight: 700 !important;
-  box-shadow: inset 0 0 8px rgba(249, 115, 22, 0.2), 0 0 8px rgba(249, 115, 22, 0.15) !important;
+  box-shadow: none;
 }
 
 .future-workout-dot-indicator {
@@ -6249,7 +6169,7 @@ body.authenticated .ios-bottom-nav {
   height: 6px;
   border-radius: 50%;
   background: #f97316;
-  box-shadow: 0 0 6px #ea580c;
+  box-shadow: none;
 }
 
 .future-workout-card {
@@ -6285,7 +6205,7 @@ body.authenticated .ios-bottom-nav {
 }
 .schedule-trigger-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(249, 115, 22, 0.5) !important;
+  box-shadow: none;
 }
 .schedule-trigger-btn:active {
   transform: translateY(0) scale(0.98);
@@ -6409,7 +6329,7 @@ body.authenticated .ios-bottom-nav {
   stroke: var(--electric-blue-light);
   stroke-width: 3.5px;
   stroke-linecap: round;
-  filter: drop-shadow(0 4px 10px var(--electric-blue-glow));
+  filter: none;
 }
 
 .bezier-chart-area-tab3 {
@@ -6499,19 +6419,10 @@ body.authenticated .ios-bottom-nav {
 }
 
 .animate-orb {
-  animation: orb-pulsate 3s ease-in-out infinite alternate;
+  
 }
 
-@keyframes orb-pulsate {
-  0% {
-    transform: translate(-50%, -50%) scale(0.9);
-    opacity: 0.6;
-  }
-  100% {
-    transform: translate(-50%, -50%) scale(1.25);
-    opacity: 0.95;
-  }
-}
+
 
 /* Glowing & pulsating badge */
 .coming-soon-badge-glow {
@@ -6524,27 +6435,16 @@ body.authenticated .ios-bottom-nav {
   font-size: 0.8rem;
   display: inline-block;
   letter-spacing: 1px;
-  box-shadow: 0 0 12px rgba(220, 38, 38, 0.15);
-  text-shadow: 0 0 4px rgba(220, 38, 38, 0.5);
+  box-shadow: none;
+  text-shadow: none;
   font-family: var(--font-sans);
 }
 
 .animated-pulse-badge {
-  animation: badge-glow-pulse 2s infinite alternate;
+  
 }
 
-@keyframes badge-glow-pulse {
-  0% {
-    border-color: rgba(220, 38, 38, 0.3);
-    box-shadow: 0 0 8px rgba(220, 38, 38, 0.1);
-    color: #fecaca;
-  }
-  100% {
-    border-color: rgba(220, 38, 38, 0.7);
-    box-shadow: 0 0 18px rgba(220, 38, 38, 0.4);
-    color: #ffffff;
-  }
-}
+
 
 /* Ripple effect styles */
 .ai-ripple {
@@ -6552,17 +6452,12 @@ body.authenticated .ios-bottom-nav {
   border-radius: 50%;
   background: rgba(220, 38, 38, 0.3);
   transform: scale(0);
-  animation: ai-ripple-effect 0.8s ease-out;
+  
   pointer-events: none;
   z-index: 10;
 }
 
-@keyframes ai-ripple-effect {
-  to {
-    transform: scale(4);
-    opacity: 0;
-  }
-}
+
 
 /* Light theme overrides for AURA AI Coach glassmorphic card */
 .tab-pane:not(.dark-theme) .glassmorphic-card {
@@ -6598,8 +6493,8 @@ body.authenticated .ios-bottom-nav {
   background: rgba(220, 38, 38, 0.08) !important;
   color: #b91c1c !important;
   border-color: rgba(220, 38, 38, 0.3) !important;
-  box-shadow: 0 0 8px rgba(220, 38, 38, 0.08) !important;
-  text-shadow: none !important;
+  box-shadow: none;
+  text-shadow: none;
 }
 
 /* LTR/RTL Spacing & Symmetric Cleanups */
@@ -6812,14 +6707,14 @@ html, body {
 .calendar-day-cell:hover {
   transform: scale(1.06);
   z-index: 10;
-  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.15);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 
 .calendar-day-cell.today {
   border: 1.5px solid #00F0FF !important;
   background: rgba(0, 240, 255, 0.08) !important;
   color: #00F0FF !important;
-  box-shadow: inset 0 0 8px rgba(0, 240, 255, 0.2);
+  box-shadow: none;
 }
 
 .calendar-day-cell.has-workout {
@@ -6837,17 +6732,17 @@ html, body {
 
 .workout-dot.gym {
   background: #8A2BE2 !important; /* Neon Purple */
-  box-shadow: 0 0 6px #8A2BE2;
+  box-shadow: none;
 }
 
 .workout-dot.park {
   background: #00FF87 !important; /* Neon Green */
-  box-shadow: 0 0 6px #00FF87;
+  box-shadow: none;
 }
 
 .workout-dot.home {
   background: #FFA500 !important; /* Warm Orange */
-  box-shadow: 0 0 6px #FFA500;
+  box-shadow: none;
 }
 
 /* ==========================================================================
@@ -7011,19 +6906,19 @@ html, body {
 
 /* Specific glows per metric type */
 .gauge-progress-arc.progress-calories {
-  filter: drop-shadow(0 0 6px rgba(255, 59, 48, 0.6));
+  filter: none;
 }
 .gauge-progress-arc.progress-protein {
-  filter: drop-shadow(0 0 6px rgba(225, 29, 72, 0.6));
+  filter: none;
 }
 .gauge-progress-arc.progress-carbs {
-  filter: drop-shadow(0 0 6px rgba(217, 119, 6, 0.6));
+  filter: none;
 }
 .gauge-progress-arc.progress-fat {
-  filter: drop-shadow(0 0 6px rgba(124, 58, 237, 0.6));
+  filter: none;
 }
 .gauge-progress-arc.progress-custom {
-  filter: drop-shadow(0 0 6px rgba(0, 122, 255, 0.6));
+  filter: none;
 }
 
 /* Gauge Percentage Badge */
@@ -7153,7 +7048,7 @@ html, body {
   height: 18px;
   border-radius: 50%;
   background: var(--electric-blue);
-  box-shadow: 0 0 10px var(--electric-blue-glow-subtle);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
   border: 2px solid #ffffff;
   cursor: pointer;
   transition: transform 0.1s;
@@ -7516,7 +7411,7 @@ html, body {
 }
 
 .tab-pane:not(.dark-theme) .gauge-progress-arc {
-  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.15)) !important;
+  filter: none;
 }
 
 .tab-pane:not(.dark-theme) .meals-percentage-badge {
@@ -7564,7 +7459,7 @@ html, body {
 
 .tab-pane:not(.dark-theme) .premium-range-slider::-webkit-slider-thumb {
   border-color: #ffffff !important;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15) !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 
 .tab-pane:not(.dark-theme) .meals-empty-state-card {
@@ -7706,7 +7601,7 @@ html, body {
   height: 5px;
   border-radius: 50%;
   background: #34c759;
-  box-shadow: 0 0 4px #34c759;
+  box-shadow: none;
 }
 
 /* Premium Glass Modal Scroll Lock Correction */
@@ -7755,7 +7650,7 @@ html, body {
   max-width: 390px !important;
   border-radius: 28px !important;
   border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 30px rgba(139, 92, 246, 0.15) !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 0 transparent !important;
   display: flex !important;
   flex-direction: column !important;
   overflow: hidden !important;
@@ -7816,7 +7711,7 @@ html, body {
 .premium-metric-card.active {
   background: rgba(79, 70, 229, 0.08);
   border-color: var(--electric-blue);
-  box-shadow: 0 8px 24px rgba(79, 70, 229, 0.15), 0 0 0 1px var(--electric-blue);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), 0 0 0 1px var(--electric-blue);
 }
 
 .premium-metric-card.active::before {
@@ -8000,7 +7895,7 @@ html, body {
   color: #ffffff;
   font-family: var(--font-display);
   letter-spacing: -0.5px;
-  text-shadow: 0 0 10px rgba(255, 59, 48, 0.25);
+  text-shadow: none;
   line-height: 1.1;
 }
 
@@ -8352,8 +8247,8 @@ html, body {
   background: linear-gradient(135deg, rgba(0, 240, 255, 0.15) 0%, rgba(0, 255, 135, 0.15) 100%);
   color: #00F0FF;
   border: 1px solid rgba(0, 240, 255, 0.25);
-  box-shadow: 0 0 10px rgba(0, 240, 255, 0.2);
-  text-shadow: 0 0 4px rgba(0, 240, 255, 0.4);
+  box-shadow: none;
+  text-shadow: none;
 }
 
 /* ==========================================================================
@@ -8374,7 +8269,7 @@ html, body {
   border-radius: 28px !important;
   border: 1.5px dashed rgba(255, 255, 255, 0.06) !important;
   background: radial-gradient(circle at center, rgba(139, 92, 246, 0.04) 0%, transparent 75%) !important;
-  animation: empty-glow-pulse 3s infinite ease-in-out !important;
+  
   position: relative;
 }
 
@@ -8383,8 +8278,8 @@ html, body {
   font-size: 3.5rem !important;
   display: block !important;
   margin-bottom: 1.25rem !important;
-  animation: pulse-glow 2.5s infinite ease-in-out !important;
-  filter: drop-shadow(0 0 15px rgba(139, 92, 246, 0.4)) !important;
+  
+  filter: none !important;
 }
 
 #exercises-container:empty::after {
@@ -8397,31 +8292,9 @@ html, body {
   direction: rtl !important;
 }
 
-@keyframes empty-glow-pulse {
-  0%, 100% {
-    background-color: rgba(139, 92, 246, 0.01);
-    border-color: rgba(255, 255, 255, 0.05);
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0);
-  }
-  50% {
-    background-color: rgba(139, 92, 246, 0.04);
-    border-color: rgba(139, 92, 246, 0.25);
-    box-shadow: 0 0 25px rgba(139, 92, 246, 0.05);
-  }
-}
 
-@keyframes pulse-glow {
-  0%, 100% {
-    transform: scale(1);
-    filter: drop-shadow(0 0 8px rgba(139, 92, 246, 0.3));
-    opacity: 0.8;
-  }
-  50% {
-    transform: scale(1.08);
-    filter: drop-shadow(0 0 20px rgba(139, 92, 246, 0.6));
-    opacity: 1;
-  }
-}
+
+
 
 /* 2. Premium Dumbbell/Weight-Themed Add Exercise Button */
 #add-exercise-btn {
@@ -8431,7 +8304,7 @@ html, body {
   color: #ffffff !important;
   font-weight: 800 !important;
   font-family: var(--font-sans) !important;
-  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.15) !important;
+  box-shadow: none !important;
   border-radius: 16px !important;
   padding: 12px 18px !important;
   display: flex !important;
@@ -8461,7 +8334,7 @@ html, body {
 
 #add-exercise-btn:hover:not(:disabled) {
   transform: translateY(-3px) scale(1.02) !important;
-  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.45), 0 0 15px rgba(139, 92, 246, 0.25) !important;
+  box-shadow: none !important;
   border-color: rgba(167, 139, 250, 0.6) !important;
 }
 
@@ -8540,13 +8413,13 @@ html, body {
   width: 4px !important;
   border-radius: 4px 0 0 4px !important;
   background: var(--electric-blue, #4f46e5) !important;
-  box-shadow: 0 0 10px rgba(79, 70, 229, 0.6) !important;
+  box-shadow: none !important;
   transition: all 0.3s ease !important;
 }
 
 .exercise-card.saved::after {
   background: #22c55e !important;
-  box-shadow: 0 0 10px rgba(34, 197, 94, 0.7) !important;
+  box-shadow: none !important;
 }
 
 .exercise-card:hover {
@@ -8555,11 +8428,7 @@ html, body {
   box-shadow: 0 18px 35px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
 }
 
-.exercise-card.saved {
-  border-color: rgba(34, 197, 94, 0.22) !important;
-  background: rgba(16, 32, 22, 0.25) !important;
-  box-shadow: 0 8px 25px rgba(16, 32, 22, 0.15) !important;
-}
+
 
 /* 5. Clean Readable Completed Set Chips */
 .completed-sets-chips-container {
@@ -8635,50 +8504,50 @@ html, body {
 .muscle-card[data-category="חזה"].active {
   background: hsla(0, 85%, 60%, 0.12) !important;
   border-color: hsl(0, 85%, 60%) !important;
-  box-shadow: 0 4px 15px hsla(0, 85%, 60%, 0.25) !important;
+  box-shadow: none !important;
 }
 .muscle-card[data-category="גב"].active {
   background: hsla(217, 90%, 60%, 0.12) !important;
   border-color: hsl(217, 90%, 60%) !important;
-  box-shadow: 0 4px 15px hsla(217, 90%, 60%, 0.25) !important;
+  box-shadow: none !important;
 }
 .muscle-card[data-category="כתפיים"].active {
   background: hsla(271, 90%, 65%, 0.12) !important;
   border-color: hsl(271, 90%, 65%) !important;
-  box-shadow: 0 4px 15px hsla(271, 90%, 65%, 0.25) !important;
+  box-shadow: none !important;
 }
 .muscle-card[data-category="רגליים"].active {
   background: hsla(142, 70%, 45%, 0.12) !important;
   border-color: hsl(142, 70%, 45%) !important;
-  box-shadow: 0 4px 15px hsla(142, 70%, 45%, 0.25) !important;
+  box-shadow: none !important;
 }
 .muscle-card[data-category="ידיים"].active {
   background: hsla(25, 95%, 55%, 0.12) !important;
   border-color: hsl(25, 95%, 55%) !important;
-  box-shadow: 0 4px 15px hsla(25, 95%, 55%, 0.25) !important;
+  box-shadow: none !important;
 }
 .muscle-card[data-category="בטן וליבה"].active {
   background: hsla(47, 95%, 50%, 0.12) !important;
   border-color: hsl(47, 95%, 50%) !important;
-  box-shadow: 0 4px 15px hsla(47, 95%, 50%, 0.25) !important;
+  box-shadow: none !important;
 }
 .muscle-card[data-category="אירובי"].active {
   background: hsla(174, 85%, 45%, 0.12) !important;
   border-color: hsl(174, 85%, 45%) !important;
-  box-shadow: 0 4px 15px hsla(174, 85%, 45%, 0.25) !important;
+  box-shadow: none !important;
 }
 .muscle-card[data-category="מותאם אישית"].active,
 .muscle-card[data-category="אחר"].active,
 .muscle-card[data-category="מיוחד"].active {
   background: hsla(198, 95%, 60%, 0.12) !important;
   border-color: hsl(198, 95%, 60%) !important;
-  box-shadow: 0 4px 15px hsla(198, 95%, 60%, 0.25) !important;
+  box-shadow: none !important;
 }
 
 /* 7. Modernized Modal card / inputs */
 #custom-exercise-modal .custom-ex-modal-card {
   border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 30px rgba(139, 92, 246, 0.1) !important;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 0 transparent !important;
 }
 
 .custom-ex-name-input {
@@ -8695,7 +8564,7 @@ html, body {
 
 #save-custom-exercise-btn {
   background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
-  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.35) !important;
+  box-shadow: none;
   border-radius: 16px !important;
   font-weight: 800 !important;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
@@ -8703,7 +8572,7 @@ html, body {
 
 #save-custom-exercise-btn:hover {
   transform: translateY(-2px) !important;
-  box-shadow: 0 8px 25px rgba(124, 58, 237, 0.5) !important;
+  box-shadow: none;
 }
 
 /* Compact Settings Gear Button inside Exercises Manager cards */
@@ -9005,7 +8874,7 @@ html, body {
 
 .set-dot.completed {
   background: linear-gradient(135deg, #00f0ff 0%, #00ff87 100%) !important;
-  box-shadow: 0 0 8px rgba(0, 240, 255, 0.5) !important;
+  box-shadow: none !important;
   border-color: rgba(0, 240, 255, 0.3) !important;
   transform: scale(1.1) !important;
 }
@@ -9120,7 +8989,7 @@ html, body {
   background: linear-gradient(135deg, rgba(0, 240, 255, 0.15) 0%, rgba(0, 240, 255, 0.03) 100%) !important;
   border-color: rgba(0, 240, 255, 0.4) !important;
   color: #00f0ff !important;
-  box-shadow: 0 0 12px rgba(0, 240, 255, 0.12) !important;
+  box-shadow: none !important;
 }
 
 .filter-dropdown-panel {
@@ -9238,7 +9107,7 @@ html, body {
   background: rgba(255, 255, 255, 0.08) !important;
   border-color: rgba(255, 255, 255, 0.15) !important;
   transform: translateY(-2px) scale(1.05) !important;
-  box-shadow: 0 6px 20px rgba(0, 240, 255, 0.15) !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3) !important;
 }
 
 .round-glass-btn:active {
@@ -9328,7 +9197,7 @@ html, body {
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 18px;
   padding: 18px;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65), 0 0 20px var(--accent-glow-subtle);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65), 0 0 0 transparent;
   color: var(--text-main);
   font-family: var(--font-sans);
   direction: rtl;
@@ -9411,23 +9280,10 @@ html, body {
 
 /* Glowing animation for settings unread badge dot */
 .nav-unread-dot {
-  animation: pulse-dot 1.8s infinite ease-in-out;
+  
 }
 
-@keyframes pulse-dot {
-  0% {
-    transform: scale(0.9);
-    box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7);
-  }
-  70% {
-    transform: scale(1.1);
-    box-shadow: 0 0 0 6px rgba(255, 59, 48, 0);
-  }
-  100% {
-    transform: scale(0.9);
-    box-shadow: 0 0 0 0 rgba(255, 59, 48, 0);
-  }
-}
+
 
 /* ==========================================================================
    11. Location-based Run/Walk Tracker Premium Glassmorphism UI
@@ -9460,7 +9316,7 @@ html, body {
   color: #ffffff !important;
   box-shadow: 0 0 15px rgba(255, 94, 58, 0.45);
   border-color: rgba(255, 94, 58, 0.3);
-  animation: run-pulse-glow 2s infinite ease-in-out;
+  
 }
 
 .run-state-switcher .state-switch-btn.run-state-active-walk {
@@ -9468,7 +9324,7 @@ html, body {
   color: #ffffff !important;
   box-shadow: 0 0 15px rgba(16, 185, 129, 0.45);
   border-color: rgba(16, 185, 129, 0.3);
-  animation: walk-pulse-glow 2s infinite ease-in-out;
+  
 }
 
 .run-state-switcher .state-switch-btn.run-state-active-rest {
@@ -9476,27 +9332,15 @@ html, body {
   color: #ffffff !important;
   box-shadow: 0 0 15px rgba(245, 158, 11, 0.45);
   border-color: rgba(245, 158, 11, 0.3);
-  animation: rest-pulse-glow 2s infinite ease-in-out;
+  
 }
 
 /* Pulse Glowing animations for active modes */
-@keyframes run-pulse-glow {
-  0% { box-shadow: 0 0 8px rgba(255, 94, 58, 0.45); }
-  50% { box-shadow: 0 0 20px rgba(255, 94, 58, 0.75); }
-  100% { box-shadow: 0 0 8px rgba(255, 94, 58, 0.45); }
-}
 
-@keyframes walk-pulse-glow {
-  0% { box-shadow: 0 0 8px rgba(16, 185, 129, 0.45); }
-  50% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.75); }
-  100% { box-shadow: 0 0 8px rgba(16, 185, 129, 0.45); }
-}
 
-@keyframes rest-pulse-glow {
-  0% { box-shadow: 0 0 8px rgba(245, 158, 11, 0.45); }
-  50% { box-shadow: 0 0 20px rgba(245, 158, 11, 0.75); }
-  100% { box-shadow: 0 0 8px rgba(245, 158, 11, 0.45); }
-}
+
+
+
 
 /* Map expansion styling */
 #run-tracker-map.expanded {
@@ -9543,7 +9387,7 @@ html, body {
   background: #00bfff; /* Electric blue */
   border: 2px solid #ffffff;
   border-radius: 50%;
-  box-shadow: 0 0 8px rgba(0, 191, 255, 0.8);
+  box-shadow: none;
   position: relative;
 }
 
@@ -9556,20 +9400,11 @@ html, body {
   height: 20px;
   border-radius: 50%;
   background: rgba(0, 191, 255, 0.4);
-  animation: gps-dot-pulse 1.8s infinite ease-out;
+  
   pointer-events: none;
 }
 
-@keyframes gps-dot-pulse {
-  0% {
-    transform: scale(0.5);
-    opacity: 1;
-  }
-  100% {
-    transform: scale(2.2);
-    opacity: 0;
-  }
-}
+
 
 /* ==========================================================================
    AuraApp Matte Steel / Slate Aesthetic Overrides
@@ -9586,8 +9421,8 @@ button:active, button:focus,
 .workout-dashboard-card:active,
 .slider-adjust-btn:active,
 .premium-range-slider:focus {
-  box-shadow: none !important;
-  border: 1px solid rgba(228, 228, 230, 0.4) !important;
+  box-shadow: none;
+  border: 1px solid rgba(228, 228, 230, 0.15);
 }
 
 /* Stepper Layout Custom Styling */
@@ -9663,8 +9498,8 @@ button:active, button:focus,
 .hide-glows .avatar-glow-ring,
 .hide-glows .avatar-glow-ring::after,
 .hide-glows .coming-soon-badge-glow {
-  box-shadow: none !important;
-  text-shadow: none !important;
+  box-shadow: none;
+  text-shadow: none;
   filter: none !important;
   animation: none !important;
 }
@@ -9732,3 +9567,51 @@ button:active, button:focus,
   color: #ffffff !important;
 }
 
+
+.exercise-card.saved {
+  border-left: 3px solid #16a34a;
+  background: rgba(16, 16, 20, 0.95) !important;
+  border-top: 1px solid rgba(228, 228, 230, 0.08) !important;
+  border-right: 1px solid rgba(228, 228, 230, 0.08) !important;
+  border-bottom: 1px solid rgba(228, 228, 230, 0.08) !important;
+  box-shadow: none !important;
+  transform: translateY(0);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#stale-workout-modal {
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-1);
+  border: 1px solid rgba(228, 228, 230, 0.08);
+  border-radius: 20px;
+  padding: 24px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  z-index: 1300;
+  color: var(--text-primary);
+  text-align: center;
+}
+#stale-workout-modal h2 {
+  font-size: 1.4rem;
+  margin-bottom: 12px;
+  color: #fff;
+}
+#stale-workout-modal p {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
+#stale-workout-modal .modal-actions {
+  display: flex;
+  gap: 12px;
+  flex-direction: column;
+}
+
+.exercise-card.saved:hover {
+  transform: translateY(-2px);
+  border-color: rgba(34, 197, 94, 0.35) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+}

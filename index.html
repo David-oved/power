@@ -75,7 +75,7 @@
   <!-- Google Fonts: Outfit for display, Inter for details -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preconnect" href="https://unpkg.com">
+  <link rel="preconnect" href="https://unpkg.com" crossorigin>
   
   <link rel="preload" href="style.css" as="style">
   <link rel="modulepreload" href="app.js">
@@ -270,48 +270,13 @@
             <!-- Group 3: Display Settings -->
             <div class="ios-settings-card-group">
               <div class="ios-settings-group-title">תצוגה ומראה</div>
-              
-              <!-- Dark Mode Toggle Switch -->
-              <div class="ios-setting-row no-hover" id="row-settings-dark-mode">
-                <div class="ios-row-left">
-                  <label class="ios-toggle-switch">
-                    <input type="checkbox" id="toggle-settings-dark-mode">
-                    <span class="ios-toggle-slider"></span>
-                  </label>
-                </div>
+              <button id="go-to-display-settings-btn" class="ios-setting-row">
+                <div class="ios-row-left"><span class="ios-row-chevron">←</span></div>
                 <div class="ios-row-right">
-                  <span class="ios-row-icon-badge bg-ios-gray">🌙</span>
-                  <span class="ios-row-label">מצב כהה</span>
+                  <span class="ios-row-icon-badge bg-ios-purple" style="background-color: #5856d6;">🎨</span>
+                  <span class="ios-row-label">הגדרות תצוגה</span>
                 </div>
-              </div>
-
-              <!-- High-Contrast Outdoor Mode Toggle -->
-              <div class="ios-setting-row no-hover" id="row-settings-outdoor-mode">
-                <div class="ios-row-left">
-                  <label class="ios-toggle-switch">
-                    <input type="checkbox" id="toggle-settings-outdoor-mode">
-                    <span class="ios-toggle-slider"></span>
-                  </label>
-                </div>
-                <div class="ios-row-right">
-                  <span class="ios-row-icon-badge bg-ios-orange" style="background-color: #ff9500;">☀️</span>
-                  <span class="ios-row-label">מצב שטח (ניגודיות גבוהה)</span>
-                </div>
-              </div>
-
-              <!-- Show Ambient Glows Toggle -->
-              <div class="ios-setting-row no-hover" id="row-settings-show-glows">
-                <div class="ios-row-left">
-                  <label class="ios-toggle-switch">
-                    <input type="checkbox" id="toggle-settings-show-glows" checked>
-                    <span class="ios-toggle-slider"></span>
-                  </label>
-                </div>
-                <div class="ios-row-right">
-                  <span class="ios-row-icon-badge bg-ios-purple" style="background-color: #5856d6;">✨</span>
-                  <span class="ios-row-label">הצג אפקטי זוהר</span>
-                </div>
-              </div>
+              </button>
             </div>
 
             <!-- Group 4: App Version/Updates -->
@@ -599,8 +564,7 @@
               </div>
 
               <!-- Data Stats Card -->
-              <div class="ios-settings-card-group" style="margin-bottom: 1.5rem;">
-                <div class="ios-settings-group-title">נתונים מגובי ענן</div>
+              <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); padding: 8px 0; margin-top: 1rem;">נתונים מגובי ענן</div>
                 
                 <!-- Workouts History -->
                 <div class="ios-setting-row no-hover">
@@ -656,11 +620,9 @@
                     <span class="ios-row-label">אימונים מתוכננים</span>
                   </div>
                 </div>
-              </div>
 
               <!-- Toggles Card Group: Choose what to sync -->
-              <div class="ios-settings-card-group" style="margin-bottom: 1.5rem;">
-                <div class="ios-settings-group-title">ניהול סנכרון נתונים ספציפי</div>
+              <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); padding: 8px 0; margin-top: 1rem;">ניהול סנכרון</div>
                 
                 <div class="ios-setting-row no-hover">
                   <div class="ios-row-left">
@@ -745,10 +707,8 @@
                     <span class="ios-row-label">הודעות מערכת ותיבת הודעות</span>
                   </div>
                 </div>
-              </div>
 
               <!-- Action Controls Group -->
-              <div class="ios-settings-card-group" style="margin-bottom: 2rem;">
                 <button id="sync-action-now" class="ios-setting-row" style="color: var(--electric-blue-light); text-align: center; justify-content: center; font-weight: bold; cursor: pointer; background: transparent; border: none; width: 100%;">
                   🔄 סנכרן כעת ורענן נתונים
                 </button>
@@ -758,7 +718,6 @@
                 <button id="sync-action-connect" class="ios-setting-row hide" style="color: #34c759; text-align: center; justify-content: center; font-weight: bold; cursor: pointer; background: transparent; border: none; width: 100%;">
                   ⚡ הפעל סנכרון ענן והעלה נתונים
                 </button>
-              </div>
 
               <!-- Danger Zone Group -->
               <div class="ios-settings-card-group">
@@ -768,6 +727,59 @@
                 </button>
               </div>
 
+            </div>
+          </div>
+
+          <!-- Sub-view 7: Display Settings (Hidden by default) -->
+          <div id="settings-display-view" class="hide" style="width: 100%; height: 100%; display: flex; flex-direction: column;">
+            <div class="ios-settings-header" style="flex: 0 0 auto;">
+              <button id="back-from-display-btn" class="ios-back-btn">חזרה <span class="back-arrow">→</span></button>
+              <h2 class="settings-sub-title">הגדרות תצוגה ומראה</h2>
+            </div>
+            <div class="ios-settings-scroll-container" style="flex: 1; overflow-y: auto; padding: 1.5rem; text-align: right; direction: rtl;">
+              <div class="ios-settings-group-title">מצב תצוגה</div>
+              
+              <!-- Dark Mode Toggle Switch -->
+              <div class="ios-setting-row no-hover" id="row-settings-dark-mode">
+                <div class="ios-row-left">
+                  <label class="ios-toggle-switch">
+                    <input type="checkbox" id="toggle-settings-dark-mode">
+                    <span class="ios-toggle-slider"></span>
+                  </label>
+                </div>
+                <div class="ios-row-right">
+                  <span class="ios-row-icon-badge bg-ios-gray">🌙</span>
+                  <span class="ios-row-label">מצב כהה</span>
+                </div>
+              </div>
+
+              <!-- High-Contrast Outdoor Mode Toggle -->
+              <div class="ios-setting-row no-hover" id="row-settings-outdoor-mode">
+                <div class="ios-row-left">
+                  <label class="ios-toggle-switch">
+                    <input type="checkbox" id="toggle-settings-outdoor-mode">
+                    <span class="ios-toggle-slider"></span>
+                  </label>
+                </div>
+                <div class="ios-row-right">
+                  <span class="ios-row-icon-badge bg-ios-orange" style="background-color: #ff9500;">☀️</span>
+                  <span class="ios-row-label">מצב שטח (ניגודיות גבוהה)</span>
+                </div>
+              </div>
+
+              <!-- Show Ambient Glows Toggle -->
+              <div class="ios-setting-row no-hover" id="row-settings-show-glows">
+                <div class="ios-row-left">
+                  <label class="ios-toggle-switch">
+                    <input type="checkbox" id="toggle-settings-show-glows" checked>
+                    <span class="ios-toggle-slider"></span>
+                  </label>
+                </div>
+                <div class="ios-row-right">
+                  <span class="ios-row-icon-badge bg-ios-purple" style="background-color: #5856d6;">✨</span>
+                  <span class="ios-row-label">הצג אפקטי זוהר</span>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -932,21 +944,21 @@
                     </span>
                   </div>
                   <div class="stepper-control-row" style="display: flex; align-items: center; justify-content: center; gap: 20px; direction: ltr; margin: 5px 0;">
-                    <button type="button" id="weight-minus-btn" class="stepper-btn" style="width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.4rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: all 0.2s;">-</button>
+                    <button type="button" id="weight-minus-btn" class="stepper-btn" onclick="adjustWeight(-2.5)" style="width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.4rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: all 0.2s;">-</button>
                     <div class="stepper-display" style="min-width: 120px; text-align: center; display: flex; align-items: baseline; justify-content: center; gap: 4px;">
                       <span id="weight-slider-value" style="font-size: 2.2rem; font-weight: 800; color: #ffffff; font-family: var(--font-display);">60</span>
                       <span style="font-size: 1rem; color: var(--text-muted); font-weight: 600;">ק״ג</span>
                     </div>
-                    <button type="button" id="weight-plus-btn" class="stepper-btn" style="width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.4rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: all 0.2s;">+</button>
+                    <button type="button" id="weight-plus-btn" class="stepper-btn" onclick="adjustWeight(2.5)" style="width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.4rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: all 0.2s;">+</button>
                   </div>
                   <input type="hidden" id="weight-range-slider" value="60">
                   
                   <!-- Quick chips underneath -->
                   <div class="stepper-chips-row" style="display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; direction: ltr;">
-                    <button type="button" class="stepper-chip">-5</button>
-                    <button type="button" class="stepper-chip">-2.5</button>
-                    <button type="button" class="stepper-chip">+2.5</button>
-                    <button type="button" class="stepper-chip">+5</button>
+                    <button type="button" class="stepper-chip" onclick="adjustWeight(-5)">-5</button>
+                    <button type="button" class="stepper-chip" onclick="adjustWeight(-2.5)">-2.5</button>
+                    <button type="button" class="stepper-chip" onclick="adjustWeight(2.5)">+2.5</button>
+                    <button type="button" class="stepper-chip" onclick="adjustWeight(5)">+5</button>
                   </div>
                 </div>
 
@@ -956,21 +968,21 @@
                     <span style="font-size: 0.95rem; font-weight: 700; color: var(--text-muted);">חזרות</span>
                   </div>
                   <div class="stepper-control-row" style="display: flex; align-items: center; justify-content: center; gap: 20px; direction: ltr; margin: 5px 0;">
-                    <button type="button" id="reps-minus-btn" class="stepper-btn" style="width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.4rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: all 0.2s;">-</button>
+                    <button type="button" id="reps-minus-btn" class="stepper-btn" onclick="adjustReps(-1)" style="width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.4rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: all 0.2s;">-</button>
                     <div class="stepper-display" style="min-width: 120px; text-align: center; display: flex; align-items: baseline; justify-content: center; gap: 4px;">
                       <span id="reps-slider-value" style="font-size: 2.2rem; font-weight: 800; color: #ffffff; font-family: var(--font-display);">10</span>
                       <span style="font-size: 1rem; color: var(--text-muted); font-weight: 600;">חזרות</span>
                     </div>
-                    <button type="button" id="reps-plus-btn" class="stepper-btn" style="width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.4rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: all 0.2s;">+</button>
+                    <button type="button" id="reps-plus-btn" class="stepper-btn" onclick="adjustReps(1)" style="width: 44px; height: 44px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.05); color: #fff; font-size: 1.4rem; font-weight: bold; cursor: pointer; display: flex; justify-content: center; align-items: center; transition: all 0.2s;">+</button>
                   </div>
                   <input type="hidden" id="reps-range-slider" value="10">
                   
                   <!-- Quick chips underneath -->
                   <div class="stepper-chips-row" style="display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; margin-bottom: 4px; direction: ltr;">
-                    <button type="button" class="stepper-chip">-5</button>
-                    <button type="button" class="stepper-chip">-1</button>
-                    <button type="button" class="stepper-chip">+1</button>
-                    <button type="button" class="stepper-chip">+5</button>
+                    <button type="button" class="stepper-chip" onclick="adjustReps(-5)">-5</button>
+                    <button type="button" class="stepper-chip" onclick="adjustReps(-1)">-1</button>
+                    <button type="button" class="stepper-chip" onclick="adjustReps(1)">+1</button>
+                    <button type="button" class="stepper-chip" onclick="adjustReps(5)">+5</button>
                   </div>
                 </div>
 
@@ -1789,10 +1801,8 @@
               </div>
             </div>
           </div>
-
-
-
-
+          
+        </div> <!-- End #tab-analytics -->
 
       </div>
     </section>
@@ -1926,26 +1936,6 @@
     </div>
   </div>
 
-  <!-- Stale Workout Modal -->
-  <div id="stale-workout-modal" class="workout-modal-overlay hide" style="z-index: 1550; align-items: center; justify-content: center;">
-    <div class="workout-modal-card glass-modal-card" style="max-width: 380px; width: 92%; border-radius: 24px; padding: 1.5rem; text-align: center; border: 1px solid rgba(255, 255, 255, 0.1); max-height: 90vh; display: flex; flex-direction: column; overflow: hidden;">
-      <div class="alert-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; direction: rtl;">
-        <span style="font-size: 1.2rem; font-weight: 800; color: #ff9500; display: flex; align-items: center; gap: 8px;">⏳ אימון לא הושלם</span>
-      </div>
-      <div class="modal-body" style="overflow-y: auto; flex: 1; direction: rtl; padding-bottom: 1rem; text-align: center;">
-        <p style="font-size: 0.95rem; color: #ffffff; margin-bottom: 1rem; text-align: right; line-height: 1.4;">
-          נמצא אימון פעיל מלפני יותר מ-4 שעות. האם ברצונך לשמור אותו או למחוק?
-        </p>
-        <div id="stale-workout-exercises-list" style="display: flex; flex-direction: column; gap: 8px; text-align: right; margin-bottom: 1rem; max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 12px;">
-          <!-- Injected dynamically: list of completed exercises -->
-        </div>
-      </div>
-      <div style="display: flex; gap: 12px; direction: rtl; margin-top: 1rem;">
-        <button id="stale-workout-save-btn" class="btn btn-primary" style="flex: 1; padding: 12px; font-weight: bold; border-radius: 12px;">שמור אימון</button>
-        <button id="stale-workout-delete-btn" class="btn btn-logout" style="flex: 1; padding: 12px; font-weight: bold; border-radius: 12px; background: var(--color-danger); box-shadow: none;">מחק</button>
-      </div>
-    </div>
-  </div>
 
   <!-- GPS Diagnostic Modal -->
   <div id="gps-diagnostic-modal" class="workout-modal-overlay hide" style="z-index: 1800; align-items: center; justify-content: center;">

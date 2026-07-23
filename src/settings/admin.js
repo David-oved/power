@@ -201,29 +201,42 @@ export function initAdminModule() {
         showPremiumToast('שירות Service Worker אינו זמין במכשיר זה.', 'error');
         return;
       }
-
       triggerUpdateBtn.disabled = true;
-      triggerUpdateBtn.textContent = 'מפיץ עדכון... 🚀';
-
+      triggerUpdateBtn.textContent = 'בודק עדכונים... 🔍';
       try {
         const reg = await navigator.serviceWorker.getRegistration();
-        const worker = navigator.serviceWorker.controller || (reg ? reg.active : null);
-
-        if (worker) {
-          console.log("Admin triggered forced version update. Sending message to SW...");
-          worker.postMessage({ action: 'downloadAndActivate' });
-          showPremiumToast('הפצת עדכון גרסה הופעלה. האפליקציה תתרענן בקרוב עם הקבצים החדשים!', 'success');
+        if (!reg) { showPremiumToast('לא נמצא Service Worker רשום.', 'error'); triggerUpdateBtn.disabled = false; triggerUpdateBtn.textContent = '🚀 הפץ עדכון גרסה עכשיו'; return; }
+        triggerUpdateBtn.textContent = 'מחפש גרסה חדשה... 🔄';
+        await reg.update();
+        await new Promise(r => setTimeout(r, 2000));
+        if (reg.waiting) {
+          triggerUpdateBtn.textContent = 'מפעיל עדכון... 🚀';
+          reg.waiting.postMessage({ action: 'skipWaiting' });
+          showPremiumToast('עדכון גרסה הופעל! האפליקציה תתרענן בקרוב.', 'success');
+        } else if (reg.installing) {
+          triggerUpdateBtn.textContent = 'מתקין עדכון... ⚙️';
+          reg.installing.addEventListener('statechange', function() {
+            if (this.state === 'installed') {
+              this.postMessage({ action: 'skipWaiting' });
+              showPremiumToast('עדכון גרסה הופעל! האפליקציה תתרענן בקרוב.', 'success');
+            }
+          });
         } else {
-          showPremiumToast('לא נמצא Service Worker פעיל לביצוע העדכון.', 'error');
-          triggerUpdateBtn.disabled = false;
-          triggerUpdateBtn.textContent = '🚀 הפץ עדכון גרסה עכשיו';
+          const worker = navigator.serviceWorker.controller || reg.active;
+          if (worker) {
+            triggerUpdateBtn.textContent = 'מרענן קבצים... 📦';
+            worker.postMessage({ action: 'downloadAndActivate' });
+            showPremiumToast('הופצת עדכון קבצים הופעלה. האפליקציה תתרענן בקרוב.', 'success');
+          } else {
+            showPremiumToast('לא נמצא Service Worker פעיל.', 'error');
+          }
         }
       } catch (err) {
-        console.error("Failed to trigger admin update:", err);
-        showPremiumToast('שגיאה בהפצת העדכון: ' + err.message, 'error');
-        triggerUpdateBtn.disabled = false;
-        triggerUpdateBtn.textContent = '🚀 הפץ עדכון גרסה עכשיו';
+        console.error('Admin update error:', err);
+        showPremiumToast('שגיאה: ' + err.message, 'error');
       }
+      triggerUpdateBtn.disabled = false;
+      triggerUpdateBtn.textContent = '🚀 הפץ עדכון גרסה עכשיו';
     });
   }
 

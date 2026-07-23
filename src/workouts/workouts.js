@@ -476,6 +476,10 @@ export function initWorkouts() {
                   idleView.classList.add('active');
                   idleView.classList.remove('hide');
                 }
+                const startBtn = document.getElementById('start-workout-btn');
+                const locationGrid = document.getElementById('location-selector-grid');
+                if (startBtn) startBtn.classList.remove('hide');
+                if (locationGrid) locationGrid.classList.add('hide');
 
                 if (window.renderWorkoutHistory) window.renderWorkoutHistory();
                 showPremiumToast("האימון הישן נשמר בהצלחה! 💪", "success");
@@ -504,6 +508,10 @@ export function initWorkouts() {
                   idleView.classList.add('active');
                   idleView.classList.remove('hide');
                 }
+                const startBtn = document.getElementById('start-workout-btn');
+                const locationGrid = document.getElementById('location-selector-grid');
+                if (startBtn) startBtn.classList.remove('hide');
+                if (locationGrid) locationGrid.classList.add('hide');
 
                 showPremiumToast("האימון הישן נמחק בהצלחה.", "info");
               });

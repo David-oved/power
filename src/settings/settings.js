@@ -47,6 +47,25 @@ export function initPremiumSettings() {
   const checkUpdateRow = document.getElementById('row-settings-check-update');
   const updateStatus = document.getElementById('settings-update-status');
   
+  // Display Settings sub-view navigation
+  const goToDisplayBtn = document.getElementById('go-to-display-settings-btn');
+  const backFromDisplayBtn = document.getElementById('back-from-display-btn');
+  const settingsMainView = document.getElementById('settings-main-view');
+  const displayView = document.getElementById('settings-display-view');
+
+  if (goToDisplayBtn) {
+    goToDisplayBtn.addEventListener('click', () => {
+      if (settingsMainView) settingsMainView.classList.add('hide');
+      if (displayView) displayView.classList.remove('hide');
+    });
+  }
+  if (backFromDisplayBtn) {
+    backFromDisplayBtn.addEventListener('click', () => {
+      if (displayView) displayView.classList.add('hide');
+      if (settingsMainView) settingsMainView.classList.remove('hide');
+    });
+  }
+  
   const isDarkMode = SafeStorage.getItem('settings_dark_mode') === 'true';
   const isNotificationsEnabled = SafeStorage.getItem('settings_notifications_enabled') !== 'false';
 
