@@ -780,6 +780,30 @@
                   <span class="ios-row-label">הצג אפקטי זוהר</span>
                 </div>
               </div>
+
+              <!-- Nav Bar Style Picker Group -->
+              <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); padding: 14px 0 6px 0; margin-top: 0.8rem; border-top: 1px solid rgba(255,255,255,0.06);">
+                סגנון סרגל ניווט תחתון
+              </div>
+              
+              <div class="ios-setting-row no-hover" id="row-settings-nav-style" style="flex-direction: column; align-items: stretch; gap: 12px; padding: 14px 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                  <span id="nav-style-detail-text" style="font-size: 0.85rem; color: var(--electric-blue-light); font-weight: 700;">מרחף (דינמי)</span>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="ios-row-icon-badge" style="background-color: #007aff;">📱</span>
+                    <span class="ios-row-label">מראה והתנהגות הסרגל</span>
+                  </div>
+                </div>
+                
+                <div class="ios-segmented-control" id="nav-style-segmented-control" style="display: flex; background: rgba(0, 0, 0, 0.4); border-radius: 12px; padding: 3px; border: 1px solid rgba(255, 255, 255, 0.08); width: 100%;">
+                  <button type="button" class="segmented-btn active" data-nav-style="floating" style="flex: 1; padding: 10px 8px; border: none; border-radius: 9px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.25s ease;">
+                    🎈 מרחף (דינמי)
+                  </button>
+                  <button type="button" class="segmented-btn" data-nav-style="fixed" style="flex: 1; padding: 10px 8px; border: none; border-radius: 9px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.25s ease;">
+                    📌 קבוע לתחתית
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 

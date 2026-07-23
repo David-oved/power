@@ -128,6 +128,46 @@ export function initPremiumSettings() {
     });
   }
 
+  // Nav Bar Style Segmented Picker binding
+  const navStyleSegmented = document.getElementById('nav-style-segmented-control');
+  const navStyleDetailText = document.getElementById('nav-style-detail-text');
+
+  const updateNavStyleUI = (style) => {
+    if (!navStyleSegmented) return;
+    const btns = navStyleSegmented.querySelectorAll('.segmented-btn');
+    btns.forEach(btn => {
+      if (btn.dataset.navStyle === style) {
+        btn.classList.add('active');
+      } else {
+        btn.classList.remove('active');
+      }
+    });
+    if (navStyleDetailText) {
+      navStyleDetailText.textContent = style === 'fixed' ? 'קבוע לתחתית 📌' : 'מרחף (דינמי) 🎈';
+    }
+  };
+
+  if (navStyleSegmented) {
+    updateNavStyleUI(state.navStyle);
+    const btns = navStyleSegmented.querySelectorAll('.segmented-btn');
+    btns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const selectedStyle = btn.dataset.navStyle || 'floating';
+        updateNavStyleUI(selectedStyle);
+        if (window.applyNavStyle) {
+          window.applyNavStyle(selectedStyle);
+        }
+        showPremiumToast(
+          selectedStyle === 'fixed' 
+            ? 'סגנון הסרגל עודכן: קבוע לתחתית המסך 📌' 
+            : 'סגנון הסרגל עודכן: מרחף ודינמי 🎈',
+          'success'
+        );
+      });
+    });
+  }
+
   if (settingsVer) {
     const mainBadge = document.getElementById('app-version-display');
     if (mainBadge && mainBadge.textContent) {

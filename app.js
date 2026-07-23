@@ -167,7 +167,28 @@ function showUpdateToast(waitingWorker) {
 // ==========================================================================
 let autoCollapseTimeout = null;
 
+export function applyNavStyle(style) {
+  state.navStyle = style || 'floating';
+  SafeStorage.setItem('aura-nav-style', state.navStyle);
+  if (state.navStyle === 'fixed') {
+    document.body.classList.add('nav-style-fixed');
+    const bottomNav = document.querySelector('.ios-bottom-nav');
+    const menuToggleBtn = document.getElementById('nav-menu-toggle-btn');
+    if (bottomNav) bottomNav.classList.remove('collapsed');
+    if (menuToggleBtn) menuToggleBtn.classList.add('hide');
+    if (autoCollapseTimeout) {
+      clearTimeout(autoCollapseTimeout);
+      autoCollapseTimeout = null;
+    }
+  } else {
+    document.body.classList.remove('nav-style-fixed');
+    expandNav();
+  }
+}
+window.applyNavStyle = applyNavStyle;
+
 export function collapseNav() {
+  if (state.navStyle === 'fixed') return;
   const bottomNav = document.querySelector('.ios-bottom-nav');
   const menuToggleBtn = document.getElementById('nav-menu-toggle-btn');
   if (bottomNav) {
@@ -181,6 +202,13 @@ export function collapseNav() {
 }
 
 export function expandNav() {
+  if (state.navStyle === 'fixed') {
+    const bottomNav = document.querySelector('.ios-bottom-nav');
+    const menuToggleBtn = document.getElementById('nav-menu-toggle-btn');
+    if (bottomNav) bottomNav.classList.remove('collapsed');
+    if (menuToggleBtn) menuToggleBtn.classList.add('hide');
+    return;
+  }
   const bottomNav = document.querySelector('.ios-bottom-nav');
   const menuToggleBtn = document.getElementById('nav-menu-toggle-btn');
   if (bottomNav) {
@@ -365,6 +393,9 @@ initSettingsModule();
 
 // DOM initialization trigger
 onDOMReady(() => {
+  // Apply bottom navigation style preference
+  applyNavStyle(state.navStyle);
+
   // Initialize Auth module which sets up Firebase state resolvers and periodic session checkers
   initAuth();
   

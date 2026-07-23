@@ -102,6 +102,7 @@ export const state = {
 
   // Display Settings
   outdoorMode: SafeStorage.getItem('aura-outdoor-mode') === 'true',
-  showGlows: SafeStorage.getItem('aura-show-glows') !== 'false'
+  showGlows: SafeStorage.getItem('aura-show-glows') !== 'false',
+  navStyle: SafeStorage.getItem('aura-nav-style') || 'floating'
 };
 
