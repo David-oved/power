@@ -219,10 +219,16 @@ export function detectEnvironmentAndWarn() {
       `;
     }
 
-    if (warningHtml) {
-      const warningWrapper = document.createElement('div');
-      warningWrapper.innerHTML = warningHtml;
-      authCard.insertBefore(warningWrapper.firstChild, authCard.firstChild);
+    if (warningHtml && authCard) {
+      try {
+        const warningWrapper = document.createElement('div');
+        warningWrapper.innerHTML = warningHtml;
+        if (warningWrapper.firstElementChild) {
+          authCard.prepend(warningWrapper.firstElementChild);
+        }
+      } catch (e) {
+        console.warn("Could not insert warningHtml into authCard:", e);
+      }
     }
   }
 }

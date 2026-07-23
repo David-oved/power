@@ -408,9 +408,8 @@ export function initWorkouts() {
             const deleteBtn = document.getElementById('stale-workout-delete-btn');
 
             if (saveBtn) {
-              const newSaveBtn = saveBtn.cloneNode(true);
-              saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
-              newSaveBtn.addEventListener('click', () => {
+              const handleSave = () => {
+                if (!state.activeWorkout) return;
                 state.activeWorkout.exercises.forEach(ex => {
                   if (!ex.completed && ex.name.trim() !== '') {
                     ex.sets.forEach(set => {
@@ -483,13 +482,23 @@ export function initWorkouts() {
 
                 if (window.renderWorkoutHistory) window.renderWorkoutHistory();
                 showPremiumToast("האימון הישן נשמר בהצלחה! 💪", "success");
-              });
+              };
+
+              if (saveBtn.parentNode) {
+                try {
+                  const newSaveBtn = saveBtn.cloneNode(true);
+                  saveBtn.parentNode.replaceChild(newSaveBtn, saveBtn);
+                  newSaveBtn.addEventListener('click', handleSave);
+                } catch (e) {
+                  saveBtn.addEventListener('click', handleSave);
+                }
+              } else {
+                saveBtn.addEventListener('click', handleSave);
+              }
             }
 
             if (deleteBtn) {
-              const newDeleteBtn = deleteBtn.cloneNode(true);
-              deleteBtn.parentNode.replaceChild(newDeleteBtn, deleteBtn);
-              newDeleteBtn.addEventListener('click', () => {
+              const handleDelete = () => {
                 SafeStorage.removeItem(`aura-active-workout_${state.currentUser.uid}`);
                 saveFieldToCloud("activeWorkout", null);
 
@@ -514,7 +523,19 @@ export function initWorkouts() {
                 if (locationGrid) locationGrid.classList.add('hide');
 
                 showPremiumToast("האימון הישן נמחק בהצלחה.", "info");
-              });
+              };
+
+              if (deleteBtn.parentNode) {
+                try {
+                  const newDeleteBtn = deleteBtn.cloneNode(true);
+                  deleteBtn.parentNode.replaceChild(newDeleteBtn, deleteBtn);
+                  newDeleteBtn.addEventListener('click', handleDelete);
+                } catch (e) {
+                  deleteBtn.addEventListener('click', handleDelete);
+                }
+              } else {
+                deleteBtn.addEventListener('click', handleDelete);
+              }
             }
           }
         } else {
