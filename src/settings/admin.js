@@ -236,13 +236,197 @@ export function initAdminModule() {
         showPremiumToast('שגיאה: ' + err.message, 'error');
       }
       triggerUpdateBtn.disabled = false;
-      triggerUpdateBtn.textContent = '🚀 הפץ עדכון גרסה עכשיו';
+      triggerUpdateBtn.textContent = '🚀 הפץ עדכון גרסה';
+    });
+  }
+
+  // --- FORCE REFRESH ALL ASSETS BUTTON ---
+  const forceRefreshBtn = document.getElementById('admin-force-refresh-assets-btn');
+  if (forceRefreshBtn) {
+    forceRefreshBtn.addEventListener('click', async () => {
+      if (!('serviceWorker' in navigator)) {
+        showPremiumToast('שירות Service Worker אינו זמין במכשיר זה.', 'error');
+        return;
+      }
+      forceRefreshBtn.disabled = true;
+      forceRefreshBtn.textContent = 'רענון בתהליך... ⚡';
+      try {
+        const reg = await navigator.serviceWorker.getRegistration();
+        const worker = reg ? (reg.active || reg.waiting || reg.installing) : navigator.serviceWorker.controller;
+        if (worker) {
+          worker.postMessage({ action: 'downloadAndActivate' });
+          showPremiumToast('הוראה לרענון מיידי של הקבצים נשלחה בהצלחה! ⚡', 'success');
+        } else {
+          showPremiumToast('לא נמצא Service Worker פעיל.', 'error');
+        }
+      } catch (err) {
+        console.error('Force refresh error:', err);
+        showPremiumToast('שגיאה: ' + err.message, 'error');
+      }
+      setTimeout(() => {
+        forceRefreshBtn.disabled = false;
+        forceRefreshBtn.textContent = '⚡ רענון קבצים מיידי';
+      }, 3000);
+    });
+  }
+
+  // --- CACHE INSPECTOR REFRESH BUTTON ---
+  const scanCacheBtn = document.getElementById('refresh-cache-inspector-btn');
+  if (scanCacheBtn) {
+    scanCacheBtn.addEventListener('click', () => {
+      scanAppCacheFiles();
     });
   }
 
   // Export globally
   window.updateAdminUI = updateAdminUI;
   window.loadAdminDashboardData = loadAdminDashboardData;
+  window.scanAppCacheFiles = scanAppCacheFiles;
+}
+
+// ==========================================================================
+// Cache Inspector & Storage Manager (Admin Only)
+// ==========================================================================
+export async function scanAppCacheFiles() {
+  const container = document.getElementById('admin-cached-files-list');
+  const summaryEl = document.getElementById('admin-cache-stats-summary');
+  if (!container) return;
+
+  container.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--text-muted);">סורק קבצים במטמון... ⏳</div>';
+
+  if (!('caches' in window)) {
+    container.innerHTML = '<div style="text-align:center; color: var(--color-danger); padding: 15px;">Cache API אינו נתמך בדפדפן זה.</div>';
+    return;
+  }
+
+  try {
+    const keys = await caches.keys();
+    if (!keys.length) {
+      container.innerHTML = '<div style="text-align:center; padding: 20px; color: var(--text-muted);">לא נמצאו קבצים שמורים במטמון במכשיר זה.</div>';
+      if (summaryEl) summaryEl.innerHTML = '';
+      return;
+    }
+
+    let totalBytes = 0;
+    let filesList = [];
+
+    for (const key of keys) {
+      const cache = await caches.open(key);
+      const requests = await cache.keys();
+      for (const req of requests) {
+        try {
+          const res = await cache.match(req);
+          if (res) {
+            const blob = await res.blob();
+            const size = blob.size;
+            totalBytes += size;
+            const urlPath = new URL(req.url).pathname;
+            const cleanPath = urlPath.replace(/^\//, './');
+            filesList.push({
+              url: req.url,
+              path: cleanPath,
+              size: size,
+              cacheName: key
+            });
+          }
+        } catch (e) {
+          console.warn("Could not read cached file:", req.url, e);
+        }
+      }
+    }
+
+    // Sort by path
+    filesList.sort((a, b) => a.path.localeCompare(b.path));
+
+    const totalKB = (totalBytes / 1024).toFixed(1);
+    const totalMB = (totalBytes / (1024 * 1024)).toFixed(2);
+    if (summaryEl) {
+      summaryEl.innerHTML = `
+        <div style="flex: 1; background: rgba(255,255,255,0.04); padding: 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.06); text-align: center;">
+          <div style="font-size: 0.75rem; color: var(--text-muted);">סה״כ קבצים שמורים</div>
+          <div style="font-size: 1.3rem; font-weight: 800; color: var(--electric-blue-light); margin-top: 2px;">${filesList.length}</div>
+        </div>
+        <div style="flex: 1; background: rgba(255,255,255,0.04); padding: 12px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.06); text-align: center;">
+          <div style="font-size: 0.75rem; color: var(--text-muted);">נפח אחסון במכשיר</div>
+          <div style="font-size: 1.3rem; font-weight: 800; color: #34c759; margin-top: 2px;">${totalBytes > 1024*1024 ? totalMB + ' MB' : totalKB + ' KB'}</div>
+        </div>
+      `;
+    }
+
+    const MEANINGS = {
+      'index.html': 'שלד ומבנה האפליקציה הראשי (HTML)',
+      'style.css': 'מערכת העיצוב, צבעים וסגנונות (CSS)',
+      'app.js': 'לוגיקת ניווט ראשית וטעינת מודולים (JS)',
+      'sw.js': 'מנהל Service Worker, מטמון והתראות',
+      'firebase-config.js': 'הגדרות התחברות ל-Firebase',
+      'manifest.json': 'הגדרות התקנת האפליקציה (PWA Manifest)',
+      'icon-192.png': 'אייקון אפליקציה ראשי (192px)',
+      'icon-512.png': 'אייקון אפליקציה ברזולוציה גבוהה (512px)',
+      'src/state.js': 'ניהול מצב האפליקציה והנתונים הזמניים',
+      'src/utils/storage.js': 'מנגנון שמירה מאובטח בזיכרון המקומי',
+      'src/utils/helpers.js': 'פונקציות עזר, התראות ועיצוב תאריכים',
+      'src/auth/auth.js': 'מערכת התחברות גוגל ואבטחת משתמשים',
+      'src/workouts/workouts.js': 'ניהול אימונים, תרגילים, סטופר ו-GPS',
+      'src/metrics/metrics.js': 'לוח מדדים, גרפים, ניתוח ביצועים ו-AI',
+      'src/settings/settings.js': 'מערכת הגדרות, תצוגה וסנכרון ענן'
+    };
+
+    container.innerHTML = filesList.map(f => {
+      const filename = f.path.split('/').pop() || f.path;
+      let matchedMeaning = 'מסמך/קובץ שמור במטמון המכשיר';
+      for (const [keyPath, desc] of Object.entries(MEANINGS)) {
+        if (f.path.includes(keyPath)) {
+          matchedMeaning = desc;
+          break;
+        }
+      }
+      const fileSizeFormatted = f.size > 1024 * 1024 
+        ? (f.size / (1024 * 1024)).toFixed(2) + ' MB'
+        : (f.size / 1024).toFixed(1) + ' KB';
+
+      return `
+        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 14px; padding: 12px 14px; display: flex; justify-content: space-between; align-items: center; direction: rtl;">
+          <div style="display: flex; flex-direction: column; gap: 3px; max-width: 68%;">
+            <div style="font-weight: 700; font-size: 0.95rem; color: #ffffff; font-family: monospace;">${filename}</div>
+            <div style="font-size: 0.78rem; color: var(--text-muted);">${matchedMeaning}</div>
+            <div style="font-size: 0.72rem; color: rgba(255,255,255,0.35); font-family: monospace;">${f.path}</div>
+          </div>
+          <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 6px;">
+            <span style="font-weight: 800; font-size: 0.88rem; color: var(--electric-blue-light);">${fileSizeFormatted}</span>
+            <button class="delete-single-cache-file-btn" data-url="${f.url}" data-cache="${f.cacheName}" style="background: rgba(255,149,0,0.15); border: 1px solid rgba(255,149,0,0.35); color: #ff9500; font-size: 0.72rem; padding: 4px 8px; border-radius: 6px; cursor: pointer; font-weight: 600;">רענן קובץ 🔄</button>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    // Bind delete/refetch single file handlers
+    container.querySelectorAll('.delete-single-cache-file-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const fileUrl = btn.dataset.url;
+        const cacheName = btn.dataset.cache;
+        btn.disabled = true;
+        btn.textContent = 'מוריד... ⏳';
+        try {
+          const cache = await caches.open(cacheName);
+          await cache.delete(fileUrl);
+          const res = await fetch(new Request(fileUrl, { cache: 'reload' }));
+          if (res.ok) {
+            await cache.put(fileUrl, res);
+            showPremiumToast('הקובץ רוענן מחדש מהשרת! ⚡', 'success');
+          }
+          await scanAppCacheFiles();
+        } catch (err) {
+          console.error("Single file refresh failed:", err);
+          showPremiumToast('רענון הקובץ נכשל.', 'error');
+        }
+      });
+    });
+
+  } catch (err) {
+    console.error("Error scanning cache files:", err);
+    container.innerHTML = '<div style="text-align:center; color: var(--color-danger); padding: 15px;">שגיאה בסריקת קבצי המטמון.</div>';
+  }
 }
 
 // Update DOM elements relating to role and unread messages badge

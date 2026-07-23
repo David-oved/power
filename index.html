@@ -228,174 +228,179 @@
         <div id="tab-settings" class="tab-pane active">
           
           <!-- Sub-view 1: Main iOS Settings Screen -->
-          <div id="settings-main-view" class="ios-settings-scroll-container">
-            <h2 class="settings-main-title">הגדרות</h2>
-
-            <!-- Group 1: Account -->
-            <div class="ios-settings-card-group sticky-profile-container">
-              <div class="ios-settings-group-title">חשבון</div>
-              <!-- Row 1: Account Settings (Clickable Profile Row) -->
-              <button id="go-to-account-btn" class="ios-setting-row ios-profile-card">
-                <div class="ios-row-left">
-                  <span class="ios-row-chevron">←</span>
-                </div>
-                <div class="ios-profile-right">
-                  <div class="ios-profile-avatar-wrapper">
-                    <img id="settings-user-photo-main" class="ios-profile-avatar" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" alt="User Settings Profile">
-                    <span class="avatar-glow-ring"></span>
+          <div id="settings-main-view" style="width: 100%; height: 100%; display: flex; flex-direction: column; overflow: hidden;">
+            <div class="ios-settings-header" style="flex: 0 0 auto;">
+              <h2 class="settings-main-title" style="margin: 0; font-size: 1.6rem; font-weight: 900;">הגדרות</h2>
+            </div>
+            
+            <div class="ios-settings-scroll-container" style="flex: 1; overflow-y: auto;">
+              <!-- Group 1: Account -->
+              <div class="ios-settings-card-group sticky-profile-container">
+                <div class="ios-settings-group-title">חשבון</div>
+                <!-- Row 1: Account Settings (Clickable Profile Row) -->
+                <button id="go-to-account-btn" class="ios-setting-row ios-profile-card">
+                  <div class="ios-row-left">
+                    <span class="ios-row-chevron">←</span>
                   </div>
-                  <div class="ios-profile-info">
-                    <span id="settings-user-name-main" class="ios-profile-name">משתמש</span>
-                    <span class="ios-profile-subtext">פרופיל, אבטחה, התנתקות</span>
+                  <div class="ios-profile-right">
+                    <div class="ios-profile-avatar-wrapper">
+                      <img id="settings-user-photo-main" class="ios-profile-avatar" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" alt="User Settings Profile">
+                      <span class="avatar-glow-ring"></span>
+                    </div>
+                    <div class="ios-profile-info">
+                      <span id="settings-user-name-main" class="ios-profile-name">משתמש</span>
+                      <span class="ios-profile-subtext">פרופיל, אבטחה, התנתקות</span>
+                    </div>
+                  </div>
+                </button>
+              </div>
+
+              <!-- Group 2: Cloud Services -->
+              <div class="ios-settings-card-group">
+                <div class="ios-settings-group-title">שירותי ענן</div>
+                <button id="go-to-cloud-sync-btn" class="ios-setting-row">
+                  <div class="ios-row-left">
+                    <span id="settings-sync-status-badge" class="ios-row-detail-text">מחובר</span>
+                    <span class="ios-row-chevron">←</span>
+                  </div>
+                  <div class="ios-row-right">
+                    <span class="ios-row-icon-badge bg-ios-blue" style="background-color: #0a84ff;">☁️</span>
+                    <span class="ios-row-label">סנכרון וגיבוי לענן</span>
+                  </div>
+                </button>
+              </div>
+
+              <!-- Group 3: Display Settings -->
+              <div class="ios-settings-card-group">
+                <div class="ios-settings-group-title">תצוגה ומראה</div>
+                <button id="go-to-display-settings-btn" class="ios-setting-row">
+                  <div class="ios-row-left"><span class="ios-row-chevron">←</span></div>
+                  <div class="ios-row-right">
+                    <span class="ios-row-icon-badge bg-ios-purple" style="background-color: #5856d6;">🎨</span>
+                    <span class="ios-row-label">הגדרות תצוגה</span>
+                  </div>
+                </button>
+              </div>
+
+              <!-- Group 4: App Version/Updates -->
+              <div class="ios-settings-card-group">
+                <div class="ios-settings-group-title">גרסה ועדכונים</div>
+
+                <!-- System Version -->
+                <div class="ios-setting-row no-hover">
+                  <div class="ios-row-left">
+                    <span id="settings-system-version" class="ios-row-detail-text">v1.2</span>
+                  </div>
+                  <div class="ios-row-right">
+                    <span class="ios-row-icon-badge bg-ios-blue">ℹ️</span>
+                    <span class="ios-row-label">גרסת המערכת</span>
                   </div>
                 </div>
-              </button>
-            </div>
 
-            <!-- Group 2: Cloud Services -->
-            <div class="ios-settings-card-group">
-              <div class="ios-settings-group-title">שירותי ענן</div>
-              <button id="go-to-cloud-sync-btn" class="ios-setting-row">
-                <div class="ios-row-left">
-                  <span id="settings-sync-status-badge" class="ios-row-detail-text">מחובר</span>
-                  <span class="ios-row-chevron">←</span>
+                <!-- Notifications Switch -->
+                <div class="ios-setting-row no-hover">
+                  <div class="ios-row-left">
+                    <label class="ios-toggle-switch">
+                      <input type="checkbox" id="toggle-settings-notifications" checked>
+                      <span class="ios-toggle-slider"></span>
+                    </label>
+                  </div>
+                  <div class="ios-row-right">
+                    <span class="ios-row-icon-badge bg-ios-red">🔔</span>
+                    <span class="ios-row-label">התראות פעילות</span>
+                  </div>
                 </div>
-                <div class="ios-row-right">
-                  <span class="ios-row-icon-badge bg-ios-blue" style="background-color: #0a84ff;">☁️</span>
-                  <span class="ios-row-label">סנכרון וגיבוי לענן</span>
-                </div>
-              </button>
-            </div>
 
-            <!-- Group 3: Display Settings -->
-            <div class="ios-settings-card-group">
-              <div class="ios-settings-group-title">תצוגה ומראה</div>
-              <button id="go-to-display-settings-btn" class="ios-setting-row">
-                <div class="ios-row-left"><span class="ios-row-chevron">←</span></div>
-                <div class="ios-row-right">
-                  <span class="ios-row-icon-badge bg-ios-purple" style="background-color: #5856d6;">🎨</span>
-                  <span class="ios-row-label">הגדרות תצוגה</span>
+                <!-- Search for Updates -->
+                <div class="ios-setting-row" id="row-settings-check-update">
+                  <div class="ios-row-left">
+                    <span id="settings-update-status" class="ios-row-detail-text">בדוק</span>
+                  </div>
+                  <div class="ios-row-right">
+                    <span class="ios-row-icon-badge bg-ios-green">🔄</span>
+                    <span class="ios-row-label">חיפוש עדכונים</span>
+                  </div>
                 </div>
-              </button>
-            </div>
 
-            <!-- Group 4: App Version/Updates -->
-            <div class="ios-settings-card-group">
-              <div class="ios-settings-group-title">גרסה ועדכונים</div>
-
-              <!-- System Version -->
-              <div class="ios-setting-row no-hover">
-                <div class="ios-row-left">
-                  <span id="settings-system-version" class="ios-row-detail-text">v1.2</span>
-                </div>
-                <div class="ios-row-right">
-                  <span class="ios-row-icon-badge bg-ios-blue">ℹ️</span>
-                  <span class="ios-row-label">גרסת המערכת</span>
-                </div>
-              </div>
-
-              <!-- Notifications Switch -->
-              <div class="ios-setting-row no-hover">
-                <div class="ios-row-left">
-                  <label class="ios-toggle-switch">
-                    <input type="checkbox" id="toggle-settings-notifications" checked>
-                    <span class="ios-toggle-slider"></span>
-                  </label>
-                </div>
-                <div class="ios-row-right">
-                  <span class="ios-row-icon-badge bg-ios-red">🔔</span>
-                  <span class="ios-row-label">התראות פעילות</span>
-                </div>
-              </div>
-
-              <!-- Search for Updates -->
-              <div class="ios-setting-row" id="row-settings-check-update">
-                <div class="ios-row-left">
-                  <span id="settings-update-status" class="ios-row-detail-text">בדוק</span>
-                </div>
-                <div class="ios-row-right">
-                  <span class="ios-row-icon-badge bg-ios-green">🔄</span>
-                  <span class="ios-row-label">חיפוש עדכונים</span>
-                </div>
-              </div>
-
-              <!-- Send feedback to developer -->
-              <button id="go-to-feedback-btn" class="ios-setting-row">
-                <div class="ios-row-left">
-                  <span class="ios-row-chevron">←</span>
-                </div>
-                <div class="ios-row-right">
-                  <span class="ios-row-icon-badge bg-ios-blue">💬</span>
-                  <span class="ios-row-label">שליחת משוב למפתח</span>
-                </div>
-              </button>
-
-              <!-- Messages from system -->
-              <button id="go-to-messages-btn" class="ios-setting-row">
-                <div class="ios-row-left">
-                  <span id="unread-messages-badge" class="ios-badge hide">0</span>
-                  <span class="ios-row-chevron">←</span>
-                </div>
-                <div class="ios-row-right">
-                  <span class="ios-row-icon-badge bg-ios-orange">✉️</span>
-                  <span class="ios-row-label">הודעות מהמערכת</span>
-                </div>
-              </button>
-
-              <!-- Admin options (Visible to admin only) -->
-              <div id="settings-admin-group" class="hide" style="width: 100%;">
-                <button id="go-to-admin-console-btn" class="ios-setting-row" style="width: 100%; border: none; background: transparent; padding: 0;">
+                <!-- Send feedback to developer -->
+                <button id="go-to-feedback-btn" class="ios-setting-row">
                   <div class="ios-row-left">
                     <span class="ios-row-chevron">←</span>
                   </div>
                   <div class="ios-row-right">
-                    <span class="ios-row-icon-badge bg-ios-red">🛠️</span>
-                    <span class="ios-row-label">פאנל ניהול מנהל</span>
+                    <span class="ios-row-icon-badge bg-ios-blue">💬</span>
+                    <span class="ios-row-label">שליחת משוב למפתח</span>
                   </div>
                 </button>
+
+                <!-- Messages from system -->
+                <button id="go-to-messages-btn" class="ios-setting-row">
+                  <div class="ios-row-left">
+                    <span id="unread-messages-badge" class="ios-badge hide">0</span>
+                    <span class="ios-row-chevron">←</span>
+                  </div>
+                  <div class="ios-row-right">
+                    <span class="ios-row-icon-badge bg-ios-orange">✉️</span>
+                    <span class="ios-row-label">הודעות מהמערכת</span>
+                  </div>
+                </button>
+
+                <!-- Admin options (Visible to admin only) -->
+                <div id="settings-admin-group" class="hide" style="width: 100%;">
+                  <button id="go-to-admin-console-btn" class="ios-setting-row" style="width: 100%; border: none; background: transparent; padding: 0;">
+                    <div class="ios-row-left">
+                      <span class="ios-row-chevron">←</span>
+                    </div>
+                    <div class="ios-row-right">
+                      <span class="ios-row-icon-badge bg-ios-red">🛠️</span>
+                      <span class="ios-row-label">פאנל ניהול מנהל</span>
+                    </div>
+                  </button>
+                </div>
               </div>
             </div>
 
           </div>
 
           <!-- Sub-view 2: Account Details Screen (Hidden by default) -->
-          <div id="settings-account-view" class="hide">
-            <div class="ios-settings-header">
+          <div id="settings-account-view" class="hide" style="width: 100%; height: 100%; display: flex; flex-direction: column; overflow: hidden;">
+            <div class="ios-settings-header" style="flex: 0 0 auto;">
               <button id="back-to-settings-btn" class="ios-back-btn">
                 חזרה <span class="back-arrow">→</span>
               </button>
               <h2 class="settings-sub-title">פרטי חשבון</h2>
             </div>
             
-            <div class="ios-account-profile-card">
-              <div class="ios-settings-avatar-glow">
-                <img id="settings-user-photo" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" alt="User Profile">
+            <div class="ios-settings-scroll-container" style="flex: 1; overflow-y: auto;">
+              <div class="ios-account-profile-card">
+                <div class="ios-settings-avatar-glow">
+                  <img id="settings-user-photo" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=" alt="User Profile">
+                </div>
+                <h3 class="welcome-text">היי, <span id="user-display-name">User</span>!</h3>
+                <p class="settings-subtitle">מרכז הגדרות פרופיל מאובטח</p>
               </div>
-              <h3 class="welcome-text">היי, <span id="user-display-name">User</span>!</h3>
-              <p class="settings-subtitle">מרכז הגדרות פרופיל מאובטח</p>
-            </div>
 
-            <!-- Profile Info Fields -->
-            <div class="ios-settings-field-group">
-              <div class="ios-settings-field-row">
-                <span id="settings-user-name-field" class="field-value">User</span>
-                <span class="field-label">שם משתמש</span>
+              <!-- Profile Info Fields -->
+              <div class="ios-settings-field-group">
+                <div class="ios-settings-field-row">
+                  <span id="settings-user-name-field" class="field-value">User</span>
+                  <span class="field-label">שם משתמש</span>
+                </div>
+                <div class="ios-settings-field-row">
+                  <span id="settings-user-email-field" class="field-value">user@gmail.com</span>
+                  <span class="field-label">אימייל</span>
+                </div>
+                <div class="ios-settings-field-row">
+                  <span id="settings-user-role-field" class="field-value">משתמש רגיל</span>
+                  <span class="field-label">סוג חשבון</span>
+                </div>
               </div>
-              <div class="ios-settings-field-row">
-                <span id="settings-user-email-field" class="field-value">user@gmail.com</span>
-                <span class="field-label">אימייל</span>
-              </div>
-              <div class="ios-settings-field-row">
-                <span id="settings-user-role-field" class="field-value">משתמש רגיל</span>
-                <span class="field-label">סוג חשבון</span>
-              </div>
-            </div>
 
-
-            <div class="settings-actions" style="margin-top: 1.5rem; display: flex; justify-content: center; width: 100%;">
-              <button id="app-logout-btn" class="btn btn-logout hide" style="width: 100%; max-width: 240px;">
-                <span class="btn-icon">🚪</span> יציאה מהחשבון
-              </button>
+              <div class="settings-actions" style="margin-top: 1.5rem; display: flex; justify-content: center; width: 100%;">
+                <button id="app-logout-btn" class="btn btn-logout hide" style="width: 100%; max-width: 240px;">
+                  <span class="btn-icon">🚪</span> יציאה מהחשבון
+                </button>
+              </div>
             </div>
           </div>
 
@@ -475,18 +480,46 @@
               <!-- Tab D: System Update -->
               <div id="admin-tab-system-update" class="admin-tab-content hide" style="direction: rtl; text-align: right;">
                 <p style="color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.2rem; line-height: 1.4;">
-                  אזור זה מיועד למנהלי מערכת בלבד. לחיצה על הכפתור מדמה שינוי גרסה מרוחק ומאלצת את ה-Service Worker להוריד מחדש את כל קבצי האפליקציה מהשרת ולרענן את המשתמשים לגרסה האחרונה.
+                  אזור זה מיועד למנהלי מערכת בלבד. כאן ניתן להפיץ עדכוני תוכנה גלובליים, לבצע רענון קבצים מיידי ולנטר את הקבצים השמורים בזיכרון המכשיר.
                 </p>
+                
                 <div class="ios-settings-card-group" style="margin-bottom: 1.5rem;">
-                  <div class="ios-settings-group-title">עדכון תוכנה גלובלי</div>
+                  <div class="ios-settings-group-title">עדכון ורענון תוכנה גלובלי</div>
                   <div class="ios-setting-row no-hover" style="flex-direction: column; align-items: flex-start; padding: 16px 12px;">
-                    <div style="font-size: 0.9rem; color: #ffffff; font-weight: 600; margin-bottom: 6px;">הפצת עדכון קבצים מרוחק</div>
+                    <div style="font-size: 0.9rem; color: #ffffff; font-weight: 600; margin-bottom: 6px;">הפצת עדכון ורענון קבצים</div>
                     <div style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 12px;">
-                      לחיצה על הכפתור תשלח הוראת downloadAndActivate ל-Service Worker הפעיל של המשתמש, ותאלץ הורדה מחדש של הקבצים משרת האירוח ומעבר לגרסה החדשה.
+                      בחר בין הפצת עדכון גרסה רשמי לבין רענון מיידי של כל קבצי המערכת ללא תלות במספר הגרסה.
                     </div>
-                    <button id="admin-trigger-update-btn" class="btn btn-primary" style="width: 100%; padding: 14px; font-weight: bold; border-radius: 14px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none;">🚀 הפץ עדכון גרסה עכשיו</button>
+                    
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap; width: 100%;">
+                      <button id="admin-trigger-update-btn" class="btn btn-primary" style="flex: 1; min-width: 150px; padding: 14px; font-weight: bold; border-radius: 14px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border: none;">🚀 הפץ עדכון גרסה</button>
+                      <button id="admin-force-refresh-assets-btn" class="btn" style="flex: 1; min-width: 150px; padding: 14px; font-weight: bold; border-radius: 14px; background: rgba(255, 149, 0, 0.15); border: 1px solid rgba(255, 149, 0, 0.4); color: #ff9500;">⚡ רענון קבצים מיידי</button>
+                    </div>
                   </div>
                 </div>
+
+                <!-- Cache Inspector & File Storage Manager (Admin Only) -->
+                <div style="margin-top: 1.5rem; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 1.5rem;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <button id="refresh-cache-inspector-btn" class="ios-back-btn" style="font-size: 0.8rem; padding: 6px 12px;">
+                      🔄 סרוק קבצים
+                    </button>
+                    <h3 style="font-size: 1rem; font-weight: 800; color: #ffffff;">📁 מנהל קבצים ומטמון שמור במכשיר</h3>
+                  </div>
+                  
+                  <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 1.2rem; line-height: 1.4;">
+                    להלן פירוט הקבצים והמסמכים שהאפליקציה הורידה ושמרה בזיכרון המקומי (Cache) של הטלפון, כולל משקלם ותפקידם במערכת.
+                  </p>
+
+                  <div id="admin-cache-stats-summary" style="display: flex; gap: 12px; margin-bottom: 1.2rem;">
+                    <!-- Injected dynamically -->
+                  </div>
+
+                  <div id="admin-cached-files-list" style="display: flex; flex-direction: column; gap: 10px;">
+                    <!-- Injected dynamically -->
+                  </div>
+                </div>
+
               </div>
 
             </div>

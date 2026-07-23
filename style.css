@@ -1761,18 +1761,30 @@ body.authenticated .ios-bottom-nav {
   border: 1px solid rgba(255, 255, 255, 0.04);
 }
 
-/* Account Details Sub-View styling */
+/* Account Details Sub-View styling & Sticky Settings Headers */
 .ios-settings-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  padding: calc(1.5rem + env(safe-area-inset-top, 24px)) 1.5rem 14px 1.5rem;
-  margin: 0;
-  direction: rtl;
-  background: hsla(225, 20%, 6%, 0.25);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+  padding: calc(1rem + env(safe-area-inset-top, 16px)) 1.5rem 14px 1.5rem !important;
+  margin: 0 !important;
+  direction: rtl !important;
+  background: rgba(242, 242, 247, 0.94) !important;
+  backdrop-filter: blur(25px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(25px) saturate(180%) !important;
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 100 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  flex: 0 0 auto !important;
+}
+
+#tab-settings.dark-theme .ios-settings-header,
+body:not(.light-theme) .ios-settings-header {
+  background: rgba(14, 14, 18, 0.94) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
 }
 
 .ios-back-btn {
@@ -2518,11 +2530,7 @@ body.authenticated .ios-bottom-nav {
   z-index: 1;
 }
 
-#tab-settings {
-  overflow-y: auto !important;
-}
-
-#tab-workouts, #tab-analytics, #tab-meals {
+#tab-settings, #tab-workouts, #tab-analytics, #tab-meals {
   overflow: hidden !important;
 }
 
@@ -2532,22 +2540,24 @@ body.authenticated .ios-bottom-nav {
 }
 
 /* Custom scrollbars inside settings for unified appearance */
-#tab-settings::-webkit-scrollbar {
+.ios-settings-scroll-container::-webkit-scrollbar {
   width: 6px;
 }
-#tab-settings::-webkit-scrollbar-thumb {
+.ios-settings-scroll-container::-webkit-scrollbar-thumb {
   background-color: rgba(0, 0, 0, 0.15);
   border-radius: 3px;
 }
 
 /* Scroll Container */
 .ios-settings-scroll-container {
-  padding: calc(1.5rem + env(safe-area-inset-top, 24px)) 1.5rem calc(120px + env(safe-area-inset-bottom, 24px)) 1.5rem !important;
+  padding: 1.2rem 1.5rem calc(120px + env(safe-area-inset-bottom, 24px)) 1.5rem !important;
   display: flex;
   flex-direction: column;
   gap: 0px;
   width: 100%;
   box-sizing: border-box;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
 }
 
 /* Search Bar Wrapper */
