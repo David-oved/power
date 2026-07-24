@@ -1,5 +1,5 @@
-const CACHE_NAME = '13.5.0';
-const UPDATE_DESCRIPTION = 'עיצוב מחדש ויוקרתי של מסך ההגדרות בסגנון iOS 18/26 Native מודולרי';
+const CACHE_NAME = '13.5.1';
+const UPDATE_DESCRIPTION = 'שדרוג מקיף ויוקרתי של מראה כרטיסיות ההגדרות לסגנון iOS 18 Glassmorphism';
 
 const ASSETS = [
   './',

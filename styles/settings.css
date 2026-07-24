@@ -796,16 +796,23 @@ body:not(.light-theme) .ios-settings-header {
   letter-spacing: -0.5px !important;
 }
 
+/* ==========================================================================
+   AuraApp Redesigned iOS 18 Native Settings System
+   ========================================================================== */
+
 /* iOS Cards (Rounded Glass Segments) */
 .ios-settings-card-group {
-  background: #161720 !important;
-  border-radius: 16px !important;
-  margin-bottom: 18px !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
+  background: linear-gradient(135deg, rgba(26, 27, 36, 0.95) 0%, rgba(18, 19, 26, 0.98) 100%) !important;
+  border-radius: 18px !important;
+  margin-bottom: 20px !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), 0 2px 4px rgba(255, 255, 255, 0.03) inset !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
   overflow: hidden !important;
   padding: 0 !important;
   width: 100% !important;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease !important;
 }
 
 /* Single Setting Row */
@@ -814,15 +821,15 @@ body:not(.light-theme) .ios-settings-header {
   flex-direction: row !important;
   align-items: center !important;
   justify-content: space-between !important;
-  padding: 14px 16px !important;
-  background: #1a1b23 !important;
+  padding: 15px 18px !important;
+  background: transparent !important;
   border: none !important;
   border-bottom: 0.5px solid rgba(255, 255, 255, 0.08) !important;
   cursor: pointer !important;
   width: 100% !important;
-  min-height: 52px !important;
+  min-height: 56px !important;
   box-sizing: border-box !important;
-  transition: background-color 0.15s ease !important;
+  transition: background-color 0.2s ease, transform 0.15s ease !important;
   text-decoration: none !important;
   color: #ffffff !important;
   font-family: var(--font-sans) !important;
@@ -838,98 +845,101 @@ body:not(.light-theme) .ios-settings-header {
 
 .ios-setting-row:hover:not(.no-hover),
 .ios-setting-row:active:not(.no-hover) {
-  background-color: rgba(255, 255, 255, 0.08) !important;
+  background-color: rgba(255, 255, 255, 0.07) !important;
 }
 
 /* Left part (Action, Toggle, or Chevron) */
 .ios-row-left {
   display: flex !important;
   align-items: center !important;
-  gap: 8px !important;
+  gap: 10px !important;
   flex-shrink: 0 !important;
 }
 
 .ios-row-detail-text {
-  font-size: 0.9rem !important;
+  font-size: 0.92rem !important;
   color: #a1a1aa !important;
   font-weight: 500 !important;
+  letter-spacing: -0.2px !important;
 }
 
 .ios-row-chevron {
-  font-size: 0.95rem !important;
-  color: #8e8e93 !important;
+  font-size: 1rem !important;
+  color: #71717a !important;
   font-weight: 600 !important;
   margin-left: 2px !important;
+  transition: color 0.2s ease, transform 0.2s ease !important;
+}
+
+.ios-setting-row:hover .ios-row-chevron {
+  color: #ffffff !important;
+  transform: translateX(-2px) !important;
 }
 
 /* Right part (Icon + Label) */
 .ios-row-right {
   display: flex !important;
   align-items: center !important;
-  gap: 12px !important;
+  gap: 14px !important;
   flex-shrink: 0 !important;
 }
 
 .ios-row-icon-badge {
-  width: 30px !important;
-  height: 30px !important;
-  border-radius: 8px !important;
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 9px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  font-size: 1.1rem !important;
+  font-size: 1.15rem !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
   flex-shrink: 0 !important;
 }
 
 .ios-row-label {
-  font-size: 1rem !important;
+  font-size: 1.02rem !important;
   font-weight: 600 !important;
   color: #ffffff !important;
   display: inline-block !important;
   white-space: nowrap !important;
+  letter-spacing: -0.3px !important;
 }
 
 /* iOS Colored Badges styles */
 .bg-ios-blue {
-  background-color: #007aff !important;
+  background: linear-gradient(135deg, #007aff 0%, #0056b3 100%) !important;
 }
 
 .bg-ios-orange {
-  background-color: #ff9500 !important;
+  background: linear-gradient(135deg, #ff9500 0%, #c67400 100%) !important;
 }
 
 .bg-ios-green {
-  background-color: #34c759 !important;
+  background: linear-gradient(135deg, #34c759 0%, #248a3d 100%) !important;
 }
 
 .bg-ios-purple {
-  background-color: #5856d6 !important;
+  background: linear-gradient(135deg, #af52de 0%, #7d26a5 100%) !important;
 }
 
 .bg-ios-red {
-  background-color: #ff3b30 !important;
+  background: linear-gradient(135deg, #ff3b30 0%, #c41c12 100%) !important;
 }
 
 .bg-ios-pink {
-  background-color: #ff2d55 !important;
+  background: linear-gradient(135deg, #ff2d55 0%, #b81636 100%) !important;
 }
 
 .bg-ios-gray {
-  background-color: #8e8e93 !important;
+  background: linear-gradient(135deg, #8e8e93 0%, #545456 100%) !important;
 }
 
 .bg-ios-teal {
-  background-color: #5ac8fa !important;
+  background: linear-gradient(135deg, #5ac8fa 0%, #1a9bd7 100%) !important;
 }
 
 .bg-ios-indigo {
-  background-color: #5856d6 !important;
-}
-
-.ios-row-label {
-  font-size: 1.05rem !important;
-  font-weight: 500 !important;
-  color: #1c1c1e !important;
+  background: linear-gradient(135deg, #5856d6 0%, #3634a3 100%) !important;
 }
 
 /* Top Profile Card Specific */
