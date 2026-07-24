@@ -676,13 +676,18 @@ body:not(.light-theme) .ios-settings-header {
 /* ==========================================================================
    AuraApp Redesigned Settings Tab - Classic iOS Light Theme
    ========================================================================== */
-/* Prevent clipping and allow full bleed when any tab is active */
-.tab-content-container:has(.tab-pane.active) {
-  overflow: visible !important;
-}
-
-#app-screen:has(.tab-pane.active) {
+/* Tab Content Container & Active Tab Layout Framework */
+.tab-content-container {
+  width: 100% !important;
+  height: 100% !important;
+  flex: 1 1 100% !important;
+  min-height: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  position: relative !important;
   overflow: hidden !important;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 #tab-settings,
@@ -697,23 +702,10 @@ body:not(.light-theme) .ios-settings-header {
   width: 100% !important;
   height: 100% !important;
   box-sizing: border-box !important;
-  background-color: #f2f2f7 !important;
-  color: #1c1c1e !important;
+  margin: 0 !important;
   padding: 0 !important;
-  display: none !important;
-  pointer-events: none !important;
-  /* Complete isolation when inactive */
-  flex-direction: column;
-  overscroll-behavior-y: contain;
-  direction: rtl;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif !important;
-  z-index: 1;
-}
-
-#tab-settings,
-#tab-workouts,
-#tab-analytics,
-#tab-meals {
+  direction: rtl !important;
+  z-index: 10 !important;
   overflow: hidden !important;
 }
 
@@ -722,8 +714,10 @@ body:not(.light-theme) .ios-settings-header {
 #tab-analytics.active,
 #tab-meals.active {
   display: flex !important;
+  flex-direction: column !important;
+  opacity: 1 !important;
+  visibility: visible !important;
   pointer-events: auto !important;
-  /* Full interaction when active */
 }
 
 /* Custom scrollbars inside settings for unified appearance */
@@ -802,12 +796,12 @@ body:not(.light-theme) .ios-settings-header {
    AuraApp Redesigned iOS 18 Native Settings System
    ========================================================================== */
 
-/* iOS Cards (Rounded Glass Segments - Borderless) */
+/* iOS Cards (Rounded Glass Segments with Crisp Glass Outline) */
 .ios-settings-card-group {
   background: linear-gradient(135deg, rgba(26, 27, 36, 0.95) 0%, rgba(18, 19, 26, 0.98) 100%) !important;
   border-radius: 18px !important;
   margin-bottom: 20px !important;
-  border: none !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45) !important;
   backdrop-filter: blur(20px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
@@ -819,7 +813,7 @@ body:not(.light-theme) .ios-settings-header {
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease !important;
 }
 
-/* Single Setting Row (Borderless) */
+/* Single Setting Row (Borderless & Always Visible) */
 .ios-setting-row {
   display: flex !important;
   flex-direction: row !important;
@@ -828,7 +822,7 @@ body:not(.light-theme) .ios-settings-header {
   padding: 15px 18px !important;
   background: transparent !important;
   border: none !important;
-  border-bottom: none !important;
+  border-bottom: 0.5px solid rgba(255, 255, 255, 0.08) !important;
   cursor: pointer !important;
   width: 100% !important;
   height: auto !important;
@@ -841,6 +835,8 @@ body:not(.light-theme) .ios-settings-header {
   font-family: var(--font-sans) !important;
   direction: rtl !important;
   text-align: right !important;
+  opacity: 1 !important;
+  visibility: visible !important;
   -webkit-appearance: none !important;
   appearance: none !important;
 }
@@ -861,6 +857,8 @@ body:not(.light-theme) .ios-settings-header {
   align-items: center !important;
   gap: 10px !important;
   flex-shrink: 0 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 .ios-row-detail-text {
@@ -868,6 +866,8 @@ body:not(.light-theme) .ios-settings-header {
   color: #a1a1aa !important;
   font-weight: 500 !important;
   letter-spacing: -0.2px !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 .ios-row-chevron {
@@ -876,6 +876,8 @@ body:not(.light-theme) .ios-settings-header {
   font-weight: 600 !important;
   margin-left: 2px !important;
   transition: color 0.2s ease, transform 0.2s ease !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 .ios-setting-row:hover .ios-row-chevron {
@@ -889,6 +891,8 @@ body:not(.light-theme) .ios-settings-header {
   align-items: center !important;
   gap: 14px !important;
   flex-shrink: 0 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 .ios-row-icon-badge {
@@ -991,8 +995,10 @@ body:not(.light-theme) .ios-settings-header {
   font-family: var(--font-display) !important;
   font-size: 1.35rem !important;
   font-weight: 700 !important;
-  color: #000000 !important;
+  color: #ffffff !important;
   letter-spacing: -0.3px !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 .ios-profile-subtext {
@@ -1430,7 +1436,7 @@ body:not(.light-theme) .ios-settings-header {
 #tab-workouts.dark-theme,
 #tab-analytics.dark-theme,
 #tab-meals.dark-theme {
-  background-color: #000000 !important;
+  background-color: #0d0e12 !important;
   color: #ffffff !important;
 }
 
@@ -2029,7 +2035,7 @@ button:focus,
   -webkit-overflow-scrolling: touch !important;
   width: 100% !important;
   box-sizing: border-box !important;
-  padding: 1rem 1.25rem calc(120px + env(safe-area-inset-bottom, 24px)) 1.25rem !important;
+  padding: 1rem 1.25rem calc(160px + env(safe-area-inset-bottom, 30px)) 1.25rem !important;
 }
 
 /* iOS 18 Native Dynamic Cards & Container Responsive Rules */

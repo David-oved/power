@@ -1,5 +1,5 @@
-const CACHE_NAME = '14.1.0';
-const UPDATE_DESCRIPTION = 'עיצוב ומיטוב רספונסיבי מקיף לכל 7 תתי-המסכים בטאב ההגדרות (iOS 18 Native Centered Responsive System)';
+const CACHE_NAME = '15.0.0';
+const UPDATE_DESCRIPTION = 'שדרוג ארכיטקטוני מקיף למסגרת ה-DOM של מסך ההגדרות (ביטול החור השחור, חשיפת שמות הפרופיל בלבן והפעלת גלילת iOS 18 מושלמת)';
 
 const ASSETS = [
   './',
