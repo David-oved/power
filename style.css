@@ -84,14 +84,14 @@ body {
 /* Ambient Blurred Glow Blobs (Deep Red Forged Heat Foundry vibe) */
 .ambient-glow {
   position: absolute;
-  width: 70vw;
-  height: 70vw;
-  max-width: 420px;
-  max-height: 420px;
+  width: 85vw;
+  height: 85vw;
+  max-width: 500px;
+  max-height: 500px;
   border-radius: 50%;
-  filter: blur(120px);
-  z-index: -1;
-  opacity: 0.16;
+  filter: blur(90px);
+  z-index: 0;
+  opacity: 0.45;
   pointer-events: none;
 }
 
@@ -3078,7 +3078,7 @@ body:not(.light-theme) .ios-settings-header {
    AuraApp Redesigned Settings Tab - iOS Dark Mode overrides
    ========================================================================== */
 #tab-settings.dark-theme {
-  background-color: #000000 !important;
+  background-color: transparent !important;
   color: #ffffff !important;
 }
 
@@ -3087,13 +3087,16 @@ body:not(.light-theme) .ios-settings-header {
 }
 
 #tab-settings.dark-theme .ios-settings-card-group {
-  background: #1c1c1e !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2) !important;
+  background: rgba(20, 20, 26, 0.75) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25) !important;
 }
 
 #tab-settings.dark-theme .ios-setting-row {
-  background: #1c1c1e !important;
-  border-bottom: 0.5px solid #2c2c2e !important;
+  background: transparent !important;
+  border-bottom: 0.5px solid rgba(255, 255, 255, 0.06) !important;
 }
 
 #tab-settings.dark-theme .ios-setting-row:hover:not(.no-hover) {
@@ -3611,7 +3614,7 @@ body:not(.light-theme) .ios-settings-header {
 #tab-workouts.dark-theme,
 #tab-analytics.dark-theme,
 #tab-meals.dark-theme {
-  background-color: #000000 !important;
+  background-color: transparent !important;
   color: #ffffff !important;
 }
 

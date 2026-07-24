@@ -1,5 +1,5 @@
-const CACHE_NAME = '13.0.9';
-const UPDATE_DESCRIPTION = 'שחזור אישור משתמש מפורש לעדכוני גרסה';
+const CACHE_NAME = '13.1.0';
+const UPDATE_DESCRIPTION = 'שחזור רקע הקרבון הדינמי, הילת האורות והשקיפות היוקרתית בהגדרות';
 
 const ASSETS = [
   './',
