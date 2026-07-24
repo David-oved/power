@@ -1,5 +1,5 @@
-const CACHE_NAME = '13.0.6';
-const UPDATE_DESCRIPTION = 'תיקון מקיף להגדרות ענן, תצוגה ותיקון באגים במערכת';
+const CACHE_NAME = '13.0.7';
+const UPDATE_DESCRIPTION = 'תיקון שגיאת תחביר בהגדרות, טעינה ב-0ms וסנכרון ענן חכם';
 
 const ASSETS = [
   './',
