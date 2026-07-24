@@ -1,5 +1,5 @@
-const CACHE_NAME = '13.4.1';
-const UPDATE_DESCRIPTION = 'אימות והשלמה של 100% ממשתני ה-CSS וה-Storage לטאב ההגדרות';
+const CACHE_NAME = '13.5.0';
+const UPDATE_DESCRIPTION = 'עיצוב מחדש ויוקרתי של מסך ההגדרות בסגנון iOS 18/26 Native מודולרי';
 
 const ASSETS = [
   './',
