@@ -1,5 +1,5 @@
-const CACHE_NAME = '13.3.0';
-const UPDATE_DESCRIPTION = 'תיקון קריטי: תצוגת תוכן טאב ההגדרות, קריסת גובה flexbox וריפוד כפול';
+const CACHE_NAME = '13.0.9';
+const UPDATE_DESCRIPTION = 'תיקון מקיף להגדרות ענן, תצוגה ותיקון באגים במערכת';
 
 const ASSETS = [
   './',
@@ -24,7 +24,8 @@ const ASSETS = [
 let restTimerTimeout = null;
 
 self.addEventListener('install', (event) => {
-  console.log('Service Worker: Installed new version. Waiting for user confirmation.');
+  console.log('Service Worker: Installed immediately. Assets will be cached on-demand.');
+  // Wait for explicit skipWaiting/activation message from client
   event.waitUntil(Promise.resolve());
 });
 
