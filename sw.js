@@ -1,5 +1,5 @@
-const CACHE_NAME = '13.0.7';
-const UPDATE_DESCRIPTION = 'תיקון שגיאת תחביר בהגדרות, טעינה ב-0ms וסנכרון ענן חכם';
+const CACHE_NAME = '13.0.8';
+const UPDATE_DESCRIPTION = 'תיקון מיקום תצוגת מסך ההגדרות בטלפונים (100% Fit)';
 
 const ASSETS = [
   './',
