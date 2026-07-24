@@ -1,5 +1,5 @@
-const CACHE_NAME = '13.8.0';
-const UPDATE_DESCRIPTION = 'פתרון מוחלט לבעיית גובה וגלילת ה-overflow במסך ההגדרות (הפעלת overflow: visible על הכרטיסים וגלילה חופשית)';
+const CACHE_NAME = '13.9.0';
+const UPDATE_DESCRIPTION = 'החלת הגדרת הגלילה החופשית וה-overflow: visible על כל שאר קבוצות ההגדרות ותתי-המסכים במערכת';
 
 const ASSETS = [
   './',

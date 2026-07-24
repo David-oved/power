@@ -1188,7 +1188,9 @@ body:not(.light-theme) .ios-settings-header {
   border-radius: 12px !important;
   margin-bottom: 24px !important;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
-  overflow: hidden !important;
+  overflow: visible !important;
+  height: auto !important;
+  min-height: fit-content !important;
 }
 
 .ios-settings-field-row {
@@ -1324,9 +1326,8 @@ body:not(.light-theme) .ios-settings-header {
   font-weight: bold;
 }
 
-/* ==========================================================================
-   AuraApp Redesigned Settings Tab - iOS Dark Mode overrides
 /* iOS Dark Mode overrides for toggle controls */
+#tab-settings.dark-theme .ios-toggle-slider {
   background-color: #3a3a3c !important;
 }
 
@@ -2024,6 +2025,8 @@ button:focus,
 
 #tab-settings .ios-settings-scroll-container {
   flex: 1 1 auto !important;
+  height: 100% !important;
+  min-height: 0 !important;
   overflow-y: auto !important;
   -webkit-overflow-scrolling: touch !important;
   width: 100% !important;
