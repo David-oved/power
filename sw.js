@@ -1,5 +1,5 @@
-const CACHE_NAME = '13.6.0';
-const UPDATE_DESCRIPTION = 'מחיקה מוחלטת של קוד ה-CSS הישן והשורות הדקות המתנגשות במסך ההגדרות';
+const CACHE_NAME = '13.7.0';
+const UPDATE_DESCRIPTION = 'ביטול מוחלט וסופי של כל גבולות ה-border והשורות הדקות במסך ההגדרות';
 
 const ASSETS = [
   './',

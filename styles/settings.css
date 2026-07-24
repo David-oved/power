@@ -488,11 +488,12 @@
   display: flex !important;
   align-items: center !important;
   justify-content: space-between !important;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+  border-bottom: none !important;
+  border: none !important;
   padding: calc(1rem + env(safe-area-inset-top, 16px)) 1.5rem 14px 1.5rem !important;
   margin: 0 !important;
   direction: rtl !important;
-  background: rgba(242, 242, 247, 0.94) !important;
+  background: rgba(14, 14, 18, 0.94) !important;
   backdrop-filter: blur(25px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(25px) saturate(180%) !important;
   position: sticky !important;
@@ -506,7 +507,8 @@
 #tab-settings.dark-theme .ios-settings-header,
 body:not(.light-theme) .ios-settings-header {
   background: rgba(14, 14, 18, 0.94) !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-bottom: none !important;
+  border: none !important;
 }
 
 .ios-back-btn {
@@ -800,13 +802,13 @@ body:not(.light-theme) .ios-settings-header {
    AuraApp Redesigned iOS 18 Native Settings System
    ========================================================================== */
 
-/* iOS Cards (Rounded Glass Segments) */
+/* iOS Cards (Rounded Glass Segments - Borderless) */
 .ios-settings-card-group {
   background: linear-gradient(135deg, rgba(26, 27, 36, 0.95) 0%, rgba(18, 19, 26, 0.98) 100%) !important;
   border-radius: 18px !important;
   margin-bottom: 20px !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45), 0 2px 4px rgba(255, 255, 255, 0.03) inset !important;
+  border: none !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45) !important;
   backdrop-filter: blur(20px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
   overflow: hidden !important;
@@ -815,7 +817,7 @@ body:not(.light-theme) .ios-settings-header {
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease !important;
 }
 
-/* Single Setting Row */
+/* Single Setting Row (Borderless) */
 .ios-setting-row {
   display: flex !important;
   flex-direction: row !important;
@@ -824,7 +826,7 @@ body:not(.light-theme) .ios-settings-header {
   padding: 15px 18px !important;
   background: transparent !important;
   border: none !important;
-  border-bottom: 0.5px solid rgba(255, 255, 255, 0.08) !important;
+  border-bottom: none !important;
   cursor: pointer !important;
   width: 100% !important;
   min-height: 56px !important;
@@ -841,6 +843,7 @@ body:not(.light-theme) .ios-settings-header {
 
 .ios-setting-row:last-child {
   border-bottom: none !important;
+  border: none !important;
 }
 
 .ios-setting-row:hover:not(.no-hover),
@@ -1319,44 +1322,7 @@ body:not(.light-theme) .ios-settings-header {
 
 /* ==========================================================================
    AuraApp Redesigned Settings Tab - iOS Dark Mode overrides
-   ========================================================================== */
-#tab-settings.dark-theme {
-  background-color: transparent !important;
-  color: #ffffff !important;
-}
-
-#tab-settings.dark-theme .settings-main-title {
-  color: #ffffff !important;
-}
-
-#tab-settings.dark-theme .ios-settings-card-group {
-  background: #1a1c24 !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
-}
-
-#tab-settings.dark-theme .ios-setting-row {
-  background: transparent !important;
-  border-bottom: 0.5px solid rgba(255, 255, 255, 0.06) !important;
-}
-
-#tab-settings.dark-theme .ios-setting-row:hover:not(.no-hover) {
-  background-color: #2c2c2e !important;
-}
-
-#tab-settings.dark-theme .ios-row-label,
-#tab-settings.dark-theme .ios-profile-name {
-  color: #ffffff !important;
-}
-
-#tab-settings.dark-theme .ios-row-detail-text,
-#tab-settings.dark-theme .ios-profile-subtext {
-  color: #8e8e93 !important;
-}
-
-#tab-settings.dark-theme .ios-toggle-slider {
+/* iOS Dark Mode overrides for toggle controls */
   background-color: #3a3a3c !important;
 }
 
