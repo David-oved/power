@@ -811,7 +811,9 @@ body:not(.light-theme) .ios-settings-header {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45) !important;
   backdrop-filter: blur(20px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-  overflow: hidden !important;
+  overflow: visible !important;
+  height: auto !important;
+  min-height: fit-content !important;
   padding: 0 !important;
   width: 100% !important;
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease !important;
@@ -829,7 +831,9 @@ body:not(.light-theme) .ios-settings-header {
   border-bottom: none !important;
   cursor: pointer !important;
   width: 100% !important;
+  height: auto !important;
   min-height: 56px !important;
+  flex-shrink: 0 !important;
   box-sizing: border-box !important;
   transition: background-color 0.2s ease, transform 0.15s ease !important;
   text-decoration: none !important;

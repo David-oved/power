@@ -1,5 +1,5 @@
-const CACHE_NAME = '13.7.0';
-const UPDATE_DESCRIPTION = 'ביטול מוחלט וסופי של כל גבולות ה-border והשורות הדקות במסך ההגדרות';
+const CACHE_NAME = '13.8.0';
+const UPDATE_DESCRIPTION = 'פתרון מוחלט לבעיית גובה וגלילת ה-overflow במסך ההגדרות (הפעלת overflow: visible על הכרטיסים וגלילה חופשית)';
 
 const ASSETS = [
   './',
