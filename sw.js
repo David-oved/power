@@ -1,5 +1,5 @@
-const CACHE_NAME = '13.3.0';
-const UPDATE_DESCRIPTION = 'תיקון מלא לתצוגת שורות ההגדרות, מניעת שקופיות טקסט וביטול רקע משובץ במובייל';
+const CACHE_NAME = '13.4.0';
+const UPDATE_DESCRIPTION = 'פתרון יסודי ומוחלט לבאג התמוטטות שורות ההגדרות (המרת תגיות button ל-div role=button ב-WebKit)';
 
 const ASSETS = [
   './',

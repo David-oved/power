@@ -238,7 +238,7 @@
               <div class="ios-settings-card-group sticky-profile-container">
                 <div class="ios-settings-group-title">חשבון</div>
                 <!-- Row 1: Account Settings (Clickable Profile Row) -->
-                <button id="go-to-account-btn" class="ios-setting-row ios-profile-card">
+                <div id="go-to-account-btn" class="ios-setting-row ios-profile-card" role="button" tabindex="0">
                   <div class="ios-row-left">
                     <span class="ios-row-chevron">←</span>
                   </div>
@@ -252,13 +252,13 @@
                       <span class="ios-profile-subtext">פרופיל, אבטחה, התנתקות</span>
                     </div>
                   </div>
-                </button>
+                </div>
               </div>
 
               <!-- Group 2: Cloud Services -->
               <div class="ios-settings-card-group">
                 <div class="ios-settings-group-title">שירותי ענן</div>
-                <button id="go-to-cloud-sync-btn" class="ios-setting-row">
+                <div id="go-to-cloud-sync-btn" class="ios-setting-row" role="button" tabindex="0">
                   <div class="ios-row-left">
                     <span id="settings-sync-status-badge" class="ios-row-detail-text">מחובר</span>
                     <span class="ios-row-chevron">←</span>
@@ -267,19 +267,19 @@
                     <span class="ios-row-icon-badge bg-ios-blue" style="background-color: #0a84ff;">☁️</span>
                     <span class="ios-row-label">סנכרון וגיבוי לענן</span>
                   </div>
-                </button>
+                </div>
               </div>
 
               <!-- Group 3: Display Settings -->
               <div class="ios-settings-card-group">
                 <div class="ios-settings-group-title">תצוגה ומראה</div>
-                <button id="go-to-display-settings-btn" class="ios-setting-row">
+                <div id="go-to-display-settings-btn" class="ios-setting-row" role="button" tabindex="0">
                   <div class="ios-row-left"><span class="ios-row-chevron">←</span></div>
                   <div class="ios-row-right">
                     <span class="ios-row-icon-badge bg-ios-purple" style="background-color: #5856d6;">🎨</span>
                     <span class="ios-row-label">הגדרות תצוגה</span>
                   </div>
-                </button>
+                </div>
               </div>
 
               <!-- Group 4: App Version/Updates -->
@@ -323,7 +323,7 @@
                 </div>
 
                 <!-- Send feedback to developer -->
-                <button id="go-to-feedback-btn" class="ios-setting-row">
+                <div id="go-to-feedback-btn" class="ios-setting-row" role="button" tabindex="0">
                   <div class="ios-row-left">
                     <span class="ios-row-chevron">←</span>
                   </div>
@@ -331,10 +331,10 @@
                     <span class="ios-row-icon-badge bg-ios-blue">💬</span>
                     <span class="ios-row-label">שליחת משוב למפתח</span>
                   </div>
-                </button>
+                </div>
 
                 <!-- Messages from system -->
-                <button id="go-to-messages-btn" class="ios-setting-row">
+                <div id="go-to-messages-btn" class="ios-setting-row" role="button" tabindex="0">
                   <div class="ios-row-left">
                     <span id="unread-messages-badge" class="ios-badge hide">0</span>
                     <span class="ios-row-chevron">←</span>
@@ -343,11 +343,11 @@
                     <span class="ios-row-icon-badge bg-ios-orange">✉️</span>
                     <span class="ios-row-label">הודעות מהמערכת</span>
                   </div>
-                </button>
+                </div>
 
                 <!-- Admin options (Visible to admin only) -->
                 <div id="settings-admin-group" class="hide" style="width: 100%;">
-                  <button id="go-to-admin-console-btn" class="ios-setting-row" style="width: 100%; border: none; background: transparent; padding: 0;">
+                  <div id="go-to-admin-console-btn" class="ios-setting-row" role="button" tabindex="0">
                     <div class="ios-row-left">
                       <span class="ios-row-chevron">←</span>
                     </div>
@@ -355,7 +355,7 @@
                       <span class="ios-row-icon-badge bg-ios-red">🛠️</span>
                       <span class="ios-row-label">פאנל ניהול מנהל</span>
                     </div>
-                  </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -742,33 +742,33 @@
                 </div>
 
               <!-- Action Controls Group -->
-                <button id="sync-action-now" class="ios-setting-row" style="color: var(--electric-blue-light); text-align: center; justify-content: center; font-weight: bold; cursor: pointer; background: transparent; border: none; width: 100%;">
+                <div id="sync-action-now" class="ios-setting-row" role="button" tabindex="0" style="color: var(--electric-blue-light); text-align: center; justify-content: center; font-weight: bold; cursor: pointer; background: transparent; border: none; width: 100%;">
                   🔄 סנכרן כעת ורענן נתונים
-                </button>
-                <button id="sync-action-disconnect" class="ios-setting-row" style="color: #ff9500; text-align: center; justify-content: center; font-weight: bold; cursor: pointer; background: transparent; border: none; width: 100%;">
+                </div>
+                <div id="sync-action-disconnect" class="ios-setting-row" role="button" tabindex="0" style="color: #ff9500; text-align: center; justify-content: center; font-weight: bold; cursor: pointer; background: transparent; border: none; width: 100%;">
                   🛑 שמור מקומית בלבד (נתק סנכרון)
-                </button>
-                <button id="sync-action-connect" class="ios-setting-row hide" style="color: #34c759; text-align: center; justify-content: center; font-weight: bold; cursor: pointer; background: transparent; border: none; width: 100%;">
+                </div>
+                <div id="sync-action-connect" class="ios-setting-row hide" role="button" tabindex="0" style="color: #34c759; text-align: center; justify-content: center; font-weight: bold; cursor: pointer; background: transparent; border: none; width: 100%;">
                   ⚡ הפעל סנכרון ענן והעלה נתונים
-                </button>
+                </div>
 
               <!-- Danger Zone Group -->
               <div class="ios-settings-card-group">
                 <div class="ios-settings-group-title">אזור סכנה</div>
-                <button id="sync-action-delete" class="ios-setting-row" style="color: var(--color-danger); text-align: center; justify-content: center; font-weight: bold; cursor: pointer; background: transparent; border: none; width: 100%;">
+                <div id="sync-action-delete" class="ios-setting-row" role="button" tabindex="0" style="color: var(--color-danger); text-align: center; justify-content: center; font-weight: bold; cursor: pointer; background: transparent; border: none; width: 100%;">
                   🗑️ מחק את כל הנתונים השמורים בענן
-                </button>
+                </div>
               </div>
 
               <!-- Granular Delete Group -->
               <div class="ios-settings-card-group" style="margin-top: 1.5rem;">
                 <div class="ios-settings-group-title">ניהול ענן מתקדם</div>
-                <button id="sync-action-delete-history" class="ios-setting-row" style="color: #ff9500; text-align: center; justify-content: center; font-weight: bold; cursor: pointer; background: transparent; border: none; width: 100%;">
+                <div id="sync-action-delete-history" class="ios-setting-row" role="button" tabindex="0" style="color: #ff9500; text-align: center; justify-content: center; font-weight: bold; cursor: pointer; background: transparent; border: none; width: 100%;">
                   🗑️ מחק היסטוריה מהענן בלבד
-                </button>
-                <button id="sync-action-inspect-items" class="ios-setting-row" style="color: var(--electric-blue-light); text-align: center; justify-content: center; font-weight: bold; cursor: pointer; background: transparent; border: none; width: 100%;">
+                </div>
+                <div id="sync-action-inspect-items" class="ios-setting-row" role="button" tabindex="0" style="color: var(--electric-blue-light); text-align: center; justify-content: center; font-weight: bold; cursor: pointer; background: transparent; border: none; width: 100%;">
                   🔍 צפה ונהל פריטים בודדים בענן
-                </button>
+                </div>
               </div>
 
             </div>
