@@ -1,5 +1,5 @@
-const CACHE_NAME = '13.4.0';
-const UPDATE_DESCRIPTION = 'פתרון יסודי ומוחלט לבאג התמוטטות שורות ההגדרות (המרת תגיות button ל-div role=button ב-WebKit)';
+const CACHE_NAME = '13.4.1';
+const UPDATE_DESCRIPTION = 'אימות והשלמה של 100% ממשתני ה-CSS וה-Storage לטאב ההגדרות';
 
 const ASSETS = [
   './',

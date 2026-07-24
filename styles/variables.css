@@ -35,7 +35,12 @@
   /* Toned down to thin platinum sheen */
   --electric-blue-glow-subtle: rgba(228, 228, 230, 0.02);
   --electric-blue-light: #ef4444;
-  /* Glowing active red */
+  /* Additional Layout & Text Aliases */
+  --surface-1: #161720;
+  --text-primary: #ffffff;
+  --color-text-muted: #a1a1aa;
+
+  /* Glassmorphism Surface Defaults */
 
   --neon-orange: #f43f5e;
   /* Forged Crimson highlight */
