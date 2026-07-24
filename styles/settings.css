@@ -1649,26 +1649,22 @@ body:not(.light-theme) .ios-settings-header {
   background: rgba(220, 38, 38, 0.08) !important;
 }
 
-/* Sticky iOS Settings Profile Header */
+/* iOS Settings Profile Header Card (Flows naturally in scroll view) */
 .sticky-profile-container {
-  position: sticky !important;
-  top: 0 !important;
-  z-index: 100 !important;
-  background-color: #f2f2f7 !important;
-  /* Matches light settings background */
-  margin-top: -10px !important;
-  margin-bottom: 24px !important;
-  padding-top: 10px !important;
-  padding-bottom: 10px !important;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.04) !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02) !important;
+  position: relative !important;
+  top: auto !important;
+  z-index: 1 !important;
+  margin-top: 0 !important;
+  margin-bottom: 20px !important;
+  padding: 0 !important;
+  border: none !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45) !important;
 }
 
 #tab-settings.dark-theme .sticky-profile-container {
-  background-color: #000000 !important;
-  /* Matches dark settings background */
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03) !important;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25) !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45) !important;
 }
 
 /* iOS Group Title (System Label) */
@@ -2025,11 +2021,10 @@ button:focus,
 
 #tab-settings .ios-settings-scroll-container {
   flex: 1 1 auto !important;
-  height: 100% !important;
   min-height: 0 !important;
   overflow-y: auto !important;
   -webkit-overflow-scrolling: touch !important;
   width: 100% !important;
   box-sizing: border-box !important;
-  padding: 1rem 1.25rem calc(130px + env(safe-area-inset-bottom, 24px)) 1.25rem !important;
+  padding: 1rem 1.25rem calc(180px + env(safe-area-inset-bottom, 30px)) 1.25rem !important;
 }

@@ -1,5 +1,5 @@
-const CACHE_NAME = '13.9.0';
-const UPDATE_DESCRIPTION = 'החלת הגדרת הגלילה החופשית וה-overflow: visible על כל שאר קבוצות ההגדרות ותתי-המסכים במערכת';
+const CACHE_NAME = '14.0.0';
+const UPDATE_DESCRIPTION = 'פתרון מוחלט לחשיפת כל קבוצות ההגדרות (ביטול sticky שהסתיר את הכרטיסים ואיזון גובה מכולת הגלילה)';
 
 const ASSETS = [
   './',
