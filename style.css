@@ -3233,11 +3233,11 @@ body:not(.light-theme) .ios-settings-header {
 }
 
 #tab-settings.dark-theme .ios-settings-card-group {
-  background: rgba(20, 20, 26, 0.75) !important;
-  backdrop-filter: blur(20px) !important;
-  -webkit-backdrop-filter: blur(20px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25) !important;
+  background: #1a1c24 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
 }
 
 #tab-settings.dark-theme .ios-setting-row {
