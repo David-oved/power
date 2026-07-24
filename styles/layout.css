@@ -1,0 +1,335 @@
+/* ==========================================================================
+   AuraApp Modular CSS: layout.css
+   ========================================================================== */
+
+/* 2. Mobile Native-Like Viewport */
+.app-viewport {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  height: 100vh;
+  height: 100dvh;
+  /* Dynamic viewport for modern devices */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  padding: 0;
+  /* Remove top/bottom safe-area padding so backgrounds are full-bleed */
+  background-color: var(--bg-app);
+  background-image:
+    linear-gradient(45deg, hsl(225, 24%, 6%) 25%, transparent 25%, transparent 75%, hsl(225, 24%, 6%) 75%, hsl(225, 24%, 6%)),
+    linear-gradient(45deg, hsl(225, 24%, 6%) 25%, var(--bg-app) 25%, var(--bg-app) 75%, hsl(225, 24%, 6%) 75%, hsl(225, 24%, 6%));
+  background-size: 10px 10px;
+  background-position: 0 0, 5px 5px;
+  box-shadow: 0 0 80px rgba(0, 0, 0, 0.7);
+}
+
+/* Screens Framework */
+.screen {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 100%;
+  max-width: 480px;
+  height: 100%;
+  padding: calc(1rem + env(safe-area-inset-top)) 1.5rem calc(1rem + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(-50%) translateY(15px);
+  transition: opacity 0.4s cubic-bezier(0.25, 1, 0.5, 1),
+    transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  z-index: 1;
+
+  /* Carbon-fiber diagonal pattern with premium sports/athletic console vibe */
+  background-color: var(--bg-app);
+  background-image:
+    linear-gradient(45deg, hsl(225, 24%, 6%) 25%, transparent 25%, transparent 75%, hsl(225, 24%, 6%) 75%, hsl(225, 24%, 6%)),
+    linear-gradient(45deg, hsl(225, 24%, 6%) 25%, var(--bg-app) 25%, var(--bg-app) 75%, hsl(225, 24%, 6%) 75%, hsl(225, 24%, 6%));
+  background-size: 10px 10px;
+  background-position: 0 0, 5px 5px;
+}
+
+.screen.active {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(0);
+  z-index: 2;
+}
+
+/* Enable scroll on Auth Screen for small or landscape viewports */
+#auth-screen {
+  overflow-y: auto;
+  justify-content: flex-start;
+  align-items: center;
+  /* Symmetrically centers the auth card horizontally on iPhone/Safari under RTL */
+}
+
+/* ==========================================================================
+   4. SIGNED-IN SCREEN (Main Application Dashboard)
+   ========================================================================== */
+
+#app-screen {
+  overflow-y: auto;
+  justify-content: flex-start;
+  padding-bottom: calc(9rem + env(safe-area-inset-bottom)) !important;
+}
+
+.app-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  background: hsla(225, 20%, 6%, 0.4);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  padding: 1.2rem 1.5rem;
+  margin-left: -1.5rem;
+  margin-right: -1.5rem;
+  width: calc(100% + 3rem);
+  box-sizing: border-box;
+}
+
+.user-greeting {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  text-align: right;
+}
+
+.welcome-text {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--text-heading);
+  letter-spacing: -0.5px;
+}
+
+.status-subtitle {
+  font-size: 0.8rem;
+  color: var(--electric-blue);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.floating-avatar-btn {
+  background: transparent;
+  border: none;
+  position: relative;
+  cursor: pointer;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: var(--transition-smooth);
+}
+
+.floating-avatar-btn:hover {
+  transform: scale(1.05);
+}
+
+.floating-user-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--electric-blue);
+  background: var(--bg-card);
+  z-index: 2;
+}
+
+.avatar-glow-ring {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  border-radius: 50%;
+  border: 2px solid var(--electric-blue-light);
+  opacity: 0;
+  z-index: 1;
+  animation: avatar-pulse 2s infinite;
+}
+
+@keyframes avatar-pulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.8;
+  }
+
+  100% {
+    transform: scale(1.25);
+    opacity: 0;
+  }
+}
+
+/* ==========================================================================
+   15. STRICT SCREEN ISOLATION (SECURITY GATEKEEPERS)
+   ==========================================================================
+   CRITICAL FOR DEVELOPERS & AGENTS:
+   To ensure extreme security and prevent any user-space active elements (like the floating bottom
+   navigation capsule, overlays, setting panels, modals, and updates alerts) from appearing on the
+   unauthenticated gate/login screen, all global overlay objects are strictly hidden by default.
+   They are ONLY brought to visibility under the CSS selector chain '.authenticated'.
+   DO NOT modify, bypass, or remove these rules under any circumstances.
+*/
+
+/* Hide all active-app global containers by default on startup */
+.bottom-nav-bar,
+.settings-drawer,
+.drawer-overlay,
+.ios-install-banner,
+.workout-summary-modal {
+  display: none !important;
+}
+
+/* Permit active-app elements to display ONLY when body has successfully validated auth session */
+body.authenticated .bottom-nav-bar {
+  display: flex !important;
+}
+
+body.authenticated .settings-drawer {
+  display: flex !important;
+}
+
+body.authenticated .drawer-overlay.open {
+  display: block !important;
+}
+
+body.authenticated .ios-install-banner.show {
+  display: block !important;
+}
+
+.pwa-update-toast.show {
+  display: flex !important;
+}
+
+body.authenticated .workout-summary-modal.active {
+  display: flex !important;
+}
+
+/* Minimal Post-Login Profile View Styling */
+.minimal-profile-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 320px;
+  margin: auto;
+  padding: 3rem 2rem;
+  background: linear-gradient(135deg, hsla(225, 20%, 9%, 0.75) 0%, hsla(225, 20%, 5%, 0.85) 100%);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 1px solid var(--border-card);
+  border-radius: var(--radius-card);
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.6),
+    0 0 35px var(--electric-blue-glow-subtle);
+  text-align: center;
+  transition: var(--transition-smooth);
+}
+
+.minimal-avatar-btn {
+  background: transparent;
+  border: none;
+  position: relative;
+  cursor: pointer;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: var(--transition-smooth);
+  outline: none;
+}
+
+.minimal-avatar-btn:hover {
+  transform: scale(1.06);
+}
+
+.minimal-user-avatar {
+  width: 108px;
+  height: 108px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--electric-blue);
+  background: var(--bg-card);
+  z-index: 2;
+  box-shadow: 0 0 20px var(--electric-blue-glow);
+}
+
+.minimal-avatar-btn .avatar-glow-ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 50%;
+  border: 3px solid var(--electric-blue-light);
+  opacity: 0;
+  z-index: 1;
+  animation: avatar-pulse 2s infinite;
+}
+
+/* Visibility hide/show helper */
+.hide {
+  display: none !important;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.btn-logout {
+  transition: var(--transition-smooth);
+}
+
+/* Subtle Sleek Version Badge */
+.app-version-badge {
+  display: none !important;
+  position: absolute;
+  bottom: calc(12px + env(safe-area-inset-bottom));
+  left: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 4px 8px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  pointer-events: none;
+  z-index: 1000;
+  letter-spacing: 0.05em;
+}
+
+/* ==========================================================================
+   AuraApp Redesigned Multi-Tab Theme System - Dark & Light Mode Overrides
+   ========================================================================== */
+
+/* 1. Global Tab Titles styling (Aligned large bold top-right RTL, exactly like settings) */
+.tab-pane .settings-main-title {
+  color: #1c1c1e !important;
+  font-family: var(--font-display) !important;
+  font-size: 2.1rem !important;
+  font-weight: 800 !important;
+  margin-bottom: 1.5rem !important;
+  margin-top: 0.5rem !important;
+  text-align: right !important;
+  text-shadow: none !important;
+  letter-spacing: -0.5px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  padding: calc(1.5rem + env(safe-area-inset-top, 24px)) 1.5rem 1rem 1.5rem !important;
+}
+

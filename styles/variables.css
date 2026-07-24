@@ -1,0 +1,162 @@
+/* ==========================================================================
+   AuraApp Modular CSS: variables.css
+   ========================================================================== */
+
+/* ==========================================================================
+   AuraApp - Design System & Visual Architecture
+   ========================================================================== */
+
+:root {
+  --font-display: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  /* Hardcore Forged Iron Gym - Cast Iron & Concrete Dark Palette */
+  --bg-app: #08080a;
+  /* Deep solid steel black */
+  --bg-card: rgba(20, 20, 24, 0.88);
+  /* Heavy cast iron black card */
+  --bg-card-hover: rgba(36, 36, 40, 0.95);
+  /* Steel gray hover state */
+  --border-card: rgba(255, 255, 255, 0.08);
+  /* Sharp raw steel thin border */
+  --border-card-hover: rgba(255, 255, 255, 0.16);
+
+  --text-main: #e4e4e7;
+  /* Steel white main text */
+  --text-muted: #a1a1aa;
+  /* Muted concrete gray text */
+  --text-heading: #ffffff;
+  /* Stark platinum white */
+
+  /* Cyber-Athletic Neon Highlights - Remapped to Molten Red & Forged Crimson */
+  --electric-blue: #dc2626;
+  /* Stark Molten Red */
+  --electric-blue-glow: rgba(228, 228, 230, 0.05);
+  /* Toned down to thin platinum sheen */
+  --electric-blue-glow-subtle: rgba(228, 228, 230, 0.02);
+  --electric-blue-light: #ef4444;
+  /* Glowing active red */
+
+  --neon-orange: #f43f5e;
+  /* Forged Crimson highlight */
+  --neon-orange-glow: rgba(228, 228, 230, 0.05);
+  /* Toned down to thin platinum sheen */
+  --neon-orange-glow-subtle: rgba(228, 228, 230, 0.02);
+  --neon-orange-light: #fb7185;
+  /* Active crimson rose */
+
+  /* Keep core accent mapped to electric blue for automatic compatibility */
+  --accent: var(--electric-blue);
+  --accent-glow: var(--electric-blue-glow);
+  --accent-light: var(--electric-blue-light);
+
+  --color-success: #16a34a;
+  /* Raw sports green success state */
+  --color-success-glow: rgba(22, 163, 74, 0.05);
+
+  --color-danger: #dc2626;
+  /* Stark molten red danger state */
+  --color-danger-glow: rgba(220, 38, 38, 0.05);
+
+  --transition-smooth: all 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
+  --radius-card: 20px;
+  /* Sharper cards for high-performance aesthetic */
+  --radius-btn: 24px;
+  /* Sharper action buttons */
+}
+
+/* 1. Global Reset & Base Setup */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  /* Disable tap highlight on mobile browsers */
+  /* Support customized scrollbars in Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
+}
+
+/* iOS tap delay elimination */
+button,
+[role="button"],
+.btn,
+.nav-tab,
+.track-pill,
+.google-btn,
+.ios-prompt-close-btn,
+.add-set-btn,
+.set-checkmark-btn,
+input[type="submit"],
+.drawer-json-header {
+  touch-action: manipulation;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--bg-app);
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+  position: relative;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Ambient Blurred Glow Blobs (Deep Red Forged Heat Foundry vibe) */
+.ambient-glow {
+  position: absolute;
+  width: 85vw;
+  height: 85vw;
+  max-width: 500px;
+  max-height: 500px;
+  border-radius: 50%;
+  filter: blur(90px);
+  z-index: 0;
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.bg-primary {
+  background: radial-gradient(circle, #b91c1c 0%, transparent 70%);
+  top: -5%;
+  right: -5%;
+  animation: float-glow-primary 28s ease-in-out infinite alternate;
+}
+
+.bg-secondary {
+  background: radial-gradient(circle, #dc2626 0%, transparent 75%);
+  bottom: -5%;
+  left: -5%;
+  animation: float-glow-secondary 28s ease-in-out infinite alternate;
+}
+
+@keyframes float-glow-primary {
+  0% {
+    transform: translate(0, 0) scale(1);
+  }
+
+  100% {
+    transform: translate(-10%, 10%) scale(1.2);
+  }
+}
+
+@keyframes float-glow-secondary {
+  0% {
+    transform: translate(0, 0) scale(1.2);
+  }
+
+  100% {
+    transform: translate(10%, -10%) scale(0.9);
+  }
+}
+

@@ -1,0 +1,1237 @@
+/* ==========================================================================
+   AuraApp Modular CSS: metrics.css
+   ========================================================================== */
+
+/* ==========================================================================
+   17. WORKOUT HISTORY & LOG DATA EDIT SYSTEM
+   ========================================================================== */
+
+.workout-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 1.5rem 1.5rem 120px 1.5rem;
+  overflow-y: auto;
+  height: calc(100% - 70px);
+}
+
+.history-card {
+  display: flex;
+  flex-direction: column;
+  padding: 18px 20px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  direction: rtl;
+  text-align: right;
+}
+
+.history-card:hover {
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.history-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.history-card-date {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #ffffff;
+  font-family: var(--font-sans);
+}
+
+.history-card-badge {
+  font-size: 0.72rem;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-family: var(--font-sans);
+}
+
+.badge-gym {
+  background: rgba(0, 162, 255, 0.12);
+  color: var(--electric-blue-light);
+  border: 1px solid rgba(0, 162, 255, 0.2);
+}
+
+.badge-park {
+  background: rgba(34, 197, 94, 0.12);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.2);
+}
+
+.history-card-stats {
+  display: flex;
+  gap: 16px;
+  direction: rtl;
+}
+
+.history-stat {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.history-stat strong {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+/* History empty state style */
+.history-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 4rem 1.5rem;
+  gap: 1rem;
+  width: 100%;
+}
+
+.empty-state-emoji {
+  font-size: 3rem;
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.1));
+}
+
+.history-empty-state p {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  max-width: 260px;
+  direction: rtl;
+}
+
+/* Edit Modal overlays */
+.workout-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 1;
+  visibility: visible;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.workout-modal-overlay.hide {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.workout-modal-card {
+  width: 92%;
+  max-width: 440px;
+  height: 80vh;
+  max-height: 640px;
+  background: linear-gradient(135deg, hsla(225, 20%, 9%, 0.95) 0%, hsla(225, 20%, 5%, 0.98) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 28px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+  animation: modal-slide-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modal-slide-in {
+  from {
+    transform: scale(0.92) translateY(15px);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.2rem 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  direction: rtl;
+}
+
+.modal-title {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.modal-workout-meta {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 12px 1.5rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  direction: rtl;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.modal-exercises-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  width: 100%;
+}
+
+.modal-body {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+.modal-footer {
+  padding: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  background: hsla(225, 20%, 4%, 0.4);
+}
+
+/* ==========================================================================
+   ⭐ FAVORITES STAR BUTTON — Exercise Picker List
+   ========================================================================== */
+
+.exercise-list-item-wrapper {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  direction: rtl !important;
+}
+
+.ex-fav-star-btn {
+  flex-shrink: 0 !important;
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 50% !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.07) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  color: rgba(255, 255, 255, 0.35) !important;
+  font-size: 1.15rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+  line-height: 1 !important;
+  padding: 0 !important;
+}
+
+.ex-fav-star-btn:hover {
+  background: rgba(255, 200, 0, 0.12) !important;
+  border-color: rgba(255, 200, 0, 0.35) !important;
+  color: #ffd700 !important;
+  transform: scale(1.12) !important;
+}
+
+.ex-fav-star-btn:active {
+  transform: scale(0.92) !important;
+}
+
+.ex-fav-star-btn.active {
+  background: rgba(255, 200, 0, 0.18) !important;
+  border-color: rgba(255, 200, 0, 0.5) !important;
+  color: #ffd700 !important;
+  box-shadow: 0 0 12px rgba(255, 200, 0, 0.3) !important;
+}
+
+.ex-fav-star-btn.active:hover {
+  background: rgba(255, 80, 80, 0.15) !important;
+  border-color: rgba(255, 80, 80, 0.4) !important;
+  color: #ff6b6b !important;
+  box-shadow: 0 0 12px rgba(255, 80, 80, 0.25) !important;
+}
+
+/* ==========================================================================
+   AuraApp Redesigned Analytics Tab: Segmented Controls & Drawer Styling
+   ========================================================================== */
+
+/* Premium iOS Segmented Control Selector */
+.segmented-control {
+  position: relative;
+  display: flex;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  padding: 4px;
+  margin: 0 1.5rem 1.2rem 1.5rem;
+  direction: rtl;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.segment-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  font-weight: 700;
+  padding: 10px 0;
+  cursor: pointer;
+  z-index: 2;
+  transition: color 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: var(--font-sans);
+  text-align: center;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.segment-btn.active {
+  color: #ffffff;
+}
+
+.segmented-indicator {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc(33.333% - 5.333px);
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 11px;
+  z-index: 1;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* RTL translations for Segmented Control Active Slide */
+.segmented-control[data-active="overview"] .segmented-indicator {
+  transform: translateX(0);
+}
+
+.segmented-control[data-active="logs"] .segmented-indicator {
+  transform: translateX(calc(-100% - 6px));
+}
+
+.segmented-control[data-active="exercise"] .segmented-indicator {
+  transform: translateX(calc(-200% - 12px));
+}
+
+/* Collapsible Filters drawer */
+.toggle-filters-btn {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  padding: 10px 14px;
+  margin: 0 1.5rem 10px 1.5rem;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  font-weight: 700;
+  cursor: pointer;
+  outline: none;
+  font-family: var(--font-sans);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  direction: rtl;
+}
+
+.toggle-filters-btn:hover {
+  background: rgba(255, 255, 255, 0.06);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.toggle-filters-btn .arrow-icon {
+  font-size: 0.75rem;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  display: inline-block;
+}
+
+.toggle-filters-btn.expanded {
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.toggle-filters-btn.expanded .arrow-icon {
+  transform: rotate(-180deg);
+}
+
+.collapsible-filters-container {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.collapsible-filters-container.expanded {
+  max-height: 480px;
+  /* high enough to display filters */
+  overflow-y: auto;
+}
+
+.collapsible-filters-container .filters-panel-card {
+  margin-top: 0 !important;
+  margin-bottom: 12px !important;
+}
+
+/* Adjust filters-panel-card margin for proper collapsability */
+.filters-panel-card {
+  margin: 0 1.5rem 1.5rem 1.5rem !important;
+}
+
+/* Segment Panes */
+.analytics-segment-pane {
+  display: none;
+  flex-direction: column;
+  padding: 0 1.5rem calc(120px + env(safe-area-inset-bottom, 24px)) 1.5rem;
+  gap: 1.5rem;
+  width: 100%;
+}
+
+.analytics-segment-pane.active {
+  display: flex;
+  animation: fade-in-up 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Logs Compact Switcher style override */
+.logs-compact-switcher {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.logs-switch-btn {
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Dynamic Sub-Navigation Bar & Tab 1 styles */
+#metrics-sub-nav {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), width 0.4s cubic-bezier(0.16, 1, 0.3, 1), height 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+#metrics-sub-nav.nav-hidden {
+  transform: translate(-50%, 80px) scale(0.95) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Main bottom nav hidden state (when sub-navigation is active) */
+.ios-bottom-nav.nav-hidden {
+  transform: translate(-50%, 80px) scale(0.95) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Meals Metrics Sub-Navigation Bar */
+#meals-metrics-sub-nav {
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), width 0.4s cubic-bezier(0.16, 1, 0.3, 1), height 0.4s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+#meals-metrics-sub-nav.nav-hidden {
+  transform: translate(-50%, 80px) scale(0.95) !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+.tab-pane {
+  display: none;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.sub-tab-pane {
+  display: none;
+  opacity: 0;
+  transform: translateY(12px);
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  width: 100%;
+  height: 100%;
+}
+
+.sub-tab-pane.active {
+  display: flex !important;
+  opacity: 1;
+}
+
+.tab-pane.active {
+  display: flex !important;
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+}
+
+.nav-tab.sub-nav-back {
+  border-left: 1.5px solid rgba(255, 255, 255, 0.08);
+  padding-left: 12px;
+  margin-left: 6px;
+}
+
+/* Beautiful workout card design inside the chronological list */
+.workout-log-card {
+  background: rgba(20, 20, 24, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  padding: 1.2rem;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  direction: rtl;
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.workout-log-card:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.workout-log-card.expanded {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.workout-log-card.expanded:hover {
+  transform: none;
+  /* Do not shift up when already expanded */
+}
+
+.workout-log-card:active {
+  transform: scale(0.99) translateY(0);
+}
+
+.workout-log-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.workout-log-location {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.workout-log-emoji {
+  font-size: 1.5rem;
+}
+
+.workout-log-name {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.workout-log-date {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.workout-log-stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.workout-log-volume {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--electric-blue-light);
+}
+
+.workout-log-pr-badge {
+  background: linear-gradient(135deg, #dc2626 0%, #f43f5e 100%);
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Collapsible Arrow chevron */
+.workout-log-chevron {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  margin-right: 6px;
+  display: inline-block;
+}
+
+.workout-log-card.expanded .workout-log-chevron,
+.premium-workout-card.expanded .workout-log-chevron {
+  transform: rotate(-180deg);
+  color: var(--electric-blue-light);
+}
+
+/* Compact exercise preview (visible only when collapsed) */
+.workout-log-exercises {
+  display: flex;
+  flex-direction: row !important;
+  flex-wrap: wrap;
+  gap: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 12px;
+  transition: opacity 0.25s ease;
+  direction: rtl;
+}
+
+.workout-log-card.expanded .workout-log-exercises,
+.premium-workout-card.expanded .workout-log-exercises {
+  display: none;
+}
+
+.workout-log-exercise-preview-chip {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #e2e8f0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.workout-log-exercise-preview-chip:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.workout-log-preview-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.workout-log-preview-sets-badge {
+  font-size: 0.7rem;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-muted);
+  padding: 1px 6px;
+  border-radius: 6px;
+  font-weight: 600;
+  direction: rtl;
+}
+
+/* Collapsible Expanded Details Area */
+.workout-log-expanded-details {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.3s ease, margin-top 0.3s ease;
+  border-top: 0 solid rgba(255, 255, 255, 0.05);
+  margin-top: 0;
+  padding-top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.workout-log-card.expanded .workout-log-expanded-details,
+.premium-workout-card.expanded .workout-log-expanded-details {
+  max-height: 5000px;
+  opacity: 1;
+  border-top-width: 1px;
+  margin-top: 12px;
+  padding-top: 16px;
+}
+
+/* Muscle split breakdown panel inside card */
+.workout-log-muscle-breakdown {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+  border-radius: 16px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.workout-log-muscle-title {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.workout-log-muscle-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.workout-log-muscle-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.workout-log-muscle-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.workout-log-muscle-bar-track {
+  width: 100%;
+  height: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.workout-log-muscle-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--electric-blue) 0%, var(--electric-blue-light) 100%);
+  box-shadow: none;
+}
+
+/* Premium exercises lists */
+.workout-log-exercises-premium {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.workout-log-exercise-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.workout-log-exercise-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.workout-log-exercise-name-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.workout-log-ex-name {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.workout-log-ex-category {
+  font-size: 0.68rem;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-muted);
+}
+
+/* Neon trend badges for comparative progress */
+.workout-log-trend-badge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.workout-log-trend-badge.trend-up {
+  background: rgba(48, 209, 88, 0.12);
+  color: #30d158;
+  border: 1px solid rgba(48, 209, 88, 0.25);
+  text-shadow: none;
+}
+
+.workout-log-trend-badge.trend-down {
+  background: rgba(255, 69, 58, 0.12);
+  color: #ff453a;
+  border: 1px solid rgba(255, 69, 58, 0.25);
+  text-shadow: none;
+}
+
+.workout-log-trend-badge.trend-neutral {
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Sets bubbles layout */
+.workout-log-sets-bubbles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  direction: rtl;
+}
+
+.workout-log-set-bubble {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 5px 10px;
+  font-size: 0.78rem;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 600;
+}
+
+.workout-log-set-num {
+  color: var(--electric-blue-light);
+  font-weight: 800;
+}
+
+/* Edit Workout Button inside history card */
+.workout-log-edit-btn {
+  width: 100%;
+  padding: 10px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: bold;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  font-family: inherit;
+  margin-top: 4px;
+}
+
+.workout-log-edit-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* Schedule Future Workout Premium Styles */
+.calendar-day-cell.has-future-workout {
+  background: rgba(249, 115, 22, 0.1) !important;
+  border-color: rgba(249, 115, 22, 0.4) !important;
+  color: #ffedd5 !important;
+  font-weight: 700 !important;
+  box-shadow: none;
+}
+
+.future-workout-dot-indicator {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #f97316;
+  box-shadow: none;
+}
+
+.future-workout-card {
+  padding: 10px;
+  background: rgba(249, 115, 22, 0.08) !important;
+  border: 1px solid rgba(249, 115, 22, 0.25) !important;
+  border-radius: 12px;
+  margin-bottom: 8px;
+  direction: rtl;
+  text-align: right;
+  box-shadow: 0 2px 8px rgba(249, 115, 22, 0.05);
+}
+
+.future-workout-card .future-header {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 700;
+  color: #ffedd5;
+  margin-bottom: 4px;
+}
+
+.future-workout-card .future-badge {
+  font-size: 0.72rem;
+  background: rgba(249, 115, 22, 0.2);
+  color: #fdba74;
+  padding: 1px 6px;
+  border-radius: 6px;
+  border: 1px solid rgba(249, 115, 22, 0.3);
+}
+
+.schedule-trigger-btn {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.schedule-trigger-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: none;
+}
+
+.schedule-trigger-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* ==========================================================================
+   Tab 3: Premium Exercise Leaderboard (Leading Exercises) Widget
+   ========================================================================== */
+.leaderboard-card {
+  padding: 20px;
+  border-radius: 20px;
+  background: rgba(20, 21, 28, 0.6) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
+}
+
+.leaderboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  direction: rtl;
+}
+
+.leader-item {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), background 0.25s ease, border-color 0.25s ease;
+}
+
+.leader-item:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.1) !important;
+  transform: translateX(-4px);
+  /* RTL slide-in alignment */
+}
+
+.leader-item:active {
+  transform: scale(0.98) translateX(-2px);
+}
+
+.gold-tier {
+  border-color: rgba(255, 215, 0, 0.15) !important;
+  box-shadow: inset 0 0 10px rgba(255, 215, 0, 0.03);
+}
+
+.silver-tier {
+  border-color: rgba(192, 192, 192, 0.15) !important;
+  box-shadow: inset 0 0 10px rgba(192, 192, 192, 0.03);
+}
+
+.bronze-tier {
+  border-color: rgba(205, 127, 50, 0.15) !important;
+  box-shadow: inset 0 0 10px rgba(205, 127, 50, 0.03);
+}
+
+.gold-gradient {
+  background: linear-gradient(90deg, #FFA500, #FFD700) !important;
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.4);
+}
+
+.silver-gradient {
+  background: linear-gradient(90deg, #9ca3af, #e5e7eb) !important;
+  box-shadow: 0 0 8px rgba(192, 192, 192, 0.4);
+}
+
+.bronze-gradient {
+  background: linear-gradient(90deg, #b45309, #d97706) !important;
+  box-shadow: 0 0 8px rgba(205, 127, 50, 0.4);
+}
+
+/* ==========================================================================
+   Tab 2: Premium Training Calendar Color-Coded Dots & Cell Glows
+   ========================================================================== */
+.calendar-day-cell {
+  position: relative;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+.calendar-day-cell:hover {
+  transform: scale(1.06);
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.calendar-day-cell.today {
+  border: 1.5px solid #00F0FF !important;
+  background: rgba(0, 240, 255, 0.08) !important;
+  color: #00F0FF !important;
+  box-shadow: none;
+}
+
+.calendar-day-cell.has-workout {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Neon glow workout dot indicators */
+.workout-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.workout-dot.gym {
+  background: #8A2BE2 !important;
+  /* Neon Purple */
+  box-shadow: none;
+}
+
+.workout-dot.park {
+  background: #00FF87 !important;
+  /* Neon Green */
+  box-shadow: none;
+}
+
+.workout-dot.home {
+  background: #FFA500 !important;
+  /* Warm Orange */
+  box-shadow: none;
+}
+
+/* ==========================================================================
+   Scroll-Past-Bottom & Metric Selector Redesign Overhaul
+   ========================================================================== */
+.exercises-list-container {
+  padding-bottom: 85vh !important;
+}
+
+#metric-selector-modal .workout-modal-card {
+  height: auto !important;
+  max-height: 80vh !important;
+  width: 92% !important;
+  max-width: 390px !important;
+  border-radius: 28px !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7), 0 0 0 transparent !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  animation: modal-slide-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+#metric-selector-modal .modal-body {
+  overflow-y: auto !important;
+  flex: 1 !important;
+  -webkit-overflow-scrolling: touch;
+  padding: 1.5rem 1.5rem calc(30px + env(safe-area-inset-bottom)) 1.5rem !important;
+  direction: rtl;
+}
+
+/* Premium Segmented Metric Option Cards */
+.premium-metric-card-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+.premium-metric-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 18px;
+  padding: 14px 18px;
+  text-align: right;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+  user-select: none;
+}
+
+.premium-metric-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, rgba(79, 70, 229, 0.05) 0%, rgba(147, 51, 234, 0.05) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.premium-metric-card:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.premium-metric-card.active {
+  background: rgba(79, 70, 229, 0.08);
+  border-color: var(--electric-blue);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3), 0 0 0 1px var(--electric-blue);
+}
+
+.premium-metric-card.active::before {
+  opacity: 1;
+}
+
+.premium-metric-icon {
+  font-size: 1.6rem;
+  background: rgba(255, 255, 255, 0.04);
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+}
+
+.premium-metric-card.active .premium-metric-icon {
+  background: var(--electric-blue);
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+}
+
+.premium-metric-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.premium-metric-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.premium-metric-desc {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.premium-metric-badge {
+  position: absolute;
+  left: 18px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.7rem;
+  color: transparent;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.premium-metric-card.active .premium-metric-badge {
+  border-color: var(--electric-blue);
+  background: var(--electric-blue);
+  color: #fff;
+}
+
+/* Styled Sets Option Chips */
+.sets-option-chip {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.sets-option-chip.active {
+  border-color: var(--electric-blue) !important;
+  background: var(--electric-blue-light) !important;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+}
+
+/* Styled Rest Time Chips */
+.rest-option-chip {
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.rest-option-chip.active {
+  border-color: var(--electric-blue) !important;
+  background: var(--electric-blue-light) !important;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+}
+
+/* Stepper Customizations */
+.stepper-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  font-size: 1.25rem;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: all 0.2s;
+  outline: none;
+}
+
+.stepper-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: scale(1.05);
+}
+
+.stepper-btn:active {
+  transform: scale(0.95);
+}
+
+

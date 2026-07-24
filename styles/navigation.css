@@ -1,0 +1,295 @@
+/* ==========================================================================
+   AuraApp Modular CSS: navigation.css
+   ========================================================================== */
+
+/* ==========================================================================
+   iOS 26 Floating Bottom Navigation Bar & Tabs
+   ========================================================================== */
+
+.ios-bottom-nav {
+  position: fixed;
+  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 48px);
+  max-width: 420px;
+  height: 52px;
+  background: rgba(20, 20, 24, 0.85);
+  backdrop-filter: blur(25px) saturate(200%);
+  -webkit-backdrop-filter: blur(25px) saturate(200%);
+  border: 1.5px solid rgba(255, 255, 255, 0.08);
+  border-radius: 26px;
+  box-shadow:
+    0 15px 35px rgba(0, 0, 0, 0.5),
+    0 0 1px rgba(255, 255, 255, 0.2) inset;
+  z-index: 1000;
+  display: none;
+  /* Hidden by default on auth screen */
+  overflow: visible;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+}
+
+.ios-bottom-nav.collapsed {
+  width: 52px !important;
+  height: 52px !important;
+  border-radius: 50% !important;
+  left: 24px !important;
+  transform: translateX(0) !important;
+  max-width: 52px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  background: rgba(15, 15, 20, 0.95) !important;
+  border: 1.5px solid rgba(220, 38, 38, 0.5) !important;
+}
+
+body.authenticated .ios-bottom-nav {
+  display: block;
+  animation: slide-up-nav 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slide-up-nav {
+  from {
+    transform: translate(-50%, 80px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translate(-50%, 0);
+    opacity: 1;
+  }
+}
+
+.ios-bottom-nav .nav-container {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 0 12px;
+  height: 100%;
+  direction: rtl !important;
+  /* Workouts on the far right, Settings on the far left */
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1) 0.05s, visibility 0.25s cubic-bezier(0.16, 1, 0.3, 1) 0.05s;
+}
+
+.ios-bottom-nav.collapsed .nav-container {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
+
+.ios-bottom-nav .nav-tab {
+  background: transparent;
+  border: none;
+  position: relative;
+  cursor: pointer;
+  padding: 2px 14px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ios-bottom-nav .nav-tab:active {
+  transform: scale(0.88);
+}
+
+.ios-bottom-nav .nav-tab .tab-icon-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.ios-bottom-nav .nav-tab .tab-icon {
+  font-size: 1.15rem;
+  opacity: 0.45;
+  transition: all 0.3s ease;
+  filter: grayscale(100%) brightness(0.8);
+}
+
+.ios-bottom-nav .nav-tab .tab-label {
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  opacity: 0.5;
+  transition: all 0.3s ease;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Active Tab Styles */
+.ios-bottom-nav .nav-tab.active .tab-icon {
+  opacity: 1;
+  transform: scale(1.08);
+  filter: none;
+}
+
+.ios-bottom-nav .nav-tab.active .tab-label {
+  color: var(--electric-blue-light);
+  opacity: 1;
+  font-weight: 700;
+}
+
+/* Leftmost Avatar Slot */
+.ios-bottom-nav .nav-avatar-wrapper {
+  position: relative;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  padding: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ios-bottom-nav .nav-tab.active .nav-avatar-wrapper {
+  background: linear-gradient(135deg, var(--electric-blue) 0%, var(--electric-blue-light) 100%);
+  box-shadow: 0 0 10px var(--electric-blue-glow-subtle);
+  transform: scale(1.08);
+}
+
+.ios-bottom-nav .nav-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid #090a0f;
+  background: var(--bg-card);
+}
+
+.ios-bottom-nav .avatar-active-ring {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 50%;
+  border: 1.5px solid var(--electric-blue-light);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.ios-bottom-nav .nav-tab.active .avatar-active-ring {
+  opacity: 1;
+}
+
+/* Coming Soon Indicators */
+.ios-bottom-nav .coming-soon-dot {
+  position: absolute;
+  top: 4px;
+  right: 10px;
+  width: 4px;
+  height: 4px;
+  background: var(--electric-blue);
+  border-radius: 50%;
+  opacity: 0.35;
+}
+
+/* Floating Menu Toggle Button in Collapsed Circle */
+#nav-menu-toggle-btn {
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) scale(0) !important;
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50% !important;
+  background: transparent !important;
+  border: none !important;
+  color: #ffffff !important;
+  font-size: 1.35rem !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+  z-index: 1001 !important;
+}
+
+#nav-menu-toggle-btn:hover {
+  transform: translate(-50%, -50%) scale(1.15) !important;
+  color: var(--electric-blue-light) !important;
+}
+
+#nav-menu-toggle-btn:active {
+  transform: translate(-50%, -50%) scale(0.9) !important;
+}
+
+.ios-bottom-nav.collapsed #nav-menu-toggle-btn {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transform: translate(-50%, -50%) scale(1) !important;
+}
+
+.ios-bottom-nav:not(.collapsed) #nav-menu-toggle-btn {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  transform: translate(-50%, -50%) scale(0) !important;
+}
+
+/* ==========================================================================
+   Nav Bar Style - Fixed Dock Mode (.nav-style-fixed)
+   ========================================================================== */
+body.nav-style-fixed .ios-bottom-nav,
+body.nav-style-fixed .ios-bottom-nav.collapsed,
+body.nav-style-fixed #metrics-sub-nav,
+body.nav-style-fixed #metrics-sub-nav.collapsed {
+  position: fixed !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  transform: none !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  height: auto !important;
+  min-height: 56px !important;
+  border-radius: 18px 18px 0 0 !important;
+  background: rgba(14, 14, 18, 0.96) !important;
+  backdrop-filter: blur(25px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(25px) saturate(180%) !important;
+  border: none !important;
+  border-top: 1.5px solid rgba(228, 228, 230, 0.18) !important;
+  box-shadow: 0 -6px 30px rgba(0, 0, 0, 0.6) !important;
+  padding-bottom: max(env(safe-area-inset-bottom), 6px) !important;
+  z-index: 1000 !important;
+  margin: 0 !important;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease !important;
+}
+
+body.nav-style-fixed #metrics-sub-nav,
+body.nav-style-fixed #metrics-sub-nav.collapsed {
+  z-index: 1200 !important;
+}
+
+body.nav-style-fixed #nav-menu-toggle-btn {
+  display: none !important;
+}
+
+body.nav-style-fixed .ios-bottom-nav .nav-container,
+body.nav-style-fixed #metrics-sub-nav .nav-container {
+  max-width: 500px !important;
+  margin: 0 auto !important;
+  width: 100% !important;
+  height: 54px !important;
+  padding: 4px 12px !important;
+  box-sizing: border-box !important;
+}
+
+body.nav-style-fixed .tab-content-container,
+body.nav-style-fixed .ios-settings-scroll-container,
+body.nav-style-fixed .ios-scroll-container {
+  padding-bottom: calc(120px + env(safe-area-inset-bottom, 24px)) !important;
+}
+
+body.nav-style-fixed .ios-bottom-nav .nav-tab.active,
+body.nav-style-fixed #metrics-sub-nav .nav-tab.active {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-top: 2.5px solid var(--electric-blue-light) !important;
+  border-radius: 10px 10px 4px 4px !important;
+}
+
+/* Explicit layout, visibility, and contrast enforcement for #tab-settings */

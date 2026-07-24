@@ -1,0 +1,823 @@
+/* ==========================================================================
+   AuraApp Modular CSS: modals.css
+   ========================================================================== */
+
+/* ==========================================================================
+   TASK A: Per-Set Entry Modal — iOS Drum-Roll Picker Styles
+   ========================================================================== */
+
+/* Bottom sheet modal card for set entry */
+.set-entry-modal-card {
+  width: 100%;
+  max-width: 480px;
+  background: linear-gradient(160deg, hsla(225, 20%, 10%, 0.98) 0%, hsla(225, 20%, 5%, 1) 100%);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  border-radius: 28px 28px 0 0;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.7), 0 0 0 transparent;
+  overflow: hidden;
+  animation: set-entry-slide-up 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+  direction: rtl;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+}
+
+@keyframes set-entry-slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Header */
+.set-entry-header {
+  padding: 22px 24px 14px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  text-align: center;
+  background: hsla(225, 20%, 7%, 0.5);
+}
+
+.set-entry-exercise-name {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.3px;
+}
+
+.set-entry-set-number {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--electric-blue-light);
+  margin-top: 4px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+/* Pickers row */
+.set-entry-pickers-area {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 20px;
+  padding: 20px 24px;
+}
+
+.drum-picker-column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.drum-picker-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+/* The scrollable drum wheel */
+.drum-picker-container {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  overflow: hidden;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+/* The scrolling track of items */
+.drum-picker-track {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  will-change: transform;
+  transition: transform 0.08s ease-out;
+}
+
+/* Each individual item cell */
+.drum-picker-item {
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.3);
+  transition: color 0.15s ease, font-size 0.15s ease, opacity 0.15s ease;
+  line-height: 1;
+}
+
+.drum-picker-item.selected {
+  color: #ffffff;
+  font-size: 1.6rem;
+  text-shadow: none;
+}
+
+.drum-picker-item.near-selected {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 1.4rem;
+}
+
+/* Selection highlight lines (top and bottom of the center item) */
+.drum-picker-selected-line {
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  height: 1.5px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
+  pointer-events: none;
+  z-index: 2;
+}
+
+.drum-picker-selected-line-top {
+  top: calc(50% - 22px);
+}
+
+.drum-picker-selected-line-bottom {
+  top: calc(50% + 22px);
+}
+
+/* Fade-out vignette top and bottom */
+.drum-picker-container::before,
+.drum-picker-container::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 80px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.drum-picker-container::before {
+  top: 0;
+  background: linear-gradient(to bottom, hsla(225, 20%, 7%, 0.96) 0%, transparent 100%);
+}
+
+.drum-picker-container::after {
+  bottom: 0;
+  background: linear-gradient(to top, hsla(225, 20%, 7%, 0.96) 0%, transparent 100%);
+}
+
+/* Action Buttons */
+.set-entry-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 8px 24px 12px 24px;
+}
+
+.set-entry-confirm-btn {
+  width: 100%;
+  padding: 17px;
+  border-radius: 18px;
+  border: none;
+  background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+  color: #ffffff;
+  font-size: 1.15rem;
+  font-weight: 800;
+  font-family: var(--font-display);
+  cursor: pointer;
+  box-shadow: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  letter-spacing: -0.2px;
+}
+
+.set-entry-confirm-btn:active {
+  transform: scale(0.97);
+  box-shadow: none;
+}
+
+.set-entry-cancel-btn {
+  width: 100%;
+  padding: 13px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-family: var(--font-sans);
+  cursor: pointer;
+  transition: color 0.2s ease, background 0.2s ease;
+}
+
+.set-entry-cancel-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+/* ==========================================================================
+   TASK B: Rest Config Modal option button selected state
+   ========================================================================== */
+.rest-config-option-btn.selected {
+  background: rgba(22, 163, 74, 0.15) !important;
+  border-color: rgba(22, 163, 74, 0.4) !important;
+  color: #22c55e !important;
+}
+
+/* ==========================================================================
+   EXERCISE PICKER OVERHAUL - Beautiful Single Column iOS-style List
+   ========================================================================== */
+
+/* Empty state styling */
+.exercise-picker-empty {
+  text-align: center !important;
+  padding: 40px 20px !important;
+  color: var(--text-muted) !important;
+  font-size: 0.95rem !important;
+  font-weight: 500 !important;
+  opacity: 0.7 !important;
+  font-family: var(--font-sans) !important;
+}
+
+/* Ensure the outer card supports flex column without height collapse */
+.exercise-picker-card {
+  height: 80% !important;
+  max-height: 80% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  border-radius: 28px 28px 0 0 !important;
+}
+
+#exercise-search-input {
+  font-size: 16px !important;
+}
+
+/* Perfect inner scrollbar and area scroll control */
+.exercise-picker-list {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding: 10px 1.5rem 120px 1.5rem !important;
+  /* Leave generous padding at the bottom so it doesn't get clipped by the custom exercise button */
+  -webkit-overflow-scrolling: touch !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+}
+
+/* Custom scrollbar to match high-performance aesthetic */
+.exercise-picker-list::-webkit-scrollbar {
+  width: 6px !important;
+}
+
+.exercise-picker-list::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+.exercise-picker-list::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1) !important;
+  border-radius: 3px !important;
+}
+
+.exercise-picker-list::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Beautiful single-row exercise card */
+.exercise-list-item {
+  width: 100% !important;
+  min-height: 64px !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  direction: rtl !important;
+  text-align: right !important;
+  padding: 14px 18px !important;
+  background: rgba(255, 255, 255, 0.025) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  border-radius: 16px !important;
+  cursor: pointer !important;
+  transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1) !important;
+  gap: 12px !important;
+  position: relative !important;
+  overflow: hidden !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Subtle gloss shine overlay */
+.exercise-list-item::before {
+  content: '' !important;
+  position: absolute !important;
+  inset: 0 !important;
+  border-radius: 16px !important;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.015) 0%, transparent 100%) !important;
+  pointer-events: none !important;
+}
+
+.exercise-list-item:hover {
+  background: rgba(255, 255, 255, 0.055) !important;
+  border-color: var(--electric-blue-light) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), 0 0 12px var(--electric-blue-glow-subtle) !important;
+}
+
+.exercise-list-item:active {
+  transform: translateY(0) scale(0.98) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Push name to right, and emoji/category/arrow to the left */
+.ex-list-info {
+  display: flex !important;
+  flex-direction: row-reverse !important;
+  /* Put name on right, emoji on left (visual order) */
+  align-items: center !important;
+  justify-content: space-between !important;
+  flex: 1 !important;
+  min-width: 0 !important;
+  margin-left: 16px !important;
+}
+
+.ex-list-name {
+  font-family: var(--font-display) !important;
+  font-size: 1.05rem !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  letter-spacing: -0.2px !important;
+}
+
+.ex-list-emoji {
+  font-size: 1.3rem !important;
+  line-height: 1 !important;
+  flex-shrink: 0 !important;
+  margin-left: 8px !important;
+}
+
+/* Category Badge and Arrow Alignments */
+.ex-list-right {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  flex-shrink: 0 !important;
+}
+
+.ex-category-badge {
+  font-family: var(--font-display) !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  padding: 4px 10px !important;
+  border-radius: 12px !important;
+  white-space: nowrap !important;
+  letter-spacing: 0.3px !important;
+}
+
+.ex-list-arrow {
+  color: rgba(255, 255, 255, 0.25) !important;
+  font-size: 1.1rem !important;
+  font-weight: 300 !important;
+  flex-shrink: 0 !important;
+  transition: transform 0.25s ease, color 0.25s ease !important;
+  display: inline-block !important;
+}
+
+.exercise-list-item:hover .ex-list-arrow {
+  color: var(--electric-blue-light) !important;
+  transform: translateX(-4px) !important;
+  /* iOS slide left animation on hover */
+}
+
+/* ==========================================================================
+   CUSTOM EXERCISE CREATION MODAL (#custom-exercise-modal)
+   ========================================================================== */
+
+#custom-exercise-modal .custom-ex-modal-card {
+  background: linear-gradient(135deg, rgba(16, 17, 22, 0.96) 0%, rgba(8, 9, 12, 0.99) 100%) !important;
+  backdrop-filter: blur(35px) !important;
+  -webkit-backdrop-filter: blur(35px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.09) !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85) !important;
+  border-radius: 28px !important;
+  direction: rtl !important;
+  overflow: hidden !important;
+  max-height: 88vh !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* Field styling */
+.custom-ex-field-group {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+
+.custom-ex-field-label {
+  font-size: 0.85rem !important;
+  font-weight: 700 !important;
+  color: var(--text-muted) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.8px !important;
+  text-align: right !important;
+  direction: rtl !important;
+}
+
+.custom-ex-name-input {
+  width: 100% !important;
+  padding: 14px 16px !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 14px !important;
+  color: #ffffff !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  text-align: right !important;
+  direction: rtl !important;
+  outline: none !important;
+  transition: all 0.25s ease !important;
+  font-family: var(--font-sans) !important;
+}
+
+.custom-ex-name-input::placeholder {
+  color: rgba(255, 255, 255, 0.25) !important;
+  font-weight: 400 !important;
+}
+
+.custom-ex-name-input:focus {
+  border-color: var(--electric-blue-light) !important;
+  background: rgba(255, 255, 255, 0.07) !important;
+  box-shadow: 0 0 0 3px var(--electric-blue-glow-subtle) !important;
+}
+
+/* Muscle group cards grid */
+.custom-ex-category-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 10px !important;
+  margin-top: 10px !important;
+}
+
+.muscle-card {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 12px 8px !important;
+  border-radius: 16px !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  background: rgba(255, 255, 255, 0.02) !important;
+  color: var(--text-muted) !important;
+  cursor: pointer !important;
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+  outline: none !important;
+}
+
+.muscle-card:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  color: #ffffff !important;
+  transform: translateY(-2px) !important;
+}
+
+.muscle-card.active {
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.15) 0%, rgba(244, 63, 94, 0.15) 100%) !important;
+  border-color: var(--electric-blue-light) !important;
+  color: #ffffff !important;
+  box-shadow: none;
+  transform: scale(1.03) !important;
+}
+
+.muscle-card.active span {
+  color: #ffffff !important;
+  font-weight: 700 !important;
+}
+
+/* Emoji selection row */
+.custom-ex-emoji-row {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 8px !important;
+  direction: rtl !important;
+}
+
+.emoji-pick-btn {
+  width: 44px !important;
+  height: 44px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 12px !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.06) !important;
+  font-size: 1.35rem !important;
+  cursor: pointer !important;
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+  color: var(--text-muted) !important;
+}
+
+.emoji-pick-btn[data-emoji=""] {
+  font-size: 0.8rem !important;
+  font-weight: 700 !important;
+  width: auto !important;
+  padding: 0 14px !important;
+}
+
+.emoji-pick-btn:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  transform: scale(1.1) !important;
+}
+
+.emoji-pick-btn.active {
+  background: rgba(220, 38, 38, 0.15) !important;
+  border-color: var(--electric-blue-light) !important;
+  box-shadow: 0 0 10px var(--electric-blue-glow-subtle) !important;
+  color: #ffffff !important;
+}
+
+.emoji-pick-btn[data-emoji=""].active {
+  color: #ffffff !important;
+  background: rgba(220, 38, 38, 0.2) !important;
+}
+
+
+/* ==========================================================================
+   SET LOGGING POPUP MODAL (#set-log-modal)
+   ========================================================================== */
+
+#set-log-modal .set-log-modal-card {
+  background: linear-gradient(135deg, rgba(16, 17, 22, 0.96) 0%, rgba(8, 9, 12, 0.99) 100%) !important;
+  backdrop-filter: blur(35px) !important;
+  -webkit-backdrop-filter: blur(35px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.09) !important;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.85), 0 0 0 transparent !important;
+  padding: 24px !important;
+  border-radius: 28px !important;
+  direction: rtl !important;
+  max-width: 400px !important;
+  width: 95% !important;
+  max-height: 90vh !important;
+  overflow-y: auto !important;
+}
+
+.set-log-header {
+  text-align: center !important;
+  margin-bottom: 24px !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+  padding-bottom: 16px !important;
+}
+
+.set-log-exercise-name {
+  font-family: var(--font-display) !important;
+  font-size: 1.4rem !important;
+  font-weight: 800 !important;
+  color: #ffffff !important;
+  letter-spacing: -0.3px !important;
+}
+
+.set-log-set-number {
+  font-size: 0.95rem !important;
+  color: var(--electric-blue-light) !important;
+  font-weight: 700 !important;
+  margin-top: 4px !important;
+  letter-spacing: 0.5px !important;
+  text-transform: uppercase !important;
+}
+
+.set-log-sliders-area {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 20px !important;
+}
+
+.slider-group-container {
+  background: rgba(255, 255, 255, 0.015) !important;
+  border: 1px solid rgba(255, 255, 255, 0.04) !important;
+  border-radius: 18px !important;
+  padding: 16px !important;
+  transition: border-color 0.25s, box-shadow 0.25s !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 12px !important;
+}
+
+/* Utility: hides a slider-group-container when metric type doesn't need it */
+.slider-group-container.slider-group-hidden {
+  display: none !important;
+}
+
+.slider-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  direction: rtl !important;
+}
+
+.slider-display-value {
+  font-family: 'Courier New', Courier, monospace !important;
+  font-size: 1.4rem !important;
+  font-weight: 800 !important;
+  color: #ffffff !important;
+  text-shadow: none;
+}
+
+.slider-control-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  direction: ltr !important;
+  /* keep sliders LTR for intuitive slider dragging */
+}
+
+
+/* ==========================================================================
+   CUSTOM EXERCISE MODAL — Enhanced Visual Design
+   ========================================================================== */
+
+#custom-exercise-modal .save-custom-exercise-btn-styled,
+#save-custom-exercise-btn {
+  width: 100% !important;
+  padding: 15px !important;
+  font-size: 1.05rem !important;
+  font-weight: 800 !important;
+  border-radius: 16px !important;
+  margin-top: 6px !important;
+  background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%) !important;
+  box-shadow: none;
+  border: none !important;
+  color: #fff !important;
+  cursor: pointer !important;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+  letter-spacing: 0.3px !important;
+}
+
+#save-custom-exercise-btn:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: none;
+}
+
+#save-custom-exercise-btn:active {
+  transform: translateY(0) scale(0.98) !important;
+}
+
+/* ==========================================================================
+   Exercise Inspector Modal Scroll & Header Overhaul
+   ========================================================================== */
+#exercise-inspector-modal .workout-modal-card,
+#exercise-inspector-modal .glass-modal-card {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  height: auto;
+  max-height: 90vh;
+}
+
+#exercise-inspector-modal .modal-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: linear-gradient(135deg, rgba(20, 20, 24, 0.95) 0%, rgba(10, 10, 12, 0.98) 100%) !important;
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+}
+
+#exercise-inspector-modal .modal-body {
+  overflow-y: visible !important;
+  height: auto !important;
+  flex: none !important;
+}
+
+/* ==========================================================================
+   10. Interactive Spotlight & Tooltip Tour Engine Styles
+   ========================================================================== */
+.onboarding-click-blocker {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  background: transparent;
+  pointer-events: auto;
+}
+
+.onboarding-spotlight {
+  position: fixed;
+  z-index: 10000;
+  box-shadow: 0 0 0 9999px rgba(8, 8, 10, 0.78), 0 0 15px var(--accent-glow);
+  border: 2px solid var(--accent);
+  border-radius: 12px;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.onboarding-tooltip {
+  position: fixed;
+  z-index: 10001;
+  width: 290px;
+  background: linear-gradient(135deg, hsla(225, 20%, 12%, 0.96) 0%, hsla(225, 20%, 8%, 0.98) 100%);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  padding: 18px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65), 0 0 0 transparent;
+  color: var(--text-main);
+  font-family: var(--font-sans);
+  direction: rtl;
+  text-align: right;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  animation: tooltip-fade-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes tooltip-fade-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.onboarding-tooltip.tooltip-center {
+  animation: tooltip-center-fade-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes tooltip-center-fade-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -45%) scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.tooltip-arrow {
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  pointer-events: none;
+}
+
+/* Arrow orientation classes */
+.onboarding-tooltip.tooltip-bottom .tooltip-arrow {
+  top: -8px;
+  border-width: 0 8px 8px 8px;
+  border-color: transparent transparent rgba(25, 26, 32, 0.96) transparent;
+}
+
+.onboarding-tooltip.tooltip-top .tooltip-arrow {
+  bottom: -8px;
+  border-width: 8px 8px 0 8px;
+  border-color: rgba(15, 16, 20, 0.98) transparent transparent transparent;
+}
+
+/* PWA custom modal card styling overrides */
+.pwa-guide-modal-card {
+  animation: modal-slide-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.pwa-step-item {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  padding-bottom: 12px;
+}
+
+.pwa-step-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+/* Fix mobile auto-zoom and layout jumps on focus */
+@media (max-width: 768px) {
+
+  input[type="text"],
+  input[type="number"],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+/* Glowing animation for settings unread badge dot */
+.nav-unread-dot {}
+
+
+

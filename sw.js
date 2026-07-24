@@ -1,10 +1,20 @@
-const CACHE_NAME = '13.1.1';
-const UPDATE_DESCRIPTION = 'תיקון מקיף להגדרות ענן, תצוגה ותיקון באגים במערכת';
+const CACHE_NAME = '13.2.1';
+const UPDATE_DESCRIPTION = 'חלוקת עיצוב המערכת למודולים, תיקון שגיאות תחביר ושיפור ביצועים';
 
 const ASSETS = [
   './',
   './index.html',
   './style.css',
+  './styles/variables.css',
+  './styles/layout.css',
+  './styles/navigation.css',
+  './styles/components.css',
+  './styles/modals.css',
+  './styles/auth.css',
+  './styles/workouts.css',
+  './styles/meals.css',
+  './styles/metrics.css',
+  './styles/settings.css',
   './app.js',
   './firebase-config.js',
   './manifest.json',

@@ -1,0 +1,1009 @@
+/* ==========================================================================
+   AuraApp Modular CSS: components.css
+   ========================================================================== */
+
+/* ==========================================================================
+   AuraApp - Premium SVG Brand Logo & Keyframe Animations
+   ========================================================================== */
+.aura-logo-svg {
+  width: 72px;
+  height: 72px;
+  display: block;
+  filter: none;
+  transition: var(--transition-smooth);
+}
+
+/* Splash Screen Styles */
+#splash-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100svh;
+  height: 100dvh;
+  background: var(--bg-app);
+  background-image:
+    linear-gradient(45deg, hsl(225, 24%, 6%) 25%, transparent 25%, transparent 75%, hsl(225, 24%, 6%) 75%, hsl(225, 24%, 6%)),
+    linear-gradient(45deg, hsl(225, 24%, 6%) 25%, var(--bg-app) 25%, var(--bg-app) 75%, hsl(225, 24%, 6%) 75%, hsl(225, 24%, 6%));
+  background-size: 10px 10px;
+  background-position: 0 0, 5px 5px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.6s cubic-bezier(0.25, 1, 0.5, 1), visibility 0.6s;
+  opacity: 1;
+  visibility: visible;
+}
+
+#splash-screen.fade-out {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.splash-loader {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  margin-bottom: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spinner-outer {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3.5px solid transparent;
+  border-top-color: var(--electric-blue);
+  border-bottom-color: var(--electric-blue);
+  border-radius: 50%;
+  animation: spin-clockwise 2s linear infinite;
+  filter: none;
+}
+
+.spinner-inner {
+  position: absolute;
+  width: 70%;
+  height: 70%;
+  border: 3.5px solid transparent;
+  border-left-color: var(--neon-orange);
+  border-right-color: var(--neon-orange);
+  border-radius: 50%;
+  animation: spin-counter-clockwise 1.5s linear infinite;
+  filter: none;
+}
+
+.splash-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.splash-logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.splash-logo .aura-logo-svg {
+  width: 96px;
+  height: 96px;
+  max-width: 96px;
+  max-height: 96px;
+}
+
+.splash-title {
+  font-family: var(--font-display);
+  font-size: 2.8rem;
+  font-weight: 800;
+  color: var(--text-heading);
+  letter-spacing: -0.5px;
+  text-shadow: none;
+  margin: 0;
+}
+
+.splash-subtitle {
+  font-size: 1.05rem;
+  color: var(--accent);
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  text-shadow: none;
+  margin: 0;
+}
+
+@keyframes spin-clockwise {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spin-counter-clockwise {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(-360deg);
+  }
+}
+
+
+.brand-logo .aura-logo-svg {
+  width: 80px;
+  height: 80px;
+  max-width: 80px;
+  max-height: 80px;
+}
+
+/* Base group transform-origins for bulletproof cross-browser support */
+.aura-logo-svg .aura-ring-group,
+.aura-logo-svg .inner-dumbbell-group {
+  transform-origin: 50px 50px;
+  transform-box: view-box;
+  will-change: transform;
+}
+
+/* Outer Energy Ring Rotation (Alive, dynamic and high-tech) */
+.aura-logo-svg .aura-ring-group {
+  animation: aura-ring-rotate 12s linear infinite;
+}
+
+@keyframes aura-ring-rotate {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Inner Dumbbell Breathing Pulse (holds the athletic -45deg diagonal angle) */
+.aura-logo-svg .inner-dumbbell-group {
+  animation: dumbbell-pulse 3s ease-in-out infinite alternate;
+}
+
+@keyframes dumbbell-pulse {
+  0% {
+    transform: rotate(-45deg) scale(0.94);
+  }
+
+  100% {
+    transform: rotate(-45deg) scale(1.06);
+  }
+}
+
+.brand-title {
+  font-family: var(--font-display);
+  font-size: 2.3rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: var(--text-heading);
+}
+
+.brand-subtitle {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  max-width: 250px;
+  margin: 0 auto;
+}
+
+.divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.08);
+  width: 100%;
+}
+
+/* Redesigned Cyberpunk / Carbon Custom Google Button Style */
+/* Symmetrical Stacked Login Buttons */
+.google-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  background: #ffffff;
+  color: #3c4043;
+  border: none;
+  border-radius: var(--radius-btn);
+  padding: 14px 20px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
+  transition: var(--transition-smooth);
+}
+
+.google-btn:hover {
+  background: #f8f9fa;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 255, 255, 0.2);
+}
+
+.google-icon-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.google-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.google-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.demo-btn {
+  width: 100%;
+  margin-top: 1rem;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(244, 63, 94, 0.3) 100%);
+  border: 1px solid rgba(244, 63, 94, 0.5);
+  color: #ffffff;
+  padding: 14px 20px;
+  border-radius: var(--radius-btn);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: var(--transition-smooth);
+  box-shadow: 0 4px 15px rgba(220, 38, 38, 0.2);
+}
+
+.demo-btn:hover {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.35) 0%, rgba(244, 63, 94, 0.45) 100%);
+  border-color: rgba(244, 63, 94, 0.7);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.3);
+}
+
+/* Prevent scroll rubber-banding & enable elastic scrolling zones */
+body,
+#auth-screen,
+#app-screen,
+.drawer-content,
+.settings-drawer {
+  overscroll-behavior-y: contain !important;
+}
+
+/* Vector Close Buttons */
+.drawer-close-btn,
+.summary-close-btn {
+  width: 36px !important;
+  height: 36px !important;
+  position: relative !important;
+  border: none !important;
+  background: rgba(0, 0, 0, 0.04) !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  transition: var(--transition-smooth) !important;
+}
+
+.close-icon-bar {
+  position: absolute !important;
+  width: 16px !important;
+  height: 2px !important;
+  background-color: var(--text-muted) !important;
+  border-radius: 1px !important;
+  transition: var(--transition-smooth) !important;
+}
+
+.close-icon-bar.rotate-45 {
+  transform: rotate(45deg) !important;
+}
+
+.close-icon-bar.rotate-minus-45 {
+  transform: rotate(-45deg) !important;
+}
+
+.drawer-close-btn:hover .close-icon-bar,
+.summary-close-btn:hover .close-icon-bar {
+  background-color: var(--text-heading) !important;
+}
+
+.drawer-close-btn:hover {
+  transform: rotate(90deg) !important;
+  background: rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Completed Set Scale pop-bounce interaction */
+.set-checkmark-btn.completed {
+  background: #22c55e !important;
+  border-color: #22c55e !important;
+  color: #ffffff !important;
+  animation: pop-bounce 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+}
+
+@keyframes pop-bounce {
+  0% {
+    transform: scale(0.85);
+  }
+
+  50% {
+    transform: scale(1.15);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* Parent container animated labels using CSS :has() */
+.template-selector-container:has(select:focus) label,
+.summary-template-save-box:has(input:focus) label {
+  color: var(--accent) !important;
+  transform: translateX(-4px) !important;
+  /* Correct translation for RTL Hebrew */
+}
+
+/* Safe Area Bottom Cleans */
+/* ==========================================================================
+   12. IOS INSTALLATION PROMPT BANNER
+   ========================================================================== */
+
+.ios-install-banner {
+  position: fixed;
+  bottom: calc(100px + env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%) translateY(150px);
+  width: 90%;
+  max-width: 420px;
+  background: linear-gradient(135deg, hsla(225, 20%, 10%, 0.92) 0%, hsla(225, 20%, 6%, 0.96) 100%);
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-card);
+  padding: 1.4rem;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  z-index: 950;
+  opacity: 0;
+  visibility: hidden;
+  transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.5s, visibility 0.5s;
+  direction: rtl;
+  text-align: right;
+}
+
+.ios-install-banner.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+.ios-prompt-close-btn {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 1.5rem;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.ios-prompt-close-btn:hover {
+  color: var(--text-heading);
+}
+
+.ios-prompt-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.ios-prompt-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ios-prompt-emoji {
+  font-size: 1.5rem;
+}
+
+.ios-prompt-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+
+.ios-prompt-desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.ios-prompt-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  background: hsla(225, 20%, 4%, 0.4);
+  border-radius: 12px;
+  padding: 8px 12px;
+}
+
+.ios-prompt-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--text-main);
+}
+
+.step-icon {
+  font-size: 1rem;
+}
+
+.ios-pointing-arrow {
+  position: absolute;
+  bottom: -40px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 2.2rem;
+  color: var(--electric-blue);
+  animation: bounce-arrow 1s infinite alternate;
+  text-shadow: none;
+}
+
+@keyframes bounce-arrow {
+  0% {
+    transform: translateX(-50%) translateY(0);
+  }
+
+  100% {
+    transform: translateX(-50%) translateY(-10px);
+  }
+}
+
+/* ==========================================================================
+   13. PREMIUM GLASSMORPHIC UPDATE TOAST
+   ========================================================================== */
+
+.pwa-update-toast {
+  position: fixed;
+  bottom: -100px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90%;
+  max-width: 440px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 16px;
+  padding: 12px 16px;
+  box-shadow:
+    0 10px 30px rgba(0, 0, 0, 0.25),
+    0 0 15px rgba(255, 255, 255, 0.1);
+  z-index: 1100;
+  opacity: 0;
+  visibility: hidden;
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s, visibility 0.4s;
+  pointer-events: none;
+  color: hsl(225, 24%, 12%) !important;
+}
+
+.pwa-update-toast.show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(-230px);
+  pointer-events: auto;
+}
+
+
+
+.toast-refresh-btn:hover {
+  transform: translateY(-1.5px);
+  box-shadow: none;
+}
+
+/* ==========================================================================
+   14. MODERN PREMIUM SCROLLBARS & GLOBAL OVERLAYS
+   ========================================================================== */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+
+
+
+/* Premium Glassmorphic Toast Notifications */
+.premium-toast-container {
+  position: fixed;
+  top: calc(20px + env(safe-area-inset-top, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 90%;
+  max-width: 400px;
+  pointer-events: none;
+  direction: rtl;
+}
+
+.premium-toast {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(15, 17, 26, 0.7);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 14px 18px;
+  border-radius: 18px;
+  color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  transform: translateY(-20px) scale(0.95);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: auto;
+  text-align: right;
+  font-family: var(--font-sans);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.premium-toast.show {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+.premium-toast.toast-error {
+  border-color: rgba(239, 68, 68, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.premium-toast.toast-success {
+  border-color: rgba(34, 197, 94, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.premium-toast.toast-info {
+  border-color: rgba(0, 240, 255, 0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.toast-icon {
+  font-size: 1.3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.toast-text {
+  flex: 1;
+  line-height: 1.4;
+}
+
+/* Premium Dynamic Initials Avatar Fallback */
+.initials-avatar-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  color: #ffffff;
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Pulsing red fire glow when rest timer is expired */
+.rest-timer-bubble.expired {
+
+  border-color: rgba(220, 38, 38, 0.4);
+}
+
+
+
+/* Premium Completed Exercises satisfying visuals */
+
+
+
+
+/* Smooth pop transition when exercise is saved */
+.exercise-card {
+  will-change: transform, opacity, border-color, box-shadow;
+  animation: card-slide-in 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes card-slide-in {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Satisfying green completed set row glow */
+.set-row.completed {
+  background: rgba(34, 197, 94, 0.025) !important;
+  border-color: rgba(34, 197, 94, 0.22) !important;
+  box-shadow: inset 0 0 8px rgba(34, 197, 94, 0.01);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.set-row {
+  transition: all 0.25s ease;
+}
+
+/* ==========================================================================
+   BUTTONS AND MISCELLANEOUS PICKER CONTROLS
+   ========================================================================== */
+
+/* Add Custom Exercise Trigger Button */
+.btn-add-custom-exercise-trigger {
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  padding: 14px 20px !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1.5px dashed rgba(255, 255, 255, 0.15) !important;
+  border-radius: 16px !important;
+  color: var(--electric-blue-light) !important;
+  font-size: 1rem !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  direction: rtl !important;
+  font-family: var(--font-display) !important;
+  letter-spacing: 0.1px !important;
+}
+
+.btn-add-custom-exercise-trigger:hover {
+  background: rgba(220, 38, 38, 0.06) !important;
+  border-color: var(--electric-blue-light) !important;
+  color: #ffffff !important;
+  box-shadow: 0 6px 20px var(--electric-blue-glow-subtle) !important;
+  transform: translateY(-2px) !important;
+}
+
+.btn-add-custom-exercise-trigger:active {
+  transform: translateY(0) scale(0.98) !important;
+}
+
+
+/* ==========================================================================
+   PREMIUM GLASSMORPHIC SLIDERS (.premium-range-slider)
+   ========================================================================== */
+
+.premium-range-slider {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  width: 100% !important;
+  background: transparent !important;
+  cursor: pointer !important;
+}
+
+/* Chrome, Safari, Edge, Opera Track */
+.premium-range-slider::-webkit-slider-runnable-track {
+  width: 100% !important;
+  height: 8px !important;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.12)) !important;
+  backdrop-filter: blur(5px) !important;
+  -webkit-backdrop-filter: blur(5px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 4px !important;
+}
+
+/* Chrome, Safari, Edge, Opera Thumb */
+.premium-range-slider::-webkit-slider-thumb {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  width: 22px !important;
+  height: 22px !important;
+  border-radius: 50% !important;
+  background: radial-gradient(circle, #ffffff 30%, var(--electric-blue-light) 100%) !important;
+  border: 2px solid #ffffff !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  margin-top: -7px !important;
+  transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.15s ease !important;
+}
+
+.premium-range-slider:active::-webkit-slider-thumb {
+  transform: scale(1.25) !important;
+  box-shadow: 0 0 18px var(--electric-blue-glow), 0 4px 12px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* Firefox Track */
+.premium-range-slider::-moz-range-track {
+  width: 100% !important;
+  height: 8px !important;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.12)) !important;
+  backdrop-filter: blur(5px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-radius: 4px !important;
+}
+
+/* Firefox Thumb */
+.premium-range-slider::-moz-range-thumb {
+  width: 22px !important;
+  height: 22px !important;
+  border-radius: 50% !important;
+  background: radial-gradient(circle, #ffffff 30%, var(--electric-blue-light) 100%) !important;
+  border: 2px solid #ffffff !important;
+  box-shadow: 0 0 10px var(--electric-blue-glow), 0 4px 8px rgba(0, 0, 0, 0.5) !important;
+  transition: transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.15s ease !important;
+  box-sizing: border-box !important;
+}
+
+.premium-range-slider:active::-moz-range-thumb {
+  transform: scale(1.25) !important;
+  box-shadow: 0 0 18px var(--electric-blue-glow), 0 4px 12px rgba(0, 0, 0, 0.6) !important;
+}
+
+/* Firefox active progress fill */
+.premium-range-slider::-moz-range-progress {
+  background: linear-gradient(90deg, var(--electric-blue) 0%, var(--electric-blue-light) 100%) !important;
+  height: 8px !important;
+  border-radius: 4px 0 0 4px !important;
+}
+
+
+/* ==========================================================================
+   MICRO-ADJUSTMENT BUTTONS (.slider-adjust-btn)
+   ========================================================================== */
+
+.slider-adjust-btn {
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50% !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  color: #ffffff !important;
+  font-size: 1.3rem !important;
+  font-weight: bold !important;
+  cursor: pointer !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1) !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3) !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
+
+.slider-adjust-btn:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  color: var(--electric-blue-light) !important;
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4), 0 0 8px var(--electric-blue-glow-subtle) !important;
+  transform: scale(1.08) !important;
+}
+
+.slider-adjust-btn:active {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-color: var(--electric-blue-light) !important;
+  transform: scale(0.92) !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2) !important;
+  color: #ffffff !important;
+}
+
+
+/* ==========================================================================
+   Tab 4: Premium Glassmorphic AI Coach Style
+   ========================================================================== */
+.glassmorphic-card {
+  position: relative;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 24px;
+  border: 1px solid rgba(220, 38, 38, 0.15);
+  /* Crimson outline base */
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 0 20px rgba(220, 38, 38, 0.05);
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.glassmorphic-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 24px;
+  padding: 1.5px;
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.6) 0%, rgba(239, 68, 68, 0.1) 40%, rgba(220, 38, 38, 0.05) 60%, rgba(220, 38, 38, 0.8) 100%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.glassmorphic-card:hover {
+  transform: translateY(-6px) scale(1.02);
+  border-color: rgba(220, 38, 38, 0.35);
+  box-shadow:
+    0 25px 50px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.15),
+    0 0 30px rgba(220, 38, 38, 0.15);
+}
+
+/* Pulsating crimson/neon red halo orb inside card */
+.aura-ai-orb {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90px;
+  height: 90px;
+  background: radial-gradient(circle, rgba(220, 38, 38, 0.35) 0%, rgba(220, 38, 38, 0) 70%);
+  filter: blur(10px);
+  z-index: 1;
+  border-radius: 50%;
+}
+
+.animate-orb {}
+
+
+
+/* Glowing & pulsating badge */
+.coming-soon-badge-glow {
+  background: rgba(220, 38, 38, 0.12);
+  color: #fca5a5;
+  border: 1px solid rgba(220, 38, 38, 0.4);
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-weight: 800;
+  font-size: 0.8rem;
+  display: inline-block;
+  letter-spacing: 1px;
+  box-shadow: none;
+  text-shadow: none;
+  font-family: var(--font-sans);
+}
+
+.animated-pulse-badge {}
+
+
+
+/* Ripple effect styles */
+.ai-ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(220, 38, 38, 0.3);
+  transform: scale(0);
+
+  pointer-events: none;
+  z-index: 10;
+}
+
+
+
+/* Light theme overrides for AURA AI Coach glassmorphic card */
+.tab-pane:not(.dark-theme) .glassmorphic-card {
+  background: rgba(255, 255, 255, 0.65) !important;
+  border-color: rgba(220, 38, 38, 0.25) !important;
+  box-shadow:
+    0 15px 35px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    0 0 20px rgba(220, 38, 38, 0.03) !important;
+}
+
+.tab-pane:not(.dark-theme) .glassmorphic-card:hover {
+  background: rgba(255, 255, 255, 0.8) !important;
+  border-color: rgba(220, 38, 38, 0.45) !important;
+  box-shadow:
+    0 20px 45px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    0 0 25px rgba(220, 38, 38, 0.08) !important;
+}
+
+.tab-pane:not(.dark-theme) .aura-ai-title {
+  background: linear-gradient(135deg, #1c1c1e 30%, #dc2626 100%) !important;
+  -webkit-background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+}
+
+.tab-pane:not(.dark-theme) .aura-ai-desc {
+  color: #3a3a3c !important;
+  font-weight: 500 !important;
+}
+
+.tab-pane:not(.dark-theme) .coming-soon-badge-glow {
+  background: rgba(220, 38, 38, 0.08) !important;
+  color: #b91c1c !important;
+  border-color: rgba(220, 38, 38, 0.3) !important;
+  box-shadow: none;
+  text-shadow: none;
+}
+
+/* LTR/RTL Spacing & Symmetric Cleanups */
+.ios-analytics-scroll-container {
+  scrollbar-width: none;
+  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+}
+
+.ios-analytics-scroll-container::-webkit-scrollbar {
+  display: none;
+  /* Chrome, Safari, Opera */
+}
+
+/* ==========================================================================
+   AuraApp Premium Scroll & Overlay Corrections
+   ========================================================================== */
+
+/* Universal dynamic viewport height & inner scrolling behavior to prevent mobile cutoffs */
+html,
+body {
+  height: 100dvh !important;
+  overflow: hidden !important;
+}
+
+/* Ensure that all sub-tab scroll containers have sufficient bottom padding to clear bottom toolbars */
+.ios-analytics-scroll-container,
+.ios-settings-scroll-container {
+  padding-bottom: calc(140px + env(safe-area-inset-bottom, 24px)) !important;
+  scroll-padding-bottom: calc(140px + env(safe-area-inset-bottom, 24px)) !important;
+}
+
+/* Extra generous padding for exercises list to ensure scrollability past fixed workout controls */
+.exercises-list-container {
+  overflow-y: scroll !important;
+  padding-bottom: 260px !important;
+  scroll-padding-bottom: 260px !important;
+}
+
+/* Fallback scrolling safety for idle workouts page when many tiles exist on tiny viewports */
+#workout-idle-view {
+  overflow-y: auto !important;
+  max-height: 100%;
+  padding-bottom: 120px !important;
+}
+
