@@ -561,6 +561,32 @@ body {
   transform: none;
 }
 
+.demo-btn {
+  width: 100%;
+  margin-top: 1rem;
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(244, 63, 94, 0.3) 100%);
+  border: 1px solid rgba(244, 63, 94, 0.5);
+  color: #ffffff;
+  padding: 14px 20px;
+  border-radius: var(--radius-btn);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: var(--transition-smooth);
+  box-shadow: 0 4px 15px rgba(220, 38, 38, 0.2);
+}
+
+.demo-btn:hover {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.35) 0%, rgba(244, 63, 94, 0.45) 100%);
+  border-color: rgba(244, 63, 94, 0.7);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(220, 38, 38, 0.3);
+}
+
 /* Prevent scroll rubber-banding & enable elastic scrolling zones */
 body,
 #auth-screen,
@@ -3589,6 +3615,18 @@ body:not(.light-theme) .ios-settings-header {
   padding: calc(1.5rem + env(safe-area-inset-top, 24px)) 1.5rem 1rem 1.5rem !important;
 }
 
+flex: 1;
+background: rgba(255, 255, 255, 0.04);
+border: 1px solid rgba(255, 255, 255, 0.08);
+color: #ffffff;
+padding: 8px 10px;
+border-radius: 12px;
+font-size: 0.8rem;
+font-weight: 700;
+cursor: pointer;
+transition: var(--transition-smooth);
+outline: none;
+}
 
 
 
@@ -10073,15 +10111,186 @@ body.nav-style-fixed #metrics-sub-nav .nav-tab.active {
   border-radius: 10px 10px 4px 4px !important;
 }
 
-/* Ensure crisp text contrast for settings header */
-#tab-settings .ios-settings-header,
-#tab-settings .ios-settings-header h2,
-#tab-settings .ios-settings-header h3 {
+/* Explicit layout, visibility, and contrast enforcement for #tab-settings */
+#tab-settings {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  direction: rtl !important;
+  z-index: 10 !important;
+  overflow: hidden !important;
+}
+
+#tab-settings.active {
+  display: flex !important;
+  flex-direction: column !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+}
+
+/* Light Theme Defaults for #tab-settings */
+#tab-settings:not(.dark-theme) {
+  background-color: #f2f2f7 !important;
   color: #1c1c1e !important;
 }
 
-#tab-settings.dark-theme .ios-settings-header,
-#tab-settings.dark-theme .ios-settings-header h2,
-#tab-settings.dark-theme .ios-settings-header h3 {
+#tab-settings:not(.dark-theme) .ios-settings-header {
+  background-color: #f2f2f7 !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+  padding: 1rem 1.25rem 0.5rem 1.25rem !important;
+}
+
+#tab-settings:not(.dark-theme) .ios-settings-header h2,
+#tab-settings:not(.dark-theme) .ios-settings-header h3,
+#tab-settings:not(.dark-theme) .settings-main-title,
+#tab-settings:not(.dark-theme) .settings-sub-title {
+  color: #1c1c1e !important;
+}
+
+#tab-settings:not(.dark-theme) .ios-settings-card-group {
+  background-color: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04) !important;
+  border-radius: 12px !important;
+  margin-bottom: 1rem !important;
+  overflow: hidden !important;
+}
+
+#tab-settings:not(.dark-theme) .ios-setting-row {
+  background-color: #ffffff !important;
+  color: #1c1c1e !important;
+  border-bottom: 0.5px solid #e5e5ea !important;
+  padding: 12px 16px !important;
+}
+
+#tab-settings:not(.dark-theme) .ios-row-label,
+#tab-settings:not(.dark-theme) .ios-profile-name {
+  color: #1c1c1e !important;
+  font-weight: 600 !important;
+}
+
+#tab-settings:not(.dark-theme) .ios-profile-subtext,
+#tab-settings:not(.dark-theme) .ios-row-detail-text {
+  color: #636366 !important;
+}
+
+#tab-settings:not(.dark-theme) .ios-settings-group-title {
+  color: #007aff !important;
+  font-weight: 700 !important;
+  font-size: 0.8rem !important;
+  text-transform: uppercase !important;
+  margin-bottom: 6px !important;
+  padding: 0 4px !important;
+}
+
+#tab-settings:not(.dark-theme) .ios-row-chevron {
+  color: #8e8e93 !important;
+}
+
+/* Dark Theme Overrides for #tab-settings */
+#tab-settings.dark-theme {
+  background-color: #0d0e12 !important;
   color: #ffffff !important;
+}
+
+#tab-settings.dark-theme .ios-settings-header {
+  background-color: #0d0e12 !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  padding: 1rem 1.25rem 0.5rem 1.25rem !important;
+}
+
+#tab-settings.dark-theme .ios-settings-header h2,
+#tab-settings.dark-theme .ios-settings-header h3,
+#tab-settings.dark-theme .settings-main-title,
+#tab-settings.dark-theme .settings-sub-title {
+  color: #ffffff !important;
+}
+
+#tab-settings.dark-theme .ios-settings-card-group {
+  background-color: #1a1b23 !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+  border-radius: 12px !important;
+  margin-bottom: 1rem !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  overflow: hidden !important;
+}
+
+#tab-settings.dark-theme .sticky-profile-container {
+  background-color: #1a1b23 !important;
+}
+
+#tab-settings.dark-theme .ios-setting-row {
+  background-color: transparent !important;
+  color: #ffffff !important;
+  border-bottom: 0.5px solid rgba(255, 255, 255, 0.08) !important;
+  padding: 12px 16px !important;
+}
+
+#tab-settings.dark-theme .ios-row-label,
+#tab-settings.dark-theme .ios-profile-name {
+  color: #ffffff !important;
+  font-weight: 600 !important;
+}
+
+#tab-settings.dark-theme .ios-profile-subtext,
+#tab-settings.dark-theme .ios-row-detail-text {
+  color: #a1a1aa !important;
+}
+
+#tab-settings.dark-theme .ios-settings-group-title {
+  color: #0a84ff !important;
+  font-weight: 700 !important;
+  font-size: 0.8rem !important;
+  text-transform: uppercase !important;
+  margin-bottom: 6px !important;
+  padding: 0 4px !important;
+}
+
+#tab-settings.dark-theme .ios-row-chevron {
+  color: #8e8e93 !important;
+}
+
+/* Sub-views structural integrity inside #tab-settings */
+#settings-main-view,
+#settings-account-view,
+#settings-admin-view,
+#settings-feedback-view,
+#settings-messages-view,
+#settings-sync-view,
+#settings-display-view {
+  width: 100% !important;
+  flex: 1 1 100% !important;
+  height: 100% !important;
+  min-height: 0 !important;
+  box-sizing: border-box !important;
+}
+
+#settings-main-view:not(.hide),
+#settings-account-view:not(.hide),
+#settings-admin-view:not(.hide),
+#settings-feedback-view:not(.hide),
+#settings-messages-view:not(.hide),
+#settings-sync-view:not(.hide),
+#settings-display-view:not(.hide) {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+#tab-settings .ios-settings-scroll-container {
+  flex: 1 1 auto !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 1rem 1.25rem calc(130px + env(safe-area-inset-bottom, 24px)) 1.25rem !important;
 }
