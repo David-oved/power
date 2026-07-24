@@ -24,9 +24,8 @@ const ASSETS = [
 let restTimerTimeout = null;
 
 self.addEventListener('install', (event) => {
-  console.log('Service Worker: Installed immediately. Assets will be cached on-demand.');
-  // Wait for explicit skipWaiting/activation message from client
-  event.waitUntil(Promise.resolve());
+  console.log('Service Worker: Installing new version and skipping waiting.');
+  self.skipWaiting();
 });
 
 // Activate state - clean up old caches and force client reload
