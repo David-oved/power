@@ -787,10 +787,10 @@ body:not(.light-theme) .ios-settings-header {
 #tab-settings .settings-main-title {
   color: #1c1c1e !important;
   font-family: var(--font-display) !important;
-  font-size: 2.1rem !important;
+  font-size: 1.8rem !important;
   font-weight: 800 !important;
-  margin-bottom: 1.5rem !important;
-  margin-top: 0.5rem !important;
+  margin: 0 !important;
+  padding: 0 !important;
   text-align: right !important;
   text-shadow: none !important;
   letter-spacing: -0.5px !important;
@@ -1406,16 +1406,15 @@ body:not(.light-theme) .ios-settings-header {
 .tab-pane .settings-main-title {
   color: #1c1c1e !important;
   font-family: var(--font-display) !important;
-  font-size: 2.1rem !important;
+  font-size: 1.8rem !important;
   font-weight: 800 !important;
-  margin-bottom: 1.5rem !important;
-  margin-top: 0.5rem !important;
+  margin: 0 !important;
+  padding: 0 !important;
   text-align: right !important;
   text-shadow: none !important;
   letter-spacing: -0.5px !important;
   width: 100% !important;
   box-sizing: border-box !important;
-  padding: calc(1.5rem + env(safe-area-inset-top, 24px)) 1.5rem 1rem 1.5rem !important;
 }
 
 .tab-pane.dark-theme .settings-main-title {
@@ -2006,7 +2005,7 @@ button:focus,
 #tab-settings:not(.dark-theme) .ios-settings-header {
   background-color: #f2f2f7 !important;
   border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
-  padding: 1rem 1.25rem 0.5rem 1.25rem !important;
+  padding: calc(1rem + env(safe-area-inset-top, 20px)) 1.25rem 0.5rem 1.25rem !important;
 }
 
 #tab-settings:not(.dark-theme) .ios-settings-header h2,
@@ -2065,7 +2064,7 @@ button:focus,
 #tab-settings.dark-theme .ios-settings-header {
   background-color: #0d0e12 !important;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
-  padding: 1rem 1.25rem 0.5rem 1.25rem !important;
+  padding: calc(1rem + env(safe-area-inset-top, 20px)) 1.25rem 0.5rem 1.25rem !important;
 }
 
 #tab-settings.dark-theme .ios-settings-header h2,

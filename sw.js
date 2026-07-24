@@ -1,5 +1,5 @@
-const CACHE_NAME = '13.2.1';
-const UPDATE_DESCRIPTION = 'חלוקת עיצוב המערכת למודולים, תיקון שגיאות תחביר ושיפור ביצועים';
+const CACHE_NAME = '13.2.2';
+const UPDATE_DESCRIPTION = 'תיקון מתיחת מסכים מלאה במובייל (Full Bleed Viewport) וסידור פריסת ההגדרות';
 
 const ASSETS = [
   './',
