@@ -1,5 +1,5 @@
-const CACHE_NAME = '13.0.8';
-const UPDATE_DESCRIPTION = 'תיקון מיקום תצוגת מסך ההגדרות בטלפונים (100% Fit)';
+const CACHE_NAME = '13.0.9';
+const UPDATE_DESCRIPTION = 'שחזור אישור משתמש מפורש לעדכוני גרסה';
 
 const ASSETS = [
   './',
@@ -24,8 +24,8 @@ const ASSETS = [
 let restTimerTimeout = null;
 
 self.addEventListener('install', (event) => {
-  console.log('Service Worker: Installing new version and skipping waiting.');
-  self.skipWaiting();
+  console.log('Service Worker: Installed new version. Waiting for user confirmation.');
+  event.waitUntil(Promise.resolve());
 });
 
 // Activate state - clean up old caches and force client reload

@@ -5,11 +5,6 @@
   <script>
     window.onerror = function(msg, url, line) {
       console.warn("Global error detected:", msg, "line:", line);
-      if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.getRegistration().then(function(reg) {
-          if (reg) reg.update();
-        });
-      }
     };
     function adjustWeight(offset) {
       const slider = document.getElementById('weight-range-slider');
