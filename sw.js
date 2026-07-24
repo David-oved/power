@@ -1,5 +1,5 @@
-const CACHE_NAME = '13.2.2';
-const UPDATE_DESCRIPTION = 'תיקון מתיחת מסכים מלאה במובייל (Full Bleed Viewport) וסידור פריסת ההגדרות';
+const CACHE_NAME = '13.3.0';
+const UPDATE_DESCRIPTION = 'תיקון מלא לתצוגת שורות ההגדרות, מניעת שקופיות טקסט וביטול רקע משובץ במובייל';
 
 const ASSETS = [
   './',

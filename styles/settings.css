@@ -796,39 +796,49 @@ body:not(.light-theme) .ios-settings-header {
   letter-spacing: -0.5px !important;
 }
 
-/* iOS Cards (Rounded White Segments) */
+/* iOS Cards (Rounded Glass Segments) */
 .ios-settings-card-group {
-  background: #ffffff !important;
-  border-radius: 12px !important;
-  margin-bottom: 20px !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 1px rgba(0, 0, 0, 0.02) !important;
+  background: #161720 !important;
+  border-radius: 16px !important;
+  margin-bottom: 18px !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3) !important;
   overflow: hidden !important;
-  border: none !important;
   padding: 0 !important;
+  width: 100% !important;
 }
 
 /* Single Setting Row */
 .ios-setting-row {
   display: flex !important;
+  flex-direction: row !important;
   align-items: center !important;
   justify-content: space-between !important;
-  padding: 12px 16px !important;
-  background: #ffffff !important;
+  padding: 14px 16px !important;
+  background: #1a1b23 !important;
   border: none !important;
-  border-bottom: 0.5px solid #e5e5ea !important;
+  border-bottom: 0.5px solid rgba(255, 255, 255, 0.08) !important;
   cursor: pointer !important;
   width: 100% !important;
+  min-height: 52px !important;
   box-sizing: border-box !important;
   transition: background-color 0.15s ease !important;
   text-decoration: none !important;
+  color: #ffffff !important;
+  font-family: var(--font-sans) !important;
+  direction: rtl !important;
+  text-align: right !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
 }
 
 .ios-setting-row:last-child {
   border-bottom: none !important;
 }
 
-.ios-setting-row:hover:not(.no-hover) {
-  background-color: #f2f2f7 !important;
+.ios-setting-row:hover:not(.no-hover),
+.ios-setting-row:active:not(.no-hover) {
+  background-color: rgba(255, 255, 255, 0.08) !important;
 }
 
 /* Left part (Action, Toggle, or Chevron) */
@@ -836,16 +846,18 @@ body:not(.light-theme) .ios-settings-header {
   display: flex !important;
   align-items: center !important;
   gap: 8px !important;
+  flex-shrink: 0 !important;
 }
 
 .ios-row-detail-text {
-  font-size: 0.95rem !important;
-  color: #8e8e93 !important;
+  font-size: 0.9rem !important;
+  color: #a1a1aa !important;
+  font-weight: 500 !important;
 }
 
 .ios-row-chevron {
   font-size: 0.95rem !important;
-  color: #c7c7cc !important;
+  color: #8e8e93 !important;
   font-weight: 600 !important;
   margin-left: 2px !important;
 }
@@ -855,18 +867,26 @@ body:not(.light-theme) .ios-settings-header {
   display: flex !important;
   align-items: center !important;
   gap: 12px !important;
+  flex-shrink: 0 !important;
 }
 
 .ios-row-icon-badge {
-  width: 28px !important;
-  height: 28px !important;
-  border-radius: 7px !important;
+  width: 30px !important;
+  height: 30px !important;
+  border-radius: 8px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
-  color: #ffffff !important;
-  font-size: 1.05rem !important;
+  font-size: 1.1rem !important;
   flex-shrink: 0 !important;
+}
+
+.ios-row-label {
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  color: #ffffff !important;
+  display: inline-block !important;
+  white-space: nowrap !important;
 }
 
 /* iOS Colored Badges styles */
@@ -1673,11 +1693,11 @@ body:not(.light-theme) .ios-settings-header {
 /* iOS Group Title (System Label) */
 .ios-settings-group-title {
   font-size: 0.8rem !important;
-  font-weight: 600 !important;
-  color: #8e8e93 !important;
+  font-weight: 700 !important;
+  color: #0a84ff !important;
   text-transform: uppercase !important;
-  margin-right: 6px !important;
-  margin-bottom: 8px !important;
+  padding: 12px 16px 4px 16px !important;
+  margin: 0 !important;
   letter-spacing: 0.5px !important;
   display: block !important;
   text-align: right !important;

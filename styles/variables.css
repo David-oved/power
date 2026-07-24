@@ -77,7 +77,21 @@
   scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
 }
 
-/* iOS tap delay elimination */
+/* Universal Form Control & Button Reset for WebKit/iOS */
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  color: inherit;
+  -webkit-appearance: none;
+  appearance: none;
+  background: none;
+  border: none;
+  outline: none;
+  box-sizing: border-box;
+}
+
 button,
 [role="button"],
 .btn,
@@ -90,6 +104,7 @@ button,
 input[type="submit"],
 .drawer-json-header {
   touch-action: manipulation;
+  cursor: pointer;
 }
 
 html,
