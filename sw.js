@@ -1,5 +1,5 @@
-const CACHE_NAME = '13.2.0';
-const UPDATE_DESCRIPTION = 'תיקון באג הופעת טאב ההגדרות וסרגל הניווט הראשי';
+const CACHE_NAME = '13.3.0';
+const UPDATE_DESCRIPTION = 'תיקון קריטי: תצוגת תוכן טאב ההגדרות, קריסת גובה flexbox וריפוד כפול';
 
 const ASSETS = [
   './',
