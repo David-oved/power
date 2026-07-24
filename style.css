@@ -3614,7 +3614,7 @@ body:not(.light-theme) .ios-settings-header {
 #tab-workouts.dark-theme,
 #tab-analytics.dark-theme,
 #tab-meals.dark-theme {
-  background-color: transparent !important;
+  background-color: #000000 !important;
   color: #ffffff !important;
 }
 

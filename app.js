@@ -232,6 +232,11 @@ export function expandNav() {
 export function resetTabs() {
   const navTabs = document.querySelectorAll('.ios-bottom-nav .nav-tab');
   const tabPanes = document.querySelectorAll('.tab-content-container .tab-pane');
+  const mainNav = document.querySelector('.ios-bottom-nav');
+  const workoutsSubNav = document.getElementById('metrics-sub-nav');
+
+  if (mainNav) mainNav.classList.remove('nav-hidden');
+  if (workoutsSubNav) workoutsSubNav.classList.add('nav-hidden');
   
   navTabs.forEach(t => t.classList.remove('active'));
   tabPanes.forEach(p => p.classList.remove('active'));
@@ -284,10 +289,10 @@ onDOMReady(() => {
       });
       
       console.log(`Switched to tab: ${targetTab}`);
+      const mainNav = document.querySelector('.ios-bottom-nav');
+      const workoutsSubNav = document.getElementById('metrics-sub-nav');
+
       if (targetTab === 'analytics') {
-        const mainNav = document.querySelector('.ios-bottom-nav');
-        const workoutsSubNav = document.getElementById('metrics-sub-nav');
-        
         if (mainNav) mainNav.classList.add('nav-hidden');
         
         if (workoutsSubNav) {
@@ -302,6 +307,9 @@ onDOMReady(() => {
         } else {
           if (window.renderWorkoutsLog) window.renderWorkoutsLog();
         }
+      } else {
+        if (mainNav) mainNav.classList.remove('nav-hidden');
+        if (workoutsSubNav) workoutsSubNav.classList.add('nav-hidden');
       }
 
       if (autoCollapseTimeout) {

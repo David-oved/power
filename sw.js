@@ -1,5 +1,5 @@
-const CACHE_NAME = '13.1.0';
-const UPDATE_DESCRIPTION = 'שחזור רקע הקרבון הדינמי, הילת האורות והשקיפות היוקרתית בהגדרות';
+const CACHE_NAME = '13.2.0';
+const UPDATE_DESCRIPTION = 'תיקון באג הופעת טאב ההגדרות וסרגל הניווט הראשי';
 
 const ASSETS = [
   './',
