@@ -1197,9 +1197,12 @@ body:not(.light-theme) .ios-settings-header {
   display: flex !important;
   justify-content: space-between !important;
   align-items: center !important;
-  padding: 14px 16px !important;
+  padding: 15px 18px !important;
   border-bottom: 0.5px solid #e5e5ea !important;
   background: #ffffff !important;
+  min-height: 56px !important;
+  box-sizing: border-box !important;
+  direction: rtl !important;
 }
 
 .ios-settings-field-row:last-child {
@@ -2026,5 +2029,20 @@ button:focus,
   -webkit-overflow-scrolling: touch !important;
   width: 100% !important;
   box-sizing: border-box !important;
-  padding: 1rem 1.25rem calc(180px + env(safe-area-inset-bottom, 30px)) 1.25rem !important;
+  padding: 1rem 1.25rem calc(120px + env(safe-area-inset-bottom, 24px)) 1.25rem !important;
 }
+
+/* iOS 18 Native Dynamic Cards & Container Responsive Rules */
+.ios-settings-card-group,
+.ios-account-profile-card,
+.ios-settings-field-group,
+.ios-intelligence-card,
+.admin-tab-content,
+.feedback-card-group,
+#user-messages-list {
+  width: 100% !important;
+  max-width: 680px !important;
+  margin: 0 auto 18px auto !important;
+  box-sizing: border-box !important;
+}
+

@@ -414,14 +414,14 @@
             </div>
 
             <!-- Admin Segmented Tab Bar -->
-            <div class="ios-segmented-control" style="margin: 10px 1.5rem; display: flex; background: rgba(255, 255, 255, 0.05); padding: 3px; border-radius: 12px; direction: rtl;">
+            <div class="ios-segmented-control" style="width: 100%; max-width: 680px; margin: 12px auto 16px auto; display: flex; background: rgba(255, 255, 255, 0.05); padding: 3px; border-radius: 12px; direction: rtl;">
               <button class="segmented-btn active" data-admin-tab="users" style="flex: 1; padding: 10px; background: none; border: none; color: #fff; border-radius: 9px; font-weight: bold; cursor: pointer; font-size: 0.85rem; transition: background 0.2s;">ניהול משתמשים</button>
               <button class="segmented-btn" data-admin-tab="feedback" style="flex: 1; padding: 10px; background: none; border: none; color: #fff; border-radius: 9px; font-weight: bold; cursor: pointer; font-size: 0.85rem; transition: background 0.2s;">משובים</button>
               <button class="segmented-btn" data-admin-tab="announcement" style="flex: 1; padding: 10px; background: none; border: none; color: #fff; border-radius: 9px; font-weight: bold; cursor: pointer; font-size: 0.85rem; transition: background 0.2s;">הודעה גלובלית</button>
               <button class="segmented-btn" data-admin-tab="system-update" style="flex: 1; padding: 10px; background: none; border: none; color: #fff; border-radius: 9px; font-weight: bold; cursor: pointer; font-size: 0.85rem; transition: background 0.2s;">עדכון גרסה</button>
             </div>
 
-            <div class="ios-settings-scroll-container" style="flex: 1; overflow-y: auto; padding: 0 1.5rem 1.5rem 1.5rem;">
+            <div class="ios-settings-scroll-container">
               
               <!-- Tab A: User Management -->
               <div id="admin-tab-users" class="admin-tab-content active" style="direction: rtl; text-align: right;">
@@ -533,25 +533,27 @@
               </button>
               <h2 class="settings-sub-title">שליחת משוב</h2>
             </div>
-            <div class="ios-settings-scroll-container" style="flex: 1; overflow-y: auto; padding: 1.5rem; text-align: right; direction: rtl;">
-              <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; line-height: 1.5;">
-                יש לך הצעה לשיפור, דיווח על תקלה או סתם מילים חמות? נשמח לשמוע ממך! המשוב יישלח ישירות למנהל המערכת.
-              </p>
-              
-              <div class="custom-ex-field-group" style="margin-bottom: 1.2rem;">
-                <label class="custom-ex-field-label">סוג המשוב</label>
-                <select id="feedback-category-input" style="width: 100%; padding: 12px; background: rgba(20,20,24,0.95); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; color: #ffffff; text-align: right; direction: rtl; outline: none; font-family: var(--font-sans); font-size: 1rem;">
-                  <option value="💡 הצעת שיפור">💡 הצעת שיפור</option>
-                  <option value="🐛 דיווח על תקלה">🐛 דיווח על תקלה</option>
-                  <option value="❓ שאלה כללית">❓ שאלה כללית</option>
-                </select>
-              </div>
+            <div class="ios-settings-scroll-container" style="text-align: right; direction: rtl;">
+              <div class="ios-settings-card-group" style="padding: 20px;">
+                <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem; line-height: 1.5;">
+                  יש לך הצעה לשיפור, דיווח על תקלה או סתם מילים חמות? נשמח לשמוע ממך! המשוב יישלח ישירות למנהל המערכת.
+                </p>
+                
+                <div class="custom-ex-field-group" style="margin-bottom: 1.2rem;">
+                  <label class="custom-ex-field-label">סוג המשוב</label>
+                  <select id="feedback-category-input" style="width: 100%; padding: 12px; background: rgba(20,20,24,0.95); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 12px; color: #ffffff; text-align: right; direction: rtl; outline: none; font-family: var(--font-sans); font-size: 1rem;">
+                    <option value="💡 הצעת שיפור">💡 הצעת שיפור</option>
+                    <option value="🐛 דיווח על תקלה">🐛 דיווח על תקלה</option>
+                    <option value="❓ שאלה כללית">❓ שאלה כללית</option>
+                  </select>
+                </div>
 
-              <div class="custom-ex-field-group" style="margin-bottom: 1.5rem;">
-                <label class="custom-ex-field-label">תוכן המשוב</label>
-                <textarea id="feedback-text-input" placeholder="כתוב את המשוב שלך כאן..." style="width: 100%; height: 140px; border-radius: 12px; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); color: #ffffff; text-align: right; direction: rtl; outline: none; resize: none; font-family: var(--font-sans); line-height: 1.4;"></textarea>
+                <div class="custom-ex-field-group" style="margin-bottom: 1.5rem;">
+                  <label class="custom-ex-field-label">תוכן המשוב</label>
+                  <textarea id="feedback-text-input" placeholder="כתוב את המשוב שלך כאן..." style="width: 100%; height: 140px; border-radius: 12px; padding: 12px; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.08); color: #ffffff; text-align: right; direction: rtl; outline: none; resize: none; font-family: var(--font-sans); line-height: 1.4;"></textarea>
+                </div>
+                <button id="send-feedback-submit-btn" class="btn btn-primary" style="width: 100%; padding: 14px; font-weight: bold; border-radius: 14px;">שלח משוב 🚀</button>
               </div>
-              <button id="send-feedback-submit-btn" class="btn btn-primary" style="width: 100%; padding: 14px; font-weight: bold; border-radius: 14px;">שלח משוב 🚀</button>
             </div>
           </div>
 
@@ -563,8 +565,8 @@
               </button>
               <h2 class="settings-sub-title">הודעות מערכת</h2>
             </div>
-            <div class="ios-settings-scroll-container" style="flex: 1; overflow-y: auto; padding: 1.5rem; text-align: right; direction: rtl;">
-              <div id="user-messages-list" style="display: flex; flex-direction: column; gap: 12px;">
+            <div class="ios-settings-scroll-container" style="text-align: right; direction: rtl;">
+              <div id="user-messages-list" style="display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 680px; margin: 0 auto;">
                 <!-- Injected dynamically -->
               </div>
             </div>
@@ -578,10 +580,10 @@
               </button>
               <h2 class="settings-sub-title">סנכרון וגיבוי לענן</h2>
             </div>
-            <div class="ios-settings-scroll-container" style="flex: 1; overflow-y: auto; padding: 1.5rem; text-align: right; direction: rtl;">
+            <div class="ios-settings-scroll-container" style="text-align: right; direction: rtl;">
               
               <!-- Connection Status Card -->
-              <div class="ios-settings-card-group" style="margin-bottom: 1.5rem;">
+              <div class="ios-settings-card-group">
                 <div class="ios-setting-row no-hover" style="padding: 16px 12px;">
                   <div style="width: 100%; display: flex; flex-direction: column; gap: 8px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
@@ -596,8 +598,9 @@
                 </div>
               </div>
 
-              <!-- Data Stats Card -->
-              <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); padding: 8px 0; margin-top: 1rem;">נתונים מגובי ענן</div>
+              <!-- Data Stats Card Group -->
+              <div class="ios-settings-card-group">
+                <div class="ios-settings-group-title">נתונים מגובי ענן</div>
                 
                 <!-- Workouts History -->
                 <div class="ios-setting-row no-hover">
@@ -653,9 +656,11 @@
                     <span class="ios-row-label">אימונים מתוכננים</span>
                   </div>
                 </div>
+              </div>
 
               <!-- Toggles Card Group: Choose what to sync -->
-              <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); padding: 8px 0; margin-top: 1rem;">ניהול סנכרון</div>
+              <div class="ios-settings-card-group">
+                <div class="ios-settings-group-title">ניהול סנכרון</div>
                 
                 <div class="ios-setting-row no-hover">
                   <div class="ios-row-left">
@@ -740,8 +745,10 @@
                     <span class="ios-row-label">הודעות מערכת ותיבת הודעות</span>
                   </div>
                 </div>
+              </div>
 
               <!-- Action Controls Group -->
+              <div class="ios-settings-card-group">
                 <div id="sync-action-now" class="ios-setting-row" role="button" tabindex="0" style="color: var(--electric-blue-light); text-align: center; justify-content: center; font-weight: bold; cursor: pointer; background: transparent; border: none; width: 100%;">
                   🔄 סנכרן כעת ורענן נתונים
                 </div>
@@ -751,6 +758,7 @@
                 <div id="sync-action-connect" class="ios-setting-row hide" role="button" tabindex="0" style="color: #34c759; text-align: center; justify-content: center; font-weight: bold; cursor: pointer; background: transparent; border: none; width: 100%;">
                   ⚡ הפעל סנכרון ענן והעלה נתונים
                 </div>
+              </div>
 
               <!-- Danger Zone Group -->
               <div class="ios-settings-card-group">
@@ -761,7 +769,7 @@
               </div>
 
               <!-- Granular Delete Group -->
-              <div class="ios-settings-card-group" style="margin-top: 1.5rem;">
+              <div class="ios-settings-card-group">
                 <div class="ios-settings-group-title">ניהול ענן מתקדם</div>
                 <div id="sync-action-delete-history" class="ios-setting-row" role="button" tabindex="0" style="color: #ff9500; text-align: center; justify-content: center; font-weight: bold; cursor: pointer; background: transparent; border: none; width: 100%;">
                   🗑️ מחק היסטוריה מהענן בלבד
@@ -780,72 +788,76 @@
               <button id="back-from-display-btn" class="ios-back-btn">חזרה <span class="back-arrow">→</span></button>
               <h2 class="settings-sub-title">הגדרות תצוגה ומראה</h2>
             </div>
-            <div class="ios-settings-scroll-container" style="flex: 1; overflow-y: auto; padding: 1.5rem; text-align: right; direction: rtl;">
-              <div class="ios-settings-group-title">מצב תצוגה</div>
+            <div class="ios-settings-scroll-container" style="text-align: right; direction: rtl;">
               
-              <!-- Dark Mode Toggle Switch -->
-              <div class="ios-setting-row no-hover" id="row-settings-dark-mode">
-                <div class="ios-row-left">
-                  <label class="ios-toggle-switch">
-                    <input type="checkbox" id="toggle-settings-dark-mode">
-                    <span class="ios-toggle-slider"></span>
-                  </label>
-                </div>
-                <div class="ios-row-right">
-                  <span class="ios-row-icon-badge bg-ios-gray">🌙</span>
-                  <span class="ios-row-label">מצב כהה</span>
-                </div>
-              </div>
-
-              <!-- High-Contrast Outdoor Mode Toggle -->
-              <div class="ios-setting-row no-hover" id="row-settings-outdoor-mode">
-                <div class="ios-row-left">
-                  <label class="ios-toggle-switch">
-                    <input type="checkbox" id="toggle-settings-outdoor-mode">
-                    <span class="ios-toggle-slider"></span>
-                  </label>
-                </div>
-                <div class="ios-row-right">
-                  <span class="ios-row-icon-badge bg-ios-orange" style="background-color: #ff9500;">☀️</span>
-                  <span class="ios-row-label">מצב שטח (ניגודיות גבוהה)</span>
-                </div>
-              </div>
-
-              <!-- Show Ambient Glows Toggle -->
-              <div class="ios-setting-row no-hover" id="row-settings-show-glows">
-                <div class="ios-row-left">
-                  <label class="ios-toggle-switch">
-                    <input type="checkbox" id="toggle-settings-show-glows" checked>
-                    <span class="ios-toggle-slider"></span>
-                  </label>
-                </div>
-                <div class="ios-row-right">
-                  <span class="ios-row-icon-badge bg-ios-purple" style="background-color: #5856d6;">✨</span>
-                  <span class="ios-row-label">הצג אפקטי זוהר</span>
-                </div>
-              </div>
-
-              <!-- Nav Bar Style Picker Group -->
-              <div style="font-size: 0.8rem; font-weight: 600; color: var(--text-muted); padding: 14px 0 6px 0; margin-top: 0.8rem; border-top: 1px solid rgba(255,255,255,0.06);">
-                סגנון סרגל ניווט תחתון
-              </div>
-              
-              <div class="ios-setting-row no-hover" id="row-settings-nav-style" style="flex-direction: column; align-items: stretch; gap: 12px; padding: 14px 12px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                  <span id="nav-style-detail-text" style="font-size: 0.85rem; color: var(--electric-blue-light); font-weight: 700;">מרחף (דינמי)</span>
-                  <div style="display: flex; align-items: center; gap: 8px;">
-                    <span class="ios-row-icon-badge" style="background-color: #007aff;">📱</span>
-                    <span class="ios-row-label">מראה והתנהגות הסרגל</span>
+              <!-- Display Modes Card Group -->
+              <div class="ios-settings-card-group">
+                <div class="ios-settings-group-title">מצב תצוגה</div>
+                
+                <!-- Dark Mode Toggle Switch -->
+                <div class="ios-setting-row no-hover" id="row-settings-dark-mode">
+                  <div class="ios-row-left">
+                    <label class="ios-toggle-switch">
+                      <input type="checkbox" id="toggle-settings-dark-mode">
+                      <span class="ios-toggle-slider"></span>
+                    </label>
+                  </div>
+                  <div class="ios-row-right">
+                    <span class="ios-row-icon-badge bg-ios-gray">🌙</span>
+                    <span class="ios-row-label">מצב כהה</span>
                   </div>
                 </div>
+
+                <!-- High-Contrast Outdoor Mode Toggle -->
+                <div class="ios-setting-row no-hover" id="row-settings-outdoor-mode">
+                  <div class="ios-row-left">
+                    <label class="ios-toggle-switch">
+                      <input type="checkbox" id="toggle-settings-outdoor-mode">
+                      <span class="ios-toggle-slider"></span>
+                    </label>
+                  </div>
+                  <div class="ios-row-right">
+                    <span class="ios-row-icon-badge bg-ios-orange" style="background-color: #ff9500;">☀️</span>
+                    <span class="ios-row-label">מצב שטח (ניגודיות גבוהה)</span>
+                  </div>
+                </div>
+
+                <!-- Show Ambient Glows Toggle -->
+                <div class="ios-setting-row no-hover" id="row-settings-show-glows">
+                  <div class="ios-row-left">
+                    <label class="ios-toggle-switch">
+                      <input type="checkbox" id="toggle-settings-show-glows" checked>
+                      <span class="ios-toggle-slider"></span>
+                    </label>
+                  </div>
+                  <div class="ios-row-right">
+                    <span class="ios-row-icon-badge bg-ios-purple" style="background-color: #5856d6;">✨</span>
+                    <span class="ios-row-label">הצג אפקטי זוהר</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Nav Bar Style Picker Card Group -->
+              <div class="ios-settings-card-group">
+                <div class="ios-settings-group-title">סגנון סרגל ניווט תחתון</div>
                 
-                <div class="ios-segmented-control" id="nav-style-segmented-control" style="display: flex; background: rgba(0, 0, 0, 0.4); border-radius: 12px; padding: 3px; border: 1px solid rgba(255, 255, 255, 0.08); width: 100%;">
-                  <button type="button" class="segmented-btn active" data-nav-style="floating" style="flex: 1; padding: 10px 8px; border: none; border-radius: 9px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.25s ease;">
-                    🎈 מרחף (דינמי)
-                  </button>
-                  <button type="button" class="segmented-btn" data-nav-style="fixed" style="flex: 1; padding: 10px 8px; border: none; border-radius: 9px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.25s ease;">
-                    📌 קבוע לתחתית
-                  </button>
+                <div class="ios-setting-row no-hover" id="row-settings-nav-style" style="flex-direction: column; align-items: stretch; gap: 12px; padding: 14px 12px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <span id="nav-style-detail-text" style="font-size: 0.85rem; color: var(--electric-blue-light); font-weight: 700;">מרחף (דינמי)</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span class="ios-row-icon-badge" style="background-color: #007aff;">📱</span>
+                      <span class="ios-row-label">מראה והתנהגות הסרגל</span>
+                    </div>
+                  </div>
+                  
+                  <div class="ios-segmented-control" id="nav-style-segmented-control" style="display: flex; background: rgba(0, 0, 0, 0.4); border-radius: 12px; padding: 3px; border: 1px solid rgba(255, 255, 255, 0.08); width: 100%;">
+                    <button type="button" class="segmented-btn active" data-nav-style="floating" style="flex: 1; padding: 10px 8px; border: none; border-radius: 9px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.25s ease;">
+                      🎈 מרחף (דינמי)
+                    </button>
+                    <button type="button" class="segmented-btn" data-nav-style="fixed" style="flex: 1; padding: 10px 8px; border: none; border-radius: 9px; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.25s ease;">
+                      📌 קבוע לתחתית
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

@@ -1,5 +1,5 @@
-const CACHE_NAME = '14.0.0';
-const UPDATE_DESCRIPTION = 'פתרון מוחלט לחשיפת כל קבוצות ההגדרות (ביטול sticky שהסתיר את הכרטיסים ואיזון גובה מכולת הגלילה)';
+const CACHE_NAME = '14.1.0';
+const UPDATE_DESCRIPTION = 'עיצוב ומיטוב רספונסיבי מקיף לכל 7 תתי-המסכים בטאב ההגדרות (iOS 18 Native Centered Responsive System)';
 
 const ASSETS = [
   './',
