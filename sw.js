@@ -1,5 +1,5 @@
-const CACHE_NAME = '13.5.1';
-const UPDATE_DESCRIPTION = 'שדרוג מקיף ויוקרתי של מראה כרטיסיות ההגדרות לסגנון iOS 18 Glassmorphism';
+const CACHE_NAME = '13.6.0';
+const UPDATE_DESCRIPTION = 'מחיקה מוחלטת של קוד ה-CSS הישן והשורות הדקות המתנגשות במסך ההגדרות';
 
 const ASSETS = [
   './',
