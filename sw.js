@@ -1,5 +1,5 @@
-const CACHE_NAME = '1.2.5';
-const UPDATE_DESCRIPTION = 'הגדרת רקע אחיד וגובה מינימלי 100% לכל תתי-המבטים של מסך ההגדרות למניעת תצוגה שחורה';
+const CACHE_NAME = '1.2.6';
+const UPDATE_DESCRIPTION = 'תיקון מפתח ל-Flexbox scrolling (min-height: 0) להחזרת גלילה חלקה לחלוטין ושמירה על תצוגה מלאה';
 
 const ASSETS = [
   './',
