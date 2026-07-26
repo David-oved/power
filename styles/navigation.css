@@ -279,10 +279,9 @@ body.nav-style-fixed #metrics-sub-nav .nav-container {
   box-sizing: border-box !important;
 }
 
-body.nav-style-fixed .tab-content-container,
 body.nav-style-fixed .ios-settings-scroll-container,
 body.nav-style-fixed .ios-scroll-container {
-  padding-bottom: calc(120px + env(safe-area-inset-bottom, 24px)) !important;
+  padding-bottom: calc(100px + env(safe-area-inset-bottom, 24px)) !important;
 }
 
 body.nav-style-fixed .ios-bottom-nav .nav-tab.active,

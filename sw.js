@@ -1,5 +1,5 @@
-const CACHE_NAME = '1.2.2';
-const UPDATE_DESCRIPTION = 'הסרה מלאה של מנגנון הסיור המודרך ושיפור ביצועי ה-PWA';
+const CACHE_NAME = '1.2.3';
+const UPDATE_DESCRIPTION = 'תיקון מקיף לפריסת 100% מסך מלא בטאב ההגדרות (ביטול שוליים כפולים ופתיחת גלילה ואינטראקציה מלאה)';
 
 const ASSETS = [
   './',

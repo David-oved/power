@@ -47,9 +47,18 @@ export function initPremiumSettings() {
   const checkUpdateRow = document.getElementById('row-settings-check-update');
   const updateStatus = document.getElementById('settings-update-status');
   
-  // Display Settings sub-view navigation
+  // Settings sub-views navigation buttons
+  const goToAccountBtn = document.getElementById('go-to-account-btn');
+  const backToSettingsBtn = document.getElementById('back-to-settings-btn');
   const goToDisplayBtn = document.getElementById('go-to-display-settings-btn');
   const backFromDisplayBtn = document.getElementById('back-from-display-btn');
+  const goToFeedbackBtn = document.getElementById('go-to-feedback-btn');
+  const backFromFeedbackBtn = document.getElementById('back-from-feedback-btn');
+  const goToMessagesBtn = document.getElementById('go-to-messages-btn');
+  const backFromMessagesBtn = document.getElementById('back-from-messages-btn');
+  const goToAdminBtn = document.getElementById('go-to-admin-console-btn');
+  const backFromAdminBtn = document.getElementById('back-from-admin-btn');
+
   const settingsMainView = document.getElementById('settings-main-view');
   const displayView = document.getElementById('settings-display-view');
   const accountView = document.getElementById('settings-account-view');
@@ -75,6 +84,21 @@ export function initPremiumSettings() {
     settingsNavBtn.addEventListener('click', resetSettingsViews);
   }
 
+  // Bind Account View
+  if (goToAccountBtn) {
+    goToAccountBtn.addEventListener('click', () => {
+      if (settingsMainView) settingsMainView.classList.add('hide');
+      if (accountView) accountView.classList.remove('hide');
+    });
+  }
+  if (backToSettingsBtn) {
+    backToSettingsBtn.addEventListener('click', () => {
+      if (accountView) accountView.classList.add('hide');
+      if (settingsMainView) settingsMainView.classList.remove('hide');
+    });
+  }
+
+  // Bind Display View
   if (goToDisplayBtn) {
     goToDisplayBtn.addEventListener('click', () => {
       if (settingsMainView) settingsMainView.classList.add('hide');
@@ -84,6 +108,48 @@ export function initPremiumSettings() {
   if (backFromDisplayBtn) {
     backFromDisplayBtn.addEventListener('click', () => {
       if (displayView) displayView.classList.add('hide');
+      if (settingsMainView) settingsMainView.classList.remove('hide');
+    });
+  }
+
+  // Bind Feedback View
+  if (goToFeedbackBtn) {
+    goToFeedbackBtn.addEventListener('click', () => {
+      if (settingsMainView) settingsMainView.classList.add('hide');
+      if (feedbackView) feedbackView.classList.remove('hide');
+    });
+  }
+  if (backFromFeedbackBtn) {
+    backFromFeedbackBtn.addEventListener('click', () => {
+      if (feedbackView) feedbackView.classList.add('hide');
+      if (settingsMainView) settingsMainView.classList.remove('hide');
+    });
+  }
+
+  // Bind Messages View
+  if (goToMessagesBtn) {
+    goToMessagesBtn.addEventListener('click', () => {
+      if (settingsMainView) settingsMainView.classList.add('hide');
+      if (messagesView) messagesView.classList.remove('hide');
+    });
+  }
+  if (backFromMessagesBtn) {
+    backFromMessagesBtn.addEventListener('click', () => {
+      if (messagesView) messagesView.classList.add('hide');
+      if (settingsMainView) settingsMainView.classList.remove('hide');
+    });
+  }
+
+  // Bind Admin View
+  if (goToAdminBtn) {
+    goToAdminBtn.addEventListener('click', () => {
+      if (settingsMainView) settingsMainView.classList.add('hide');
+      if (adminView) adminView.classList.remove('hide');
+    });
+  }
+  if (backFromAdminBtn) {
+    backFromAdminBtn.addEventListener('click', () => {
+      if (adminView) adminView.classList.add('hide');
       if (settingsMainView) settingsMainView.classList.remove('hide');
     });
   }

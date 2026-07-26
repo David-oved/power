@@ -685,10 +685,9 @@ body:not(.light-theme) .ios-settings-header {
   display: flex !important;
   flex-direction: column !important;
   position: relative !important;
-  overflow: visible !important;
+  overflow: hidden !important;
   margin: 0 !important;
   padding: 0 !important;
-  padding-bottom: calc(100px + env(safe-area-inset-bottom, 24px)) !important;
 }
 
 #tab-settings,
@@ -707,7 +706,7 @@ body:not(.light-theme) .ios-settings-header {
   padding: 0 !important;
   direction: rtl !important;
   z-index: 10 !important;
-  overflow: visible !important;
+  overflow: hidden !important;
 }
 
 #tab-settings.active,
@@ -733,11 +732,14 @@ body:not(.light-theme) .ios-settings-header {
 
 /* Scroll Container */
 .ios-settings-scroll-container {
-  padding: 1.2rem 1.5rem calc(120px + env(safe-area-inset-bottom, 24px)) 1.5rem !important;
+  padding: 1rem 1.25rem calc(100px + env(safe-area-inset-bottom, 24px)) 1.25rem !important;
   display: flex;
   flex-direction: column;
   gap: 0px;
   width: 100%;
+  height: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
   box-sizing: border-box;
   overflow-y: auto !important;
   -webkit-overflow-scrolling: touch;
@@ -1995,12 +1997,13 @@ button:focus,
 
 #tab-settings .ios-settings-scroll-container {
   flex: 1 1 auto !important;
+  height: 100% !important;
   min-height: 0 !important;
   overflow-y: auto !important;
   -webkit-overflow-scrolling: touch !important;
   width: 100% !important;
   box-sizing: border-box !important;
-  padding: 1rem 1.25rem calc(160px + env(safe-area-inset-bottom, 30px)) 1.25rem !important;
+  padding: 1rem 1.25rem calc(100px + env(safe-area-inset-bottom, 24px)) 1.25rem !important;
 }
 
 /* iOS 18 Native Dynamic Cards & Container Responsive Rules */
