@@ -1,5 +1,5 @@
-const CACHE_NAME = '1.2.3';
-const UPDATE_DESCRIPTION = 'תיקון מקיף לפריסת 100% מסך מלא בטאב ההגדרות (ביטול שוליים כפולים ופתיחת גלילה ואינטראקציה מלאה)';
+const CACHE_NAME = '1.2.4';
+const UPDATE_DESCRIPTION = 'מנגנון בידוד מוחלט לטאבים ומודאלים (Strict Tab & Modal Isolation Engine) למניעת זליגת לחיצות לחלוטין';
 
 const ASSETS = [
   './',
