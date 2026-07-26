@@ -778,11 +778,11 @@ body:not(.light-theme) .ios-settings-header {
 
 /* iOS Cards (Rounded Glass Segments with Crisp Glass Outline) */
 .ios-settings-card-group {
-  background: linear-gradient(135deg, rgba(26, 27, 36, 0.95) 0%, rgba(18, 19, 26, 0.98) 100%) !important;
+  background: linear-gradient(135deg, rgba(22, 24, 34, 0.92) 0%, rgba(14, 15, 22, 0.96) 100%) !important;
   border-radius: 18px !important;
-  margin-bottom: 20px !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.45) !important;
+  margin-bottom: 16px !important;
+  border: 1px solid rgba(255, 255, 255, 0.07) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25) !important;
   backdrop-filter: blur(20px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
   overflow: visible !important;
@@ -1977,14 +1977,13 @@ button:focus,
   bottom: 0 !important;
   width: 100% !important;
   height: 100% !important;
-  min-height: 100% !important;
   box-sizing: border-box !important;
   margin: 0 !important;
   padding: 0 !important;
   direction: rtl !important;
   z-index: 10 !important;
   overflow: hidden !important;
-  background-color: var(--bg-app) !important;
+  background: var(--bg-app) !important;
 }
 
 #tab-settings.active {
@@ -2008,7 +2007,7 @@ button:focus,
   height: 100% !important;
   min-height: 0 !important;
   box-sizing: border-box !important;
-  background-color: var(--bg-app) !important;
+  background: var(--bg-app) !important;
 }
 
 #settings-main-view:not(.hide),
@@ -2031,7 +2030,7 @@ button:focus,
   width: 100% !important;
   box-sizing: border-box !important;
   padding: 1rem 1.25rem calc(100px + env(safe-area-inset-bottom, 24px)) 1.25rem !important;
-  background-color: var(--bg-app) !important;
+  background: var(--bg-app) !important;
 }
 
 /* iOS 18 Native Dynamic Cards & Container Responsive Rules */

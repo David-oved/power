@@ -1,5 +1,5 @@
-const CACHE_NAME = '1.2.7';
-const UPDATE_DESCRIPTION = 'הגדרת ערכת נושא כהה כברירת מחדל לכל הטאבים במערכת לשמירה על נראות וניגודיות מלאה';
+const CACHE_NAME = '1.2.8';
+const UPDATE_DESCRIPTION = 'שילוב מושלם בין גלילה מבוססת Flexbox (min-height: 0) לבין רקע רציף מלא (100% Full Bleed Background)';
 
 const ASSETS = [
   './',
