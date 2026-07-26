@@ -1,4 +1,4 @@
-const CACHE_NAME = '1.2.0';
+const CACHE_NAME = '1.2.1';
 const UPDATE_DESCRIPTION = 'שדרוג ארכיטקטוני מקיף למסגרת ה-DOM של מסך ההגדרות (ביטול החור השחור, חשיפת שמות הפרופיל בלבן והפעלת גלילת iOS 18 מושלמת)';
 
 const ASSETS = [
