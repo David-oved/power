@@ -5,10 +5,12 @@ import { getDb, saveFieldToCloud } from "../utils/db.js";
 import { 
   collection, 
   getDocs, 
+  getDoc,
   doc, 
   setDoc, 
   deleteDoc, 
-  addDoc 
+  addDoc,
+  writeBatch
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
 // Safe helper to update text contents safely
@@ -408,17 +410,19 @@ export async function scanAppCacheFiles() {
         btn.disabled = true;
         btn.textContent = 'מוריד... ⏳';
         try {
-          const cache = await caches.open(cacheName);
-          await cache.delete(fileUrl);
+          // Offline-Safe Cache Refreshing: Fetch first before modifying existing cache
           const res = await fetch(new Request(fileUrl, { cache: 'reload' }));
           if (res.ok) {
+            const cache = await caches.open(cacheName);
             await cache.put(fileUrl, res);
             showPremiumToast('הקובץ רוענן מחדש מהשרת! ⚡', 'success');
+          } else {
+            showPremiumToast('רענון הקובץ נכשל: שגיאה מהשרת.', 'error');
           }
           await scanAppCacheFiles();
         } catch (err) {
           console.error("Single file refresh failed:", err);
-          showPremiumToast('רענון הקובץ נכשל.', 'error');
+          showPremiumToast('רענון הקובץ נכשל. בדוק חיבור לרשת.', 'error');
         }
       });
     });
@@ -821,18 +825,20 @@ async function submitUserFeedback(category, text) {
   }
 }
 
-// Broadcast message to ALL users in Firestore
+// Broadcast message to ALL users in Firestore using Batched Writes (Phase 2 optimization)
 async function sendGlobalAnnouncement(title, content) {
   const db = getDb();
   if (!db) return false;
 
   try {
-    // 1. Load all users
     const usersSnapshot = await getDocs(collection(db, "users"));
-    
-    // 2. Loop and update each user document asynchronously
-    const updatePromises = [];
-    usersSnapshot.forEach(userDoc => {
+    if (usersSnapshot.empty) return true;
+
+    // Use Firestore writeBatch for scalable performance & network reliability
+    let batch = writeBatch(db);
+    let count = 0;
+
+    for (const userDoc of usersSnapshot.docs) {
       const userData = userDoc.data();
       const userMessages = userData.messages || [];
       const newMessage = {
@@ -845,13 +851,21 @@ async function sendGlobalAnnouncement(title, content) {
       
       const newMessages = [newMessage, ...userMessages];
       const userRef = doc(db, "users", userDoc.id);
-      
-      const p = setDoc(userRef, { messages: newMessages }, { merge: true });
-      updatePromises.push(p);
-    });
+      batch.set(userRef, { messages: newMessages }, { merge: true });
+      count++;
 
-    await Promise.all(updatePromises);
-    console.log(`Global announcement broadcasted to ${updatePromises.length} users successfully.`);
+      // Firestore batch limit is 500 operations
+      if (count % 450 === 0) {
+        await batch.commit();
+        batch = writeBatch(db);
+      }
+    }
+
+    if (count % 450 !== 0) {
+      await batch.commit();
+    }
+
+    console.log(`Global announcement broadcasted to ${count} users via batched writes.`);
     return true;
   } catch (err) {
     console.error("Failed to send global announcement:", err);
@@ -860,23 +874,19 @@ async function sendGlobalAnnouncement(title, content) {
   }
 }
 
-// Send a direct message to a specific user
+// Send a direct message to a specific user using direct getDoc read (Phase 2 optimization)
 async function sendDirectMessage(targetUid, title, content) {
   const db = getDb();
   if (!db) return false;
 
   try {
     const userRef = doc(db, "users", targetUid);
-    const userSnap = await getDocs(collection(db, "users")); // Fetch users to verify or we can do direct set doc merge.
+    // Direct document read instead of fetching the entire users collection
+    const userSnap = await getDoc(userRef);
     
-    // Fetch target user doc safely
     let currentMessages = [];
-    users_loop:
-    for (let docSnap of userSnap.docs) {
-      if (docSnap.id === targetUid) {
-        currentMessages = docSnap.data().messages || [];
-        break users_loop;
-      }
+    if (userSnap.exists()) {
+      currentMessages = userSnap.data().messages || [];
     }
 
     const newMessage = {
@@ -889,12 +899,11 @@ async function sendDirectMessage(targetUid, title, content) {
 
     const newMessages = [newMessage, ...currentMessages];
     await setDoc(userRef, { messages: newMessages }, { merge: true });
-    
-    console.log(`Direct message sent to uid: ${targetUid} successfully.`);
+    console.log(`Direct message sent to ${targetUid} via direct document read.`);
     return true;
   } catch (err) {
     console.error("Failed to send direct message:", err);
-    showPremiumToast("שליחת ההודעה האישית נכשלה.", "error");
+    showPremiumToast("שליחת ההודעה הישירה נכשלה.", "error");
     return false;
   }
 }

@@ -1,5 +1,5 @@
-const CACHE_NAME = '1.3.0';
-const UPDATE_DESCRIPTION = 'שינוי מלא של כל הגדרות min-height ל-0 !important בכל קובצי ה-CSS של המערכת';
+const CACHE_NAME = '1.3.1';
+const UPDATE_DESCRIPTION = 'שדרוג מקיף ב-3 פאזות: תיקון כותרות iOS, אופטימיזציית שאילתות Firestore, נגישות מקלדת וניקוי !important';
 
 const ASSETS = [
   './',

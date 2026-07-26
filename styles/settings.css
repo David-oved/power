@@ -759,17 +759,34 @@ body:not(.light-theme) .ios-settings-header {
 }
 
 
-/* Settings Main Title override */
+/* Settings Main Title (Phase 1 Directive 2: High-contrast visibility) */
+.settings-main-title,
 #tab-settings .settings-main-title {
-  color: #1c1c1e !important;
-  font-family: var(--font-display) !important;
-  font-size: 1.8rem !important;
-  font-weight: 800 !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  text-align: right !important;
-  text-shadow: none !important;
-  letter-spacing: -0.5px !important;
+  color: #ffffff;
+  font-family: var(--font-display);
+  font-size: 1.875rem;
+  font-weight: 800;
+  margin: 0;
+  padding: 0;
+  text-align: right;
+  letter-spacing: -0.5px;
+}
+
+#tab-settings.dark-theme .settings-main-title {
+  color: #ffffff;
+}
+
+/* iOS Group Title (Phase 1 Directive 3: Native iOS Group Title sitting gracefully above card) */
+.ios-settings-group-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted, #94a3b8);
+  margin: 18px 8px 6px 8px;
+  padding: 0;
+  letter-spacing: 0.4px;
+  direction: rtl;
+  text-align: right;
 }
 
 /* ==========================================================================
@@ -778,19 +795,19 @@ body:not(.light-theme) .ios-settings-header {
 
 /* iOS Cards (Rounded Glass Segments with Crisp Glass Outline) */
 .ios-settings-card-group {
-  background: rgba(255, 255, 255, 0.035) !important;
-  border-radius: 18px !important;
-  margin-bottom: 16px !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
-  backdrop-filter: blur(20px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-  overflow: visible !important;
-  height: auto !important;
-  min-height: fit-content !important;
-  padding: 0 !important;
-  width: 100% !important;
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease !important;
+  background: rgba(255, 255, 255, 0.035);
+  border-radius: 18px;
+  margin-bottom: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  overflow: visible;
+  height: auto;
+  min-height: fit-content;
+  padding: 0;
+  width: 100%;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
 }
 
 /* Single Setting Row (Borderless & Always Visible) */

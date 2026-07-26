@@ -153,7 +153,18 @@ export function initPremiumSettings() {
       if (settingsMainView) settingsMainView.classList.remove('hide');
     });
   }
-  
+
+  // Phase 3 Accessibility Enhancement: Bind keydown (Enter/Space) to all interactive rows with role="button" or tabindex="0"
+  const interactiveRows = document.querySelectorAll('#tab-settings [role="button"], #tab-settings [tabindex="0"]');
+  interactiveRows.forEach(row => {
+    row.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        row.click();
+      }
+    });
+  });
+
   const isDarkMode = SafeStorage.getItem('settings_dark_mode') !== 'false';
   const isNotificationsEnabled = SafeStorage.getItem('settings_notifications_enabled') !== 'false';
 
@@ -436,13 +447,25 @@ export function initPremiumSettings() {
       syncMenuLastTime.textContent = lastSyncTimeVal ? new Date(Number(lastSyncTimeVal)).toLocaleString('he-IL') : "לא סונכרן מעולם";
     }
 
-    // Populate local/cloud counts dynamically
+    // Populate local/cloud counts dynamically with Safe JSON Parsing (Phase 2 optimization)
     const uid = state.currentUser.uid;
-    const localHistory = JSON.parse(SafeStorage.getItem(`aura-workout-history_${uid}`) || "[]");
-    const localCustomEx = JSON.parse(SafeStorage.getItem(`aura-custom-exercises_${uid}`) || "[]");
-    const localCustomLoc = JSON.parse(SafeStorage.getItem(`aura-custom-locations_${uid}`) || "[]");
-    const localFavorites = JSON.parse(SafeStorage.getItem(`aura-favorite-exercises_${uid}`) || "[]");
-    const localFuture = JSON.parse(SafeStorage.getItem(`aura-future-workouts_${uid}`) || "[]");
+    const safeParseArray = (storageKey) => {
+      try {
+        const item = SafeStorage.getItem(storageKey);
+        if (!item) return [];
+        const parsed = JSON.parse(item);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch (err) {
+        console.warn(`JSON parse failed for ${storageKey}, falling back to []:`, err);
+        return [];
+      }
+    };
+
+    const localHistory = safeParseArray(`aura-workout-history_${uid}`);
+    const localCustomEx = safeParseArray(`aura-custom-exercises_${uid}`);
+    const localCustomLoc = safeParseArray(`aura-custom-locations_${uid}`);
+    const localFavorites = safeParseArray(`aura-favorite-exercises_${uid}`);
+    const localFuture = safeParseArray(`aura-future-workouts_${uid}`);
 
     if (statHistory) statHistory.textContent = `${localHistory.length} אימונים`;
     if (statCustomEx) statCustomEx.textContent = `${localCustomEx.length} תרגילים`;

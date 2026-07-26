@@ -234,9 +234,9 @@
             </div>
             
             <div class="ios-settings-scroll-container" style="width: 100%; flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch;">
-              <!-- Group 1: Account -->
-              <div class="ios-settings-card-group sticky-profile-container">
-                <div class="ios-settings-group-title">חשבון</div>
+              <!-- Group 1: Profile & Account -->
+              <div class="ios-settings-group-title">חשבון ופרופיל</div>
+              <div class="ios-settings-card-group">
                 <!-- Row 1: Account Settings (Clickable Profile Row) -->
                 <div id="go-to-account-btn" class="ios-setting-row ios-profile-card" role="button" tabindex="0">
                   <div class="ios-row-left">
@@ -256,8 +256,8 @@
               </div>
 
               <!-- Group 2: Cloud Services -->
+              <div class="ios-settings-group-title">שירותי ענן</div>
               <div class="ios-settings-card-group">
-                <div class="ios-settings-group-title">שירותי ענן</div>
                 <div id="go-to-cloud-sync-btn" class="ios-setting-row" role="button" tabindex="0">
                   <div class="ios-row-left">
                     <span id="settings-sync-status-badge" class="ios-row-detail-text">מחובר</span>
@@ -271,8 +271,8 @@
               </div>
 
               <!-- Group 3: Display Settings -->
+              <div class="ios-settings-group-title">תצוגה ומראה</div>
               <div class="ios-settings-card-group">
-                <div class="ios-settings-group-title">תצוגה ומראה</div>
                 <div id="go-to-display-settings-btn" class="ios-setting-row" role="button" tabindex="0">
                   <div class="ios-row-left"><span class="ios-row-chevron">←</span></div>
                   <div class="ios-row-right">
@@ -283,8 +283,8 @@
               </div>
 
               <!-- Group 4: App Version/Updates -->
+              <div class="ios-settings-group-title">גרסה ועדכונים</div>
               <div class="ios-settings-card-group">
-                <div class="ios-settings-group-title">גרסה ועדכונים</div>
 
                 <!-- System Version -->
                 <div class="ios-setting-row no-hover">
@@ -312,47 +312,46 @@
                 </div>
 
                 <!-- Search for Updates -->
-                <div class="ios-setting-row" id="row-settings-check-update">
+                <div class="ios-setting-row" id="row-settings-check-update" role="button" tabindex="0">
                   <div class="ios-row-left">
                     <span id="settings-update-status" class="ios-row-detail-text">בדוק</span>
                   </div>
                   <div class="ios-row-right">
                     <span class="ios-row-icon-badge bg-ios-green">🔄</span>
-                    <span class="ios-row-label">חיפוש עדכונים</span>
+                    <span class="ios-row-label">בדוק עדכוני תוכנה</span>
                   </div>
                 </div>
+              </div>
 
-                <!-- Send feedback to developer -->
+              <!-- Group 5: Feedback & Administration -->
+              <div class="ios-settings-group-title">תמיכה וניהול</div>
+              <div class="ios-settings-card-group">
+                <!-- Send Feedback -->
                 <div id="go-to-feedback-btn" class="ios-setting-row" role="button" tabindex="0">
-                  <div class="ios-row-left">
-                    <span class="ios-row-chevron">←</span>
-                  </div>
+                  <div class="ios-row-left"><span class="ios-row-chevron">←</span></div>
                   <div class="ios-row-right">
-                    <span class="ios-row-icon-badge bg-ios-blue">💬</span>
+                    <span class="ios-row-icon-badge bg-ios-orange" style="background-color: #ff9500;">💬</span>
                     <span class="ios-row-label">שליחת משוב למפתח</span>
                   </div>
                 </div>
 
-                <!-- Messages from system -->
+                <!-- System Messages -->
                 <div id="go-to-messages-btn" class="ios-setting-row" role="button" tabindex="0">
                   <div class="ios-row-left">
                     <span id="unread-messages-badge" class="ios-badge hide">0</span>
                     <span class="ios-row-chevron">←</span>
                   </div>
                   <div class="ios-row-right">
-                    <span class="ios-row-icon-badge bg-ios-orange">✉️</span>
+                    <span class="ios-row-icon-badge bg-ios-blue" style="background-color: #007aff;">📬</span>
                     <span class="ios-row-label">הודעות מהמערכת</span>
                   </div>
                 </div>
 
-                <!-- Admin options (Visible to admin only) -->
-                <div id="settings-admin-group" class="hide" style="width: 100%;">
+                <!-- Admin Console (Admin users only) -->
+                <div id="settings-admin-group">
                   <div id="go-to-admin-console-btn" class="ios-setting-row" role="button" tabindex="0">
-                    <div class="ios-row-left">
-                      <span class="ios-row-chevron">←</span>
-                    </div>
+                    <div class="ios-row-left"><span class="ios-row-chevron">←</span></div>
                     <div class="ios-row-right">
-                      <span class="ios-row-icon-badge bg-ios-red">🛠️</span>
                       <span class="ios-row-label">פאנל ניהול מנהל</span>
                     </div>
                   </div>
