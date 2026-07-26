@@ -1,5 +1,5 @@
-const CACHE_NAME = '1.2.8';
-const UPDATE_DESCRIPTION = 'שילוב מושלם בין גלילה מבוססת Flexbox (min-height: 0) לבין רקע רציף מלא (100% Full Bleed Background)';
+const CACHE_NAME = '1.2.9';
+const UPDATE_DESCRIPTION = 'מעבר מלא לרקע דינמי שקוף-גרדיאנטי לביטול מוחלט של שטח שחור בתחתית המסך';
 
 const ASSETS = [
   './',

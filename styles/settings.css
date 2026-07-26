@@ -778,11 +778,11 @@ body:not(.light-theme) .ios-settings-header {
 
 /* iOS Cards (Rounded Glass Segments with Crisp Glass Outline) */
 .ios-settings-card-group {
-  background: linear-gradient(135deg, rgba(22, 24, 34, 0.92) 0%, rgba(14, 15, 22, 0.96) 100%) !important;
+  background: rgba(255, 255, 255, 0.035) !important;
   border-radius: 18px !important;
   margin-bottom: 16px !important;
-  border: 1px solid rgba(255, 255, 255, 0.07) !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2) !important;
   backdrop-filter: blur(20px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
   overflow: visible !important;
@@ -1983,7 +1983,7 @@ button:focus,
   direction: rtl !important;
   z-index: 10 !important;
   overflow: hidden !important;
-  background: var(--bg-app) !important;
+  background: linear-gradient(180deg, #0e0f17 0%, #0a0b10 100%) !important;
 }
 
 #tab-settings.active {
@@ -2007,7 +2007,7 @@ button:focus,
   height: 100% !important;
   min-height: 0 !important;
   box-sizing: border-box !important;
-  background: var(--bg-app) !important;
+  background: linear-gradient(180deg, #0e0f17 0%, #0a0b10 100%) !important;
 }
 
 #settings-main-view:not(.hide),
@@ -2030,7 +2030,7 @@ button:focus,
   width: 100% !important;
   box-sizing: border-box !important;
   padding: 1rem 1.25rem calc(100px + env(safe-area-inset-bottom, 24px)) 1.25rem !important;
-  background: var(--bg-app) !important;
+  background: transparent !important;
 }
 
 /* iOS 18 Native Dynamic Cards & Container Responsive Rules */
