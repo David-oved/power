@@ -1,5 +1,5 @@
-const CACHE_NAME = '1.2.6';
-const UPDATE_DESCRIPTION = 'תיקון מפתח ל-Flexbox scrolling (min-height: 0) להחזרת גלילה חלקה לחלוטין ושמירה על תצוגה מלאה';
+const CACHE_NAME = '1.2.7';
+const UPDATE_DESCRIPTION = 'הגדרת ערכת נושא כהה כברירת מחדל לכל הטאבים במערכת לשמירה על נראות וניגודיות מלאה';
 
 const ASSETS = [
   './',
