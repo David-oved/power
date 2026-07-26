@@ -745,7 +745,7 @@ body:not(.light-theme) .ios-settings-header {
 
 /* Scroll Container */
 .ios-settings-scroll-container {
-  padding: 1rem 1.25rem calc(100px + env(safe-area-inset-bottom, 24px)) 1.25rem !important;
+  padding: 1rem 1.25rem calc(200px + env(safe-area-inset-bottom, 24px)) 1.25rem !important;
   display: flex;
   flex-direction: column;
   gap: 0px;
@@ -2046,7 +2046,7 @@ button:focus,
   -webkit-overflow-scrolling: touch !important;
   width: 100% !important;
   box-sizing: border-box !important;
-  padding: 1rem 1.25rem calc(100px + env(safe-area-inset-bottom, 24px)) 1.25rem !important;
+  padding: 1rem 1.25rem calc(200px + env(safe-area-inset-bottom, 24px)) 1.25rem !important;
   background: transparent !important;
 }
 

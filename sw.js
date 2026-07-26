@@ -1,5 +1,5 @@
-const CACHE_NAME = '1.3.1';
-const UPDATE_DESCRIPTION = 'שדרוג מקיף ב-3 פאזות: תיקון כותרות iOS, אופטימיזציית שאילתות Firestore, נגישות מקלדת וניקוי !important';
+const CACHE_NAME = '1.3.2';
+const UPDATE_DESCRIPTION = 'הכפלת הריווח והגבול התחתון (padding-bottom 200px) בטאב הגדרות בלבד';
 
 const ASSETS = [
   './',
