@@ -116,9 +116,13 @@ export function initPremiumSettings() {
 
   if (toggleNotifications) {
     toggleNotifications.checked = isNotificationsEnabled;
-    toggleNotifications.addEventListener('change', (e) => {
+    toggleNotifications.addEventListener('change', async (e) => {
       SafeStorage.setItem('settings_notifications_enabled', e.target.checked);
       console.log('Saved notifications preference:', e.target.checked);
+      if (e.target.checked) {
+        const { requestNotificationPermissionSafely } = await import("../utils/helpers.js");
+        requestNotificationPermissionSafely();
+      }
     });
   }
 
@@ -203,7 +207,7 @@ export function initPremiumSettings() {
     if (mainBadge && mainBadge.textContent) {
       settingsVer.textContent = mainBadge.textContent;
     } else {
-      settingsVer.textContent = 'v1.2';
+      settingsVer.textContent = 'v1.2.0';
     }
   }
 

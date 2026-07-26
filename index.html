@@ -152,7 +152,7 @@
     <div class="ambient-glow bg-secondary"></div>
     
     <!-- Subtle Sleek Version Badge -->
-    <div id="app-version-display" class="app-version-badge">v1.1</div>
+    <div id="app-version-display" class="app-version-badge">v1.2.0</div>
     
     <!-- 1. SIGN-OUT SCREEN (AUTHENTICATION GATEWAY) -->
     <section id="auth-screen" class="screen">
@@ -289,7 +289,7 @@
                 <!-- System Version -->
                 <div class="ios-setting-row no-hover">
                   <div class="ios-row-left">
-                    <span id="settings-system-version" class="ios-row-detail-text">v1.2</span>
+                    <span id="settings-system-version" class="ios-row-detail-text">v1.2.0</span>
                   </div>
                   <div class="ios-row-right">
                     <span class="ios-row-icon-badge bg-ios-blue">ℹ️</span>
@@ -414,11 +414,11 @@
             </div>
 
             <!-- Admin Segmented Tab Bar -->
-            <div class="ios-segmented-control" style="width: 100%; max-width: 680px; margin: 12px auto 16px auto; display: flex; background: rgba(255, 255, 255, 0.05); padding: 3px; border-radius: 12px; direction: rtl;">
-              <button class="segmented-btn active" data-admin-tab="users" style="flex: 1; padding: 10px; background: none; border: none; color: #fff; border-radius: 9px; font-weight: bold; cursor: pointer; font-size: 0.85rem; transition: background 0.2s;">ניהול משתמשים</button>
-              <button class="segmented-btn" data-admin-tab="feedback" style="flex: 1; padding: 10px; background: none; border: none; color: #fff; border-radius: 9px; font-weight: bold; cursor: pointer; font-size: 0.85rem; transition: background 0.2s;">משובים</button>
-              <button class="segmented-btn" data-admin-tab="announcement" style="flex: 1; padding: 10px; background: none; border: none; color: #fff; border-radius: 9px; font-weight: bold; cursor: pointer; font-size: 0.85rem; transition: background 0.2s;">הודעה גלובלית</button>
-              <button class="segmented-btn" data-admin-tab="system-update" style="flex: 1; padding: 10px; background: none; border: none; color: #fff; border-radius: 9px; font-weight: bold; cursor: pointer; font-size: 0.85rem; transition: background 0.2s;">עדכון גרסה</button>
+            <div class="ios-segmented-control admin-segmented-control">
+              <button class="segmented-btn active" data-admin-tab="users">ניהול משתמשים</button>
+              <button class="segmented-btn" data-admin-tab="feedback">משובים</button>
+              <button class="segmented-btn" data-admin-tab="announcement">הודעה גלובלית</button>
+              <button class="segmented-btn" data-admin-tab="system-update">עדכון גרסה</button>
             </div>
 
             <div class="ios-settings-scroll-container">
@@ -749,21 +749,21 @@
 
               <!-- Action Controls Group -->
               <div class="ios-settings-card-group">
-                <div id="sync-action-now" class="ios-setting-row" role="button" tabindex="0" style="color: var(--electric-blue-light); text-align: center; justify-content: center; font-weight: bold; cursor: pointer; background: transparent; border: none; width: 100%;">
+                <div id="sync-action-now" class="ios-setting-row sync-action-btn color-blue" role="button" tabindex="0">
                   🔄 סנכרן כעת ורענן נתונים
                 </div>
-                <div id="sync-action-disconnect" class="ios-setting-row" role="button" tabindex="0" style="color: #ff9500; text-align: center; justify-content: center; font-weight: bold; cursor: pointer; background: transparent; border: none; width: 100%;">
-                  🛑 שמור מקומית בלבד (נתק סנכרון)
+                <div id="sync-action-disconnect" class="ios-setting-row sync-action-btn color-orange" role="button" tabindex="0">
+                  ⏸️ השהה סנכרון
                 </div>
-                <div id="sync-action-connect" class="ios-setting-row hide" role="button" tabindex="0" style="color: #34c759; text-align: center; justify-content: center; font-weight: bold; cursor: pointer; background: transparent; border: none; width: 100%;">
-                  ⚡ הפעל סנכרון ענן והעלה נתונים
+                <div id="sync-action-connect" class="ios-setting-row sync-action-btn color-green hide" role="button" tabindex="0">
+                  ▶️ הפעל סנכרון מחדש
                 </div>
               </div>
 
               <!-- Danger Zone Group -->
               <div class="ios-settings-card-group">
                 <div class="ios-settings-group-title">אזור סכנה</div>
-                <div id="sync-action-delete" class="ios-setting-row" role="button" tabindex="0" style="color: var(--color-danger); text-align: center; justify-content: center; font-weight: bold; cursor: pointer; background: transparent; border: none; width: 100%;">
+                <div id="sync-action-delete" class="ios-setting-row sync-action-btn color-danger" role="button" tabindex="0">
                   🗑️ מחק את כל הנתונים השמורים בענן
                 </div>
               </div>
@@ -771,10 +771,10 @@
               <!-- Granular Delete Group -->
               <div class="ios-settings-card-group">
                 <div class="ios-settings-group-title">ניהול ענן מתקדם</div>
-                <div id="sync-action-delete-history" class="ios-setting-row" role="button" tabindex="0" style="color: #ff9500; text-align: center; justify-content: center; font-weight: bold; cursor: pointer; background: transparent; border: none; width: 100%;">
+                <div id="sync-action-delete-history" class="ios-setting-row sync-action-btn color-orange" role="button" tabindex="0">
                   🗑️ מחק היסטוריה מהענן בלבד
                 </div>
-                <div id="sync-action-inspect-items" class="ios-setting-row" role="button" tabindex="0" style="color: var(--electric-blue-light); text-align: center; justify-content: center; font-weight: bold; cursor: pointer; background: transparent; border: none; width: 100%;">
+                <div id="sync-action-inspect-items" class="ios-setting-row sync-action-btn color-blue" role="button" tabindex="0">
                   🔍 צפה ונהל פריטים בודדים בענן
                 </div>
               </div>

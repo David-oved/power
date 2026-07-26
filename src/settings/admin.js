@@ -94,7 +94,7 @@ export function initAdminModule() {
   }
 
   // --- ADMIN TAB TRANSITIONS ---
-  const tabButtons = document.querySelectorAll('.ios-segmented-control .segmented-btn');
+  const tabButtons = document.querySelectorAll('#settings-admin-view .ios-segmented-control .segmented-btn');
   const tabContents = document.querySelectorAll('.admin-tab-content');
   tabButtons.forEach(btn => {
     btn.addEventListener('click', () => {

@@ -1,4 +1,4 @@
-const CACHE_NAME = '15.0.0';
+const CACHE_NAME = '1.2.0';
 const UPDATE_DESCRIPTION = 'שדרוג ארכיטקטוני מקיף למסגרת ה-DOM של מסך ההגדרות (ביטול החור השחור, חשיפת שמות הפרופיל בלבן והפעלת גלילת iOS 18 מושלמת)';
 
 const ASSETS = [
@@ -26,7 +26,10 @@ const ASSETS = [
   './src/auth/auth.js',
   './src/workouts/workouts.js',
   './src/metrics/metrics.js',
-  './src/settings/settings.js'
+  './src/settings/settings.js',
+  './src/utils/db.js',
+  './src/utils/onboarding.js',
+  './src/settings/admin.js'
   // Firebase SDK files intentionally excluded: served from Google CDN with long cache-control headers.
   // Caching opaque cross-origin responses risks serving corrupted/stale Firebase SDK.
 ];

@@ -685,9 +685,10 @@ body:not(.light-theme) .ios-settings-header {
   display: flex !important;
   flex-direction: column !important;
   position: relative !important;
-  overflow: hidden !important;
+  overflow: visible !important;
   margin: 0 !important;
   padding: 0 !important;
+  padding-bottom: calc(100px + env(safe-area-inset-bottom, 24px)) !important;
 }
 
 #tab-settings,
@@ -706,7 +707,7 @@ body:not(.light-theme) .ios-settings-header {
   padding: 0 !important;
   direction: rtl !important;
   z-index: 10 !important;
-  overflow: hidden !important;
+  overflow: visible !important;
 }
 
 #tab-settings.active,
@@ -742,42 +743,6 @@ body:not(.light-theme) .ios-settings-header {
   -webkit-overflow-scrolling: touch;
 }
 
-/* Search Bar Wrapper */
-.ios-search-wrapper {
-  margin-bottom: 20px;
-  width: 100%;
-  position: relative;
-}
-
-.ios-search-bar {
-  width: 100%;
-  height: 38px;
-  background: #e3e3e9;
-  border: none;
-  border-radius: 10px;
-  padding: 0 35px 0 15px;
-  /* RTL spacing */
-  font-size: 1.05rem;
-  color: #1c1c1e;
-  box-sizing: border-box;
-  font-family: inherit;
-  transition: all 0.2s ease;
-}
-
-.ios-search-bar:focus {
-  outline: none;
-  background: #d1d1d6;
-}
-
-.ios-search-icon {
-  position: absolute;
-  top: 50%;
-  right: 12px;
-  transform: translateY(-50%);
-  color: #8e8e93;
-  font-size: 1.1rem;
-  pointer-events: none;
-}
 
 /* Settings Main Title override */
 #tab-settings .settings-main-title {
@@ -882,7 +847,7 @@ body:not(.light-theme) .ios-settings-header {
 
 .ios-setting-row:hover .ios-row-chevron {
   color: #ffffff !important;
-  transform: translateX(-2px) !important;
+  transform: translateX(-4px) !important;
 }
 
 /* Right part (Icon + Label) */
@@ -1112,7 +1077,7 @@ body:not(.light-theme) .ios-settings-header {
 #settings-account-view {
   background-color: #f2f2f7 !important;
   color: #1c1c1e !important;
-  padding: calc(1.5rem + env(safe-area-inset-top, 24px)) 1.5rem calc(120px + env(safe-area-inset-bottom, 24px)) 1.5rem !important;
+  padding: 0 !important;
   min-height: 100% !important;
   display: flex !important;
   flex-direction: column !important;
@@ -1498,7 +1463,7 @@ body:not(.light-theme) .ios-settings-header {
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important;
 }
 
-.tab-pane:not(.dark-theme) .tab-pane:not(.dark-theme) .exercise-card.saved .exercise-name-input {
+.tab-pane:not(.dark-theme) .exercise-card.saved .exercise-name-input {
   color: #16a34a !important;
 }
 
@@ -2052,3 +2017,111 @@ button:focus,
   box-sizing: border-box !important;
 }
 
+/* Additional fixes for AuraApp UI consistency */
+/* Task 4: .ios-badge */
+.ios-badge {
+  display: inline-block !important;
+  padding: 2px 8px !important;
+  border-radius: 12px !important;
+  font-size: 0.75rem !important;
+  font-weight: 700 !important;
+  color: #fff !important;
+  background: var(--color-danger, #ff3b30) !important;
+}
+
+/* Task 6 & 22: Account View Header Dark Background & Card Group light mode conflict */
+.tab-pane:not(.dark-theme) #settings-account-view .ios-settings-header {
+  background: #f2f2f7 !important;
+}
+.tab-pane:not(.dark-theme) .ios-settings-card-group {
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+.tab-pane:not(.dark-theme) .ios-setting-row {
+  color: #1c1c1e !important;
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.08) !important;
+}
+.tab-pane:not(.dark-theme) .ios-setting-row:hover:not(.no-hover),
+.tab-pane:not(.dark-theme) .ios-setting-row:active:not(.no-hover) {
+  background-color: rgba(0, 0, 0, 0.04) !important;
+}
+
+/* Task 14: .ios-intelligence-card dark mode */
+#tab-settings.dark-theme .ios-intelligence-card {
+  background: linear-gradient(135deg, #1c1c1e 0%, #1c2333 50%, #1f1b14 100%) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2), 0 0 12px rgba(0, 122, 255, 0.1) !important;
+}
+#tab-settings.dark-theme .ios-intelligence-title {
+  color: #ffffff !important;
+}
+
+/* Task 15: Back button hover direction (RTL) */
+.ios-back-btn:hover,
+#tab-settings.dark-theme .ios-back-btn:hover,
+.tab-pane:not(.dark-theme) .ios-back-btn:hover {
+  transform: translateX(4px) !important;
+}
+
+/* Task 16, 17, 20: Admin segmented control */
+.admin-segmented-control {
+  width: 100% !important;
+  max-width: 680px !important;
+  margin: 12px auto 16px auto !important;
+  display: flex !important;
+  background: rgba(142, 142, 147, 0.12) !important;
+  padding: 3px !important;
+  border-radius: 9px !important;
+  direction: rtl !important;
+  overflow-x: auto !important;
+  white-space: nowrap !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+.segmented-btn {
+  flex: 1 0 auto !important;
+  padding: 8px 12px !important;
+  background: none !important;
+  border: none !important;
+  color: #1c1c1e !important;
+  border-radius: 7px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  font-size: 0.85rem !important;
+  transition: background 0.2s, box-shadow 0.2s !important;
+  font-family: inherit !important;
+  text-align: center !important;
+}
+.dark-theme .segmented-btn {
+  color: #ffffff !important;
+}
+.segmented-btn.active {
+  background: #ffffff !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.12) !important;
+  color: #000000 !important;
+}
+.dark-theme .segmented-btn.active {
+  background: #636366 !important;
+  color: #ffffff !important;
+}
+
+/* Task 19: Sync action buttons inline colors */
+.sync-action-btn {
+  text-align: center !important;
+  justify-content: center !important;
+  font-weight: bold !important;
+  cursor: pointer !important;
+  background: transparent !important;
+  border: none !important;
+  width: 100% !important;
+}
+.sync-action-btn.color-blue {
+  color: var(--electric-blue-light, #0a84ff) !important;
+}
+.sync-action-btn.color-orange {
+  color: #ff9500 !important;
+}
+.sync-action-btn.color-green {
+  color: #34c759 !important;
+}
+.sync-action-btn.color-danger {
+  color: var(--color-danger, #ff3b30) !important;
+}

@@ -323,12 +323,13 @@ onDOMReady(() => {
   // Attach nav collapse trigger on scrolling inside tab content
   const allPanes = document.querySelectorAll('.tab-content-container .tab-pane');
   allPanes.forEach(pane => {
-    let scrollThreshold = false;
+    let scrollTimeout;
     pane.addEventListener('scroll', () => {
-      if (!scrollThreshold) {
-        scrollThreshold = true;
-        collapseNav();
-        setTimeout(() => { scrollThreshold = false; }, 1000);
+      if (!scrollTimeout) {
+        scrollTimeout = setTimeout(() => {
+          collapseNav();
+          scrollTimeout = null;
+        }, 150);
       }
     }, { passive: true });
   });
