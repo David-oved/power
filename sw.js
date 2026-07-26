@@ -1,5 +1,5 @@
-const CACHE_NAME = '1.2.4';
-const UPDATE_DESCRIPTION = 'מנגנון בידוד מוחלט לטאבים ומודאלים (Strict Tab & Modal Isolation Engine) למניעת זליגת לחיצות לחלוטין';
+const CACHE_NAME = '1.2.5';
+const UPDATE_DESCRIPTION = 'הגדרת רקע אחיד וגובה מינימלי 100% לכל תתי-המבטים של מסך ההגדרות למניעת תצוגה שחורה';
 
 const ASSETS = [
   './',

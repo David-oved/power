@@ -1977,12 +1977,14 @@ button:focus,
   bottom: 0 !important;
   width: 100% !important;
   height: 100% !important;
+  min-height: 100% !important;
   box-sizing: border-box !important;
   margin: 0 !important;
   padding: 0 !important;
   direction: rtl !important;
   z-index: 10 !important;
   overflow: hidden !important;
+  background-color: var(--bg-app) !important;
 }
 
 #tab-settings.active {
@@ -2004,8 +2006,9 @@ button:focus,
   width: 100% !important;
   flex: 1 1 100% !important;
   height: 100% !important;
-  min-height: 0 !important;
+  min-height: 100% !important;
   box-sizing: border-box !important;
+  background-color: var(--bg-app) !important;
 }
 
 #settings-main-view:not(.hide),
@@ -2022,12 +2025,13 @@ button:focus,
 #tab-settings .ios-settings-scroll-container {
   flex: 1 1 auto !important;
   height: 100% !important;
-  min-height: 0 !important;
+  min-height: 100% !important;
   overflow-y: auto !important;
   -webkit-overflow-scrolling: touch !important;
   width: 100% !important;
   box-sizing: border-box !important;
   padding: 1rem 1.25rem calc(100px + env(safe-area-inset-bottom, 24px)) 1.25rem !important;
+  background-color: var(--bg-app) !important;
 }
 
 /* iOS 18 Native Dynamic Cards & Container Responsive Rules */
