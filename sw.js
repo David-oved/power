@@ -1,5 +1,5 @@
-const CACHE_NAME = '1.2.1';
-const UPDATE_DESCRIPTION = 'שדרוג ארכיטקטוני מקיף למסגרת ה-DOM של מסך ההגדרות (ביטול החור השחור, חשיפת שמות הפרופיל בלבן והפעלת גלילת iOS 18 מושלמת)';
+const CACHE_NAME = '1.2.2';
+const UPDATE_DESCRIPTION = 'הסרה מלאה של מנגנון הסיור המודרך ושיפור ביצועי ה-PWA';
 
 const ASSETS = [
   './',
