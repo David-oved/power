@@ -1093,7 +1093,7 @@ body:not(.light-theme) .ios-settings-header {
   background-color: #f2f2f7 !important;
   color: #1c1c1e !important;
   padding: 0 !important;
-  min-height: 100% !important;
+  min-height: 0 !important;
   display: flex !important;
   flex-direction: column !important;
   box-sizing: border-box !important;

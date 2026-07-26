@@ -1,5 +1,5 @@
-const CACHE_NAME = '1.2.9';
-const UPDATE_DESCRIPTION = 'מעבר מלא לרקע דינמי שקוף-גרדיאנטי לביטול מוחלט של שטח שחור בתחתית המסך';
+const CACHE_NAME = '1.3.0';
+const UPDATE_DESCRIPTION = 'שינוי מלא של כל הגדרות min-height ל-0 !important בכל קובצי ה-CSS של המערכת';
 
 const ASSETS = [
   './',
