@@ -265,7 +265,7 @@ export function showPWARecommendationModal() {
 
 // Create and inject Spotlight & Tooltip HTML Elements
 function createTourElements() {
-  if (document.getElementById('onboarding-tour-container')) return;
+  document.getElementById('onboarding-tour-container')?.remove();
   
   const container = document.createElement('div');
   container.id = 'onboarding-tour-container';
@@ -273,6 +273,9 @@ function createTourElements() {
   // Click Blocker Overlay
   const blocker = document.createElement('div');
   blocker.className = 'onboarding-click-blocker';
+  blocker.addEventListener('click', () => {
+    finishTour(true);
+  });
   container.appendChild(blocker);
   
   // Spotlight Element
@@ -406,6 +409,7 @@ function updateSpotlightPosition() {
   
   if (!targetElement) {
     // Center of screen if no target element exists for the step
+    spotlight.style.display = 'none';
     spotlight.style.opacity = '0';
     spotlight.style.width = '0px';
     spotlight.style.height = '0px';
@@ -419,6 +423,7 @@ function updateSpotlightPosition() {
     const arrow = tooltip.querySelector('.tooltip-arrow');
     if (arrow) arrow.style.display = 'none';
   } else {
+    spotlight.style.display = 'block';
     spotlight.style.opacity = '1';
     
     const rect = targetElement.getBoundingClientRect();
@@ -543,43 +548,6 @@ export function initOnboarding() {
   window.initOnboarding = initOnboarding;
   
   addOnboardingSettingsGroup();
-  
-  const uid = state.currentUser ? state.currentUser.uid : null;
-  if (!uid) return;
-  
-  const storageKey = `aura-onboarding_${uid}`;
-  let localData = SafeStorage.getItem(storageKey);
-  
-  if (!localData) {
-    loadUserDataFromCloud(uid).then(cloudData => {
-      if (cloudData && cloudData.onboarding) {
-        SafeStorage.setItem(storageKey, JSON.stringify(cloudData.onboarding));
-        if (cloudData.onboarding.completed || cloudData.onboarding.skipped) {
-          return;
-        }
-      }
-      
-      // Auto-start with a friendly delay if they have never seen it
-      setTimeout(() => {
-        if (state.currentUser && document.getElementById('app-screen').classList.contains('active')) {
-          startTour();
-        }
-      }, 2000);
-    });
-  } else {
-    try {
-      const parsed = JSON.parse(localData);
-      if (parsed.completed || parsed.skipped) {
-        return;
-      }
-    } catch(e) {}
-    
-    setTimeout(() => {
-      if (state.currentUser && document.getElementById('app-screen').classList.contains('active')) {
-        startTour();
-      }
-    }, 2000);
-  }
 }
 
 // Automatically expose on window when this module is evaluated
