@@ -363,69 +363,82 @@ export async function initAuth() {
       const isLoginTransition = initialAuthCheckDone && user && !state.currentUser;
       const isLogoutTransition = initialAuthCheckDone && !user && state.currentUser;
 
-      if (user) {
-        console.log("User signed in successfully:", user.displayName);
-        state.currentUser = user;
-        
-        SafeStorage.setItem('aura-cached-user-session', JSON.stringify({
-          uid: user.uid,
-          displayName: user.displayName,
-          email: user.email,
-          photoURL: user.photoURL
-        }));
+      try {
+        if (user) {
+          console.log("User signed in successfully:", user.displayName);
+          state.currentUser = user;
+          
+          SafeStorage.setItem('aura-cached-user-session', JSON.stringify({
+            uid: user.uid,
+            displayName: user.displayName,
+            email: user.email,
+            photoURL: user.photoURL
+          }));
 
-        updateAuthUI();
-        
-        // Sync user data from cloud
-        await syncUserSession(user.uid);
-        
-        // Update UI again now that role and other info are synced
-        updateAuthUI();
+          updateAuthUI();
+          
+          // Sync user data from cloud safely with a 3-second timeout fallback
+          try {
+            await Promise.race([
+              syncUserSession(user.uid),
+              new Promise((_, reject) => setTimeout(() => reject(new Error("Sync timeout")), 3000))
+            ]);
+          } catch (syncErr) {
+            console.warn("User session sync encountered an error or timeout, continuing with cached session:", syncErr);
+          }
+          
+          // Update UI again now that role and other info are synced or fallback set
+          updateAuthUI();
 
-        // Rerender cloud sync status
-        if (window.updateSyncUI) window.updateSyncUI();
-        
-        // Dynamic initializers
-        if (window.initWorkouts) window.initWorkouts();
-        
-        switchScreen(true);
-        if (window.initOnboarding) window.initOnboarding();
+          // Rerender cloud sync status
+          if (window.updateSyncUI) window.updateSyncUI();
+          
+          // Dynamic initializers
+          if (window.initWorkouts) window.initWorkouts();
+          
+          switchScreen(true);
+          if (window.initOnboarding) window.initOnboarding();
 
-        const hasBeenWelcomed = sessionStorage.getItem('aura_session_welcomed');
-        if (isLoginTransition && !hasBeenWelcomed && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-          triggerLocalNotification(
-            "התחברת בהצלחה! 👋",
-            `ברוך הבא ל-Aura, ${user.displayName || 'משתמש'}!`
-          );
-          sessionStorage.setItem('aura_session_welcomed', 'true');
+          const hasBeenWelcomed = sessionStorage.getItem('aura_session_welcomed');
+          if (isLoginTransition && !hasBeenWelcomed && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+            triggerLocalNotification(
+              "התחברת בהצלחה! 👋",
+              `ברוך הבא ל-Aura, ${user.displayName || 'משתמש'}!`
+            );
+            sessionStorage.setItem('aura_session_welcomed', 'true');
+          } else {
+            sessionStorage.setItem('aura_session_welcomed', 'true');
+          }
         } else {
-          sessionStorage.setItem('aura_session_welcomed', 'true');
-        }
-      } else {
-        console.log("No authenticated user active.");
-        const prevUser = state.currentUser;
-        
-        sessionStorage.removeItem('aura_session_welcomed');
-        
-        clearUserSession();
-        switchScreen(false);
+          console.log("No authenticated user active.");
+          const prevUser = state.currentUser;
+          
+          sessionStorage.removeItem('aura_session_welcomed');
+          
+          clearUserSession();
+          switchScreen(false);
 
-        if (isLogoutTransition && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-          triggerLocalNotification(
-            "התנתקת מהחשבון 🔒",
-            `להתראות ${prevUser && prevUser.displayName ? prevUser.displayName.split(' ')[0] : ''}, נתראה באימון הבא!`
-          );
+          if (isLogoutTransition && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+            triggerLocalNotification(
+              "התנתקת מהחשבון 🔒",
+              `להתראות ${prevUser && prevUser.displayName ? prevUser.displayName.split(' ')[0] : ''}, נתראה באימון הבא!`
+            );
+          }
         }
-      }
-      initialAuthCheckDone = true;
-      
-      const splash = document.getElementById('splash-screen');
-      if (splash) {
-        if (!splash.classList.contains('fade-out')) {
-          splash.classList.add('fade-out');
-          setTimeout(() => {
-            splash.style.display = 'none';
-          }, 600);
+      } catch (err) {
+        console.error("Error during auth state change processing:", err);
+        switchScreen(user ? true : false);
+      } finally {
+        initialAuthCheckDone = true;
+        
+        const splash = document.getElementById('splash-screen');
+        if (splash) {
+          if (!splash.classList.contains('fade-out')) {
+            splash.classList.add('fade-out');
+            setTimeout(() => {
+              splash.style.display = 'none';
+            }, 600);
+          }
         }
       }
     });

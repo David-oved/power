@@ -1,5 +1,5 @@
-const CACHE_NAME = '1.3.5';
-const UPDATE_DESCRIPTION = 'עדכון דומיין והתאמה אוטומטית לאחר שינוי שם משתמש';
+const CACHE_NAME = '1.3.6';
+const UPDATE_DESCRIPTION = 'מניעת בלוק במסך הטעינה ואקטיבציה מיידית של Service Worker';
 
 const ASSETS = [
   './',
@@ -37,8 +37,8 @@ const ASSETS = [
 let restTimerTimeout = null;
 
 self.addEventListener('install', (event) => {
-  console.log('Service Worker: Installed immediately. Assets will be cached on-demand.');
-  // Wait for explicit skipWaiting/activation message from client
+  console.log('Service Worker: Installed immediately. Activating skipWaiting.');
+  self.skipWaiting();
   event.waitUntil(Promise.resolve());
 });
 
