@@ -1,5 +1,5 @@
-const CACHE_NAME = '1.3.2';
-const UPDATE_DESCRIPTION = 'הכפלת הריווח והגבול התחתון (padding-bottom 200px) בטאב הגדרות בלבד';
+const CACHE_NAME = '1.3.3';
+const UPDATE_DESCRIPTION = 'תיקון תצוגת תתי-מסכים בטאב ההגדרות ופתרון בעיית גובה תצוגה ראשית';
 
 const ASSETS = [
   './',

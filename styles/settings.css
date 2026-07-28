@@ -1111,8 +1111,6 @@ body:not(.light-theme) .ios-settings-header {
   color: #1c1c1e !important;
   padding: 0 !important;
   min-height: 0 !important;
-  display: flex !important;
-  flex-direction: column !important;
   box-sizing: border-box !important;
   width: 100% !important;
 }
@@ -2019,6 +2017,7 @@ button:focus,
 #settings-messages-view,
 #settings-sync-view,
 #settings-display-view {
+  display: none;
   width: 100% !important;
   flex: 1 1 100% !important;
   height: 100% !important;
