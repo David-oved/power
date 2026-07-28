@@ -1,5 +1,5 @@
-const CACHE_NAME = '1.3.4';
-const UPDATE_DESCRIPTION = 'תיקון תצוגה בטאב התצוגה ופתרון סרגל ניווט קבוע לתחתית המסך';
+const CACHE_NAME = '1.3.5';
+const UPDATE_DESCRIPTION = 'עדכון דומיין והתאמה אוטומטית לאחר שינוי שם משתמש';
 
 const ASSETS = [
   './',
