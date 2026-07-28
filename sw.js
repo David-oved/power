@@ -1,5 +1,5 @@
-const CACHE_NAME = '1.3.3';
-const UPDATE_DESCRIPTION = 'תיקון תצוגת תתי-מסכים בטאב ההגדרות ופתרון בעיית גובה תצוגה ראשית';
+const CACHE_NAME = '1.3.4';
+const UPDATE_DESCRIPTION = 'תיקון תצוגה בטאב התצוגה ופתרון סרגל ניווט קבוע לתחתית המסך';
 
 const ASSETS = [
   './',

@@ -2045,7 +2045,7 @@ button:focus,
   -webkit-overflow-scrolling: touch !important;
   width: 100% !important;
   box-sizing: border-box !important;
-  padding: 1rem 1.25rem calc(200px + env(safe-area-inset-bottom, 24px)) 1.25rem !important;
+  padding: 1rem 1.25rem calc(110px + env(safe-area-inset-bottom, 24px)) 1.25rem !important;
   background: transparent !important;
 }
 
@@ -2170,4 +2170,44 @@ button:focus,
 }
 .sync-action-btn.color-danger {
   color: var(--color-danger, #ff3b30) !important;
+}
+
+/* Light Theme overrides for #settings-display-view */
+.tab-pane:not(.dark-theme) #settings-display-view {
+  background: #f2f2f7 !important;
+  color: #1c1c1e !important;
+}
+.tab-pane:not(.dark-theme) #settings-display-view .ios-settings-header {
+  background: #f2f2f7 !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+.tab-pane:not(.dark-theme) #settings-display-view .settings-sub-title {
+  color: #1c1c1e !important;
+}
+.tab-pane:not(.dark-theme) #settings-display-view .ios-back-btn {
+  color: #007aff !important;
+}
+.tab-pane:not(.dark-theme) #settings-display-view .ios-settings-group-title {
+  color: #6c6c70 !important;
+}
+.tab-pane:not(.dark-theme) #settings-display-view .ios-row-label {
+  color: #1c1c1e !important;
+}
+.tab-pane:not(.dark-theme) #settings-display-view .ios-segmented-control {
+  background: rgba(118, 118, 128, 0.12) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Outdoor Mode overrides for #settings-display-view */
+.outdoor-mode #settings-display-view .ios-segmented-control {
+  background: #000000 !important;
+  border: 2px solid #ffffff !important;
+}
+.outdoor-mode #settings-display-view .segmented-btn {
+  color: #ffffff !important;
+  font-weight: 800 !important;
+}
+.outdoor-mode #settings-display-view .segmented-btn.active {
+  background: #ffffff !important;
+  color: #000000 !important;
 }

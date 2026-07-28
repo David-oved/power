@@ -270,7 +270,12 @@ body.nav-style-fixed #nav-menu-toggle-btn {
 }
 
 body.nav-style-fixed .ios-bottom-nav .nav-container,
-body.nav-style-fixed #metrics-sub-nav .nav-container {
+body.nav-style-fixed .ios-bottom-nav.collapsed .nav-container,
+body.nav-style-fixed #metrics-sub-nav .nav-container,
+body.nav-style-fixed #metrics-sub-nav.collapsed .nav-container {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  visibility: visible !important;
   max-width: 500px !important;
   margin: 0 auto !important;
   width: 100% !important;
@@ -279,12 +284,10 @@ body.nav-style-fixed #metrics-sub-nav .nav-container {
   box-sizing: border-box !important;
 }
 
-body.nav-style-fixed #tab-settings .ios-settings-scroll-container {
-  padding-bottom: calc(200px + env(safe-area-inset-bottom, 24px)) !important;
-}
-
-body.nav-style-fixed .ios-scroll-container {
-  padding-bottom: calc(100px + env(safe-area-inset-bottom, 24px)) !important;
+body.nav-style-fixed #tab-settings .ios-settings-scroll-container,
+body.nav-style-fixed .ios-scroll-container,
+body.nav-style-fixed .ios-settings-scroll-container {
+  padding-bottom: calc(90px + env(safe-area-inset-bottom, 16px)) !important;
 }
 
 body.nav-style-fixed .ios-bottom-nav .nav-tab.active,

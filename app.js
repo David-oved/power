@@ -173,14 +173,19 @@ export function applyNavStyle(style) {
   
   const scrollContainers = document.querySelectorAll('.ios-settings-scroll-container, .ios-scroll-container');
   scrollContainers.forEach(el => {
-    el.style.setProperty('padding-bottom', 'calc(120px + env(safe-area-inset-bottom, 24px))', 'important');
+    if (state.navStyle === 'fixed') {
+      el.style.setProperty('padding-bottom', 'calc(90px + env(safe-area-inset-bottom, 16px))', 'important');
+    } else {
+      el.style.setProperty('padding-bottom', 'calc(110px + env(safe-area-inset-bottom, 24px))', 'important');
+    }
   });
+
+  const allNavBars = document.querySelectorAll('.ios-bottom-nav');
 
   if (state.navStyle === 'fixed') {
     document.body.classList.add('nav-style-fixed');
-    const bottomNav = document.querySelector('.ios-bottom-nav');
+    allNavBars.forEach(nav => nav.classList.remove('collapsed'));
     const menuToggleBtn = document.getElementById('nav-menu-toggle-btn');
-    if (bottomNav) bottomNav.classList.remove('collapsed');
     if (menuToggleBtn) menuToggleBtn.classList.add('hide');
     if (autoCollapseTimeout) {
       clearTimeout(autoCollapseTimeout);
@@ -194,7 +199,7 @@ export function applyNavStyle(style) {
 window.applyNavStyle = applyNavStyle;
 
 export function collapseNav() {
-  if (state.navStyle === 'fixed') return;
+  if (state.navStyle === 'fixed' || document.body.classList.contains('nav-style-fixed')) return;
   const bottomNav = document.querySelector('.ios-bottom-nav');
   const menuToggleBtn = document.getElementById('nav-menu-toggle-btn');
   if (bottomNav) {
@@ -208,10 +213,10 @@ export function collapseNav() {
 }
 
 export function expandNav() {
-  if (state.navStyle === 'fixed') {
-    const bottomNav = document.querySelector('.ios-bottom-nav');
-    const menuToggleBtn = document.getElementById('nav-menu-toggle-btn');
-    if (bottomNav) bottomNav.classList.remove('collapsed');
+  const allNavBars = document.querySelectorAll('.ios-bottom-nav');
+  const menuToggleBtn = document.getElementById('nav-menu-toggle-btn');
+  if (state.navStyle === 'fixed' || document.body.classList.contains('nav-style-fixed')) {
+    allNavBars.forEach(nav => nav.classList.remove('collapsed'));
     if (menuToggleBtn) menuToggleBtn.classList.add('hide');
     return;
   }
