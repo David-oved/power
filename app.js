@@ -104,9 +104,14 @@ if ('serviceWorker' in navigator) {
     });
 
     let refreshing = false;
+    let hasExistingController = !!navigator.serviceWorker.controller;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
       if (refreshing) return;
-      if (!navigator.serviceWorker.controller) return;
+      if (!hasExistingController) {
+        // Initial claim on first SW registration - ignore to prevent infinite reload loop
+        hasExistingController = true;
+        return;
+      }
       refreshing = true;
       console.log("Service Worker controller changed. Reloading page for new version...");
       SafeStorage.setItem('pwa_just_updated', 'true');
@@ -185,8 +190,8 @@ export function applyNavStyle(style) {
   if (state.navStyle === 'fixed') {
     document.body.classList.add('nav-style-fixed');
     allNavBars.forEach(nav => nav.classList.remove('collapsed'));
-    const menuToggleBtn = document.getElementById('nav-menu-toggle-btn');
-    if (menuToggleBtn) menuToggleBtn.classList.add('hide');
+    const applyNavMenuToggleBtn = document.getElementById('nav-menu-toggle-btn');
+    if (applyNavMenuToggleBtn) applyNavMenuToggleBtn.classList.add('hide');
     if (autoCollapseTimeout) {
       clearTimeout(autoCollapseTimeout);
       autoCollapseTimeout = null;
@@ -201,10 +206,10 @@ window.applyNavStyle = applyNavStyle;
 export function collapseNav() {
   if (state.navStyle === 'fixed' || document.body.classList.contains('nav-style-fixed')) return;
   const bottomNav = document.querySelector('.ios-bottom-nav');
-  const menuToggleBtn = document.getElementById('nav-menu-toggle-btn');
+  const collapseNavMenuToggleBtn = document.getElementById('nav-menu-toggle-btn');
   if (bottomNav) {
     bottomNav.classList.add('collapsed');
-    if (menuToggleBtn) menuToggleBtn.classList.remove('hide');
+    if (collapseNavMenuToggleBtn) collapseNavMenuToggleBtn.classList.remove('hide');
   }
   if (autoCollapseTimeout) {
     clearTimeout(autoCollapseTimeout);
@@ -214,17 +219,16 @@ export function collapseNav() {
 
 export function expandNav() {
   const allNavBars = document.querySelectorAll('.ios-bottom-nav');
-  const menuToggleBtn = document.getElementById('nav-menu-toggle-btn');
+  const expandNavMenuToggleBtn = document.getElementById('nav-menu-toggle-btn');
   if (state.navStyle === 'fixed' || document.body.classList.contains('nav-style-fixed')) {
     allNavBars.forEach(nav => nav.classList.remove('collapsed'));
-    if (menuToggleBtn) menuToggleBtn.classList.add('hide');
+    if (expandNavMenuToggleBtn) expandNavMenuToggleBtn.classList.add('hide');
     return;
   }
   const bottomNav = document.querySelector('.ios-bottom-nav');
-  const menuToggleBtn = document.getElementById('nav-menu-toggle-btn');
   if (bottomNav) {
     bottomNav.classList.remove('collapsed');
-    if (menuToggleBtn) menuToggleBtn.classList.add('hide');
+    if (expandNavMenuToggleBtn) expandNavMenuToggleBtn.classList.add('hide');
   }
   if (autoCollapseTimeout) {
     clearTimeout(autoCollapseTimeout);
@@ -340,7 +344,7 @@ onDOMReady(() => {
   });
 
   const bottomNav = document.querySelector('.ios-bottom-nav');
-  const menuToggleBtn = document.getElementById('nav-menu-toggle-btn');
+  const navMenuToggleBtn = document.getElementById('nav-menu-toggle-btn');
 
   if (bottomNav) {
     bottomNav.addEventListener('click', (e) => {
@@ -351,8 +355,8 @@ onDOMReady(() => {
     });
   }
 
-  if (menuToggleBtn) {
-    menuToggleBtn.addEventListener('click', (e) => {
+  if (navMenuToggleBtn) {
+    navMenuToggleBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       expandNav();
     });

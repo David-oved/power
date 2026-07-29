@@ -475,6 +475,7 @@ export async function initAuth() {
     // Fail-safe: Hide the splash screen after 1500ms if Firebase fails or hangs on startup
     setTimeout(() => {
       if (!state.firebaseAuthResolved) {
+        state.firebaseAuthResolved = true;
         console.warn("Firebase Auth resolution timed out. Falling back to offline/auth login screen.");
         switchScreen(false);
       }

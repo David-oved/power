@@ -1,5 +1,5 @@
-const CACHE_NAME = '1.3.6';
-const UPDATE_DESCRIPTION = 'מניעת בלוק במסך הטעינה ואקטיבציה מיידית של Service Worker';
+const CACHE_NAME = '1.3.7';
+const UPDATE_DESCRIPTION = 'פתרון מלא ללולאת הרענון ומסך הטעינה';
 
 const ASSETS = [
   './',
@@ -37,12 +37,11 @@ const ASSETS = [
 let restTimerTimeout = null;
 
 self.addEventListener('install', (event) => {
-  console.log('Service Worker: Installed immediately. Activating skipWaiting.');
-  self.skipWaiting();
+  console.log('Service Worker: Installed. Assets will be cached on-demand.');
   event.waitUntil(Promise.resolve());
 });
 
-// Activate state - clean up old caches and force client reload
+// Activate state - clean up old caches safely
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
@@ -54,19 +53,6 @@ self.addEventListener('activate', (event) => {
           }
         })
       );
-    }).then(() => {
-      // Force reload all open window clients to update immediately
-      return self.clients.matchAll({ type: 'window' }).then((clients) => {
-        clients.forEach((client) => {
-          if (client.url && typeof client.navigate === 'function') {
-            try {
-              client.navigate(client.url);
-            } catch (err) {
-              console.error('Failed to force reload client:', err);
-            }
-          }
-        });
-      });
     })
   );
   self.clients.claim();
