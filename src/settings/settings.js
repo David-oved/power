@@ -23,11 +23,106 @@ export function showUpdateStateInSettings(waitingWorker) {
   }
 }
 
+// Color Adjustment Helper Functions
+function adjustColorBrightness(hex, percent) {
+  let num = parseInt(hex.replace('#', ''), 16);
+  let r = Math.min(255, Math.max(0, (num >> 16) + Math.round(255 * (percent / 100))));
+  let g = Math.min(255, Math.max(0, ((num >> 8) & 0x00FF) + Math.round(255 * (percent / 100))));
+  let b = Math.min(255, Math.max(0, (num & 0x0000FF) + Math.round(255 * (percent / 100))));
+  return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+}
+
+function hexToRgba(hex, alpha = 0.25) {
+  let num = parseInt(hex.replace('#', ''), 16);
+  let r = (num >> 16);
+  let g = ((num >> 8) & 0x00FF);
+  let b = (num & 0x0000FF);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+export function applyDisplayPreferences() {
+  // 1. Apply Opacity (0% to 100%)
+  const opacityVal = (state.displayOpacity !== undefined) ? state.displayOpacity : 85;
+  const opacityAlpha = opacityVal / 100;
+  document.documentElement.style.setProperty('--card-bg-opacity', opacityAlpha);
+
+  const opacitySlider = document.getElementById('display-opacity-slider');
+  const opacityText = document.getElementById('display-opacity-value-text');
+  if (opacitySlider) opacitySlider.value = opacityVal;
+  if (opacityText) opacityText.textContent = `${opacityVal}%`;
+
+  // 2. Apply Primary Accent Color
+  const accentColor = state.accentColor || '#007aff';
+  const lightColor = adjustColorBrightness(accentColor, 25);
+  const glowColor = hexToRgba(accentColor, 0.25);
+
+  document.documentElement.style.setProperty('--electric-blue', accentColor);
+  document.documentElement.style.setProperty('--accent', accentColor);
+  document.documentElement.style.setProperty('--electric-blue-light', lightColor);
+  document.documentElement.style.setProperty('--accent-light', lightColor);
+  document.documentElement.style.setProperty('--electric-blue-glow', glowColor);
+  document.documentElement.style.setProperty('--accent-glow', glowColor);
+
+  const colorPicker = document.getElementById('display-custom-color-picker');
+  if (colorPicker) colorPicker.value = accentColor;
+
+  const swatches = document.querySelectorAll('.accent-color-swatch');
+  swatches.forEach(s => {
+    if (s.dataset.color && s.dataset.color.toLowerCase() === accentColor.toLowerCase()) {
+      s.classList.add('active');
+    } else {
+      s.classList.remove('active');
+    }
+  });
+
+  // 3. Apply Background Wallpaper
+  const wp = state.wallpaper || 'default';
+  let wpUrl = 'none';
+  if (wp === 'cyberpunk_gym') {
+    wpUrl = 'url("https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=1200&auto=format&fit=crop")';
+  } else if (wp === 'deep_space') {
+    wpUrl = 'url("https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?q=80&w=1200&auto=format&fit=crop")';
+  } else if (wp === 'slate_mesh') {
+    wpUrl = 'url("https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200&auto=format&fit=crop")';
+  } else if (wp === 'high_contrast') {
+    wpUrl = 'url("https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1200&auto=format&fit=crop")';
+  } else if (wp.startsWith('data:image/') || wp.startsWith('http://') || wp.startsWith('https://')) {
+    wpUrl = `url("${wp}")`;
+  }
+
+  if (wp === 'default' || wpUrl === 'none') {
+    document.body.style.removeProperty('--app-wallpaper');
+    document.body.classList.remove('has-custom-wallpaper');
+  } else {
+    document.body.style.setProperty('--app-wallpaper', wpUrl);
+    document.body.classList.add('has-custom-wallpaper');
+  }
+
+  const wpCards = document.querySelectorAll('.wallpaper-preset-card');
+  wpCards.forEach(c => {
+    if (c.dataset.wallpaper === wp || (c.dataset.wallpaper === 'custom' && wp.startsWith('data:image/'))) {
+      c.classList.add('active');
+      if (c.dataset.wallpaper === 'custom' && wp.startsWith('data:image/')) {
+        const customPreview = document.getElementById('wp-custom-preview');
+        if (customPreview) {
+          customPreview.style.backgroundImage = `url("${wp}")`;
+          customPreview.textContent = '';
+        }
+      }
+    } else {
+      c.classList.remove('active');
+    }
+  });
+}
+window.applyDisplayPreferences = applyDisplayPreferences;
+
 // Initializer for the settings tab preferences
 export function initPremiumSettings() {
   console.log("Initializing premium iOS Settings View...");
 
   // Apply startup display preferences
+  applyDisplayPreferences();
+
   if (state.outdoorMode) {
     document.body.classList.add('outdoor-mode');
   } else {
@@ -229,6 +324,143 @@ export function initPremiumSettings() {
       } else {
         document.body.classList.remove('hide-glows');
       }
+    });
+  }
+
+  // Bind Opacity Slider
+  const opacitySlider = document.getElementById('display-opacity-slider');
+  if (opacitySlider) {
+    opacitySlider.addEventListener('input', (e) => {
+      const val = parseInt(e.target.value);
+      state.displayOpacity = val;
+      SafeStorage.setItem('aura-display-opacity', val);
+      applyDisplayPreferences();
+    });
+    opacitySlider.addEventListener('change', () => {
+      import("../utils/db.js").then(({ saveFieldToCloud }) => {
+        saveFieldToCloud("displaySettings", {
+          opacity: state.displayOpacity,
+          accentColor: state.accentColor,
+          wallpaper: state.wallpaper
+        });
+      });
+    });
+  }
+
+  // Bind Accent Color Swatches & Custom Picker
+  const swatches = document.querySelectorAll('.accent-color-swatch');
+  swatches.forEach(s => {
+    s.addEventListener('click', (e) => {
+      const color = e.currentTarget.dataset.color;
+      if (!color) return;
+      state.accentColor = color;
+      SafeStorage.setItem('aura-accent-color', color);
+      applyDisplayPreferences();
+      import("../utils/db.js").then(({ saveFieldToCloud }) => {
+        saveFieldToCloud("displaySettings", {
+          opacity: state.displayOpacity,
+          accentColor: state.accentColor,
+          wallpaper: state.wallpaper
+        });
+      });
+      showPremiumToast(`צבע נושא עודכן! 🎨`, 'success');
+    });
+  });
+
+  const customColorPicker = document.getElementById('display-custom-color-picker');
+  if (customColorPicker) {
+    customColorPicker.addEventListener('input', (e) => {
+      const color = e.target.value;
+      state.accentColor = color;
+      SafeStorage.setItem('aura-accent-color', color);
+      applyDisplayPreferences();
+    });
+    customColorPicker.addEventListener('change', () => {
+      import("../utils/db.js").then(({ saveFieldToCloud }) => {
+        saveFieldToCloud("displaySettings", {
+          opacity: state.displayOpacity,
+          accentColor: state.accentColor,
+          wallpaper: state.wallpaper
+        });
+      });
+      showPremiumToast(`צבע מותאם אישית נשמר! 🎨`, 'success');
+    });
+  }
+
+  // Bind Wallpaper Preset Cards
+  const wpCards = document.querySelectorAll('.wallpaper-preset-card');
+  wpCards.forEach(card => {
+    card.addEventListener('click', (e) => {
+      const wp = e.currentTarget.dataset.wallpaper;
+      if (!wp || wp === 'custom') return;
+      state.wallpaper = wp;
+      SafeStorage.setItem('aura-wallpaper', wp);
+      applyDisplayPreferences();
+      import("../utils/db.js").then(({ saveFieldToCloud }) => {
+        saveFieldToCloud("displaySettings", {
+          opacity: state.displayOpacity,
+          accentColor: state.accentColor,
+          wallpaper: state.wallpaper
+        });
+      });
+      showPremiumToast(`תמונת רקע עודכנה! 🖼️`, 'success');
+    });
+  });
+
+  // Bind Wallpaper Image File Upload (with automatic canvas compression to Base64)
+  const wallpaperInput = document.getElementById('display-wallpaper-upload-input');
+  if (wallpaperInput) {
+    wallpaperInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      showPremiumToast("מעבד תמונה ואיכות... 🖼️", "info");
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          const MAX_WIDTH = 800;
+          const MAX_HEIGHT = 800;
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          const compressedBase64 = canvas.toDataURL('image/jpeg', 0.75);
+          state.wallpaper = compressedBase64;
+          SafeStorage.setItem('aura-wallpaper', compressedBase64);
+          applyDisplayPreferences();
+
+          import("../utils/db.js").then(({ saveFieldToCloud }) => {
+            saveFieldToCloud("displaySettings", {
+              opacity: state.displayOpacity,
+              accentColor: state.accentColor,
+              wallpaper: state.wallpaper
+            });
+          });
+
+          showPremiumToast(`תמונה אישית הועלתה ונשמרה בענן! 📸☁️`, 'success');
+        };
+        img.src = event.target.result;
+      };
+      reader.readAsDataURL(file);
     });
   }
 

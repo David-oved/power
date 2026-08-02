@@ -103,6 +103,9 @@ export const state = {
   // Display Settings
   outdoorMode: SafeStorage.getItem('aura-outdoor-mode') === 'true',
   showGlows: SafeStorage.getItem('aura-show-glows') !== 'false',
-  navStyle: SafeStorage.getItem('aura-nav-style') || 'floating'
+  navStyle: SafeStorage.getItem('aura-nav-style') || 'floating',
+  displayOpacity: parseInt(SafeStorage.getItem('aura-display-opacity') || '85'),
+  accentColor: SafeStorage.getItem('aura-accent-color') || '#007aff',
+  wallpaper: SafeStorage.getItem('aura-wallpaper') || 'default'
 };
 

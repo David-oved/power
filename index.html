@@ -875,6 +875,84 @@
                 </div>
               </div>
 
+              <!-- Accent Color Card Group -->
+              <div class="ios-settings-card-group">
+                <div class="ios-settings-group-title">צבע נושא ראשי (Primary Accent Color)</div>
+                <div class="ios-setting-row no-hover" style="flex-direction: column; align-items: stretch; gap: 12px; padding: 14px 16px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <label for="display-custom-color-picker" style="cursor: pointer; display: flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.06); padding: 4px 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); font-size: 0.8rem; font-weight: 700; color: var(--text-main);">
+                      <span>🎨 בחר צבע אישי</span>
+                      <input type="color" id="display-custom-color-picker" value="#007aff" style="width: 24px; height: 24px; border: none; cursor: pointer; background: none; border-radius: 50%;">
+                    </label>
+                    <span class="ios-row-label">גוון ניאון ראשי</span>
+                  </div>
+                  <div class="accent-color-palette" style="display: flex; gap: 10px; justify-content: space-between; align-items: center; width: 100%; direction: ltr;">
+                    <button type="button" class="accent-color-swatch active" data-color="#007aff" title="Electric Blue" style="background: #007aff;"></button>
+                    <button type="button" class="accent-color-swatch" data-color="#a855f7" title="Neon Purple" style="background: #a855f7;"></button>
+                    <button type="button" class="accent-color-swatch" data-color="#22c55e" title="Toxic Green" style="background: #22c55e;"></button>
+                    <button type="button" class="accent-color-swatch" data-color="#f97316" title="Sunset Orange" style="background: #f97316;"></button>
+                    <button type="button" class="accent-color-swatch" data-color="#ec4899" title="Neon Magenta" style="background: #ec4899;"></button>
+                    <button type="button" class="accent-color-swatch" data-color="#06b6d4" title="Crystal Cyan" style="background: #06b6d4;"></button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Opacity Slider Card Group -->
+              <div class="ios-settings-card-group">
+                <div class="ios-settings-group-title">שקיפות אלמנטים וכרטיסים</div>
+                <div class="ios-setting-row no-hover" style="flex-direction: column; align-items: stretch; gap: 10px; padding: 14px 16px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span id="display-opacity-value-text" style="font-weight: 800; font-size: 0.95rem; color: var(--electric-blue-light, #60a5fa);">85%</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                      <span class="ios-row-icon-badge" style="background-color: #30b0c7;">💧</span>
+                      <span class="ios-row-label">שקיפות זכוכית (0% שקוף - 100% אטום)</span>
+                    </div>
+                  </div>
+                  <input type="range" id="display-opacity-slider" min="0" max="100" value="85" class="ios-opacity-slider" style="width: 100%; height: 8px; border-radius: 4px; accent-color: var(--electric-blue-light, #60a5fa); cursor: pointer;">
+                </div>
+              </div>
+
+              <!-- Wallpaper Card Group -->
+              <div class="ios-settings-card-group">
+                <div class="ios-settings-group-title">תמונת רקע לאפליקציה (עם גיבוי בענן)</div>
+                <div class="ios-setting-row no-hover" style="flex-direction: column; align-items: stretch; gap: 12px; padding: 14px 16px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <label for="display-wallpaper-upload-input" class="btn-upload-wallpaper" style="cursor: pointer; background: linear-gradient(135deg, var(--electric-blue, #007aff) 0%, var(--electric-blue-light, #60a5fa) 100%); color: #fff; padding: 6px 12px; border-radius: 12px; font-size: 0.8rem; font-weight: 800; display: flex; align-items: center; gap: 6px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+                      <span>📷 העלאת תמונה מגלריה</span>
+                      <input type="file" id="display-wallpaper-upload-input" accept="image/*" style="display: none;">
+                    </label>
+                    <span class="ios-row-label">רקע מותאם אישית</span>
+                  </div>
+
+                  <div class="wallpaper-presets-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%;">
+                    <button type="button" class="wallpaper-preset-card active" data-wallpaper="default">
+                      <span class="wp-preview wp-default"></span>
+                      <span class="wp-title">ללא (כהה)</span>
+                    </button>
+                    <button type="button" class="wallpaper-preset-card" data-wallpaper="cyberpunk_gym">
+                      <span class="wp-preview wp-cyberpunk"></span>
+                      <span class="wp-title">אימון ניאון</span>
+                    </button>
+                    <button type="button" class="wallpaper-preset-card" data-wallpaper="deep_space">
+                      <span class="wp-preview wp-space"></span>
+                      <span class="wp-title">ערפילית</span>
+                    </button>
+                    <button type="button" class="wallpaper-preset-card" data-wallpaper="slate_mesh">
+                      <span class="wp-preview wp-mesh"></span>
+                      <span class="wp-title">רשת פלדה</span>
+                    </button>
+                    <button type="button" class="wallpaper-preset-card" data-wallpaper="high_contrast">
+                      <span class="wp-preview wp-contrast"></span>
+                      <span class="wp-title">אבסטרקט</span>
+                    </button>
+                    <button type="button" id="wallpaper-custom-card" class="wallpaper-preset-card" data-wallpaper="custom">
+                      <span id="wp-custom-preview" class="wp-preview wp-custom-placeholder">🖼️</span>
+                      <span class="wp-title">תמונה שלי</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
               <!-- Nav Bar Style Picker Card Group -->
               <div class="ios-settings-card-group">
                 <div class="ios-settings-group-title">סגנון סרגל ניווט תחתון</div>

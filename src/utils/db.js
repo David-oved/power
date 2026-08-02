@@ -140,6 +140,12 @@ export async function uploadLocalDataToCloud(uid) {
     if (messages) data.messages = JSON.parse(messages);
   }
 
+  data.displaySettings = {
+    opacity: state.displayOpacity,
+    accentColor: state.accentColor,
+    wallpaper: state.wallpaper
+  };
+
   const firestoreDb = getDb();
   if (!firestoreDb) return;
   try {
@@ -332,12 +338,37 @@ export async function syncUserSession(uid, isManual = false) {
       state.userMessages = mergedMessages;
     }
 
+    // 9. Sync Display Settings (Opacity, Wallpaper, Accent Color)
+    if (cloudData.displaySettings) {
+      const ds = cloudData.displaySettings;
+      if (ds.opacity !== undefined) {
+        state.displayOpacity = ds.opacity;
+        SafeStorage.setItem('aura-display-opacity', ds.opacity);
+      }
+      if (ds.accentColor) {
+        state.accentColor = ds.accentColor;
+        SafeStorage.setItem('aura-accent-color', ds.accentColor);
+      }
+      if (ds.wallpaper) {
+        state.wallpaper = ds.wallpaper;
+        SafeStorage.setItem('aura-wallpaper', ds.wallpaper);
+      }
+      if (window.applyDisplayPreferences) {
+        window.applyDisplayPreferences();
+      }
+    }
+
     // Upload merged data back to the cloud in case local had items the cloud didn't
     if (state.cloudSyncEnabled) {
       const mergedDoc = {
         email,
         displayName,
         role,
+        displaySettings: {
+          opacity: state.displayOpacity,
+          accentColor: state.accentColor,
+          wallpaper: state.wallpaper
+        },
         updatedAt: Date.now()
       };
       if (toggles.workoutHistory !== false) {
