@@ -174,8 +174,15 @@ function showUpdateToast(waitingWorker) {
 export function switchTab(targetTab) {
   if (!targetTab) return;
 
-  // Track previous tab for back button action (unless navigating into analytics sub-view)
-  if (state.lastActiveMainTab !== targetTab && targetTab !== 'analytics') {
+  if (targetTab === 'analytics') {
+    // When entering analytics sub-view, preserve the active main tab (workouts or settings)
+    if (state.lastActiveMainTab && state.lastActiveMainTab !== 'analytics') {
+      state.previousTab = state.lastActiveMainTab;
+    } else if (!state.previousTab) {
+      state.previousTab = 'workouts';
+    }
+  } else {
+    // Store active main tab
     state.previousTab = state.lastActiveMainTab || 'settings';
     state.lastActiveMainTab = targetTab;
   }
@@ -211,18 +218,25 @@ export function switchTab(targetTab) {
   // Switch between main navigation and analytics sub-navigation bar
   if (targetTab === 'analytics') {
     if (mainNav) mainNav.classList.add('nav-hidden');
-    if (subNav) subNav.classList.remove('nav-hidden');
+    if (subNav) {
+      subNav.classList.remove('nav-hidden');
+      subNav.classList.add('sub-nav-active');
+    }
     if (window.renderWorkoutsLog) window.renderWorkoutsLog();
   } else {
-    if (subNav) subNav.classList.add('nav-hidden');
+    if (subNav) {
+      subNav.classList.add('nav-hidden');
+      subNav.classList.remove('sub-nav-active');
+    }
     if (mainNav) mainNav.classList.remove('nav-hidden');
   }
 
-  console.log(`Navigated to tab: ${targetTab}`);
+  console.log(`Navigated to tab: ${targetTab}, previousTab: ${state.previousTab}`);
 }
 
 export function goBackNav() {
-  const destination = (state.previousTab && state.previousTab !== 'analytics') ? state.previousTab : 'settings';
+  const destination = (state.previousTab && state.previousTab !== 'analytics') ? state.previousTab : 'workouts';
+  console.log(`goBackNav returning to destination: ${destination}`);
   switchTab(destination);
 }
 

@@ -1,5 +1,5 @@
-const CACHE_NAME = '1.6.0';
-const UPDATE_DESCRIPTION = 'שדרוג מקיף: מנוע ניווט תחתון חדשני, יציב ומהיר עם תמיכה מלאה בהחלפת סגנון תצוגה';
+const CACHE_NAME = '1.6.1';
+const UPDATE_DESCRIPTION = 'תיקון קריטי: כפתור חזרה יציב בתת-סרגל המדדים עם אנימציית כניסה מרהיבה מהצד';
 
 const ASSETS = [
   './',

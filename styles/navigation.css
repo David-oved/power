@@ -156,6 +156,59 @@ body.authenticated .ios-bottom-nav:not(.nav-hidden) {
 }
 
 /* ==========================================================================
+   Sub-Navigation Bar Back Button (Appears with smooth animation in sub-toolbar)
+   ========================================================================== */
+
+.nav-tab.sub-nav-back {
+  background: rgba(0, 122, 255, 0.14) !important;
+  border: 1px solid rgba(96, 165, 250, 0.35) !important;
+  border-radius: 14px !important;
+  padding: 4px 14px !important;
+  margin-left: 6px !important;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  animation: sub-nav-back-slide-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.nav-tab.sub-nav-back:hover {
+  background: rgba(0, 122, 255, 0.25) !important;
+  border-color: rgba(96, 165, 250, 0.65) !important;
+  transform: scale(1.05) !important;
+}
+
+.nav-tab.sub-nav-back:active {
+  transform: scale(0.92) !important;
+  background: rgba(0, 122, 255, 0.35) !important;
+}
+
+.nav-tab.sub-nav-back .tab-icon {
+  color: #60a5fa !important;
+  opacity: 1 !important;
+  filter: none !important;
+  transition: transform 0.2s ease !important;
+}
+
+.nav-tab.sub-nav-back:hover .tab-icon {
+  transform: translateX(3px) !important;
+}
+
+.nav-tab.sub-nav-back .tab-label {
+  color: #60a5fa !important;
+  font-weight: 700 !important;
+  opacity: 1 !important;
+}
+
+@keyframes sub-nav-back-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(25px) scale(0.75);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+/* ==========================================================================
    Fixed Mode (.nav-style-fixed) - Switchable from Settings Screen
    ========================================================================== */
 
