@@ -213,3 +213,22 @@ export function showAuraToast(message) {
     }, 400);
   }, 2500);
 }
+
+// Background Activity Indicator & Workout Refresh Badge Controller
+export function setBgSyncing(isSyncing, messageText) {
+  const topBar = document.getElementById('top-bg-sync-bar');
+  const topText = document.getElementById('top-sync-text');
+  const workoutBadge = document.getElementById('workout-sync-badge');
+  const workoutBadgeText = document.getElementById('workout-sync-badge-text');
+
+  if (isSyncing) {
+    if (topText) topText.textContent = messageText || 'מסנכרן תרגילים ונתונים ברקע... 🔄';
+    if (topBar) topBar.classList.remove('hide');
+    if (workoutBadgeText) workoutBadgeText.textContent = messageText || 'מעדכן תרגילים מהענן... ⚡';
+    if (workoutBadge) workoutBadge.classList.remove('hide');
+  } else {
+    if (topBar) topBar.classList.add('hide');
+    if (workoutBadge) workoutBadge.classList.add('hide');
+  }
+}
+

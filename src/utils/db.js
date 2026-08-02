@@ -172,6 +172,9 @@ export async function syncUserSession(uid, isManual = false) {
     state.userRole = (email && email.toLowerCase() === 'wbddwd55@gmail.com') ? 'admin' : 'user';
     return;
   }
+  
+  setBgSyncing(true, 'מסנכרן תרגילים ונתונים מהענן... ☁️');
+
   try {
     console.log("Starting cloud data synchronization for uid:", uid);
     if (isManual) {
@@ -365,6 +368,8 @@ export async function syncUserSession(uid, isManual = false) {
     if (isManual) {
       showPremiumToast("סנכרון הענן נכשל. עובד במצב לא מקוון.", "error");
     }
+  } finally {
+    setBgSyncing(false);
   }
 }
 

@@ -1,5 +1,5 @@
-const CACHE_NAME = '1.5.0';
-const UPDATE_DESCRIPTION = 'שדרוג מטורף למסך הטעינה: פתיחה מיידית, אינדיקטור התקדמות, עיצוב Glassmorphism יוקרתי ומנגנון ניסיון חוזר לשגיאות';
+const CACHE_NAME = '1.5.1';
+const UPDATE_DESCRIPTION = 'מד טעינה צף עליון ותג רענון תרגילים בזמן אמת עבור תהליכי רקע';
 
 const ASSETS = [
   './',
