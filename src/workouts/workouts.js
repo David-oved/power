@@ -867,12 +867,12 @@ export function renderExercisePickerList() {
     item.style.flex = '1';
     
     const catStyle = categoryColors[ex.category] || { bg: 'rgba(255,255,255,0.06)', color: 'var(--text-muted)' };
-    const emoji = ex.emoji ? `<span class="ex-list-emoji">${ex.emoji}</span>` : '';
+    const iconSvg = `<span class="ex-list-emoji" style="display: flex; align-items: center; justify-content: center; color: ${catStyle.color};">${getCategoryIcon(ex.category)}</span>`;
     const isFav = state.favoriteExercises.includes(ex.name);
     
     item.innerHTML = `
       <div class="ex-list-info">
-        ${emoji}
+        ${iconSvg}
         <span class="ex-list-name">${ex.name}</span>
       </div>
       <div class="ex-list-right">
@@ -906,7 +906,7 @@ export function renderExercisePickerList() {
         setupMetricSelectorModal('הגדרות תרגיל', 3, 90, ['weight', 'reps']);
 
         const confirmBtnSpan = document.querySelector('#confirm-add-exercise-btn span');
-        if (confirmBtnSpan) confirmBtnSpan.textContent = '✨ הוסף תרגיל לאימון';
+        if (confirmBtnSpan) confirmBtnSpan.textContent = 'הוסף תרגיל לאימון';
 
         const metricModal = document.getElementById('metric-selector-modal');
         if (metricModal) metricModal.classList.remove('hide');
@@ -917,21 +917,23 @@ export function renderExercisePickerList() {
       }
     });
 
+    const renderStarIcon = (active) => `<svg viewBox="0 0 24 24" width="16" height="16" fill="${active ? '#ffcc00' : 'none'}" stroke="${active ? '#ffcc00' : 'var(--text-muted)'}" stroke-width="2" class="custom-svg-icon"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`;
+
     const starBtn = document.createElement('button');
     starBtn.className = `ex-fav-star-btn ${isFav ? 'active' : ''}`;
     starBtn.title = isFav ? 'הסר ממועדפים' : 'הוסף למועדפים';
-    starBtn.innerHTML = isFav ? '⭐' : '☆';
+    starBtn.innerHTML = renderStarIcon(isFav);
     starBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       const idx = state.favoriteExercises.indexOf(ex.name);
       if (idx > -1) {
         state.favoriteExercises.splice(idx, 1);
-        starBtn.innerHTML = '☆';
+        starBtn.innerHTML = renderStarIcon(false);
         starBtn.classList.remove('active');
         starBtn.title = 'הוסף למועדפים';
       } else {
         state.favoriteExercises.push(ex.name);
-        starBtn.innerHTML = '⭐';
+        starBtn.innerHTML = renderStarIcon(true);
         starBtn.classList.add('active');
         starBtn.title = 'הסר ממועדפים';
       }

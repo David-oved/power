@@ -1,5 +1,5 @@
-const CACHE_NAME = '1.3.9';
-const UPDATE_DESCRIPTION = 'הסרת אימוג׳י המערכת והטמעת מערכת אייקוני SVG וקטוריים ברמת פרימיום';
+const CACHE_NAME = '1.4.0';
+const UPDATE_DESCRIPTION = 'שדרוג מטורף לסרגלי הניווט והתרגילים עם אייקוני SVG וקטוריים מרהיבים וזוהרים';
 
 const ASSETS = [
   './',
