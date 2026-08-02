@@ -231,51 +231,104 @@ export function initPremiumSettings() {
     });
   }
 
-  // Nav Bar Style Segmented Picker binding
-  const navStyleSegmented = document.getElementById('nav-style-segmented-control');
+  // Nav Bar Style Modal Sheet Picker binding
+  const NAV_STYLES_CONFIG = [
+    {
+      id: 'floating',
+      title: 'מרחף (דינמי) 🎈',
+      desc: 'סרגל צף מעל תחתית המסך המתכווץ בעת גלילה ומשחרר שטח צפייה מרבי',
+      icon: '🎈'
+    },
+    {
+      id: 'fixed',
+      title: 'קבוע לתחתית 📌',
+      desc: 'סרגל עוגן קבוע ומלא בתחתית המסך ללא התכווצות בעת גלילה',
+      icon: '📌'
+    }
+  ];
+
+  const navStyleBtn = document.getElementById('go-to-nav-style-modal-btn');
   const navStyleDetailText = document.getElementById('nav-style-detail-text');
 
   const updateNavStyleUI = (style) => {
-    if (!navStyleSegmented) return;
-    const btns = navStyleSegmented.querySelectorAll('.segmented-btn');
-    btns.forEach(btn => {
-      if (btn.dataset.navStyle === style) {
-        btn.classList.add('active');
-      } else {
-        btn.classList.remove('active');
-      }
-    });
+    const matched = NAV_STYLES_CONFIG.find(item => item.id === style) || NAV_STYLES_CONFIG[0];
     if (navStyleDetailText) {
-      navStyleDetailText.textContent = style === 'fixed' ? 'קבוע לתחתית 📌' : 'מרחף (דינמי) 🎈';
+      navStyleDetailText.textContent = matched.title;
     }
   };
 
-  if (navStyleSegmented) {
-    updateNavStyleUI(state.navStyle);
-    const btns = navStyleSegmented.querySelectorAll('.segmented-btn');
-    btns.forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const selectedStyle = btn.dataset.navStyle || 'floating';
-        updateNavStyleUI(selectedStyle);
+  updateNavStyleUI(state.navStyle);
+
+  if (navStyleBtn) {
+    navStyleBtn.addEventListener('click', () => {
+      const modal = document.getElementById('ios-selection-modal');
+      const titleEl = document.getElementById('ios-modal-title');
+      const optionsContainer = document.getElementById('ios-modal-options');
+      const closeBtn = document.getElementById('ios-modal-close');
+
+      if (!modal || !optionsContainer) return;
+
+      if (titleEl) titleEl.textContent = 'בחר סגנון סרגל ניווט';
+      optionsContainer.innerHTML = '';
+
+      const closeModal = () => {
+        modal.classList.remove('show');
+        modal.classList.add('hide');
+      };
+
+      NAV_STYLES_CONFIG.forEach(item => {
+        const isSelected = item.id === state.navStyle;
+        const optionRow = document.createElement('div');
+        optionRow.className = `ios-modal-option ${isSelected ? 'selected' : ''}`;
+        optionRow.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; margin-bottom: 8px; cursor: pointer; border-radius: 14px; pointer-events: auto !important; position: relative; z-index: 100002;';
         
-        state.navStyle = selectedStyle;
-        SafeStorage.setItem('aura-nav-style', selectedStyle);
-        if (selectedStyle === 'fixed') {
-          document.body.classList.add('nav-style-fixed');
-        } else {
-          document.body.classList.remove('nav-style-fixed');
-        }
-        if (window.applyNavStyle) {
-          window.applyNavStyle(selectedStyle);
-        }
-        showPremiumToast(
-          selectedStyle === 'fixed' 
-            ? 'סגנון הסרגל עודכן: קבוע לתחתית המסך 📌' 
-            : 'סגנון הסרגל עודכן: מרחף ודינמי 🎈',
-          'success'
-        );
+        optionRow.innerHTML = `
+          <div style="display: flex; align-items: center; gap: 12px; direction: rtl; text-align: right; pointer-events: none;">
+            <span style="font-size: 1.4rem; pointer-events: none;">${item.icon}</span>
+            <div style="pointer-events: none;">
+              <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 2px; pointer-events: none;">${item.title}</div>
+              <div style="font-size: 0.78rem; opacity: 0.8; line-height: 1.3; pointer-events: none;">${item.desc}</div>
+            </div>
+          </div>
+          ${isSelected ? '<span class="ios-modal-option-check" style="color: #34c759; font-weight: bold; font-size: 1.2rem; pointer-events: none;">✓</span>' : ''}
+        `;
+
+        const selectNavStyleOption = (e) => {
+          if (e) {
+            e.stopPropagation();
+          }
+          
+          state.navStyle = item.id;
+          SafeStorage.setItem('aura-nav-style', item.id);
+          updateNavStyleUI(item.id);
+
+          if (window.applyNavStyle) {
+            window.applyNavStyle(item.id);
+          } else {
+            if (item.id === 'fixed') {
+              document.body.classList.add('nav-style-fixed');
+            } else {
+              document.body.classList.remove('nav-style-fixed');
+            }
+          }
+
+          closeModal();
+          showPremiumToast(`סגנון הסרגל עודכן: ${item.title}`, 'success');
+        };
+
+        optionRow.addEventListener('click', selectNavStyleOption);
+
+        optionsContainer.appendChild(optionRow);
       });
+
+      // Show modal overlay
+      modal.classList.add('show');
+      modal.classList.remove('hide');
+
+      if (closeBtn) closeBtn.onclick = closeModal;
+      modal.onclick = (e) => {
+        if (e.target === modal) closeModal();
+      };
     });
   }
 

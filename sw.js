@@ -1,5 +1,5 @@
-const CACHE_NAME = '1.3.7';
-const UPDATE_DESCRIPTION = 'פתרון מלא ללולאת הרענון ומסך הטעינה';
+const CACHE_NAME = '1.3.8';
+const UPDATE_DESCRIPTION = 'שדרוג מנגנון בחירת סגנון סרגל הניווט לתפריט מודולרי ותיקון מצב קבוע';
 
 const ASSETS = [
   './',

@@ -1243,9 +1243,11 @@ body:not(.light-theme) .ios-settings-header {
 }
 
 .ios-modal-overlay.show {
-  opacity: 1;
-  visibility: visible;
-  pointer-events: auto;
+  display: flex !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  z-index: 100000 !important;
 }
 
 .ios-modal-overlay.hide,
@@ -1268,10 +1270,14 @@ body:not(.light-theme) .ios-settings-header {
   transform: translateY(100%);
   transition: transform 0.3s ease;
   direction: rtl;
+  pointer-events: auto !important;
 }
 
 .ios-modal-overlay.show .ios-modal-card {
-  transform: translateY(0);
+  transform: translateY(0) !important;
+  pointer-events: auto !important;
+  position: relative !important;
+  z-index: 100001 !important;
 }
 
 .ios-modal-header {
