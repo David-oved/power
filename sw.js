@@ -1,5 +1,5 @@
-const CACHE_NAME = '1.5.2';
-const UPDATE_DESCRIPTION = 'תיקון קריטי: טעינה מקומית מיידית של תרגילים ורינדור אוטומטי בסיום סנכרון הענן';
+const CACHE_NAME = '1.6.0';
+const UPDATE_DESCRIPTION = 'שדרוג מקיף: מנוע ניווט תחתון חדשני, יציב ומהיר עם תמיכה מלאה בהחלפת סגנון תצוגה';
 
 const ASSETS = [
   './',

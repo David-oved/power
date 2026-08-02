@@ -3912,20 +3912,14 @@ export function initAnalyticsTab() {
   // Metrics Sub-Navigation Back Button Handler
   const subNavBackBtn = document.getElementById('sub-nav-back-btn');
   if (subNavBackBtn) {
-    subNavBackBtn.addEventListener('click', (e) => {
+    subNavBackBtn.onclick = (e) => {
       e.stopPropagation();
-      const mainNav = document.querySelector('.ios-bottom-nav');
-      const subNav = document.getElementById('metrics-sub-nav');
-      if (subNav) subNav.classList.add('nav-hidden');
-      if (mainNav) mainNav.classList.remove('nav-hidden');
-
-      // Return to the last active main navigation tab
-      const targetTab = state.lastActiveMainTab || 'settings';
-      const mainTabBtn = document.querySelector(`.ios-bottom-nav .nav-tab[data-tab="${targetTab}"]`);
-      if (mainTabBtn) {
-        mainTabBtn.click();
+      if (window.goBackNav) {
+        window.goBackNav();
+      } else if (window.switchTab) {
+        window.switchTab('settings');
       }
-    });
+    };
   }
 
   // Log book switcher

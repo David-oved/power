@@ -168,197 +168,123 @@ function showUpdateToast(waitingWorker) {
 
 
 // ==========================================================================
-// iOS Premium Bottom Navigation Bar Switcher & Collapsible UX
+// AuraApp Unified Navigation Controller Engine
 // ==========================================================================
-let autoCollapseTimeout = null;
+
+export function switchTab(targetTab) {
+  if (!targetTab) return;
+
+  // Track previous tab for back button action (unless navigating into analytics sub-view)
+  if (state.lastActiveMainTab !== targetTab && targetTab !== 'analytics') {
+    state.previousTab = state.lastActiveMainTab || 'settings';
+    state.lastActiveMainTab = targetTab;
+  }
+
+  const mainNav = document.getElementById('app-bottom-nav') || document.querySelector('.ios-bottom-nav');
+  const subNav = document.getElementById('metrics-sub-nav');
+  const mainTabs = mainNav ? mainNav.querySelectorAll('.nav-tab[data-tab]') : [];
+  const tabPanes = document.querySelectorAll('.tab-content-container .tab-pane');
+
+  // Update active status on tab buttons
+  mainTabs.forEach(tab => {
+    if (tab.dataset.tab === targetTab) {
+      tab.classList.add('active');
+    } else {
+      tab.classList.remove('active');
+    }
+  });
+
+  // Activate target tab pane
+  window.scrollTo(0, 0);
+  tabPanes.forEach(pane => {
+    pane.classList.remove('active');
+    if (pane.id === `tab-${targetTab}`) {
+      pane.classList.add('active');
+      pane.scrollTop = 0;
+
+      // Reset scroll wrappers inside pane
+      const innerScrolls = pane.querySelectorAll('.ios-settings-scroll-container, .ios-analytics-scroll-container, .exercises-list-container, .workout-history-list');
+      innerScrolls.forEach(c => c.scrollTop = 0);
+    }
+  });
+
+  // Switch between main navigation and analytics sub-navigation bar
+  if (targetTab === 'analytics') {
+    if (mainNav) mainNav.classList.add('nav-hidden');
+    if (subNav) subNav.classList.remove('nav-hidden');
+    if (window.renderWorkoutsLog) window.renderWorkoutsLog();
+  } else {
+    if (subNav) subNav.classList.add('nav-hidden');
+    if (mainNav) mainNav.classList.remove('nav-hidden');
+  }
+
+  console.log(`Navigated to tab: ${targetTab}`);
+}
+
+export function goBackNav() {
+  const destination = (state.previousTab && state.previousTab !== 'analytics') ? state.previousTab : 'settings';
+  switchTab(destination);
+}
 
 export function applyNavStyle(style) {
-  state.navStyle = style || 'floating';
-  SafeStorage.setItem('aura-nav-style', state.navStyle);
-  
-  const scrollContainers = document.querySelectorAll('.ios-settings-scroll-container, .ios-scroll-container');
+  const targetStyle = (style === 'fixed') ? 'fixed' : 'floating';
+  state.navStyle = targetStyle;
+  SafeStorage.setItem('aura-nav-style', targetStyle);
+
+  const scrollContainers = document.querySelectorAll('.ios-settings-scroll-container, .ios-analytics-scroll-container, .exercises-list-container, .tab-pane');
   scrollContainers.forEach(el => {
-    if (state.navStyle === 'fixed') {
+    if (targetStyle === 'fixed') {
       el.style.setProperty('padding-bottom', 'calc(90px + env(safe-area-inset-bottom, 16px))', 'important');
     } else {
       el.style.setProperty('padding-bottom', 'calc(110px + env(safe-area-inset-bottom, 24px))', 'important');
     }
   });
 
-  const allNavBars = document.querySelectorAll('.ios-bottom-nav');
-
-  if (state.navStyle === 'fixed') {
+  if (targetStyle === 'fixed') {
     document.body.classList.add('nav-style-fixed');
-    allNavBars.forEach(nav => nav.classList.remove('collapsed'));
-    const applyNavMenuToggleBtn = document.getElementById('nav-menu-toggle-btn');
-    if (applyNavMenuToggleBtn) applyNavMenuToggleBtn.classList.add('hide');
-    if (autoCollapseTimeout) {
-      clearTimeout(autoCollapseTimeout);
-      autoCollapseTimeout = null;
-    }
   } else {
     document.body.classList.remove('nav-style-fixed');
-    expandNav();
   }
-}
-window.applyNavStyle = applyNavStyle;
-
-export function collapseNav() {
-  if (state.navStyle === 'fixed' || document.body.classList.contains('nav-style-fixed')) return;
-  const bottomNav = document.querySelector('.ios-bottom-nav');
-  const collapseNavMenuToggleBtn = document.getElementById('nav-menu-toggle-btn');
-  if (bottomNav) {
-    bottomNav.classList.add('collapsed');
-    if (collapseNavMenuToggleBtn) collapseNavMenuToggleBtn.classList.remove('hide');
-  }
-  if (autoCollapseTimeout) {
-    clearTimeout(autoCollapseTimeout);
-    autoCollapseTimeout = null;
-  }
-}
-
-export function expandNav() {
-  const allNavBars = document.querySelectorAll('.ios-bottom-nav');
-  const expandNavMenuToggleBtn = document.getElementById('nav-menu-toggle-btn');
-  if (state.navStyle === 'fixed' || document.body.classList.contains('nav-style-fixed')) {
-    allNavBars.forEach(nav => nav.classList.remove('collapsed'));
-    if (expandNavMenuToggleBtn) expandNavMenuToggleBtn.classList.add('hide');
-    return;
-  }
-  const bottomNav = document.querySelector('.ios-bottom-nav');
-  if (bottomNav) {
-    bottomNav.classList.remove('collapsed');
-    if (expandNavMenuToggleBtn) expandNavMenuToggleBtn.classList.add('hide');
-  }
-  if (autoCollapseTimeout) {
-    clearTimeout(autoCollapseTimeout);
-  }
-  autoCollapseTimeout = setTimeout(() => {
-    collapseNav();
-  }, 5000);
 }
 
 export function resetTabs() {
-  const navTabs = document.querySelectorAll('.ios-bottom-nav .nav-tab');
-  const tabPanes = document.querySelectorAll('.tab-content-container .tab-pane');
-  const mainNav = document.querySelector('.ios-bottom-nav');
-  const workoutsSubNav = document.getElementById('metrics-sub-nav');
-
-  if (mainNav) mainNav.classList.remove('nav-hidden');
-  if (workoutsSubNav) workoutsSubNav.classList.add('nav-hidden');
-  
-  navTabs.forEach(t => t.classList.remove('active'));
-  tabPanes.forEach(p => p.classList.remove('active'));
-  
-  const settingsTab = document.querySelector('.ios-bottom-nav .nav-tab[data-tab="settings"]');
-  if (settingsTab) settingsTab.classList.add('active');
-  
-  const settingsPane = document.getElementById('tab-settings');
-  if (settingsPane) settingsPane.classList.add('active');
-
-  expandNav();
+  state.previousTab = 'settings';
+  state.lastActiveMainTab = 'settings';
+  switchTab('settings');
 }
 
-// Binds tab clicks
+// Bind Global Navigation Functions & Event Listeners
+window.switchTab = switchTab;
+window.goBackNav = goBackNav;
+window.applyNavStyle = applyNavStyle;
+window.resetTabs = resetTabs;
+
+// Compatibility aliases for dormant/legacy code
+window.collapseNav = function() {};
+window.expandNav = function() {};
+
 onDOMReady(() => {
-  const navTabs = document.querySelectorAll('.ios-bottom-nav .nav-tab');
-  const tabPanes = document.querySelectorAll('.tab-content-container .tab-pane');
-
-  window.collapseNav = collapseNav;
-  window.expandNav = expandNav;
-  window.resetTabs = resetTabs;
-
-  navTabs.forEach((tab) => {
-    tab.addEventListener('click', (e) => {
-      e.stopPropagation();
-
-      const targetTab = tab.dataset.tab;
-      if (!targetTab) return;
-
-      if (targetTab !== 'analytics') {
-        state.lastActiveMainTab = targetTab;
-      }
-
-      navTabs.forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-
-      // Reset window viewport scroll to prevent page shift (UX fix)
-      window.scrollTo(0, 0);
-
-      tabPanes.forEach((pane) => {
-        pane.classList.remove('active');
-        if (pane.id === `tab-${targetTab}`) {
-          pane.classList.add('active');
-          pane.scrollTop = 0;
-          
-          // Reset internal scrollable wrappers
-          const innerScrolls = pane.querySelectorAll('.ios-settings-scroll-container, .ios-analytics-scroll-container, .exercises-list-container, .workout-history-list');
-          innerScrolls.forEach(c => c.scrollTop = 0);
+  // Bind tab clicks on main navigation bar
+  const mainNav = document.getElementById('app-bottom-nav') || document.querySelector('.ios-bottom-nav');
+  if (mainNav) {
+    const mainTabs = mainNav.querySelectorAll('.nav-tab[data-tab]');
+    mainTabs.forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const targetTab = tab.dataset.tab;
+        if (targetTab) {
+          switchTab(targetTab);
         }
       });
-      
-      console.log(`Switched to tab: ${targetTab}`);
-      const mainNav = document.querySelector('.ios-bottom-nav');
-      const workoutsSubNav = document.getElementById('metrics-sub-nav');
-
-      if (targetTab === 'analytics') {
-        if (mainNav) mainNav.classList.add('nav-hidden');
-        
-        if (workoutsSubNav) {
-          workoutsSubNav.classList.remove('nav-hidden');
-          if (workoutsSubNav.classList.contains('collapsed')) {
-            workoutsSubNav.classList.remove('collapsed');
-          }
-        }
-        const defaultSubTab = document.querySelector(`#metrics-sub-nav .nav-tab[data-sub-tab="${state.activeSubTab || 'workouts'}"]`);
-        if (defaultSubTab) {
-          defaultSubTab.click();
-        } else {
-          if (window.renderWorkoutsLog) window.renderWorkoutsLog();
-        }
-      } else {
-        if (mainNav) mainNav.classList.remove('nav-hidden');
-        if (workoutsSubNav) workoutsSubNav.classList.add('nav-hidden');
-      }
-
-      if (autoCollapseTimeout) {
-        clearTimeout(autoCollapseTimeout);
-        autoCollapseTimeout = null;
-      }
-      expandNav();
-    });
-  });
-
-  // Attach nav collapse trigger on scrolling inside tab content
-  const allPanes = document.querySelectorAll('.tab-content-container .tab-pane');
-  allPanes.forEach(pane => {
-    let scrollTimeout;
-    pane.addEventListener('scroll', () => {
-      if (!scrollTimeout) {
-        scrollTimeout = setTimeout(() => {
-          collapseNav();
-          scrollTimeout = null;
-        }, 150);
-      }
-    }, { passive: true });
-  });
-
-  const bottomNav = document.querySelector('.ios-bottom-nav');
-  const navMenuToggleBtn = document.getElementById('nav-menu-toggle-btn');
-
-  if (bottomNav) {
-    bottomNav.addEventListener('click', (e) => {
-      if (bottomNav.classList.contains('collapsed')) {
-        e.stopPropagation();
-        expandNav();
-      }
     });
   }
 
-  if (navMenuToggleBtn) {
-    navMenuToggleBtn.addEventListener('click', (e) => {
+  // Bind Back Button on metrics sub-navigation bar
+  const subNavBackBtn = document.getElementById('sub-nav-back-btn');
+  if (subNavBackBtn) {
+    subNavBackBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      expandNav();
+      goBackNav();
     });
   }
 });

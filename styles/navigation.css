@@ -3,59 +3,42 @@
    ========================================================================== */
 
 /* ==========================================================================
-   iOS 26 Floating Bottom Navigation Bar & Tabs
+   iOS Premium Bottom Navigation Bar (Floating Mode - Default)
    ========================================================================== */
 
 .ios-bottom-nav {
   position: fixed;
-  bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(20px + env(safe-area-inset-bottom, 0px));
   left: 50%;
   transform: translateX(-50%);
-  width: calc(100% - 48px);
+  width: calc(100% - 32px);
   max-width: 420px;
-  height: 52px;
-  background: rgba(20, 20, 24, 0.85);
+  height: 54px;
+  background: rgba(18, 18, 22, 0.88);
   backdrop-filter: blur(25px) saturate(200%);
   -webkit-backdrop-filter: blur(25px) saturate(200%);
-  border: 1.5px solid rgba(255, 255, 255, 0.08);
-  border-radius: 26px;
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  border-radius: 27px;
   box-shadow:
-    0 15px 35px rgba(0, 0, 0, 0.5),
-    0 0 1px rgba(255, 255, 255, 0.2) inset;
-  z-index: 1000;
-  display: none;
-  /* Hidden by default on auth screen */
-  overflow: visible;
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+    0 15px 35px rgba(0, 0, 0, 0.55),
+    0 0 1px rgba(255, 255, 255, 0.25) inset;
+  z-index: 9000;
+  display: none; /* Controlled by body.authenticated */
+  overflow: hidden;
+  pointer-events: auto !important;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease, bottom 0.3s ease !important;
 }
 
-.ios-bottom-nav.collapsed {
-  width: 52px !important;
-  height: 52px !important;
-  border-radius: 50% !important;
-  left: 24px !important;
-  transform: translateX(0) !important;
-  max-width: 52px !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  background: rgba(15, 15, 20, 0.95) !important;
-  border: 1.5px solid rgba(220, 38, 38, 0.5) !important;
+/* Auth state toggle */
+body.authenticated .ios-bottom-nav:not(.nav-hidden) {
+  display: block !important;
 }
 
-body.authenticated .ios-bottom-nav {
-  display: block;
-  animation: slide-up-nav 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes slide-up-nav {
-  from {
-    transform: translate(-50%, 80px);
-    opacity: 0;
-  }
-
-  to {
-    transform: translate(-50%, 0);
-    opacity: 1;
-  }
+/* Hidden sub-nav state */
+.ios-bottom-nav.nav-hidden {
+  display: none !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 .ios-bottom-nav .nav-container {
@@ -65,14 +48,7 @@ body.authenticated .ios-bottom-nav {
   padding: 0 12px;
   height: 100%;
   direction: rtl !important;
-  /* Workouts on the far right, Settings on the far left */
-  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1) 0.05s, visibility 0.25s cubic-bezier(0.16, 1, 0.3, 1) 0.05s;
-}
-
-.ios-bottom-nav.collapsed .nav-container {
-  opacity: 0 !important;
-  pointer-events: none !important;
-  visibility: hidden !important;
+  pointer-events: auto !important;
 }
 
 .ios-bottom-nav .nav-tab {
@@ -80,53 +56,59 @@ body.authenticated .ios-bottom-nav {
   border: none;
   position: relative;
   cursor: pointer;
-  padding: 2px 14px;
+  padding: 4px 16px;
+  min-height: 48px;
   height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   outline: none;
   -webkit-tap-highlight-color: transparent;
+  pointer-events: auto !important;
+  user-select: none;
 }
 
 .ios-bottom-nav .nav-tab:active {
-  transform: scale(0.88);
+  transform: scale(0.92);
+  opacity: 0.8;
 }
 
 .ios-bottom-nav .nav-tab .tab-icon-wrapper {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 2px;
+  pointer-events: none;
 }
 
 .ios-bottom-nav .nav-tab .tab-icon {
   font-size: 1.15rem;
-  opacity: 0.45;
-  transition: all 0.3s ease;
+  opacity: 0.5;
+  transition: all 0.25s ease;
   filter: grayscale(100%) brightness(0.8);
 }
 
 .ios-bottom-nav .nav-tab .tab-label {
-  font-size: 0.62rem;
+  font-size: 0.65rem;
   font-weight: 600;
-  color: var(--text-muted);
-  opacity: 0.5;
-  transition: all 0.3s ease;
-  font-family: 'Inter', sans-serif;
+  color: var(--text-muted, #94a3b8);
+  opacity: 0.6;
+  transition: all 0.25s ease;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 /* Active Tab Styles */
 .ios-bottom-nav .nav-tab.active .tab-icon {
   opacity: 1;
-  transform: scale(1.08);
+  transform: scale(1.1);
   filter: none;
 }
 
 .ios-bottom-nav .nav-tab.active .tab-label {
-  color: var(--electric-blue-light);
+  color: var(--electric-blue-light, #60a5fa);
   opacity: 1;
   font-weight: 700;
 }
@@ -138,13 +120,13 @@ body.authenticated .ios-bottom-nav {
   height: 26px;
   border-radius: 50%;
   padding: 1px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.15);
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .ios-bottom-nav .nav-tab.active .nav-avatar-wrapper {
-  background: linear-gradient(135deg, var(--electric-blue) 0%, var(--electric-blue-light) 100%);
-  box-shadow: 0 0 10px var(--electric-blue-glow-subtle);
+  background: linear-gradient(135deg, var(--electric-blue, #007aff) 0%, var(--electric-blue-light, #60a5fa) 100%);
+  box-shadow: 0 0 10px rgba(96, 165, 250, 0.4);
   transform: scale(1.08);
 }
 
@@ -154,7 +136,7 @@ body.authenticated .ios-bottom-nav {
   border-radius: 50%;
   object-fit: cover;
   border: 1px solid #090a0f;
-  background: var(--bg-card);
+  background: var(--bg-card, #1e293b);
 }
 
 .ios-bottom-nav .avatar-active-ring {
@@ -164,7 +146,7 @@ body.authenticated .ios-bottom-nav {
   right: 0;
   bottom: 0;
   border-radius: 50%;
-  border: 1.5px solid var(--electric-blue-light);
+  border: 1.5px solid var(--electric-blue-light, #60a5fa);
   opacity: 0;
   transition: opacity 0.3s ease;
 }
@@ -173,69 +155,11 @@ body.authenticated .ios-bottom-nav {
   opacity: 1;
 }
 
-/* Coming Soon Indicators */
-.ios-bottom-nav .coming-soon-dot {
-  position: absolute;
-  top: 4px;
-  right: 10px;
-  width: 4px;
-  height: 4px;
-  background: var(--electric-blue);
-  border-radius: 50%;
-  opacity: 0.35;
-}
-
-/* Floating Menu Toggle Button in Collapsed Circle */
-#nav-menu-toggle-btn {
-  position: absolute !important;
-  top: 50% !important;
-  left: 50% !important;
-  transform: translate(-50%, -50%) scale(0) !important;
-  width: 40px !important;
-  height: 40px !important;
-  border-radius: 50% !important;
-  background: transparent !important;
-  border: none !important;
-  color: #ffffff !important;
-  font-size: 1.35rem !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  cursor: pointer !important;
-  opacity: 0 !important;
-  pointer-events: none !important;
-  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
-  z-index: 1001 !important;
-}
-
-#nav-menu-toggle-btn:hover {
-  transform: translate(-50%, -50%) scale(1.15) !important;
-  color: var(--electric-blue-light) !important;
-}
-
-#nav-menu-toggle-btn:active {
-  transform: translate(-50%, -50%) scale(0.9) !important;
-}
-
-.ios-bottom-nav.collapsed #nav-menu-toggle-btn {
-  opacity: 1 !important;
-  pointer-events: auto !important;
-  transform: translate(-50%, -50%) scale(1) !important;
-}
-
-.ios-bottom-nav:not(.collapsed) #nav-menu-toggle-btn {
-  opacity: 0 !important;
-  pointer-events: none !important;
-  transform: translate(-50%, -50%) scale(0) !important;
-}
-
 /* ==========================================================================
-   Nav Bar Style - Fixed Dock Mode (.nav-style-fixed)
+   Fixed Mode (.nav-style-fixed) - Switchable from Settings Screen
    ========================================================================== */
-body.nav-style-fixed .ios-bottom-nav,
-body.nav-style-fixed .ios-bottom-nav.collapsed,
-body.nav-style-fixed #metrics-sub-nav,
-body.nav-style-fixed #metrics-sub-nav.collapsed {
+
+body.nav-style-fixed .ios-bottom-nav {
   position: fixed !important;
   bottom: 0 !important;
   left: 0 !important;
@@ -244,56 +168,37 @@ body.nav-style-fixed #metrics-sub-nav.collapsed {
   width: 100% !important;
   max-width: 100% !important;
   height: auto !important;
-  min-height: 56px !important;
-  border-radius: 18px 18px 0 0 !important;
+  min-height: 58px !important;
+  border-radius: 20px 20px 0 0 !important;
   background: rgba(14, 14, 18, 0.96) !important;
   backdrop-filter: blur(25px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(25px) saturate(180%) !important;
   border: none !important;
-  border-top: 1.5px solid rgba(228, 228, 230, 0.18) !important;
-  box-shadow: 0 -6px 30px rgba(0, 0, 0, 0.6) !important;
-  padding-bottom: max(env(safe-area-inset-bottom), 6px) !important;
-  z-index: 1000 !important;
+  border-top: 1.5px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.65) !important;
+  padding-bottom: max(env(safe-area-inset-bottom, 8px), 8px) !important;
   margin: 0 !important;
-  opacity: 1 !important;
+  z-index: 9000 !important;
   pointer-events: auto !important;
-  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease !important;
 }
 
-body.nav-style-fixed #metrics-sub-nav,
-body.nav-style-fixed #metrics-sub-nav.collapsed {
-  z-index: 1200 !important;
+body.nav-style-fixed #metrics-sub-nav {
+  z-index: 9500 !important;
 }
 
-body.nav-style-fixed #nav-menu-toggle-btn {
-  display: none !important;
-}
-
-body.nav-style-fixed .ios-bottom-nav .nav-container,
-body.nav-style-fixed .ios-bottom-nav.collapsed .nav-container,
-body.nav-style-fixed #metrics-sub-nav .nav-container,
-body.nav-style-fixed #metrics-sub-nav.collapsed .nav-container {
-  opacity: 1 !important;
-  pointer-events: auto !important;
-  visibility: visible !important;
+body.nav-style-fixed .ios-bottom-nav .nav-container {
   max-width: 500px !important;
   margin: 0 auto !important;
   width: 100% !important;
-  height: 54px !important;
-  padding: 4px 12px !important;
+  height: 52px !important;
+  padding: 4px 16px !important;
   box-sizing: border-box !important;
+  pointer-events: auto !important;
 }
 
-body.nav-style-fixed #tab-settings .ios-settings-scroll-container,
-body.nav-style-fixed .ios-scroll-container,
-body.nav-style-fixed .ios-settings-scroll-container {
-  padding-bottom: calc(90px + env(safe-area-inset-bottom, 16px)) !important;
-}
-
-body.nav-style-fixed .ios-bottom-nav .nav-tab.active,
-body.nav-style-fixed #metrics-sub-nav .nav-tab.active {
+body.nav-style-fixed .ios-bottom-nav .nav-tab.active {
   background: rgba(255, 255, 255, 0.08) !important;
-  border-top: 2.5px solid var(--electric-blue-light) !important;
+  border-top: 2.5px solid var(--electric-blue-light, #60a5fa) !important;
   border-radius: 10px 10px 4px 4px !important;
 }
 
