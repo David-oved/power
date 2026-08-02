@@ -1,5 +1,5 @@
-const CACHE_NAME = '1.4.0';
-const UPDATE_DESCRIPTION = 'שדרוג מטורף לסרגלי הניווט והתרגילים עם אייקוני SVG וקטוריים מרהיבים וזוהרים';
+const CACHE_NAME = '1.5.0';
+const UPDATE_DESCRIPTION = 'שדרוג מטורף למסך הטעינה: פתיחה מיידית, אינדיקטור התקדמות, עיצוב Glassmorphism יוקרתי ומנגנון ניסיון חוזר לשגיאות';
 
 const ASSETS = [
   './',

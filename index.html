@@ -98,50 +98,75 @@
 
   <!-- Premium Splash Screen Overlay on Startup -->
   <div id="splash-screen">
-    <div class="splash-loader">
-      <div class="spinner-outer"></div>
-      <div class="spinner-inner"></div>
-    </div>
-    <div class="splash-brand">
-      <div class="splash-logo">
-        <svg class="aura-logo-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="neon-orange-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#dc2626" />
-              <stop offset="100%" stop-color="#f43f5e" />
-            </linearGradient>
-            <linearGradient id="electric-blue-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#a1a1aa" />
-              <stop offset="100%" stop-color="#ffffff" />
-            </linearGradient>
-            <linearGradient id="mixed-accent-grad" x1="0%" y1="100%" x2="100%" y2="0%">
-              <stop offset="0%" stop-color="#52525b" />
-              <stop offset="50%" stop-color="#dc2626" />
-              <stop offset="100%" stop-color="#ffffff" />
-            </linearGradient>
-          </defs>
-          <g class="aura-ring-group">
-            <circle cx="50" cy="50" r="42" stroke="rgba(255, 255, 255, 0.03)" stroke-width="1" fill="none" />
-            <circle cx="50" cy="50" r="42" stroke="url(#electric-blue-grad)" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="115 150" stroke-dashoffset="0" fill="none" />
-            <circle cx="50" cy="50" r="42" stroke="url(#neon-orange-grad)" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="115 150" stroke-dashoffset="132" fill="none" />
-            <circle cx="50" cy="8" r="2.5" fill="hsl(200, 100%, 50%)" />
-            <circle cx="50" cy="92" r="2.5" fill="hsl(22, 100%, 55%)" />
-          </g>
-          <g class="inner-dumbbell-group">
-            <rect x="26" y="47" width="48" height="6" rx="3" fill="url(#mixed-accent-grad)" />
-            <rect x="22" y="34" width="4" height="32" rx="2" fill="url(#electric-blue-grad)" />
-            <rect x="14" y="28" width="6" height="44" rx="3" fill="url(#electric-blue-grad)" />
-            <rect x="8" y="34" width="4" height="32" rx="2" fill="url(#electric-blue-grad)" opacity="0.8" />
-            <rect x="74" y="34" width="4" height="32" rx="2" fill="url(#neon-orange-grad)" />
-            <rect x="80" y="28" width="6" height="44" rx="3" fill="url(#neon-orange-grad)" />
-            <rect x="88" y="34" width="4" height="32" rx="2" fill="url(#neon-orange-grad)" opacity="0.8" />
-            <circle cx="50" cy="50" r="5" fill="#ffffff" />
-            <circle cx="50" cy="50" r="9" fill="url(#mixed-accent-grad)" opacity="0.4" />
-          </g>
-        </svg>
+    <!-- Ambient Neon Glowing Backdrops -->
+    <div class="splash-ambient-glow splash-glow-primary"></div>
+    <div class="splash-ambient-glow splash-glow-secondary"></div>
+
+    <div class="splash-card">
+      <div class="splash-logo-wrapper">
+        <div class="splash-pulse-ring"></div>
+        <div class="splash-pulse-ring delay"></div>
+        <div class="splash-logo">
+          <svg class="aura-logo-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="neon-orange-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#dc2626" />
+                <stop offset="100%" stop-color="#f43f5e" />
+              </linearGradient>
+              <linearGradient id="electric-blue-grad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#a1a1aa" />
+                <stop offset="100%" stop-color="#ffffff" />
+              </linearGradient>
+              <linearGradient id="mixed-accent-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+                <stop offset="0%" stop-color="#52525b" />
+                <stop offset="50%" stop-color="#dc2626" />
+                <stop offset="100%" stop-color="#ffffff" />
+              </linearGradient>
+            </defs>
+            <g class="aura-ring-group">
+              <circle cx="50" cy="50" r="42" stroke="rgba(255, 255, 255, 0.05)" stroke-width="1" fill="none" />
+              <circle cx="50" cy="50" r="42" stroke="url(#electric-blue-grad)" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="115 150" stroke-dashoffset="0" fill="none" class="animated-ring" />
+              <circle cx="50" cy="50" r="42" stroke="url(#neon-orange-grad)" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="115 150" stroke-dashoffset="132" fill="none" class="animated-ring-reverse" />
+              <circle cx="50" cy="8" r="2.5" fill="hsl(200, 100%, 50%)" />
+              <circle cx="50" cy="92" r="2.5" fill="hsl(22, 100%, 55%)" />
+            </g>
+            <g class="inner-dumbbell-group">
+              <rect x="26" y="47" width="48" height="6" rx="3" fill="url(#mixed-accent-grad)" />
+              <rect x="22" y="34" width="4" height="32" rx="2" fill="url(#electric-blue-grad)" />
+              <rect x="14" y="28" width="6" height="44" rx="3" fill="url(#electric-blue-grad)" />
+              <rect x="8" y="34" width="4" height="32" rx="2" fill="url(#electric-blue-grad)" opacity="0.8" />
+              <rect x="74" y="34" width="4" height="32" rx="2" fill="url(#neon-orange-grad)" />
+              <rect x="80" y="28" width="6" height="44" rx="3" fill="url(#neon-orange-grad)" />
+              <rect x="88" y="34" width="4" height="32" rx="2" fill="url(#neon-orange-grad)" opacity="0.8" />
+              <circle cx="50" cy="50" r="5" fill="#ffffff" />
+              <circle cx="50" cy="50" r="9" fill="url(#mixed-accent-grad)" opacity="0.4" />
+            </g>
+          </svg>
+        </div>
       </div>
-      <h1 class="splash-title">AuraApp</h1>
-      <p class="splash-subtitle">Premium Experience</p>
+
+      <div class="splash-brand-text">
+        <h1 class="splash-title">AuraApp</h1>
+        <p class="splash-subtitle">Premium Experience</p>
+      </div>
+
+      <!-- Stage & Progress Bar -->
+      <div class="splash-progress-container">
+        <div class="splash-progress-bar">
+          <div id="splash-progress-fill" class="splash-progress-fill" style="width: 0%;"></div>
+        </div>
+        <div id="splash-status-text" class="splash-status-text">מאתחל את האפליקציה...</div>
+      </div>
+
+      <!-- Error Fallback Container -->
+      <div id="splash-error-container" class="splash-error-container hide">
+        <div class="splash-error-icon">⚠️</div>
+        <div id="splash-error-message" class="splash-error-message">אירעה שגיאה בטעינת האפליקציה</div>
+        <button id="splash-retry-btn" class="splash-retry-btn">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+          <span>נסה שוב</span>
+        </button>
+      </div>
     </div>
   </div>
 

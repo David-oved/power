@@ -76,37 +76,32 @@ export function clearUserSession() {
 
 // Manage App Screen Transitions with premium animations
 export function switchScreen(signedIn) {
-  const splash = document.getElementById('splash-screen');
-  const isSplashActive = splash && !splash.classList.contains('fade-out') && (splash.style.display !== 'none');
-
   if (signedIn) {
     if (logoutBtn) logoutBtn.classList.remove('hide');
     document.body.classList.add('authenticated');
-    if (authScreen) authScreen.classList.remove('active');
-    
-    setTimeout(() => {
-      if (authScreen) authScreen.style.display = 'none';
-      if (appScreen) appScreen.style.display = 'flex';
-      
-      const transitionDelay = isSplashActive ? 200 : 50;
-      setTimeout(() => {
-        if (appScreen) appScreen.classList.add('active');
-      }, transitionDelay);
-    }, 400);
+    if (authScreen) {
+      authScreen.classList.remove('active');
+      authScreen.style.display = 'none';
+    }
+    if (appScreen) {
+      appScreen.style.display = 'flex';
+      requestAnimationFrame(() => {
+        appScreen.classList.add('active');
+      });
+    }
   } else {
     if (logoutBtn) logoutBtn.classList.add('hide');
     document.body.classList.remove('authenticated');
-    if (appScreen) appScreen.classList.remove('active');
-    
-    setTimeout(() => {
-      if (appScreen) appScreen.style.display = 'none';
-      if (authScreen) authScreen.style.display = 'flex';
-      
-      const transitionDelay = isSplashActive ? 200 : 50;
-      setTimeout(() => {
-        if (authScreen) authScreen.classList.add('active');
-      }, transitionDelay);
-    }, 400);
+    if (appScreen) {
+      appScreen.classList.remove('active');
+      appScreen.style.display = 'none';
+    }
+    if (authScreen) {
+      authScreen.style.display = 'flex';
+      requestAnimationFrame(() => {
+        authScreen.classList.add('active');
+      });
+    }
   }
 }
 
@@ -235,6 +230,54 @@ export function detectEnvironmentAndWarn() {
   }
 }
 
+// Splash screen stage progress helper
+export function updateSplashProgress(percent, stageText) {
+  const fill = document.getElementById('splash-progress-fill');
+  const status = document.getElementById('splash-status-text');
+  if (fill) fill.style.width = `${Math.min(100, Math.max(0, percent))}%`;
+  if (status && stageText) status.textContent = stageText;
+}
+
+// Splash screen dismiss helper with smooth transition
+export function dismissSplashScreen(delay = 100) {
+  const splash = document.getElementById('splash-screen');
+  if (!splash || splash.classList.contains('fade-out')) return;
+
+  updateSplashProgress(100, 'מוכן! 🚀');
+  setTimeout(() => {
+    splash.classList.add('fade-out');
+    setTimeout(() => {
+      splash.style.display = 'none';
+    }, 500);
+  }, delay);
+}
+
+// Splash screen error fallback helper with interactive retry button
+export function showSplashError(message, retryCallback) {
+  const errorContainer = document.getElementById('splash-error-container');
+  const errorMsg = document.getElementById('splash-error-message');
+  const retryBtn = document.getElementById('splash-retry-btn');
+  const progressContainer = document.querySelector('.splash-progress-container');
+
+  if (progressContainer) progressContainer.style.display = 'none';
+  if (errorMsg) errorMsg.textContent = message || 'אירעה שגיאה בטעינת האפליקציה';
+  if (errorContainer) errorContainer.classList.remove('hide');
+
+  if (retryBtn) {
+    retryBtn.onclick = (e) => {
+      e.stopPropagation();
+      if (errorContainer) errorContainer.classList.add('hide');
+      if (progressContainer) progressContainer.style.display = 'flex';
+      updateSplashProgress(25, 'מנסה להתחבר מחדש...');
+      if (retryCallback) {
+        retryCallback();
+      } else {
+        window.location.reload();
+      }
+    };
+  }
+}
+
 // Initialize Auth
 export async function initAuth() {
   authScreen = document.getElementById('auth-screen');
@@ -247,16 +290,23 @@ export async function initAuth() {
   settingsUserPhotoMain = document.getElementById('settings-user-photo-main');
   floatingUserPhoto = document.getElementById('floating-user-photo');
 
-  // Optimistic 0ms Startup
+  updateSplashProgress(20, 'מאתחל את המערכת...');
+
+  // Optimistic 0ms Instant Startup using cached user session
   const cachedUserStr = SafeStorage.getItem('aura-cached-user-session');
   if (cachedUserStr) {
     try {
       state.currentUser = JSON.parse(cachedUserStr);
-      switchScreen(true);
       updateAuthUI();
+      switchScreen(true);
+      updateSplashProgress(85, 'טוען נתונים מקומיים...');
+      // Dismiss splash screen immediately for instant access!
+      dismissSplashScreen(80);
     } catch(e) {
       console.warn("Failed to parse cached user session:", e);
     }
+  } else {
+    updateSplashProgress(45, 'מאמת פרטי משתמש...');
   }
 
   // Set compatibility mappings for dormant code
@@ -274,6 +324,8 @@ export async function initAuth() {
       console.log("Firebase Auth initialized successfully.");
     } catch (error) {
       console.error("Failed to initialize Firebase Auth module:", error);
+      showSplashError("נכשלה התחברות לשירותי Firebase. אנא בדוק את החיבור לרשת ונסה שוב.", () => initAuth());
+      return;
     }
   } else {
     console.error("Firebase configuration missing or invalid! Auth flows disabled.");
@@ -376,27 +428,19 @@ export async function initAuth() {
           }));
 
           updateAuthUI();
-          
-          // Sync user data from cloud safely with a 3-second timeout fallback
-          try {
-            await Promise.race([
-              syncUserSession(user.uid),
-              new Promise((_, reject) => setTimeout(() => reject(new Error("Sync timeout")), 3000))
-            ]);
-          } catch (syncErr) {
-            console.warn("User session sync encountered an error or timeout, continuing with cached session:", syncErr);
-          }
-          
-          // Update UI again now that role and other info are synced or fallback set
-          updateAuthUI();
+          switchScreen(true);
+          dismissSplashScreen(50);
 
-          // Rerender cloud sync status
-          if (window.updateSyncUI) window.updateSyncUI();
+          // Non-blocking Background Sync (Stale-While-Revalidate pattern)
+          syncUserSession(user.uid).then(() => {
+            updateAuthUI();
+            if (window.updateSyncUI) window.updateSyncUI();
+          }).catch(syncErr => {
+            console.warn("User session background sync encountered an error:", syncErr);
+          });
           
           // Dynamic initializers
           if (window.initWorkouts) window.initWorkouts();
-          
-          switchScreen(true);
           if (window.initOnboarding) window.initOnboarding();
 
           const hasBeenWelcomed = sessionStorage.getItem('aura_session_welcomed');
@@ -417,6 +461,7 @@ export async function initAuth() {
           
           clearUserSession();
           switchScreen(false);
+          dismissSplashScreen(50);
 
           if (isLogoutTransition && typeof Notification !== 'undefined' && Notification.permission === 'granted') {
             triggerLocalNotification(
@@ -428,18 +473,9 @@ export async function initAuth() {
       } catch (err) {
         console.error("Error during auth state change processing:", err);
         switchScreen(user ? true : false);
+        dismissSplashScreen(50);
       } finally {
         initialAuthCheckDone = true;
-        
-        const splash = document.getElementById('splash-screen');
-        if (splash) {
-          if (!splash.classList.contains('fade-out')) {
-            splash.classList.add('fade-out');
-            setTimeout(() => {
-              splash.style.display = 'none';
-            }, 600);
-          }
-        }
       }
     });
 
@@ -472,28 +508,21 @@ export async function initAuth() {
         }
       });
 
-    // Fail-safe: Hide the splash screen after 1500ms if Firebase fails or hangs on startup
+    // Fail-safe: Handle startup errors or network timeouts cleanly
     setTimeout(() => {
       if (!state.firebaseAuthResolved) {
         state.firebaseAuthResolved = true;
-        console.warn("Firebase Auth resolution timed out. Falling back to offline/auth login screen.");
-        switchScreen(false);
+        console.warn("Firebase Auth resolution timed out.");
+        if (!state.currentUser) {
+          showSplashError("החיבור לשרתי המערכת התעכב. בדוק את חיבור האינטרנט ונסה שוב.", () => window.location.reload());
+        } else {
+          dismissSplashScreen(0);
+        }
       }
-      const splash = document.getElementById('splash-screen');
-      if (splash && splash.style.display !== 'none') {
-        splash.classList.add('fade-out');
-        setTimeout(() => splash.style.display = 'none', 600);
-      }
-    }, 1500);
+    }, 3500);
   } else {
     console.log("Firebase is disabled. Auth features are unavailable.");
     switchScreen(false);
-    setTimeout(() => {
-      const splash = document.getElementById('splash-screen');
-      if (splash) {
-        splash.classList.add('fade-out');
-        setTimeout(() => splash.style.display = 'none', 600);
-      }
-    }, 1000);
+    dismissSplashScreen(300);
   }
 }
