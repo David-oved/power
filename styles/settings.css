@@ -2219,14 +2219,79 @@ button:focus,
 }
 
 /* ==========================================================================
-   Extended Display Preferences: Accent Colors, Opacity & Wallpaper Engine
+   Extended Display Preferences: Clean iOS 18 Design System & Layout
    ========================================================================== */
 
-/* Accent Color Swatches */
-.accent-color-swatch {
-  width: 34px;
-  height: 34px;
+/* Block Container inside iOS Card Group (Replaces .ios-setting-row to prevent flex-direction conflict) */
+.ios-setting-block {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px;
+  width: 100%;
+  box-sizing: border-box;
+  border-bottom: 0.5px solid rgba(255, 255, 255, 0.08);
+}
+
+.ios-setting-block:last-child {
+  border-bottom: none;
+}
+
+.ios-setting-block-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Custom Color Picker Button Label */
+.custom-color-picker-label {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 6px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-main, #ffffff);
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.custom-color-picker-label:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.custom-color-picker-label input[type="color"] {
+  width: 24px;
+  height: 24px;
+  border: none;
+  cursor: pointer;
+  background: none;
   border-radius: 50%;
+  padding: 0;
+}
+
+/* Accent Color Swatches Grid */
+.accent-color-palette {
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+  direction: ltr;
+}
+
+.accent-color-swatch {
+  flex: 1 1 0px;
+  max-width: 42px;
+  height: 36px;
+  border-radius: 18px;
   border: 2px solid transparent;
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
@@ -2235,16 +2300,68 @@ button:focus,
 }
 
 .accent-color-swatch:hover {
-  transform: scale(1.15);
+  transform: scale(1.1);
 }
 
 .accent-color-swatch.active {
-  transform: scale(1.18);
+  transform: scale(1.12);
   border-color: #ffffff !important;
-  box-shadow: 0 0 14px rgba(255, 255, 255, 0.5), 0 4px 12px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 0 14px rgba(255, 255, 255, 0.6), 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
-/* Wallpaper Preset Cards Grid */
+/* Opacity Slider Wrapper & Badge */
+.opacity-value-badge {
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--electric-blue-light, #60a5fa);
+}
+
+.opacity-slider-wrapper {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 4px 0;
+}
+
+.ios-opacity-slider {
+  width: 100%;
+  height: 8px;
+  border-radius: 4px;
+  accent-color: var(--electric-blue-light, #60a5fa);
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.1);
+  outline: none;
+  box-sizing: border-box;
+}
+
+/* Upload Button */
+.btn-upload-wallpaper {
+  cursor: pointer;
+  background: linear-gradient(135deg, var(--electric-blue, #007aff) 0%, var(--electric-blue-light, #60a5fa) 100%);
+  color: #fff;
+  padding: 6px 14px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease;
+}
+
+.btn-upload-wallpaper:hover {
+  transform: scale(1.03);
+}
+
+/* Wallpaper Presets Grid */
+.wallpaper-presets-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
 .wallpaper-preset-card {
   background: rgba(255, 255, 255, 0.04);
   border: 1.5px solid rgba(255, 255, 255, 0.08);
@@ -2257,6 +2374,8 @@ button:focus,
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   outline: none;
+  box-sizing: border-box;
+  min-width: 0;
 }
 
 .wallpaper-preset-card:hover {
@@ -2281,7 +2400,8 @@ button:focus,
   align-items: center;
   justify-content: center;
   font-size: 1.2rem;
-  box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.5);
+  box-sizing: border-box;
 }
 
 .wp-preview.wp-default {
@@ -2313,6 +2433,11 @@ button:focus,
   font-size: 0.72rem;
   font-weight: 700;
   color: var(--text-main, #ffffff);
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
 }
 
 /* Custom Background Wallpaper Overlay */
@@ -2336,10 +2461,6 @@ body::before {
 body.has-custom-wallpaper .tab-pane,
 body.has-custom-wallpaper .ios-settings-card-group,
 body.has-custom-wallpaper .glass-modal-card,
-body.has-custom-wallpaper .workout-dashboard-card,
-body.has-custom-wallpaper .ios-setting-row,
-body.has-custom-wallpaper .ios-settings-scroll-container {
+body.has-custom-wallpaper .workout-dashboard-card {
   background-color: rgba(18, 18, 22, var(--card-bg-opacity, 0.85)) !important;
-  backdrop-filter: blur(25px) saturate(180%);
-  -webkit-backdrop-filter: blur(25px) saturate(180%);
 }
