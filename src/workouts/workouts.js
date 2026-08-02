@@ -835,7 +835,11 @@ export function renderExercisePickerList() {
   if (fullList.length === 0) {
     const noResults = document.createElement('div');
     noResults.className = 'exercise-picker-empty';
-    noResults.textContent = 'לא נמצאו תרגילים מתאימים';
+    if (state.isBackgroundSyncing) {
+      noResults.innerHTML = '<span class="spin-icon" style="display:inline-block; animation: spin-clockwise 1.2s linear infinite; margin-left: 6px;">⚡</span> טוען תרגילים מהענן...';
+    } else {
+      noResults.textContent = 'לא נמצאו תרגילים מתאימים';
+    }
     container.appendChild(noResults);
     return;
   }

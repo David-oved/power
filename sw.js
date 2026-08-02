@@ -1,5 +1,5 @@
-const CACHE_NAME = '1.5.1';
-const UPDATE_DESCRIPTION = 'מד טעינה צף עליון ותג רענון תרגילים בזמן אמת עבור תהליכי רקע';
+const CACHE_NAME = '1.5.2';
+const UPDATE_DESCRIPTION = 'תיקון קריטי: טעינה מקומית מיידית של תרגילים ורינדור אוטומטי בסיום סנכרון הענן';
 
 const ASSETS = [
   './',

@@ -298,6 +298,8 @@ export async function initAuth() {
     try {
       state.currentUser = JSON.parse(cachedUserStr);
       updateAuthUI();
+      if (window.initWorkouts) window.initWorkouts();
+      if (window.initAnalyticsTab) window.initAnalyticsTab();
       switchScreen(true);
       updateSplashProgress(85, 'טוען נתונים מקומיים...');
       // Dismiss splash screen immediately for instant access!
@@ -434,6 +436,13 @@ export async function initAuth() {
           // Non-blocking Background Sync (Stale-While-Revalidate pattern)
           syncUserSession(user.uid).then(() => {
             updateAuthUI();
+            if (window.initWorkouts) window.initWorkouts();
+            if (window.renderWorkoutHistory) window.renderWorkoutHistory();
+            if (window.renderAnalytics) window.renderAnalytics();
+            if (window.renderExercisesManager) window.renderExercisesManager();
+            if (window.renderAccordionHistoryView) window.renderAccordionHistoryView();
+            if (window.renderWorkoutsLog) window.renderWorkoutsLog();
+            if (window.renderExercisePickerList) window.renderExercisePickerList();
             if (window.updateSyncUI) window.updateSyncUI();
           }).catch(syncErr => {
             console.warn("User session background sync encountered an error:", syncErr);
