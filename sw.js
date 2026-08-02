@@ -1,5 +1,5 @@
-const CACHE_NAME = '1.3.8';
-const UPDATE_DESCRIPTION = 'שדרוג מנגנון בחירת סגנון סרגל הניווט לתפריט מודולרי ותיקון מצב קבוע';
+const CACHE_NAME = '1.3.9';
+const UPDATE_DESCRIPTION = 'הסרת אימוג׳י המערכת והטמעת מערכת אייקוני SVG וקטוריים ברמת פרימיום';
 
 const ASSETS = [
   './',

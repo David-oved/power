@@ -2,6 +2,7 @@ import { state } from "../state.js";
 import { SafeStorage } from "../utils/storage.js";
 import { triggerLocalNotification, showPremiumToast, requestNotificationPermissionSafely } from "../utils/helpers.js";
 import { saveFieldToCloud } from "../utils/db.js";
+import { getCustomIcon, getCategoryIcon, getLocationIcon, ICONS_MAP } from "../utils/icons.js";
 
 export const GYM_EXERCISES = [
   { name: 'לחיצת חזה עם מוט', category: 'חזה', emoji: '🏋️' },
@@ -599,7 +600,7 @@ export function renderLocationSelectorGrid() {
   const gymTile = document.createElement('button');
   gymTile.className = 'location-tile';
   gymTile.innerHTML = `
-    <span class="tile-icon">🏋️‍♂️</span>
+    <span class="tile-icon" style="display: flex; align-items: center; justify-content: center; color: var(--electric-blue);">${ICONS_MAP.gym}</span>
     <span class="tile-label">חדר כושר</span>
   `;
   gymTile.addEventListener('click', () => startNewWorkout('gym'));
@@ -609,7 +610,7 @@ export function renderLocationSelectorGrid() {
   const parkTile = document.createElement('button');
   parkTile.className = 'location-tile';
   parkTile.innerHTML = `
-    <span class="tile-icon">🌳</span>
+    <span class="tile-icon" style="display: flex; align-items: center; justify-content: center; color: #34c759;">${ICONS_MAP.park}</span>
     <span class="tile-label">פארק</span>
   `;
   parkTile.addEventListener('click', () => startNewWorkout('park'));
@@ -620,7 +621,7 @@ export function renderLocationSelectorGrid() {
     const tile = document.createElement('button');
     tile.className = 'location-tile';
     tile.innerHTML = `
-      <span class="tile-icon">${loc.emoji || '💪'}</span>
+      <span class="tile-icon" style="display: flex; align-items: center; justify-content: center; color: var(--electric-blue-light);">${getCustomIcon(loc.emoji || 'gym')}</span>
       <span class="tile-label">${loc.name}</span>
     `;
     tile.addEventListener('click', () => startNewWorkout(loc.id, loc.name, loc.emoji));
@@ -631,7 +632,7 @@ export function renderLocationSelectorGrid() {
   const addTile = document.createElement('button');
   addTile.className = 'location-tile add-custom-location-tile';
   addTile.innerHTML = `
-    <span class="tile-icon">➕</span>
+    <span class="tile-icon" style="display: flex; align-items: center; justify-content: center; color: var(--electric-blue);">${ICONS_MAP.plus}</span>
     <span class="tile-label">סוג אימון חדש</span>
   `;
   addTile.addEventListener('click', () => {
@@ -647,23 +648,23 @@ export function populateLocationSelects() {
   const scheduleSelect = document.getElementById('schedule-location-select');
   if (filterSelect) {
     filterSelect.innerHTML = `
-      <option value="all">כל המיקומים 📍</option>
-      <option value="gym">🏋️‍♂️ חדר כושר</option>
-      <option value="park">🌳 פארק</option>
+      <option value="all">כל המיקומים</option>
+      <option value="gym">חדר כושר</option>
+      <option value="park">פארק</option>
     `;
     state.customLocations.forEach(loc => {
-      filterSelect.innerHTML += `<option value="${loc.id}">${loc.emoji || '💪'} ${loc.name}</option>`;
+      filterSelect.innerHTML += `<option value="${loc.id}">${loc.name}</option>`;
     });
   }
   if (scheduleSelect) {
     scheduleSelect.innerHTML = `
-      <option value="gym">🏋️‍♂️ חדר כושר</option>
-      <option value="park">🌳 פארק</option>
+      <option value="gym">חדר כושר</option>
+      <option value="park">פארק</option>
     `;
     state.customLocations.forEach(loc => {
-      scheduleSelect.innerHTML += `<option value="${loc.id}">${loc.emoji || '💪'} ${loc.name}</option>`;
+      scheduleSelect.innerHTML += `<option value="${loc.id}">${loc.name}</option>`;
     });
-    scheduleSelect.innerHTML += `<option value="custom">✍️ סוג אימון מותאם אישית...</option>`;
+    scheduleSelect.innerHTML += `<option value="custom">סוג אימון מותאם אישית...</option>`;
   }
 }
 

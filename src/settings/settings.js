@@ -1,6 +1,7 @@
 import { state } from "../state.js";
 import { SafeStorage } from "../utils/storage.js";
 import { showPremiumToast } from "../utils/helpers.js";
+import { getCustomIcon, ICONS_MAP } from "../utils/icons.js";
 
 // Display "עדכן 🚀" button inside settings check update row
 export function showUpdateStateInSettings(waitingWorker) {
@@ -235,15 +236,15 @@ export function initPremiumSettings() {
   const NAV_STYLES_CONFIG = [
     {
       id: 'floating',
-      title: 'מרחף (דינמי) 🎈',
+      title: 'מרחף (דינמי)',
       desc: 'סרגל צף מעל תחתית המסך המתכווץ בעת גלילה ומשחרר שטח צפייה מרבי',
-      icon: '🎈'
+      iconSvg: ICONS_MAP.floating
     },
     {
       id: 'fixed',
-      title: 'קבוע לתחתית 📌',
+      title: 'קבוע לתחתית',
       desc: 'סרגל עוגן קבוע ומלא בתחתית המסך ללא התכווצות בעת גלילה',
-      icon: '📌'
+      iconSvg: ICONS_MAP.pin
     }
   ];
 
@@ -284,7 +285,7 @@ export function initPremiumSettings() {
         
         optionRow.innerHTML = `
           <div style="display: flex; align-items: center; gap: 12px; direction: rtl; text-align: right; pointer-events: none;">
-            <span style="font-size: 1.4rem; pointer-events: none;">${item.icon}</span>
+            <span style="display: flex; align-items: center; color: var(--electric-blue); pointer-events: none;">${item.iconSvg}</span>
             <div style="pointer-events: none;">
               <div style="font-weight: 700; font-size: 0.95rem; margin-bottom: 2px; pointer-events: none;">${item.title}</div>
               <div style="font-size: 0.78rem; opacity: 0.8; line-height: 1.3; pointer-events: none;">${item.desc}</div>

@@ -142,12 +142,15 @@ export function showPremiumToast(message, type = 'info') {
   const toast = document.createElement('div');
   toast.className = `premium-toast toast-${type}`;
   
-  let icon = '✨';
-  if (type === 'error') icon = '⚠️';
-  else if (type === 'success') icon = '✓';
+  let icon = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="custom-svg-icon"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3z"/></svg>';
+  if (type === 'error') {
+    icon = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#ff3b30" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="custom-svg-icon"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>';
+  } else if (type === 'success') {
+    icon = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#34c759" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="custom-svg-icon"><polyline points="20 6 9 17 4 12"/></svg>';
+  }
   
   toast.innerHTML = `
-    <span class="toast-icon">${icon}</span>
+    <span class="toast-icon" style="display: flex; align-items: center; justify-content: center;">${icon}</span>
     <span class="toast-text">${message}</span>
   `;
   

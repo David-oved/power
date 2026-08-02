@@ -13,6 +13,35 @@
   transition: var(--transition-smooth);
 }
 
+/* Custom Vector SVG Icon Styles */
+.custom-svg-icon {
+  display: inline-block;
+  vertical-align: middle;
+  flex-shrink: 0;
+  stroke: currentColor;
+  fill: none;
+  transition: transform 0.2s ease, stroke 0.2s ease, filter 0.2s ease;
+}
+
+.custom-svg-icon.icon-sm {
+  width: 16px;
+  height: 16px;
+}
+
+.custom-svg-icon.icon-md {
+  width: 22px;
+  height: 22px;
+}
+
+.custom-svg-icon.icon-lg {
+  width: 28px;
+  height: 28px;
+}
+
+.custom-svg-icon.icon-glow {
+  filter: drop-shadow(0 0 6px currentColor);
+}
+
 /* Splash Screen Styles */
 #splash-screen {
   position: fixed;

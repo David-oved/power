@@ -3,6 +3,7 @@ import { SafeStorage } from "../utils/storage.js";
 import { triggerLocalNotification, showAuraToast, safeFormatDate, requestNotificationPermissionSafely } from "../utils/helpers.js";
 import { getAllExercises, isSystemExercise, GYM_EXERCISES, PARK_EXERCISES, openEditModal, saveActiveWorkoutState, getExerciseDefaults, saveExerciseDefaults } from "../workouts/workouts.js";
 import { saveFieldToCloud } from "../utils/db.js";
+import { getCustomIcon, ICONS_MAP } from "../utils/icons.js";
 
 // DOM Elements & Configurations
 const HEBREW_QUOTES = [
