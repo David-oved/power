@@ -2440,11 +2440,40 @@ button:focus,
   max-width: 100%;
 }
 
-/* Custom Background Wallpaper & Glass Opacity Fix */
+/* Custom Background Wallpaper & Glass Opacity Fix - ALL TABS */
 body.has-custom-wallpaper .app-viewport,
 body.has-custom-wallpaper .screen,
 body.has-custom-wallpaper #app-screen,
-body.has-custom-wallpaper .tab-content-container {
+body.has-custom-wallpaper .tab-content-container,
+body.has-custom-wallpaper .tab-pane,
+body.has-custom-wallpaper #tab-settings,
+body.has-custom-wallpaper #tab-workouts,
+body.has-custom-wallpaper #tab-analytics,
+body.has-custom-wallpaper #tab-meals,
+body.has-custom-wallpaper #settings-main-view,
+body.has-custom-wallpaper #settings-display-view,
+body.has-custom-wallpaper #settings-account-view,
+body.has-custom-wallpaper #settings-admin-view,
+body.has-custom-wallpaper #settings-feedback-view,
+body.has-custom-wallpaper #settings-messages-view,
+body.has-custom-wallpaper #settings-sync-view,
+body.has-custom-wallpaper .ios-settings-scroll-container,
+body.has-custom-wallpaper #workout-idle-view,
+body.has-custom-wallpaper #workout-active-view,
+body.has-custom-wallpaper .workout-dashboard-card-wrapper,
+body.has-custom-wallpaper .workout-main-dashboard,
+body.has-custom-wallpaper .exercises-list-container,
+body.has-custom-wallpaper .exercise-category-filter-bar,
+body.has-custom-wallpaper #tab2-subview-workouts,
+body.has-custom-wallpaper #tab2-subview-exercises,
+body.has-custom-wallpaper #tab2-subview-history,
+body.has-custom-wallpaper .ios-analytics-scroll-container,
+body.has-custom-wallpaper #tab3-analytics-subview,
+body.has-custom-wallpaper #tab3-logs-subview,
+body.has-custom-wallpaper #tab3-calendar-subview,
+body.has-custom-wallpaper .analytics-tab-header,
+body.has-custom-wallpaper .meals-page-container,
+body.has-custom-wallpaper #meals-main-view {
   background-color: transparent !important;
   background-image: none !important;
 }
@@ -2471,7 +2500,7 @@ body::before {
 
 body.has-custom-wallpaper .app-viewport::before,
 body.has-custom-wallpaper::before {
-  opacity: 0.95;
+  opacity: 1 !important;
 }
 
 /* Wallpaper Vignette Overlay for Crisp Readability */
@@ -2487,19 +2516,71 @@ body.has-custom-wallpaper .app-viewport::after {
   pointer-events: none;
 }
 
-/* Global Glass Card Opacity (Controlled by --card-bg-opacity) */
+/* Universal Glass Card Opacity (Controlled dynamically by --card-bg-opacity across ALL tabs) */
 .ios-settings-card-group,
 .ios-setting-block,
-.glass-modal-card,
+.ios-setting-row,
+.ios-profile-card,
+.settings-account-card,
+.ios-settings-field-group,
+.ios-settings-field-row,
 .workout-dashboard-card,
+.location-tile,
 .exercise-card,
+.custom-location-card,
+.exercise-list-item-wrapper,
+.workout-history-card,
+.history-card,
+.history-workout-card,
+.custom-ex-card,
+.routine-card,
+.active-workout-header-bar,
+.active-timer-box,
+.workout-summary-card,
+.metrics-card,
+.analytics-card,
+.chart-card-wrapper,
+.inspector-card,
+.metrics-summary-tile,
+.stat-mini-card,
+.analytics-segment-card,
+.analytics-chart-container,
+.log-history-card,
+.calendar-day-cell,
+.metric-row-card,
 .meals-section-card,
 .premium-gauge-card,
+.rec-meal-card,
+.logged-meal-row,
+.slider-group-container,
+.meals-empty-state-card,
+.glass-modal-card,
+.ios-modal-card,
+.modal-sheet,
+.glassmorphic-card,
 .display-preview-card-wrapper {
   background-color: rgba(22, 22, 28, var(--card-bg-opacity, 0.85)) !important;
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  transition: background-color 0.25s ease, border-color 0.25s ease !important;
+}
+
+/* Light Theme Card Glass Opacity Variant */
+.tab-pane:not(.dark-theme) .ios-settings-card-group,
+.tab-pane:not(.dark-theme) .ios-setting-block,
+.tab-pane:not(.dark-theme) .workout-dashboard-card,
+.tab-pane:not(.dark-theme) .location-tile,
+.tab-pane:not(.dark-theme) .exercise-card,
+.tab-pane:not(.dark-theme) .exercise-list-item-wrapper,
+.tab-pane:not(.dark-theme) .workout-history-card,
+.tab-pane:not(.dark-theme) .metrics-card,
+.tab-pane:not(.dark-theme) .meals-section-card,
+.tab-pane:not(.dark-theme) .premium-gauge-card {
+  background-color: rgba(255, 255, 255, var(--card-bg-opacity, 0.85)) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
 }
 
 /* -------------------------------------------------------------------------- */

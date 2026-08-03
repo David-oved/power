@@ -910,11 +910,14 @@
               <div class="ios-settings-card-group">
                 <div class="ios-settings-group-title">שקיפות אלמנטים וכרטיסים</div>
                 <div class="ios-setting-block">
-                  <div class="ios-setting-block-header">
+                  <div class="ios-setting-block-header" style="flex-wrap: wrap; gap: 8px; align-items: center;">
                     <span id="display-opacity-value-text" class="opacity-value-badge">85%</span>
-                    <div style="display: flex; align-items: center; gap: 8px;">
-                      <span class="ios-row-icon-badge" style="background-color: #30b0c7;">💧</span>
-                      <span class="ios-row-label">שקיפות זכוכית (0% שקוף - 100% אטום)</span>
+                    <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; direction: rtl;">
+                      <span class="ios-row-icon-badge" style="background-color: #30b0c7; flex-shrink: 0;">💧</span>
+                      <div style="display: flex; flex-direction: column; text-align: right; min-width: 0;">
+                        <span class="ios-row-label" style="font-weight: 700; line-height: 1.2;">שקיפות זכוכית</span>
+                        <span style="font-size: 0.72rem; opacity: 0.75; color: var(--text-main, #ffffff); white-space: normal; word-break: break-word; line-height: 1.25; margin-top: 2px;">(0% שקוף - 100% אטום)</span>
+                      </div>
                     </div>
                   </div>
                   <div class="opacity-slider-wrapper">
