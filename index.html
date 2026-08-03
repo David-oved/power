@@ -827,36 +827,45 @@
               <h2 class="settings-sub-title">הגדרות תצוגה ומראה</h2>
             </div>
             <div class="ios-settings-scroll-container" style="text-align: right; direction: rtl;">
-              
-              <!-- Display Modes Card Group -->
-              <div class="ios-settings-card-group">
-                <div class="ios-settings-group-title">מצב תצוגה</div>
-                
-                <!-- Dark Mode Toggle Switch -->
-                <div class="ios-setting-row no-hover" id="row-settings-dark-mode">
-                  <div class="ios-row-left">
-                    <label class="ios-toggle-switch">
-                      <input type="checkbox" id="toggle-settings-dark-mode">
-                      <span class="ios-toggle-slider"></span>
-                    </label>
+
+              <!-- Live Interactive App Preview Card -->
+              <div class="display-preview-card-wrapper">
+                <div class="display-preview-label">👁️ תצוגה מקדימה בזמן אמת</div>
+                <div id="display-live-preview" class="display-live-preview-box">
+                  <div class="preview-mock-header">
+                    <div class="preview-mock-title">Aura Power</div>
+                    <div class="preview-mock-badge">100%</div>
                   </div>
-                  <div class="ios-row-right">
-                    <span class="ios-row-icon-badge bg-ios-gray">🌙</span>
-                    <span class="ios-row-label">מצב כהה</span>
+                  <div class="preview-mock-body">
+                    <div class="preview-mock-card">
+                      <div class="preview-mock-card-header">
+                        <span class="preview-mock-dot"></span>
+                        <span class="preview-mock-text-bold">כרטיס אימון לדוגמה</span>
+                      </div>
+                      <div class="preview-mock-text-sub">כך יראו הכרטיסים והטקסטים באפליקציה שלך</div>
+                      <div class="preview-mock-btn">כפתור פעולה</div>
+                    </div>
                   </div>
                 </div>
-
-                <!-- High-Contrast Outdoor Mode Toggle -->
-                <div class="ios-setting-row no-hover" id="row-settings-outdoor-mode">
-                  <div class="ios-row-left">
-                    <label class="ios-toggle-switch">
-                      <input type="checkbox" id="toggle-settings-outdoor-mode">
-                      <span class="ios-toggle-slider"></span>
-                    </label>
-                  </div>
-                  <div class="ios-row-right">
-                    <span class="ios-row-icon-badge bg-ios-orange" style="background-color: #ff9500;">☀️</span>
-                    <span class="ios-row-label">מצב שטח (ניגודיות גבוהה)</span>
+              </div>
+              
+              <!-- Display Theme Mode (Segmented Control) -->
+              <div class="ios-settings-card-group">
+                <div class="ios-settings-group-title">ערכת נושא ומצב תצוגה</div>
+                <div class="ios-setting-block" style="padding: 12px 16px;">
+                  <div class="theme-segmented-control" id="theme-segmented-picker">
+                    <button type="button" class="theme-segment-btn active" data-theme="dark">
+                      <span class="theme-segment-icon">🌙</span>
+                      <span class="theme-segment-label">כהה</span>
+                    </button>
+                    <button type="button" class="theme-segment-btn" data-theme="light">
+                      <span class="theme-segment-icon">☀️</span>
+                      <span class="theme-segment-label">בהיר</span>
+                    </button>
+                    <button type="button" class="theme-segment-btn" data-theme="outdoor">
+                      <span class="theme-segment-icon">⚡</span>
+                      <span class="theme-segment-label">שטח (ניגודיות)</span>
+                    </button>
                   </div>
                 </div>
 
@@ -909,7 +918,7 @@
                     </div>
                   </div>
                   <div class="opacity-slider-wrapper">
-                    <input type="range" id="display-opacity-slider" min="0" max="100" value="85" class="ios-opacity-slider">
+                    <input type="range" id="display-opacity-slider" min="10" max="100" value="85" class="ios-opacity-slider">
                   </div>
                 </div>
               </div>
@@ -919,7 +928,7 @@
                 <div class="ios-settings-group-title">תמונת רקע לאפליקציה (עם גיבוי בענן)</div>
                 <div class="ios-setting-block">
                   <div class="ios-setting-block-header">
-                    <label for="display-wallpaper-upload-input" class="btn-upload-wallpaper">
+                    <label for="display-wallpaper-upload-input" class="btn-upload-wallpaper" id="label-upload-wallpaper">
                       <span>📷 העלאת תמונה מגלריה</span>
                       <input type="file" id="display-wallpaper-upload-input" accept="image/*" style="display: none;">
                     </label>
@@ -965,7 +974,7 @@
                     <span class="ios-row-chevron">←</span>
                   </div>
                   <div class="ios-row-right">
-                    <span class="ios-row-icon-badge" style="background-color: #007aff;">📱</span>
+                    <span class="ios-row-icon-badge" style="background-color: var(--electric-blue);">📱</span>
                     <span class="ios-row-label">סגנון סרגל ניווט תחתון</span>
                   </div>
                 </div>

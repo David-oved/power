@@ -101,6 +101,7 @@ export const state = {
   })(),
 
   // Display Settings
+  displayTheme: SafeStorage.getItem('aura-display-theme') || (SafeStorage.getItem('aura-outdoor-mode') === 'true' ? 'outdoor' : (SafeStorage.getItem('settings_dark_mode') === 'false' ? 'light' : 'dark')),
   outdoorMode: SafeStorage.getItem('aura-outdoor-mode') === 'true',
   showGlows: SafeStorage.getItem('aura-show-glows') !== 'false',
   navStyle: SafeStorage.getItem('aura-nav-style') || 'floating',
@@ -108,4 +109,5 @@ export const state = {
   accentColor: SafeStorage.getItem('aura-accent-color') || '#007aff',
   wallpaper: SafeStorage.getItem('aura-wallpaper') || 'default'
 };
+
 

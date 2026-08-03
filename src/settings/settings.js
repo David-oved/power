@@ -40,6 +40,20 @@ function hexToRgba(hex, alpha = 0.25) {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
+// Cloud Sync Helper for Display Preferences
+function saveAllDisplaySettingsToCloud() {
+  import("../utils/db.js").then(({ saveFieldToCloud }) => {
+    saveFieldToCloud("displaySettings", {
+      theme: state.displayTheme || (state.outdoorMode ? 'outdoor' : (SafeStorage.getItem('settings_dark_mode') !== 'false' ? 'dark' : 'light')),
+      opacity: state.displayOpacity,
+      accentColor: state.accentColor,
+      wallpaper: state.wallpaper,
+      showGlows: state.showGlows,
+      navStyle: state.navStyle
+    });
+  });
+}
+
 export function applyDisplayPreferences() {
   // 1. Apply Opacity (0% to 100%)
   const opacityVal = (state.displayOpacity !== undefined) ? state.displayOpacity : 85;
@@ -75,25 +89,51 @@ export function applyDisplayPreferences() {
     }
   });
 
-  // 3. Apply Background Wallpaper
+  // 3. Theme Mode (Dark / Light / Outdoor)
+  const currentTheme = state.displayTheme || (state.outdoorMode ? 'outdoor' : (SafeStorage.getItem('settings_dark_mode') !== 'false' ? 'dark' : 'light'));
+  const allTabs = document.querySelectorAll('.tab-pane');
+
+  if (currentTheme === 'dark') {
+    document.body.classList.remove('outdoor-mode');
+    allTabs.forEach(tab => tab.classList.add('dark-theme'));
+  } else if (currentTheme === 'light') {
+    document.body.classList.remove('outdoor-mode');
+    allTabs.forEach(tab => tab.classList.remove('dark-theme'));
+  } else if (currentTheme === 'outdoor') {
+    document.body.classList.add('outdoor-mode');
+    allTabs.forEach(tab => tab.classList.remove('dark-theme'));
+  }
+
+  const themeSegmentBtns = document.querySelectorAll('.theme-segment-btn');
+  themeSegmentBtns.forEach(btn => {
+    if (btn.dataset.theme === currentTheme) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+
+  // 4. Apply Background Wallpaper (100% Offline Gradient Presets + Base64 Custom)
   const wp = state.wallpaper || 'default';
   let wpUrl = 'none';
   if (wp === 'cyberpunk_gym') {
-    wpUrl = 'url("https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=1200&auto=format&fit=crop")';
+    wpUrl = 'linear-gradient(135deg, #ff007f 0%, #7928ca 50%, #00dfd8 100%)';
   } else if (wp === 'deep_space') {
-    wpUrl = 'url("https://images.unsplash.com/photo-1506703719100-a0f3a48c0f86?q=80&w=1200&auto=format&fit=crop")';
+    wpUrl = 'linear-gradient(135deg, #0d1b2a 0%, #1b263b 40%, #415a77 70%, #778da9 100%)';
   } else if (wp === 'slate_mesh') {
-    wpUrl = 'url("https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200&auto=format&fit=crop")';
+    wpUrl = 'linear-gradient(135deg, #1f2937 0%, #111827 50%, #374151 100%)';
   } else if (wp === 'high_contrast') {
-    wpUrl = 'url("https://images.unsplash.com/photo-1550684848-fac1c5b4e853?q=80&w=1200&auto=format&fit=crop")';
+    wpUrl = 'linear-gradient(135deg, #f97316 0%, #b91c1c 50%, #431407 100%)';
   } else if (wp.startsWith('data:image/') || wp.startsWith('http://') || wp.startsWith('https://')) {
     wpUrl = `url("${wp}")`;
   }
 
   if (wp === 'default' || wpUrl === 'none') {
+    document.documentElement.style.removeProperty('--app-wallpaper');
     document.body.style.removeProperty('--app-wallpaper');
     document.body.classList.remove('has-custom-wallpaper');
   } else {
+    document.documentElement.style.setProperty('--app-wallpaper', wpUrl);
     document.body.style.setProperty('--app-wallpaper', wpUrl);
     document.body.classList.add('has-custom-wallpaper');
   }
@@ -106,6 +146,7 @@ export function applyDisplayPreferences() {
         const customPreview = document.getElementById('wp-custom-preview');
         if (customPreview) {
           customPreview.style.backgroundImage = `url("${wp}")`;
+          customPreview.style.backgroundSize = 'cover';
           customPreview.textContent = '';
         }
       }
@@ -113,6 +154,18 @@ export function applyDisplayPreferences() {
       c.classList.remove('active');
     }
   });
+
+  // 5. Update Live Interactive Preview Box
+  const livePreviewBox = document.getElementById('display-live-preview');
+  if (livePreviewBox) {
+    if (wp !== 'default' && wpUrl !== 'none') {
+      livePreviewBox.style.backgroundImage = wpUrl;
+      livePreviewBox.style.backgroundSize = 'cover';
+    } else {
+      livePreviewBox.style.backgroundImage = 'none';
+      livePreviewBox.style.backgroundColor = (currentTheme === 'light') ? '#f2f2f7' : '#0b0c10';
+    }
+  }
 }
 window.applyDisplayPreferences = applyDisplayPreferences;
 
@@ -134,10 +187,7 @@ export function initPremiumSettings() {
     document.body.classList.remove('hide-glows');
   }
 
-  const allTabs = document.querySelectorAll('.tab-pane');
-  const toggleDarkMode = document.getElementById('toggle-settings-dark-mode');
   const toggleNotifications = document.getElementById('toggle-settings-notifications');
-  const toggleOutdoorMode = document.getElementById('toggle-settings-outdoor-mode');
   const toggleShowGlows = document.getElementById('toggle-settings-show-glows');
   const settingsVer = document.getElementById('settings-system-version');
   const checkUpdateRow = document.getElementById('row-settings-check-update');
@@ -261,33 +311,24 @@ export function initPremiumSettings() {
     });
   });
 
-  const isDarkMode = SafeStorage.getItem('settings_dark_mode') !== 'false';
-  const isNotificationsEnabled = SafeStorage.getItem('settings_notifications_enabled') !== 'false';
-
-  allTabs.forEach(tab => {
-    if (isDarkMode) {
-      tab.classList.add('dark-theme');
-    } else {
-      tab.classList.remove('dark-theme');
-    }
+  // Bind Theme Segmented Control Buttons
+  const themeSegmentBtns = document.querySelectorAll('.theme-segment-btn');
+  themeSegmentBtns.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const chosenTheme = e.currentTarget.dataset.theme;
+      if (!chosenTheme) return;
+      state.displayTheme = chosenTheme;
+      state.outdoorMode = (chosenTheme === 'outdoor');
+      SafeStorage.setItem('aura-display-theme', chosenTheme);
+      SafeStorage.setItem('settings_dark_mode', chosenTheme === 'dark' ? 'true' : 'false');
+      SafeStorage.setItem('aura-outdoor-mode', chosenTheme === 'outdoor' ? 'true' : 'false');
+      applyDisplayPreferences();
+      saveAllDisplaySettingsToCloud();
+    });
   });
 
-  if (toggleDarkMode) {
-    toggleDarkMode.checked = isDarkMode;
-    toggleDarkMode.addEventListener('change', (e) => {
-      SafeStorage.setItem('settings_dark_mode', e.target.checked);
-      console.log('Saved settings dark mode preference:', e.target.checked);
-      allTabs.forEach(tab => {
-        if (e.target.checked) {
-          tab.classList.add('dark-theme');
-        } else {
-          tab.classList.remove('dark-theme');
-        }
-      });
-    });
-  }
-
   if (toggleNotifications) {
+    const isNotificationsEnabled = SafeStorage.getItem('settings_notifications_enabled') !== 'false';
     toggleNotifications.checked = isNotificationsEnabled;
     toggleNotifications.addEventListener('change', async (e) => {
       SafeStorage.setItem('settings_notifications_enabled', e.target.checked);
@@ -299,31 +340,17 @@ export function initPremiumSettings() {
     });
   }
 
-  if (toggleOutdoorMode) {
-    toggleOutdoorMode.checked = state.outdoorMode;
-    toggleOutdoorMode.addEventListener('change', (e) => {
-      state.outdoorMode = e.target.checked;
-      SafeStorage.setItem('aura-outdoor-mode', state.outdoorMode ? 'true' : 'false');
-      console.log('Saved settings outdoor mode preference:', state.outdoorMode);
-      if (state.outdoorMode) {
-        document.body.classList.add('outdoor-mode');
-      } else {
-        document.body.classList.remove('outdoor-mode');
-      }
-    });
-  }
-
   if (toggleShowGlows) {
     toggleShowGlows.checked = state.showGlows;
     toggleShowGlows.addEventListener('change', (e) => {
       state.showGlows = e.target.checked;
       SafeStorage.setItem('aura-show-glows', state.showGlows ? 'true' : 'false');
-      console.log('Saved settings show glows preference:', state.showGlows);
       if (!state.showGlows) {
         document.body.classList.add('hide-glows');
       } else {
         document.body.classList.remove('hide-glows');
       }
+      saveAllDisplaySettingsToCloud();
     });
   }
 
@@ -337,13 +364,7 @@ export function initPremiumSettings() {
       applyDisplayPreferences();
     });
     opacitySlider.addEventListener('change', () => {
-      import("../utils/db.js").then(({ saveFieldToCloud }) => {
-        saveFieldToCloud("displaySettings", {
-          opacity: state.displayOpacity,
-          accentColor: state.accentColor,
-          wallpaper: state.wallpaper
-        });
-      });
+      saveAllDisplaySettingsToCloud();
     });
   }
 
@@ -356,13 +377,7 @@ export function initPremiumSettings() {
       state.accentColor = color;
       SafeStorage.setItem('aura-accent-color', color);
       applyDisplayPreferences();
-      import("../utils/db.js").then(({ saveFieldToCloud }) => {
-        saveFieldToCloud("displaySettings", {
-          opacity: state.displayOpacity,
-          accentColor: state.accentColor,
-          wallpaper: state.wallpaper
-        });
-      });
+      saveAllDisplaySettingsToCloud();
       showPremiumToast(`צבע נושא עודכן! 🎨`, 'success');
     });
   });
@@ -376,33 +391,26 @@ export function initPremiumSettings() {
       applyDisplayPreferences();
     });
     customColorPicker.addEventListener('change', () => {
-      import("../utils/db.js").then(({ saveFieldToCloud }) => {
-        saveFieldToCloud("displaySettings", {
-          opacity: state.displayOpacity,
-          accentColor: state.accentColor,
-          wallpaper: state.wallpaper
-        });
-      });
+      saveAllDisplaySettingsToCloud();
       showPremiumToast(`צבע מותאם אישית נשמר! 🎨`, 'success');
     });
   }
 
-  // Bind Wallpaper Preset Cards
+  // Bind Wallpaper Preset Cards & Custom Wallpaper Card Click
   const wpCards = document.querySelectorAll('.wallpaper-preset-card');
   wpCards.forEach(card => {
     card.addEventListener('click', (e) => {
       const wp = e.currentTarget.dataset.wallpaper;
-      if (!wp || wp === 'custom') return;
+      if (wp === 'custom') {
+        const fileInput = document.getElementById('display-wallpaper-upload-input');
+        if (fileInput) fileInput.click();
+        return;
+      }
+      if (!wp) return;
       state.wallpaper = wp;
       SafeStorage.setItem('aura-wallpaper', wp);
       applyDisplayPreferences();
-      import("../utils/db.js").then(({ saveFieldToCloud }) => {
-        saveFieldToCloud("displaySettings", {
-          opacity: state.displayOpacity,
-          accentColor: state.accentColor,
-          wallpaper: state.wallpaper
-        });
-      });
+      saveAllDisplaySettingsToCloud();
       showPremiumToast(`תמונת רקע עודכנה! 🖼️`, 'success');
     });
   });
@@ -447,14 +455,7 @@ export function initPremiumSettings() {
           state.wallpaper = compressedBase64;
           SafeStorage.setItem('aura-wallpaper', compressedBase64);
           applyDisplayPreferences();
-
-          import("../utils/db.js").then(({ saveFieldToCloud }) => {
-            saveFieldToCloud("displaySettings", {
-              opacity: state.displayOpacity,
-              accentColor: state.accentColor,
-              wallpaper: state.wallpaper
-            });
-          });
+          saveAllDisplaySettingsToCloud();
 
           showPremiumToast(`תמונה אישית הועלתה ונשמרה בענן! 📸☁️`, 'success');
         };

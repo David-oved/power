@@ -338,9 +338,16 @@ export async function syncUserSession(uid, isManual = false) {
       state.userMessages = mergedMessages;
     }
 
-    // 9. Sync Display Settings (Opacity, Wallpaper, Accent Color)
+    // 9. Sync Display Settings (Theme, Opacity, Wallpaper, Accent Color, Glows, NavStyle)
     if (cloudData.displaySettings) {
       const ds = cloudData.displaySettings;
+      if (ds.theme) {
+        state.displayTheme = ds.theme;
+        state.outdoorMode = (ds.theme === 'outdoor');
+        SafeStorage.setItem('aura-display-theme', ds.theme);
+        SafeStorage.setItem('settings_dark_mode', ds.theme === 'dark' ? 'true' : 'false');
+        SafeStorage.setItem('aura-outdoor-mode', ds.theme === 'outdoor' ? 'true' : 'false');
+      }
       if (ds.opacity !== undefined) {
         state.displayOpacity = ds.opacity;
         SafeStorage.setItem('aura-display-opacity', ds.opacity);
@@ -353,8 +360,19 @@ export async function syncUserSession(uid, isManual = false) {
         state.wallpaper = ds.wallpaper;
         SafeStorage.setItem('aura-wallpaper', ds.wallpaper);
       }
+      if (ds.showGlows !== undefined) {
+        state.showGlows = ds.showGlows;
+        SafeStorage.setItem('aura-show-glows', ds.showGlows ? 'true' : 'false');
+      }
+      if (ds.navStyle) {
+        state.navStyle = ds.navStyle;
+        SafeStorage.setItem('aura-nav-style', ds.navStyle);
+      }
       if (window.applyDisplayPreferences) {
         window.applyDisplayPreferences();
+      }
+      if (window.applyNavStyle) {
+        window.applyNavStyle(state.navStyle);
       }
     }
 
@@ -365,9 +383,12 @@ export async function syncUserSession(uid, isManual = false) {
         displayName,
         role,
         displaySettings: {
+          theme: state.displayTheme,
           opacity: state.displayOpacity,
           accentColor: state.accentColor,
-          wallpaper: state.wallpaper
+          wallpaper: state.wallpaper,
+          showGlows: state.showGlows,
+          navStyle: state.navStyle
         },
         updatedAt: Date.now()
       };

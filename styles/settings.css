@@ -2440,27 +2440,243 @@ button:focus,
   max-width: 100%;
 }
 
-/* Custom Background Wallpaper Overlay */
+/* Custom Background Wallpaper & Glass Opacity Fix */
+body.has-custom-wallpaper .app-viewport,
+body.has-custom-wallpaper .screen,
+body.has-custom-wallpaper #app-screen,
+body.has-custom-wallpaper .tab-content-container {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+.app-viewport::before,
 body::before {
   content: '';
-  position: fixed;
+  position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: -2;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
   background-image: var(--app-wallpaper, none);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  opacity: 0.95;
-  transition: background-image 0.4s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+  opacity: 0;
+  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   pointer-events: none;
 }
 
-body.has-custom-wallpaper .tab-pane,
-body.has-custom-wallpaper .ios-settings-card-group,
-body.has-custom-wallpaper .glass-modal-card,
-body.has-custom-wallpaper .workout-dashboard-card {
-  background-color: rgba(18, 18, 22, var(--card-bg-opacity, 0.85)) !important;
+body.has-custom-wallpaper .app-viewport::before,
+body.has-custom-wallpaper::before {
+  opacity: 0.95;
 }
+
+/* Wallpaper Vignette Overlay for Crisp Readability */
+body.has-custom-wallpaper .app-viewport::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  background: linear-gradient(180deg, rgba(8, 8, 12, 0.45) 0%, rgba(8, 8, 12, 0.75) 100%);
+  pointer-events: none;
+}
+
+/* Global Glass Card Opacity (Controlled by --card-bg-opacity) */
+.ios-settings-card-group,
+.ios-setting-block,
+.glass-modal-card,
+.workout-dashboard-card,
+.exercise-card,
+.meals-section-card,
+.premium-gauge-card,
+.display-preview-card-wrapper {
+  background-color: rgba(22, 22, 28, var(--card-bg-opacity, 0.85)) !important;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* -------------------------------------------------------------------------- */
+/* LIVE PREVIEW CARD & THEME SEGMENTED PICKER STYLES                         */
+/* -------------------------------------------------------------------------- */
+.display-preview-card-wrapper {
+  margin-bottom: 20px;
+  border-radius: 20px;
+  padding: 16px;
+  background: rgba(22, 22, 28, var(--card-bg-opacity, 0.85));
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+.display-preview-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--electric-blue-light, #60a5fa);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.display-live-preview-box {
+  border-radius: 16px;
+  padding: 14px;
+  background-color: #0b0c10;
+  background-image: var(--app-wallpaper, none);
+  background-size: cover;
+  background-position: center;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.display-live-preview-box::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  pointer-events: none;
+}
+
+.preview-mock-header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.preview-mock-title {
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--text-main, #ffffff);
+}
+
+.preview-mock-badge {
+  background: var(--electric-blue, #007aff);
+  color: #ffffff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px var(--electric-blue-glow, rgba(0, 122, 255, 0.4));
+}
+
+.preview-mock-body {
+  position: relative;
+  z-index: 1;
+}
+
+.preview-mock-card {
+  background-color: rgba(22, 22, 28, var(--card-bg-opacity, 0.85));
+  border-radius: 12px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.preview-mock-card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.preview-mock-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--electric-blue, #007aff);
+  box-shadow: 0 0 8px var(--electric-blue, #007aff);
+}
+
+.preview-mock-text-bold {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-main, #ffffff);
+}
+
+.preview-mock-text-sub {
+  font-size: 0.75rem;
+  opacity: 0.7;
+  color: var(--text-main, #ffffff);
+  margin-bottom: 10px;
+}
+
+.preview-mock-btn {
+  background: linear-gradient(135deg, var(--electric-blue, #007aff) 0%, var(--electric-blue-light, #60a5fa) 100%);
+  color: #ffffff;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: center;
+  padding: 6px 12px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px var(--electric-blue-glow, rgba(0, 122, 255, 0.3));
+}
+
+/* Theme Segmented Control */
+.theme-segmented-control {
+  display: flex;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 4px;
+  border-radius: 14px;
+  gap: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.theme-segment-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 8px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.theme-segment-btn:hover {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.theme-segment-btn.active {
+  background: var(--electric-blue, #007aff);
+  color: #ffffff;
+  font-weight: 700;
+  box-shadow: 0 4px 14px var(--electric-blue-glow, rgba(0, 122, 255, 0.4));
+}
+
+.theme-segment-icon {
+  font-size: 1rem;
+}
+
+/* Wallpaper Presets Grid Enhancements for Offline Support */
+.wp-preview.wp-cyberpunk {
+  background: linear-gradient(135deg, #ff007f 0%, #7928ca 50%, #00dfd8 100%) !important;
+}
+.wp-preview.wp-space {
+  background: linear-gradient(135deg, #0d1b2a 0%, #1b263b 40%, #415a77 70%, #778da9 100%) !important;
+}
+.wp-preview.wp-mesh {
+  background: linear-gradient(135deg, #1f2937 0%, #111827 50%, #374151 100%) !important;
+}
+.wp-preview.wp-contrast {
+  background: linear-gradient(135deg, #f97316 0%, #b91c1c 50%, #431407 100%) !important;
+}
+
