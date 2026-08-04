@@ -104,10 +104,10 @@ export async function loadUserDataFromCloud(uid) {
 
 // Upload local data to the cloud (used on first sync if cloud is empty)
 export async function uploadLocalDataToCloud(uid) {
-  if (!state.cloudSyncEnabled) {
-    console.log("Cloud sync is disabled. Skipping uploadLocalDataToCloud.");
-    return;
-  }
+  // Ensure cloud sync state is enabled
+  state.cloudSyncEnabled = true;
+  SafeStorage.setItem('aura-cloud-sync-enabled', 'true');
+
   const data = {};
   const toggles = state.cloudSyncToggles || {};
 
@@ -155,10 +155,22 @@ export async function uploadLocalDataToCloud(uid) {
   try {
     const docRef = doc(firestoreDb, "users", uid);
     
-    // Determine profile and role
-    const email = state.currentUser ? state.currentUser.email : "";
-    const displayName = state.currentUser ? state.currentUser.displayName : "";
-    const role = (email && email.toLowerCase() === 'wbddwd55@gmail.com') ? 'admin' : 'user';
+    // Determine profile and role with cached fallback
+    let email = state.currentUser ? state.currentUser.email : "";
+    let displayName = state.currentUser ? state.currentUser.displayName : "";
+
+    if (!email || !displayName) {
+      try {
+        const cachedStr = SafeStorage.getItem('aura-cached-user-session');
+        if (cachedStr) {
+          const cached = JSON.parse(cachedStr);
+          if (!email) email = cached.email || "";
+          if (!displayName) displayName = cached.displayName || "";
+        }
+      } catch (err) {}
+    }
+
+    const role = (email && email.toLowerCase() === 'wbddwd55@gmail.com') ? 'admin' : (state.userRole || 'user');
     state.userRole = role;
 
     await setDoc(docRef, {
@@ -173,7 +185,7 @@ export async function uploadLocalDataToCloud(uid) {
     SafeStorage.setItem(`aura-last-sync_${uid}`, nowTs);
     SafeStorage.setItem(`aura-last-sync-time_${uid}`, nowTs);
 
-    console.log("Successfully uploaded local cache to Firestore with user profile.");
+    console.log("Successfully uploaded local cache to Firestore with user profile for UID:", uid);
   } catch (e) {
     console.error("Failed to upload local cache to Firestore:", e);
     throw e;
@@ -194,6 +206,8 @@ export async function syncUserSession(uid, isManual = false) {
   try {
     console.log("Starting cloud data synchronization for uid:", uid);
     if (isManual) {
+      state.cloudSyncEnabled = true;
+      SafeStorage.setItem('aura-cloud-sync-enabled', 'true');
       showPremiumToast("מסנכרן נתונים מהענן... ☁️", "info");
     }
 
@@ -209,7 +223,7 @@ export async function syncUserSession(uid, isManual = false) {
       console.log("No cloud data found. Backup local data to cloud...");
       await uploadLocalDataToCloud(uid);
       if (isManual) {
-        showPremiumToast("הסנכרון הראשוני הושלם בהצלחה! ⚡", "success");
+        showPremiumToast("הסנכרון הראשוני הושלם והחשבון נוצר בענן! ⚡", "success");
       }
       return;
     }
