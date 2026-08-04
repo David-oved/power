@@ -318,8 +318,8 @@
   flex-direction: column;
   position: relative;
   overflow: hidden;
-  padding-bottom: calc(100px + env(safe-area-inset-bottom, 24px));
-  /* Prevent bottom nav overlay overlapping content */
+  padding-bottom: 0 !important;
+  margin: 0 !important;
 }
 
 .tab-pane {
@@ -2516,7 +2516,11 @@ body.has-custom-wallpaper .app-viewport::after {
   pointer-events: none;
 }
 
-/* Universal Glass Card Opacity (Controlled dynamically by --card-bg-opacity across ALL tabs) */
+/* Universal Glass Card Opacity & Card Tint Theme (Controlled dynamically by --card-bg-rgb & --card-bg-opacity across ALL tabs) */
+:root {
+  --card-bg-rgb: 22, 22, 28;
+}
+
 .ios-settings-card-group,
 .ios-setting-block,
 .ios-setting-row,
@@ -2558,8 +2562,10 @@ body.has-custom-wallpaper .app-viewport::after {
 .ios-modal-card,
 .modal-sheet,
 .glassmorphic-card,
-.display-preview-card-wrapper {
-  background-color: rgba(22, 22, 28, var(--card-bg-opacity, 0.85)) !important;
+.display-preview-card-wrapper,
+.preview-mock-card,
+.demo-card {
+  background-color: rgba(var(--card-bg-rgb, 22, 22, 28), var(--card-bg-opacity, 0.85)) !important;
   backdrop-filter: blur(16px) !important;
   -webkit-backdrop-filter: blur(16px) !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
@@ -2577,10 +2583,175 @@ body.has-custom-wallpaper .app-viewport::after {
 .tab-pane:not(.dark-theme) .metrics-card,
 .tab-pane:not(.dark-theme) .meals-section-card,
 .tab-pane:not(.dark-theme) .premium-gauge-card {
-  background-color: rgba(255, 255, 255, var(--card-bg-opacity, 0.85)) !important;
+  background-color: rgba(var(--card-bg-rgb, 255, 255, 255), var(--card-bg-opacity, 0.85)) !important;
   backdrop-filter: blur(16px) !important;
   -webkit-backdrop-filter: blur(16px) !important;
   border: 1px solid rgba(0, 0, 0, 0.08) !important;
+}
+
+/* Center-Positioned Selection Modal Overlay */
+.ios-modal-overlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 100000;
+  padding: 16px;
+  box-sizing: border-box;
+}
+
+.ios-modal-card {
+  width: 90% !important;
+  max-width: 400px !important;
+  background: rgba(var(--card-bg-rgb, 22, 22, 28), 0.95) !important;
+  backdrop-filter: blur(24px) !important;
+  -webkit-backdrop-filter: blur(24px) !important;
+  border-radius: 24px !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  padding: 20px !important;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.65) !important;
+  transform: scale(0.85) translateY(0) !important;
+  opacity: 0 !important;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease !important;
+  margin: auto !important;
+}
+
+.ios-modal-overlay.show .ios-modal-card {
+  transform: scale(1) translateY(0) !important;
+  opacity: 1 !important;
+}
+
+/* Full Screen Live Preview Modal Sheet */
+.full-preview-modal-card {
+  width: 95% !important;
+  max-width: 440px !important;
+  height: 90vh !important;
+  max-height: 750px !important;
+  background: rgba(16, 16, 22, 0.95) !important;
+  backdrop-filter: blur(25px) !important;
+  border-radius: 28px !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  padding: 16px !important;
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8) !important;
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  direction: rtl !important;
+}
+
+.full-preview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.full-preview-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text-main, #ffffff);
+  margin: 0;
+}
+
+.full-preview-screen-demo {
+  flex: 1;
+  border-radius: 20px;
+  padding: 16px;
+  background-color: #0b0c10;
+  background-image: var(--app-wallpaper, none);
+  background-size: cover;
+  background-position: center;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+
+.demo-app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  z-index: 2;
+}
+
+.demo-app-body {
+  flex: 1;
+  padding: 14px 0;
+  position: relative;
+  z-index: 2;
+  overflow-y: auto;
+}
+
+.demo-app-nav-bar {
+  height: 48px;
+  background: rgba(18, 18, 22, 0.88);
+  backdrop-filter: blur(20px);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 0 10px;
+  position: relative;
+  z-index: 2;
+}
+
+.demo-nav-tab {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.demo-nav-tab.active {
+  color: var(--electric-blue, #007aff);
+  font-weight: 800;
+}
+
+.btn-open-full-preview {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--electric-blue-light, #60a5fa);
+  padding: 4px 10px;
+  border-radius: 10px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-open-full-preview:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Card Tint Color Palette Swatches */
+.card-color-swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.card-color-swatch:hover {
+  transform: scale(1.15);
+}
+
+.card-color-swatch.active {
+  transform: scale(1.2);
+  box-shadow: 0 0 12px var(--electric-blue, #007aff);
+  border: 2px solid #ffffff !important;
 }
 
 /* -------------------------------------------------------------------------- */

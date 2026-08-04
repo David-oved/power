@@ -830,14 +830,19 @@
 
               <!-- Live Interactive App Preview Card -->
               <div class="display-preview-card-wrapper">
-                <div class="display-preview-label">👁️ תצוגה מקדימה בזמן אמת</div>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                  <div class="display-preview-label" style="margin-bottom: 0;">👁️ תצוגה מקדימה בזמן אמת</div>
+                  <button type="button" id="open-full-preview-btn" class="btn-open-full-preview">
+                    <span>🔍 מסך מלא</span>
+                  </button>
+                </div>
                 <div id="display-live-preview" class="display-live-preview-box">
                   <div class="preview-mock-header">
                     <div class="preview-mock-title">Aura Power</div>
                     <div class="preview-mock-badge">100%</div>
                   </div>
                   <div class="preview-mock-body">
-                    <div class="preview-mock-card">
+                    <div class="preview-mock-card" id="live-preview-sample-card">
                       <div class="preview-mock-card-header">
                         <span class="preview-mock-dot"></span>
                         <span class="preview-mock-text-bold">כרטיס אימון לדוגמה</span>
@@ -880,6 +885,28 @@
                   <div class="ios-row-right">
                     <span class="ios-row-icon-badge bg-ios-purple" style="background-color: #5856d6;">✨</span>
                     <span class="ios-row-label">הצג אפקטי זוהר</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card Tint Color Card Group -->
+              <div class="ios-settings-card-group">
+                <div class="ios-settings-group-title">צבע גוון הכרטיסיות (Card Tint Theme)</div>
+                <div class="ios-setting-block">
+                  <div class="ios-setting-block-header">
+                    <label for="display-custom-card-color-picker" class="custom-color-picker-label">
+                      <span>🎨 גוון אישי</span>
+                      <input type="color" id="display-custom-card-color-picker" value="#16161c">
+                    </label>
+                    <span class="ios-row-label">צבע רקע לכרטיסיות</span>
+                  </div>
+                  <div class="accent-color-palette" id="card-color-palette">
+                    <button type="button" class="card-color-swatch active" data-card-color="#16161c" title="Charcoal Classic" style="background: #16161c; border: 1px solid rgba(255,255,255,0.2);"></button>
+                    <button type="button" class="card-color-swatch" data-card-color="#0f172a" title="Deep Midnight" style="background: #0f172a; border: 1px solid rgba(255,255,255,0.2);"></button>
+                    <button type="button" class="card-color-swatch" data-card-color="#1e1b2e" title="Royal Obsidian" style="background: #1e1b2e; border: 1px solid rgba(255,255,255,0.2);"></button>
+                    <button type="button" class="card-color-swatch" data-card-color="#062e24" title="Emerald Glass" style="background: #062e24; border: 1px solid rgba(255,255,255,0.2);"></button>
+                    <button type="button" class="card-color-swatch" data-card-color="#2e180d" title="Sunset Amber" style="background: #2e180d; border: 1px solid rgba(255,255,255,0.2);"></button>
+                    <button type="button" class="card-color-swatch" data-card-color="#ffffff" title="Frost White" style="background: #ffffff; border: 1px solid rgba(0,0,0,0.2);"></button>
                   </div>
                 </div>
               </div>
@@ -980,6 +1007,49 @@
                     <span class="ios-row-icon-badge" style="background-color: var(--electric-blue);">📱</span>
                     <span class="ios-row-label">סגנון סרגל ניווט תחתון</span>
                   </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Full Screen App Live Preview Modal Sheet -->
+          <div id="display-full-preview-modal" class="ios-modal-overlay hide" style="z-index: 99999;">
+            <div class="full-preview-modal-card">
+              <div class="full-preview-header">
+                <button id="close-full-preview-btn" class="ios-back-btn">← חזרה להגדרות</button>
+                <h3 class="full-preview-title">תצוגה מקדימה במסך מלא</h3>
+              </div>
+              <div id="full-preview-screen-demo" class="full-preview-screen-demo">
+                <div class="demo-app-header">
+                  <div style="font-weight: 900; font-size: 1.1rem; color: var(--text-main);">Aura Power Demo</div>
+                  <div class="preview-mock-badge">LIVE</div>
+                </div>
+                <div class="demo-app-body">
+                  <div class="demo-card">
+                    <div class="preview-mock-card-header">
+                      <span class="preview-mock-dot"></span>
+                      <span class="preview-mock-text-bold">אימון כוח יומי - חזה וזרועות</span>
+                    </div>
+                    <div class="preview-mock-text-sub">כך מופיעים הכרטיסים והצבעים בכל הטאבים באפליקציה</div>
+                    <div style="display: flex; gap: 8px; margin-top: 10px;">
+                      <div class="preview-mock-btn" style="flex: 1;">התחל אימון 🚀</div>
+                      <div class="preview-mock-btn" style="background: rgba(255,255,255,0.15); color: var(--text-main);">היסטוריה 📊</div>
+                    </div>
+                  </div>
+
+                  <div class="demo-card" style="margin-top: 12px;">
+                    <div class="preview-mock-card-header">
+                      <span class="preview-mock-dot" style="background-color: var(--electric-blue-light);"></span>
+                      <span class="preview-mock-text-bold">מדדי ביצוע ותזונה</span>
+                    </div>
+                    <div class="preview-mock-text-sub">שקיפות זכוכית וצבע גוון מותאם אישית</div>
+                  </div>
+                </div>
+                <div class="demo-app-nav-bar">
+                  <div class="demo-nav-tab active">🏠 בית</div>
+                  <div class="demo-nav-tab">💪 אימונים</div>
+                  <div class="demo-nav-tab">📊 מדדים</div>
+                  <div class="demo-nav-tab">⚙️ הגדרות</div>
                 </div>
               </div>
             </div>

@@ -356,6 +356,10 @@ export async function syncUserSession(uid, isManual = false) {
         state.accentColor = ds.accentColor;
         SafeStorage.setItem('aura-accent-color', ds.accentColor);
       }
+      if (ds.cardColor) {
+        state.cardBgColor = ds.cardColor;
+        SafeStorage.setItem('aura-card-bg-color', ds.cardColor);
+      }
       if (ds.wallpaper) {
         state.wallpaper = ds.wallpaper;
         SafeStorage.setItem('aura-wallpaper', ds.wallpaper);
@@ -386,6 +390,7 @@ export async function syncUserSession(uid, isManual = false) {
           theme: state.displayTheme,
           opacity: state.displayOpacity,
           accentColor: state.accentColor,
+          cardColor: state.cardBgColor,
           wallpaper: state.wallpaper,
           showGlows: state.showGlows,
           navStyle: state.navStyle

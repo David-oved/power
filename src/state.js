@@ -107,6 +107,7 @@ export const state = {
   navStyle: SafeStorage.getItem('aura-nav-style') || 'floating',
   displayOpacity: parseInt(SafeStorage.getItem('aura-display-opacity') || '85'),
   accentColor: SafeStorage.getItem('aura-accent-color') || '#007aff',
+  cardBgColor: SafeStorage.getItem('aura-card-bg-color') || '#16161c',
   wallpaper: SafeStorage.getItem('aura-wallpaper') || 'default'
 };
 

@@ -40,6 +40,14 @@ function hexToRgba(hex, alpha = 0.25) {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
+function hexToRgbValues(hex) {
+  let num = parseInt(hex.replace('#', ''), 16);
+  let r = (num >> 16);
+  let g = ((num >> 8) & 0x00FF);
+  let b = (num & 0x0000FF);
+  return `${r}, ${g}, ${b}`;
+}
+
 // Cloud Sync Helper for Display Preferences
 function saveAllDisplaySettingsToCloud() {
   import("../utils/db.js").then(({ saveFieldToCloud }) => {
@@ -47,6 +55,7 @@ function saveAllDisplaySettingsToCloud() {
       theme: state.displayTheme || (state.outdoorMode ? 'outdoor' : (SafeStorage.getItem('settings_dark_mode') !== 'false' ? 'dark' : 'light')),
       opacity: state.displayOpacity,
       accentColor: state.accentColor,
+      cardColor: state.cardBgColor,
       wallpaper: state.wallpaper,
       showGlows: state.showGlows,
       navStyle: state.navStyle
@@ -89,7 +98,24 @@ export function applyDisplayPreferences() {
     }
   });
 
-  // 3. Theme Mode (Dark / Light / Outdoor)
+  // 3. Apply Card Tint Color Theme
+  const cardColor = state.cardBgColor || '#16161c';
+  const cardRgb = hexToRgbValues(cardColor);
+  document.documentElement.style.setProperty('--card-bg-rgb', cardRgb);
+
+  const cardColorPicker = document.getElementById('display-custom-card-color-picker');
+  if (cardColorPicker) cardColorPicker.value = cardColor;
+
+  const cardSwatches = document.querySelectorAll('.card-color-swatch');
+  cardSwatches.forEach(s => {
+    if (s.dataset.cardColor && s.dataset.cardColor.toLowerCase() === cardColor.toLowerCase()) {
+      s.classList.add('active');
+    } else {
+      s.classList.remove('active');
+    }
+  });
+
+  // 4. Theme Mode (Dark / Light / Outdoor)
   const currentTheme = state.displayTheme || (state.outdoorMode ? 'outdoor' : (SafeStorage.getItem('settings_dark_mode') !== 'false' ? 'dark' : 'light'));
   const allTabs = document.querySelectorAll('.tab-pane');
 
@@ -113,7 +139,7 @@ export function applyDisplayPreferences() {
     }
   });
 
-  // 4. Apply Background Wallpaper (100% Offline Gradient Presets + Base64 Custom)
+  // 5. Apply Background Wallpaper (100% Offline Gradient Presets + Base64 Custom)
   const wp = state.wallpaper || 'default';
   let wpUrl = 'none';
   if (wp === 'cyberpunk_gym') {
@@ -155,7 +181,7 @@ export function applyDisplayPreferences() {
     }
   });
 
-  // 5. Update Live Interactive Preview Box
+  // 6. Update Live Interactive Preview Boxes
   const livePreviewBox = document.getElementById('display-live-preview');
   if (livePreviewBox) {
     if (wp !== 'default' && wpUrl !== 'none') {
@@ -164,6 +190,17 @@ export function applyDisplayPreferences() {
     } else {
       livePreviewBox.style.backgroundImage = 'none';
       livePreviewBox.style.backgroundColor = (currentTheme === 'light') ? '#f2f2f7' : '#0b0c10';
+    }
+  }
+
+  const fullPreviewDemo = document.getElementById('full-preview-screen-demo');
+  if (fullPreviewDemo) {
+    if (wp !== 'default' && wpUrl !== 'none') {
+      fullPreviewDemo.style.backgroundImage = wpUrl;
+      fullPreviewDemo.style.backgroundSize = 'cover';
+    } else {
+      fullPreviewDemo.style.backgroundImage = 'none';
+      fullPreviewDemo.style.backgroundColor = (currentTheme === 'light') ? '#f2f2f7' : '#0b0c10';
     }
   }
 }
@@ -365,6 +402,63 @@ export function initPremiumSettings() {
     });
     opacitySlider.addEventListener('change', () => {
       saveAllDisplaySettingsToCloud();
+    });
+  }
+
+  // Bind Card Tint Color Swatches & Custom Card Color Picker
+  const cardSwatches = document.querySelectorAll('.card-color-swatch');
+  cardSwatches.forEach(s => {
+    s.addEventListener('click', (e) => {
+      const color = e.currentTarget.dataset.cardColor;
+      if (!color) return;
+      state.cardBgColor = color;
+      SafeStorage.setItem('aura-card-bg-color', color);
+      applyDisplayPreferences();
+      saveAllDisplaySettingsToCloud();
+      showPremiumToast(`גוון הכרטיסיות עודכן! 🎨`, 'success');
+    });
+  });
+
+  const customCardColorPicker = document.getElementById('display-custom-card-color-picker');
+  if (customCardColorPicker) {
+    customCardColorPicker.addEventListener('input', (e) => {
+      const color = e.target.value;
+      state.cardBgColor = color;
+      SafeStorage.setItem('aura-card-bg-color', color);
+      applyDisplayPreferences();
+    });
+    customCardColorPicker.addEventListener('change', () => {
+      saveAllDisplaySettingsToCloud();
+      showPremiumToast(`גוון כרטיסיות אישי נשמר! 🎨`, 'success');
+    });
+  }
+
+  // Bind Full Screen Preview Modal Open & Close Buttons
+  const openFullPreviewBtn = document.getElementById('open-full-preview-btn');
+  const closeFullPreviewBtn = document.getElementById('close-full-preview-btn');
+  const fullPreviewModal = document.getElementById('display-full-preview-modal');
+
+  if (openFullPreviewBtn && fullPreviewModal) {
+    openFullPreviewBtn.addEventListener('click', () => {
+      applyDisplayPreferences();
+      fullPreviewModal.classList.remove('hide');
+      fullPreviewModal.classList.add('show');
+    });
+  }
+
+  if (closeFullPreviewBtn && fullPreviewModal) {
+    closeFullPreviewBtn.addEventListener('click', () => {
+      fullPreviewModal.classList.remove('show');
+      fullPreviewModal.classList.add('hide');
+    });
+  }
+
+  if (fullPreviewModal) {
+    fullPreviewModal.addEventListener('click', (e) => {
+      if (e.target === fullPreviewModal) {
+        fullPreviewModal.classList.remove('show');
+        fullPreviewModal.classList.add('hide');
+      }
     });
   }
 
