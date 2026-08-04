@@ -34,6 +34,18 @@ export function getDb() {
         console.error("Failed to get Firestore instance:", err);
       }
     }
+  } else if (!db && window.firebaseConfig && window.firebaseConfig.apiKey && window.firebaseConfig.apiKey !== "YOUR_API_KEY") {
+    try {
+      if (!state.app && typeof initializeApp !== 'undefined') {
+        state.app = initializeApp(window.firebaseConfig);
+      }
+      if (state.app) {
+        db = getFirestore(state.app);
+        console.log("Firestore auto-initialized with fallback getFirestore.");
+      }
+    } catch (err) {
+      console.error("Failed to auto-initialize Firestore:", err);
+    }
   }
   return db;
 }
@@ -449,8 +461,10 @@ export async function syncUserSession(uid, isManual = false) {
   } catch (error) {
     console.error("Error during cloud user sync session:", error);
     if (isManual) {
-      showPremiumToast("סנכרון הענן נכשל. עובד במצב לא מקוון.", "error");
+      const msg = error && error.message ? error.message : "בעיית חיבור לרשת";
+      showPremiumToast(`סנכרון הענן נכשל: ${msg}`, "error");
     }
+    throw error;
   } finally {
     setBgSyncing(false);
   }

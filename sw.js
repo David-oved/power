@@ -1,5 +1,5 @@
-const CACHE_NAME = '1.8.8';
-const UPDATE_DESCRIPTION = 'שדרוג 1.8.8: תיקון קריטי ליצירת מסמך משתמש מאפס בענן בעת הפעלת גיבוי עם נתונים מקומיים ומטמון שמור';
+const CACHE_NAME = '1.8.9';
+const UPDATE_DESCRIPTION = 'שדרוג 1.8.9: התאוששות אוטומטית של חיבור Firestore, מניעת הודעות שגיאה גנריות והצגת סיבת הכשל המדויקת';
 
 const ASSETS = [
   './',
