@@ -719,6 +719,7 @@ body:not(.light-theme) .ios-settings-header {
   padding: 0 !important;
   direction: rtl !important;
   overflow: hidden !important;
+  color: var(--text-main, #ffffff) !important;
 }
 
 #tab-settings.active,
@@ -2476,6 +2477,21 @@ body.has-custom-wallpaper .meals-page-container,
 body.has-custom-wallpaper #meals-main-view {
   background-color: transparent !important;
   background-image: none !important;
+}
+
+/* Force White Crisp Text Legibility on Custom Wallpaper & Dark Modes */
+body.has-custom-wallpaper .settings-main-title,
+body.has-custom-wallpaper .ios-row-label,
+body.has-custom-wallpaper .location-select-title,
+body.has-custom-wallpaper .card-title,
+body.has-custom-wallpaper .exercise-name,
+body.has-custom-wallpaper .workout-title,
+body.has-custom-wallpaper .preview-mock-text-bold,
+body.has-custom-wallpaper h2,
+body.has-custom-wallpaper h3,
+body.has-custom-wallpaper h4 {
+  color: #ffffff !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
 }
 
 .app-viewport::before,
