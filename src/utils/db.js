@@ -487,13 +487,32 @@ export async function deleteSpecificCloudItem(uid, categoryKey, itemKey) {
   }
 }
 
-// Delete all cloud data for the user
+// Delete all cloud data for the user (PRESERVING user document and profile)
 export async function deleteCloudDataOnly(uid) {
   const firestoreDb = getDb();
   if (!firestoreDb) {
     throw new Error("Firestore not initialized.");
   }
   const docRef = doc(firestoreDb, "users", uid);
-  await deleteDoc(docRef);
-  console.log(`Successfully deleted cloud data for user: ${uid}`);
+  const email = state.currentUser ? state.currentUser.email : "";
+  const displayName = state.currentUser ? state.currentUser.displayName : "";
+  const role = (email && email.toLowerCase() === 'wbddwd55@gmail.com') ? 'admin' : (state.userRole || 'user');
+
+  // Clear data fields using deleteField(), but strictly maintain profile, email, and role!
+  await setDoc(docRef, {
+    workoutHistory: deleteField(),
+    activeWorkout: deleteField(),
+    customLocations: deleteField(),
+    customExercises: deleteField(),
+    favoriteExercises: deleteField(),
+    exerciseDefaults: deleteField(),
+    futureWorkouts: deleteField(),
+    messages: deleteField(),
+    displaySettings: deleteField(),
+    email,
+    displayName,
+    role,
+    updatedAt: Date.now()
+  }, { merge: true });
+  console.log(`Successfully reset user cloud data while preserving profile for: ${uid}`);
 }

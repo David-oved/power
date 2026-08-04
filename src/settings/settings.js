@@ -789,29 +789,53 @@ export function initPremiumSettings() {
   const updateSyncUI = async () => {
     if (!state.currentUser) {
       if (goToSyncBtn) goToSyncBtn.style.display = 'none';
+      if (syncStatusBadge) {
+        syncStatusBadge.textContent = "לא מחובר";
+        syncStatusBadge.style.color = "#8e8e93";
+      }
       return;
     } else {
       if (goToSyncBtn) goToSyncBtn.style.display = 'flex';
     }
 
+    const isOnline = navigator.onLine;
     const enabled = state.cloudSyncEnabled;
+
+    let statusText = "מנותק (מקומי בלבד)";
+    let statusColor = "#ff9500"; // Orange
+
+    if (!isOnline) {
+      statusText = "מנותק (אין חיבור לרשת) 🔌";
+      statusColor = "#ff3b30"; // Red
+    } else if (enabled) {
+      statusText = "מחובר ומסונכרן ⚡";
+      statusColor = "#34c759"; // Green
+    }
+
     if (syncStatusBadge) {
-      syncStatusBadge.textContent = enabled ? "מחובר" : "מנותק";
-      syncStatusBadge.style.color = enabled ? "#34c759" : "#ff9500";
+      syncStatusBadge.textContent = enabled ? (isOnline ? "מחובר ⚡" : "אין רשת 🔌") : "מנותק";
+      syncStatusBadge.style.color = statusColor;
     }
 
     if (syncMenuStatus) {
-      syncMenuStatus.textContent = enabled ? "מחובר ומסונכרן" : "סנכרון מנותק (מקומי בלבד)";
-      syncMenuStatus.style.color = enabled ? "#34c759" : "#ff9500";
+      syncMenuStatus.textContent = statusText;
+      syncMenuStatus.style.color = statusColor;
     }
 
     // Toggle actions buttons visibility
-    if (enabled) {
+    if (enabled && isOnline) {
       if (syncActionDisconnect) syncActionDisconnect.classList.remove('hide');
       if (syncActionConnect) syncActionConnect.classList.add('hide');
       if (syncActionNow) {
         syncActionNow.style.opacity = '1';
         syncActionNow.style.pointerEvents = 'auto';
+      }
+    } else if (enabled && !isOnline) {
+      if (syncActionDisconnect) syncActionDisconnect.classList.remove('hide');
+      if (syncActionConnect) syncActionConnect.classList.add('hide');
+      if (syncActionNow) {
+        syncActionNow.style.opacity = '0.5';
+        syncActionNow.style.pointerEvents = 'none';
       }
     } else {
       if (syncActionDisconnect) syncActionDisconnect.classList.add('hide');
@@ -1131,6 +1155,15 @@ export function initPremiumSettings() {
 
   // Initial update
   updateSyncUI();
+
+  // Realtime Status Check Interval & Network Listener (runs every 6s)
+  if (!window._syncStatusHeartbeat) {
+    window._syncStatusHeartbeat = setInterval(() => {
+      if (state.currentUser) updateSyncUI();
+    }, 6000);
+    window.addEventListener('online', () => updateSyncUI());
+    window.addEventListener('offline', () => updateSyncUI());
+  }
 
   // Expose updates for state changes (e.g. login)
   window.updateSyncUI = updateSyncUI;
