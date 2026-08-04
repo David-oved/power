@@ -111,7 +111,13 @@ export function updateAuthUI() {
 
   const name = state.currentUser.displayName || 'Unknown User';
   const email = state.currentUser.email || '--';
-  const roleText = state.userRole === 'admin' ? 'מנהל' : 'משתמש רגיל';
+  
+  let roleText = 'בטעינה... ⏳';
+  if (state.userRole === 'admin') {
+    roleText = 'מנהל';
+  } else if (state.userRole === 'user') {
+    roleText = 'משתמש רגיל';
+  }
 
   // Header Display Name
   setElText('user-display-name', name ? name.split(' ')[0] : 'User');
@@ -443,9 +449,20 @@ export async function initAuth() {
             if (window.renderAccordionHistoryView) window.renderAccordionHistoryView();
             if (window.renderWorkoutsLog) window.renderWorkoutsLog();
             if (window.renderExercisePickerList) window.renderExercisePickerList();
+            if (window.renderMeals) window.renderMeals();
+            if (window.renderMealsTab) window.renderMealsTab();
+            if (window.renderFutureWorkouts) window.renderFutureWorkouts();
+            if (window.updateUnreadMessagesCount) window.updateUnreadMessagesCount();
+            if (window.renderUserMessages) window.renderUserMessages();
+            if (window.checkAndRestoreActiveWorkout) window.checkAndRestoreActiveWorkout();
             if (window.updateSyncUI) window.updateSyncUI();
           }).catch(syncErr => {
             console.warn("User session background sync encountered an error:", syncErr);
+            if (state.userRole === 'loading') {
+              const email = state.currentUser ? state.currentUser.email : "";
+              state.userRole = (email && email.toLowerCase() === 'wbddwd55@gmail.com') ? 'admin' : 'user';
+              updateAuthUI();
+            }
           });
           
           // Dynamic initializers
