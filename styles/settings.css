@@ -2532,47 +2532,34 @@ body.has-custom-wallpaper .app-viewport::after {
   pointer-events: none;
 }
 
-/* Universal Glass Card Opacity & Card Tint Theme (Controlled dynamically by --card-bg-rgb & --card-bg-opacity across ALL tabs) */
+/* Universal Glass Card Opacity & Card Tint Theme (Applied strictly to MAIN OUTER CARDS to prevent nested backdrop-filter rendering bugs) */
 :root {
   --card-bg-rgb: 22, 22, 28;
 }
 
+/* Outer Container Cards */
 .ios-settings-card-group,
-.ios-setting-block,
-.ios-setting-row,
 .ios-profile-card,
 .settings-account-card,
-.ios-settings-field-group,
-.ios-settings-field-row,
 .workout-dashboard-card,
-.location-tile,
 .exercise-card,
 .custom-location-card,
-.exercise-list-item-wrapper,
 .workout-history-card,
 .history-card,
 .history-workout-card,
 .custom-ex-card,
 .routine-card,
-.active-workout-header-bar,
-.active-timer-box,
 .workout-summary-card,
 .metrics-card,
 .analytics-card,
 .chart-card-wrapper,
 .inspector-card,
-.metrics-summary-tile,
-.stat-mini-card,
 .analytics-segment-card,
 .analytics-chart-container,
 .log-history-card,
-.calendar-day-cell,
-.metric-row-card,
 .meals-section-card,
 .premium-gauge-card,
 .rec-meal-card,
-.logged-meal-row,
-.slider-group-container,
 .meals-empty-state-card,
 .glass-modal-card,
 .ios-modal-card,
@@ -2580,8 +2567,7 @@ body.has-custom-wallpaper .app-viewport::after {
 .glassmorphic-card,
 .display-preview-card-wrapper,
 .preview-mock-card,
-.demo-card,
-.ios-settings-header {
+.demo-card {
   background-color: rgba(var(--card-bg-rgb, 22, 22, 28), var(--card-bg-opacity, 0.85)) !important;
   backdrop-filter: blur(16px) !important;
   -webkit-backdrop-filter: blur(16px) !important;
@@ -2589,13 +2575,27 @@ body.has-custom-wallpaper .app-viewport::after {
   transition: background-color 0.25s ease, border-color 0.25s ease !important;
 }
 
+/* Inner Child Item Rows (Transparent background & NO nested backdrop-filter to prevent browser rendering cutoff) */
+.ios-setting-block,
+.ios-setting-row,
+.ios-settings-field-group,
+.ios-settings-field-row,
+.exercise-list-item-wrapper,
+.location-tile,
+.stat-mini-card,
+.metrics-summary-tile,
+.calendar-day-cell,
+.metric-row-card,
+.logged-meal-row,
+.slider-group-container {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
 /* Light Theme Card Glass Opacity Variant */
 .tab-pane:not(.dark-theme) .ios-settings-card-group,
-.tab-pane:not(.dark-theme) .ios-setting-block,
 .tab-pane:not(.dark-theme) .workout-dashboard-card,
-.tab-pane:not(.dark-theme) .location-tile,
 .tab-pane:not(.dark-theme) .exercise-card,
-.tab-pane:not(.dark-theme) .exercise-list-item-wrapper,
 .tab-pane:not(.dark-theme) .workout-history-card,
 .tab-pane:not(.dark-theme) .metrics-card,
 .tab-pane:not(.dark-theme) .meals-section-card,
