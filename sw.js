@@ -1,5 +1,5 @@
-const CACHE_NAME = '1.8.4';
-const UPDATE_DESCRIPTION = 'שדרוג 1.8.4: תיקון נראות, ניגודיות וקיבוע גובה ורוחב 100% לכל הטאבים';
+const CACHE_NAME = '1.8.5';
+const UPDATE_DESCRIPTION = 'שדרוג 1.8.5: תיקון מנגנון חיבור מחדש לסנכרון ענן, בדיקת אימות משתמש תקינה ואיחוד הודעות שגיאה';
 
 const ASSETS = [
   './',

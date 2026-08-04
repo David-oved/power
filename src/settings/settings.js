@@ -927,6 +927,11 @@ export function initPremiumSettings() {
   // Action: Connect Sync
   if (syncActionConnect) {
     syncActionConnect.addEventListener('click', async () => {
+      if (!state.currentUser || !state.currentUser.uid) {
+        showPremiumToast("יש להתחבר לחשבון גוגל כדי להתחבר לגיבוי בענן.", "error");
+        return;
+      }
+
       state.cloudSyncEnabled = true;
       SafeStorage.setItem('aura-cloud-sync-enabled', 'true');
       
@@ -942,7 +947,7 @@ export function initPremiumSettings() {
         showPremiumToast("הסנכרון לענן הופעל והנתונים הועלו בהצלחה! ⚡", "success");
       } catch (err) {
         console.error("Reconnecting sync failed:", err);
-        showPremiumToast("חיבור הגיבוי נכשל.", "error");
+        showPremiumToast("חיבור הגיבוי נכשל. ודא שחיבור האינטרנט פעיל.", "error");
       } finally {
         syncActionConnect.style.pointerEvents = 'auto';
         syncActionConnect.style.opacity = '1';

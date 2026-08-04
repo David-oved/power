@@ -82,11 +82,12 @@ export async function saveFieldToCloud(fieldName, data) {
 }
 
 // Fetch the user's entire cloud document
+// Fetch the user's entire cloud document
 export async function loadUserDataFromCloud(uid) {
   const firestoreDb = getDb();
   if (!firestoreDb) {
     console.warn("Firestore not initialized. Cannot fetch user document.");
-    return null;
+    throw new Error("Firestore is not initialized.");
   }
   try {
     const docRef = doc(firestoreDb, "users", uid);
@@ -96,6 +97,7 @@ export async function loadUserDataFromCloud(uid) {
     }
   } catch (error) {
     console.error("Failed to load user data from Firestore:", error);
+    throw error;
   }
   return null;
 }
@@ -147,7 +149,9 @@ export async function uploadLocalDataToCloud(uid) {
   };
 
   const firestoreDb = getDb();
-  if (!firestoreDb) return;
+  if (!firestoreDb) {
+    throw new Error("Firestore is not initialized.");
+  }
   try {
     const docRef = doc(firestoreDb, "users", uid);
     
@@ -172,6 +176,7 @@ export async function uploadLocalDataToCloud(uid) {
     console.log("Successfully uploaded local cache to Firestore with user profile.");
   } catch (e) {
     console.error("Failed to upload local cache to Firestore:", e);
+    throw e;
   }
 }
 
