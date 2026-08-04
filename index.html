@@ -1066,6 +1066,22 @@
                 <!-- Injected dynamically in app.js -->
               </div>
             </div>
+          <!-- Granular Cloud Items Inspector Modal -->
+          <div id="cloud-items-inspector-modal" class="ios-modal-overlay hide" style="z-index: 100005;">
+            <div class="ios-modal-card" style="max-width: 580px; max-height: 85vh; display: flex; flex-direction: column; padding: 20px;">
+              <div class="ios-modal-header" style="flex: 0 0 auto; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 12px; margin-bottom: 14px;">
+                <button id="close-cloud-inspector-btn" class="ios-modal-close-btn" style="color: var(--electric-blue-light); font-weight: 800;">סגור</button>
+                <h3 class="ios-modal-title" style="font-size: 1.1rem; font-weight: 800; color: #fff;">🔍 ניהול וצפייה בפריטי ענן</h3>
+              </div>
+              <div id="cloud-inspector-body" style="flex: 1 1 auto; overflow-y: auto; text-align: right; direction: rtl; padding-left: 4px;">
+                <div id="cloud-inspector-loading" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                  טוען פריטים מהענן... <span class="ios-spinner"></span>
+                </div>
+                <div id="cloud-inspector-content" class="hide" style="display: flex; flex-direction: column; gap: 16px;">
+                  <!-- Injected dynamically -->
+                </div>
+              </div>
+            </div>
           </div>
 
         </div>

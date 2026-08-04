@@ -164,6 +164,11 @@ export async function uploadLocalDataToCloud(uid) {
       role,
       updatedAt: Date.now()
     }, { merge: true });
+
+    const nowTs = Date.now().toString();
+    SafeStorage.setItem(`aura-last-sync_${uid}`, nowTs);
+    SafeStorage.setItem(`aura-last-sync-time_${uid}`, nowTs);
+
     console.log("Successfully uploaded local cache to Firestore with user profile.");
   } catch (e) {
     console.error("Failed to upload local cache to Firestore:", e);
@@ -415,7 +420,9 @@ export async function syncUserSession(uid, isManual = false) {
       }
     }
 
-    SafeStorage.setItem(`aura-last-sync_${uid}`, Date.now().toString());
+    const nowTimestamp = Date.now().toString();
+    SafeStorage.setItem(`aura-last-sync_${uid}`, nowTimestamp);
+    SafeStorage.setItem(`aura-last-sync-time_${uid}`, nowTimestamp);
 
     if (isManual || cloudLastUpdate > localLastSync) {
       showPremiumToast("הסנכרון הושלם! ✨", "success");

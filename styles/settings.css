@@ -493,7 +493,7 @@
   padding: calc(1rem + env(safe-area-inset-top, 16px)) 1.5rem 14px 1.5rem !important;
   margin: 0 !important;
   direction: rtl !important;
-  background: rgba(14, 14, 18, 0.94) !important;
+  background-color: rgba(var(--card-bg-rgb, 14, 14, 18), var(--card-bg-opacity, 0.85)) !important;
   backdrop-filter: blur(25px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(25px) saturate(180%) !important;
   position: sticky !important;
@@ -506,7 +506,7 @@
 
 #tab-settings.dark-theme .ios-settings-header,
 body:not(.light-theme) .ios-settings-header {
-  background: rgba(14, 14, 18, 0.94) !important;
+  background-color: rgba(var(--card-bg-rgb, 14, 14, 18), var(--card-bg-opacity, 0.85)) !important;
   border-bottom: none !important;
   border: none !important;
 }
@@ -2564,7 +2564,8 @@ body.has-custom-wallpaper .app-viewport::after {
 .glassmorphic-card,
 .display-preview-card-wrapper,
 .preview-mock-card,
-.demo-card {
+.demo-card,
+.ios-settings-header {
   background-color: rgba(var(--card-bg-rgb, 22, 22, 28), var(--card-bg-opacity, 0.85)) !important;
   backdrop-filter: blur(16px) !important;
   -webkit-backdrop-filter: blur(16px) !important;

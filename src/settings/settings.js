@@ -742,6 +742,8 @@ export function initPremiumSettings() {
   const syncActionDisconnect = document.getElementById('sync-action-disconnect');
   const syncActionConnect = document.getElementById('sync-action-connect');
   const syncActionDelete = document.getElementById('sync-action-delete');
+  const syncActionDeleteHistory = document.getElementById('sync-action-delete-history');
+  const syncActionInspectItems = document.getElementById('sync-action-inspect-items');
 
   // Status elements
   const syncMenuStatus = document.getElementById('sync-menu-status');
@@ -784,7 +786,7 @@ export function initPremiumSettings() {
     });
   };
 
-  const updateSyncUI = () => {
+  const updateSyncUI = async () => {
     if (!state.currentUser) {
       if (goToSyncBtn) goToSyncBtn.style.display = 'none';
       return;
@@ -808,7 +810,6 @@ export function initPremiumSettings() {
       if (syncActionDisconnect) syncActionDisconnect.classList.remove('hide');
       if (syncActionConnect) syncActionConnect.classList.add('hide');
       if (syncActionNow) {
-        syncActionNow.disabled = false;
         syncActionNow.style.opacity = '1';
         syncActionNow.style.pointerEvents = 'auto';
       }
@@ -816,20 +817,19 @@ export function initPremiumSettings() {
       if (syncActionDisconnect) syncActionDisconnect.classList.add('hide');
       if (syncActionConnect) syncActionConnect.classList.remove('hide');
       if (syncActionNow) {
-        syncActionNow.disabled = true;
         syncActionNow.style.opacity = '0.5';
         syncActionNow.style.pointerEvents = 'none';
       }
     }
 
-    // Load Last Sync Time
-    const lastSyncTimeVal = SafeStorage.getItem(`aura-last-sync-time_${state.currentUser.uid}`);
+    // Load Last Sync Time (checking both timestamp keys for backwards compatibility)
+    const uid = state.currentUser.uid;
+    const lastSyncTimeVal = SafeStorage.getItem(`aura-last-sync-time_${uid}`) || SafeStorage.getItem(`aura-last-sync_${uid}`);
     if (syncMenuLastTime) {
       syncMenuLastTime.textContent = lastSyncTimeVal ? new Date(Number(lastSyncTimeVal)).toLocaleString('he-IL') : "לא סונכרן מעולם";
     }
 
-    // Populate local/cloud counts dynamically with Safe JSON Parsing (Phase 2 optimization)
-    const uid = state.currentUser.uid;
+    // Populate counts (checking local storage fallback)
     const safeParseArray = (storageKey) => {
       try {
         const item = SafeStorage.getItem(storageKey);
@@ -837,7 +837,6 @@ export function initPremiumSettings() {
         const parsed = JSON.parse(item);
         return Array.isArray(parsed) ? parsed : [];
       } catch (err) {
-        console.warn(`JSON parse failed for ${storageKey}, falling back to []:`, err);
         return [];
       }
     };
@@ -894,16 +893,21 @@ export function initPremiumSettings() {
   if (syncActionNow) {
     syncActionNow.addEventListener('click', async () => {
       if (!state.currentUser) return;
-      syncActionNow.disabled = true;
+      syncActionNow.style.pointerEvents = 'none';
+      syncActionNow.style.opacity = '0.5';
       syncActionNow.textContent = "מסתנכרן... ⏳";
       try {
         const { syncUserSession } = await import("../utils/db.js");
         await syncUserSession(state.currentUser.uid, true);
-        SafeStorage.setItem(`aura-last-sync-time_${state.currentUser.uid}`, Date.now().toString());
+        const nowTs = Date.now().toString();
+        SafeStorage.setItem(`aura-last-sync-time_${state.currentUser.uid}`, nowTs);
+        SafeStorage.setItem(`aura-last-sync_${state.currentUser.uid}`, nowTs);
       } catch (err) {
         console.error("Manual sync failed:", err);
+        showPremiumToast("סנכרון הענן נכשל.", "error");
       } finally {
-        syncActionNow.disabled = false;
+        syncActionNow.style.pointerEvents = 'auto';
+        syncActionNow.style.opacity = '1';
         syncActionNow.textContent = "🔄 סנכרן כעת ורענן נתונים";
         updateSyncUI();
       }
@@ -926,45 +930,198 @@ export function initPremiumSettings() {
       state.cloudSyncEnabled = true;
       SafeStorage.setItem('aura-cloud-sync-enabled', 'true');
       
-      syncActionConnect.disabled = true;
+      syncActionConnect.style.pointerEvents = 'none';
+      syncActionConnect.style.opacity = '0.5';
       syncActionConnect.textContent = "מתחבר לענן... ⏳";
       try {
         const { syncUserSession } = await import("../utils/db.js");
         await syncUserSession(state.currentUser.uid, true);
-        SafeStorage.setItem(`aura-last-sync-time_${state.currentUser.uid}`, Date.now().toString());
+        const nowTs = Date.now().toString();
+        SafeStorage.setItem(`aura-last-sync-time_${state.currentUser.uid}`, nowTs);
+        SafeStorage.setItem(`aura-last-sync_${state.currentUser.uid}`, nowTs);
         showPremiumToast("הסנכרון לענן הופעל והנתונים הועלו בהצלחה! ⚡", "success");
       } catch (err) {
         console.error("Reconnecting sync failed:", err);
+        showPremiumToast("חיבור הגיבוי נכשל.", "error");
       } finally {
-        syncActionConnect.disabled = false;
+        syncActionConnect.style.pointerEvents = 'auto';
+        syncActionConnect.style.opacity = '1';
         syncActionConnect.textContent = "⚡ הפעל סנכרון ענן והעלה נתונים";
         updateSyncUI();
       }
     });
   }
 
-  // Action: Delete Cloud Data
+  // Action: Delete Entire Cloud Data
   if (syncActionDelete) {
     syncActionDelete.addEventListener('click', async () => {
       if (!state.currentUser) return;
       if (confirm("האם אתה בטוח שברצונך למחוק את כל הנתונים השמורים בענן? פעולה זו תמחק רק את הגיבוי בענן ולא תפגע במידע שבמכשיר שלך.")) {
-        syncActionDelete.disabled = true;
+        syncActionDelete.style.pointerEvents = 'none';
+        syncActionDelete.style.opacity = '0.5';
         syncActionDelete.textContent = "מוחק מהענן... ⏳";
         try {
           const { deleteCloudDataOnly } = await import("../utils/db.js");
           await deleteCloudDataOnly(state.currentUser.uid);
           showPremiumToast("כל הנתונים בענן נמחקו בהצלחה! המידע המקומי שמור במכשיר.", "success");
           SafeStorage.removeItem(`aura-last-sync-time_${state.currentUser.uid}`);
+          SafeStorage.removeItem(`aura-last-sync_${state.currentUser.uid}`);
         } catch (err) {
           console.error("Deleting cloud data failed:", err);
           showPremiumToast("מחיקת הנתונים מהענן נכשלה.", "error");
         } finally {
-          syncActionDelete.disabled = false;
+          syncActionDelete.style.pointerEvents = 'auto';
+          syncActionDelete.style.opacity = '1';
           syncActionDelete.textContent = "🗑️ מחק את כל הנתונים השמורים בענן";
           updateSyncUI();
         }
       }
     });
+  }
+
+  // Action: Delete Workout History Only from Cloud
+  if (syncActionDeleteHistory) {
+    syncActionDeleteHistory.addEventListener('click', async () => {
+      if (!state.currentUser) return;
+      if (confirm("האם אתה בטוח שברצונך למחוק את היסטוריית האימונים מהענן בלבד? פעולה זו לא תפגע באימונים שבמכשיר שלך.")) {
+        syncActionDeleteHistory.style.pointerEvents = 'none';
+        syncActionDeleteHistory.style.opacity = '0.5';
+        syncActionDeleteHistory.textContent = "מוחק היסטוריה מהענן... ⏳";
+        try {
+          const { deleteSpecificCloudCategory } = await import("../utils/db.js");
+          await deleteSpecificCloudCategory(state.currentUser.uid, 'workoutHistory');
+          showPremiumToast("היסטוריית האימונים נמחקה מהענן בהצלחה! 🗑️", "success");
+        } catch (err) {
+          console.error("Deleting workout history from cloud failed:", err);
+          showPremiumToast("מחיקת ההיסטוריה מהענן נכשלה.", "error");
+        } finally {
+          syncActionDeleteHistory.style.pointerEvents = 'auto';
+          syncActionDeleteHistory.style.opacity = '1';
+          syncActionDeleteHistory.textContent = "🗑️ מחק היסטוריה מהענן בלבד";
+          updateSyncUI();
+        }
+      }
+    });
+  }
+
+  // Action: Inspect & Manage Granular Cloud Items Modal
+  const openCloudInspector = async () => {
+    if (!state.currentUser) return;
+    const inspectorModal = document.getElementById('cloud-items-inspector-modal');
+    const loadingEl = document.getElementById('cloud-inspector-loading');
+    const contentEl = document.getElementById('cloud-inspector-content');
+    const closeBtn = document.getElementById('close-cloud-inspector-btn');
+
+    if (!inspectorModal || !contentEl) return;
+
+    inspectorModal.classList.remove('hide');
+    inspectorModal.classList.add('show');
+    loadingEl.classList.remove('hide');
+    contentEl.classList.add('hide');
+
+    if (closeBtn) {
+      closeBtn.onclick = () => {
+        inspectorModal.classList.remove('show');
+        inspectorModal.classList.add('hide');
+      };
+    }
+
+    try {
+      const { loadUserDataFromCloud, deleteSpecificCloudItem } = await import("../utils/db.js");
+      const cloudData = await loadUserDataFromCloud(state.currentUser.uid);
+
+      loadingEl.classList.add('hide');
+      contentEl.classList.remove('hide');
+      contentEl.innerHTML = '';
+
+      if (!cloudData) {
+        contentEl.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 1.5rem;">לא נמצאו נתונים שמורים בענן עבור משתמש זה.</div>';
+        return;
+      }
+
+      const categoriesMap = [
+        { key: 'customExercises', title: '✨ תרגילים מותאמים אישית', labelKey: 'name' },
+        { key: 'customLocations', title: '📍 מיקומים מותאמים אישית', labelKey: 'name' },
+        { key: 'workoutHistory', title: '📋 היסטוריית אימונים', labelKey: 'title' },
+        { key: 'futureWorkouts', title: '📅 אימונים מתוכננים', labelKey: 'title' },
+        { key: 'favoriteExercises', title: '⭐ תרגילים מועדפים', isStringArray: true }
+      ];
+
+      let hasAnyItems = false;
+
+      categoriesMap.forEach(cat => {
+        const items = cloudData[cat.key];
+        if (Array.isArray(items) && items.length > 0) {
+          hasAnyItems = true;
+          const catCard = document.createElement('div');
+          catCard.className = 'ios-settings-card-group';
+          catCard.style.cssText = 'padding: 12px; margin-bottom: 12px; border: 1px solid rgba(255,255,255,0.08);';
+
+          let itemsHtml = items.map((item, idx) => {
+            const displayTitle = cat.isStringArray ? item : (item[cat.labelKey] || item.name || item.title || `פריט #${idx + 1}`);
+            const dateStr = (item && item.date) ? new Date(item.date).toLocaleDateString('he-IL') : '';
+            const itemId = cat.isStringArray ? item : (item.id || item.name);
+
+            return `
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; border-bottom: 0.5px solid rgba(255,255,255,0.06);">
+                <button class="delete-cloud-item-btn" data-cat="${cat.key}" data-itemid="${itemId}" style="background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 4px 10px; font-size: 0.75rem; font-weight: 700; cursor: pointer;">
+                  🗑️ מחק בענן
+                </button>
+                <div style="text-align: right;">
+                  <div style="font-weight: 700; font-size: 0.88rem; color: #fff;">${displayTitle}</div>
+                  ${dateStr ? `<div style="font-size: 0.75rem; color: var(--text-muted);">${dateStr}</div>` : ''}
+                </div>
+              </div>
+            `;
+          }).join('');
+
+          catCard.innerHTML = `
+            <div style="font-size: 0.85rem; font-weight: 800; color: var(--electric-blue-light); margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,0.1);">${cat.title} (${items.length})</div>
+            <div style="display: flex; flex-direction: column; gap: 4px;">${itemsHtml}</div>
+          `;
+
+          contentEl.appendChild(catCard);
+        }
+      });
+
+      if (!hasAnyItems) {
+        contentEl.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 1.5rem;">הענן ריק מפריטים.</div>';
+      }
+
+      // Add click listeners to delete individual items
+      const deleteBtns = contentEl.querySelectorAll('.delete-cloud-item-btn');
+      deleteBtns.forEach(btn => {
+        btn.addEventListener('click', async (e) => {
+          const categoryKey = e.currentTarget.dataset.cat;
+          const itemKey = e.currentTarget.dataset.itemid;
+          if (!categoryKey || !itemKey) return;
+
+          if (confirm(`להסיר פריט זה מהענן?`)) {
+            e.currentTarget.style.pointerEvents = 'none';
+            e.currentTarget.textContent = "מוחק... ⏳";
+            try {
+              const { deleteSpecificCloudItem } = await import("../utils/db.js");
+              await deleteSpecificCloudItem(state.currentUser.uid, categoryKey, itemKey);
+              showPremiumToast("הפריט נמחק בהצלחה מהענן! 🗑️", "success");
+              openCloudInspector();
+            } catch (err) {
+              console.error("Failed to delete item from cloud:", err);
+              showPremiumToast("מחיקת הפריט נכשלה.", "error");
+            }
+          }
+        });
+      });
+
+    } catch (err) {
+      console.error("Failed to inspect cloud items:", err);
+      loadingEl.classList.add('hide');
+      contentEl.classList.remove('hide');
+      contentEl.innerHTML = '<div style="text-align: center; color: #ef4444; padding: 1.5rem;">שגיאה בטעינת פריטים מהענן. ודא שחיבור האינטרנט פעיל.</div>';
+    }
+  };
+
+  if (syncActionInspectItems) {
+    syncActionInspectItems.addEventListener('click', openCloudInspector);
   }
 
   // Initial update
